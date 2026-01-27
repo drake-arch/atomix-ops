@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Operations Recap - Atomix OPS</title>
+  <title>Atomix OPS</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
@@ -12,9 +12,17 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     .gradient-bg {
@@ -28,317 +36,147 @@
         linear-gradient(90deg, rgba(163, 243, 197, 0.03) 1px, transparent 1px);
       background-size: 50px 50px;
     }
+    .floating { animation: float 6s ease-in-out infinite; }
     .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+    .scale-in { animation: scaleIn 0.5s ease-out forwards; }
     .glass {
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.3); }
-    
-    #emailReport {
-      font-family: 'Courier New', monospace;
-      white-space: pre-wrap;
-      line-height: 1.6;
-    }
   </style>
 </head>
 
 <body class="bg-[#101314] text-[#EDEFED] overflow-x-hidden">
-  <div class="min-h-screen gradient-bg grid-bg relative">
-    <div class="relative z-10 px-6 py-8">
-      <div class="max-w-5xl mx-auto">
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-8 fade-in-up">
-          <div>
-            <h1 class="text-5xl font-extralight tracking-tight mb-2 bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent">
-              Operations Summary
-            </h1>
-            <p class="text-[#9D9F9E] text-lg">Email-ready daily recap</p>
-          </div>
-          <button onclick="copyToClipboard()" class="glass rounded-2xl px-6 py-4 text-[#A3F3C5] hover:bg-[#1e2223] hover:border-[#A3F3C5] transition-all glow flex items-center gap-3">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
-            </svg>
-            <span class="text-lg font-medium">Copy to Clipboard</span>
-          </button>
-        </div>
-
-        <!-- Email Report Card -->
-        <div class="glass rounded-3xl p-10 mb-8 fade-in-up" style="animation-delay: 0.1s;">
-          <div id="emailReport" class="text-sm text-[#EDEFED] select-all"></div>
-        </div>
-
-        <!-- Navigation -->
-        <div class="text-center mt-10">
-          <button onclick="window.history.back()" class="text-[#9D9F9E] hover:text-[#A3F3C5] transition-colors text-lg">
-            ← Back to Reports
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div id="app"></div>
 
   <script>
-    // Sample data - Replace with your actual data
-    const recapData = {
-      date: "Monday, January 26, 2026",
-      labor: {
-        atomix: { hours: 415.64, cost: 7311.00 },
-        traba: { hours: 24.60, cost: 450.00 },
-        oneSource: { hours: 0.00, cost: 0.00 },
-        total: { hours: 440.24, cost: 7761.00 }
-      },
-      performance: {
-        orders: 7803,
-        ordersPerHour: 17.72,
-        units: 24365,
-        unitsPerHour: 55.34,
-        costPerUnit: 0.32,
-        costPerOrder: 0.99
-      }
-    };
+    let currentView = 'home';
 
-    // Sample team submissions - Replace with actual data from localStorage or API
-    const teamSubmissions = [
-      {
-        name: "Production Team",
-        status: "submitted",
-        lastSubmission: "January 26, 2026 at 11:45 PM",
-        lead: "John Smith",
-        metrics: {
-          orders: 2450,
-          units: 8120,
-          efficiency: "94.2%",
-          teamSize: 15
-        },
-        notes: "Strong performance today. New equipment running smoothly."
-      },
-      {
-        name: "Outbound Team",
-        status: "submitted",
-        lastSubmission: "January 26, 2026 at 11:38 PM",
-        lead: "Sarah Johnson",
-        metrics: {
-          orders: 1820,
-          units: 6245,
-          efficiency: "91.8%",
-          teamSize: 12
-        },
-        notes: "Met all shipping deadlines. Peak volume handled well."
-      },
-      {
-        name: "Inbound Team",
-        status: "submitted",
-        lastSubmission: "January 26, 2026 at 11:52 PM",
-        lead: "Mike Davis",
-        metrics: {
-          orders: 1533,
-          units: 5000,
-          efficiency: "88.5%",
-          teamSize: 10
-        },
-        notes: "Large shipment received. Processing on schedule."
-      },
-      {
-        name: "Quality Team",
-        status: "submitted",
-        lastSubmission: "January 26, 2026 at 11:30 PM",
-        lead: "Emily Chen",
-        metrics: {
-          audits: 145,
-          defects: 12,
-          accuracy: "96.8%",
-          followups: 3
-        },
-        notes: "Minor defect increase - follow-up scheduled with Production."
-      },
-      {
-        name: "Cycle Count Team",
-        status: "submitted",
-        lastSubmission: "January 26, 2026 at 11:15 PM",
-        lead: "David Martinez",
-        metrics: {
-          counts: 872,
-          adjustments: 34,
-          accuracy: "98.2%",
-          locations: 145
-        },
-        notes: "Completed A-zone counts. Minimal variances found."
-      },
-      {
-        name: "Night Shift",
-        status: "pending",
-        lastSubmission: "January 25, 2026 at 11:55 PM",
-        lead: "Lisa Anderson",
-        metrics: {
-          orders: 2000,
-          units: 5000,
-          efficiency: "85.0%",
-          teamSize: 8
-        },
-        notes: "Previous night data - awaiting tonight's submission."
-      }
-    ];
-
-    function formatEmailReport() {
-      const now = new Date();
-      const currentDate = now.toLocaleDateString('en-US', { 
-        weekday: 'long',
-        month: 'long', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-      const currentTime = now.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/New_York'
-      });
-
-      // Count submission statuses
-      const submittedCount = teamSubmissions.filter(t => t.status === 'submitted').length;
-      const pendingCount = teamSubmissions.filter(t => t.status === 'pending').length;
-      const totalTeams = teamSubmissions.length;
-
-      let report = `════════════════════════════════════════════════════════════════════════════
-                        END OF DAY OPERATIONS REPORT
-                              ${currentDate}
-════════════════════════════════════════════════════════════════════════════
-
-SUBMISSION STATUS: ${submittedCount}/${totalTeams} teams reported (${pendingCount} pending)
-
-
-──────────────────────────────────────────────────────────────────────────── 
-DAILY LABOR SUMMARY
-──────────────────────────────────────────────────────────────────────────── 
-
-Labor Hours:
-  • Atomix:      ${recapData.labor.atomix.hours.toString().padEnd(8)} hrs
-  • Traba:       ${recapData.labor.traba.hours.toString().padEnd(8)} hrs  
-  • OneSource:   ${recapData.labor.oneSource.hours.toString().padEnd(8)} hrs
-  ─────────────────────────────
-  • TOTAL:       ${recapData.labor.total.hours.toString().padEnd(8)} hrs
-
-Labor Costs:
-  • Atomix:      $${recapData.labor.atomix.cost.toFixed(2).padStart(8)}
-  • Traba:       $${recapData.labor.traba.cost.toFixed(2).padStart(8)}
-  • OneSource:   $${recapData.labor.oneSource.cost.toFixed(2).padStart(8)}
-  ─────────────────────────────
-  • TOTAL:       $${recapData.labor.total.cost.toFixed(2).padStart(8)}
-
-
-──────────────────────────────────────────────────────────────────────────── 
-PERFORMANCE METRICS
-──────────────────────────────────────────────────────────────────────────── 
-
-Orders:
-  • Total Orders:        ${recapData.performance.orders.toLocaleString()}
-  • Orders per Hour:     ${recapData.performance.ordersPerHour}
-
-Units:
-  • Total Units:         ${recapData.performance.units.toLocaleString()}
-  • Units per Hour:      ${recapData.performance.unitsPerHour}
-
-Efficiency:
-  • Cost per Unit:       $${recapData.performance.costPerUnit}
-  • Cost per Order:      $${recapData.performance.costPerOrder}
-
-
-`;
-
-      // Add team submissions
-      report += `──────────────────────────────────────────────────────────────────────────── 
-TEAM REPORTS
-──────────────────────────────────────────────────────────────────────────── 
-
-`;
-
-      teamSubmissions.forEach((team, index) => {
-        const statusSymbol = team.status === 'submitted' ? '✓' : '⏳';
-        
-        report += `${index + 1}. ${team.name.toUpperCase()} ${statusSymbol}
-   Lead: ${team.lead}
-   Submitted: ${team.lastSubmission}
-   
-   Metrics:`;
-        
-        // Format metrics based on what's available
-        Object.entries(team.metrics).forEach(([key, value]) => {
-          const displayKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
-          report += `\n     • ${displayKey}: ${value}`;
-        });
-        
-        if (team.notes) {
-          report += `\n   
-   Notes: ${team.notes}`;
-        }
-        
-        report += `\n\n`;
-      });
-
-      // Add takeaways section
-      report += `
-──────────────────────────────────────────────────────────────────────────── 
-KEY TAKEAWAYS & ACTION ITEMS
-──────────────────────────────────────────────────────────────────────────── 
-
-[Add your key observations, wins, concerns, and action items here]
-
-• 
-• 
-• 
-
-
-──────────────────────────────────────────────────────────────────────────── 
-FOLLOW-UPS REQUIRED
-──────────────────────────────────────────────────────────────────────────── 
-
-[List any follow-ups needed for tomorrow]
-
-• 
-• 
-
-
-════════════════════════════════════════════════════════════════════════════
-
-Report Generated: ${currentDate} at ${currentTime} EST
-Generated by: Atomix OPS Reporting System
-${pendingCount > 0 ? `\n⚠️  WARNING: ${pendingCount} team(s) have not submitted today's report\n` : ''}
-════════════════════════════════════════════════════════════════════════════`;
-
-      return report;
+    function showView(view) {
+      currentView = view;
+      render();
     }
 
-    function copyToClipboard() {
-      const report = document.getElementById('emailReport').textContent;
-      
-      navigator.clipboard.writeText(report).then(() => {
-        const btn = event.currentTarget;
-        const originalHTML = btn.innerHTML;
-        
-        btn.innerHTML = `
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-          <span class="text-lg font-medium">Copied!</span>
+    function render() {
+      const app = document.getElementById('app');
+      let content = '';
+
+      if (currentView === 'home') {
+        content = `
+          <div class="min-h-screen gradient-bg grid-bg relative overflow-hidden">
+            <div class="absolute top-20 left-10 w-72 h-72 bg-[#A3F3C5] opacity-10 rounded-full blur-3xl floating"></div>
+            <div class="absolute bottom-20 right-10 w-96 h-96 bg-[#A3F3C5] opacity-10 rounded-full blur-3xl floating" style="animation-delay:-3s;"></div>
+
+            <div class="relative z-10 flex items-center justify-center min-h-screen px-6 py-20">
+              <div class="max-w-5xl w-full">
+                <div class="text-center fade-in-up">
+                  <div class="inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-lg font-medium tracking-widest uppercase mb-8 glow">
+                    Operations Platform
+                  </div>
+
+                  <h1 class="text-7xl md:text-8xl lg:text-9xl font-extralight leading-none tracking-tight mb-8 bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent">
+                    Atomix<br/>OPS
+                  </h1>
+
+                  <p class="text-2xl text-[#9D9F9E] max-w-3xl mx-auto mb-12 font-light leading-relaxed">
+                    FIRST CLASS<br/>CUTTING EDGE
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 scale-in">
+                  <button onclick="window.location.href='https://drake-arch.github.io/atomix-eod/'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
+                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Reporting</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">End-of-day submissions and executive recap.</div>
+                      </div>
+                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
+                    </div>
+                  </button>
+
+                  <button onclick="alert('Metrics module coming soon!')" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
+                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Metrics</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Dashboards, KPIs, and operational visibility.</div>
+                      </div>
+                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
+                    </div>
+                  </button>
+
+                  <button onclick="window.location.href='./quality/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
+                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Quality</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Audits, defects, root cause, and follow-ups.</div>
+                      </div>
+                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
+                    </div>
+                  </button>
+
+                  <button onclick="window.location.href='https://drake-arch.github.io/Cycelcount/'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
+                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Cycle Count</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Inventory accuracy, counts, and adjustments.</div>
+                      </div>
+                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
+                    </div>
+                  </button>
+
+                  <button onclick="window.location.href='https://drake-arch.github.io/workforce-scheduler/'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
+                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Scheduling</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Plans, coverage, and staffing alignment.</div>
+                      </div>
+                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
+                    </div>
+                  </button>
+
+                  <button onclick="window.location.href='https://drake-arch.github.io/audit/'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
+                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Audit</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Policy compliance, daily checks, and evidence tracking.</div>
+                      </div>
+                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
+                    </div>
+                  </button>
+
+                  <button onclick="alert('Labor module coming soon!')" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
+                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Labor</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Hours, costs, productivity, and trends.</div>
+                      </div>
+                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
+                    </div>
+                  </button>
+                </div>
+
+                <div class="text-center mt-10 text-[#9D9F9E] text-sm">
+                  enjoy the journey
+                </div>
+              </div>
+            </div>
+          </div>
         `;
-        btn.classList.remove('hover:bg-[#1e2223]');
-        btn.classList.add('bg-[#A3F3C5]', 'text-[#0D2D53]');
-        
-        setTimeout(() => {
-          btn.innerHTML = originalHTML;
-          btn.classList.add('hover:bg-[#1e2223]');
-          btn.classList.remove('bg-[#A3F3C5]', 'text-[#0D2D53]');
-        }, 2000);
-      }).catch(err => {
-        alert('Failed to copy to clipboard. Please select the text and copy manually.');
-        console.error('Copy failed:', err);
-      });
+      }
+
+      app.innerHTML = content;
     }
 
-    // Initialize
-    document.getElementById('emailReport').textContent = formatEmailReport();
+    render();
   </script>
 </body>
 </html>
