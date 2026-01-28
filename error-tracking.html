@@ -7,388 +7,93 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    @keyframes gradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-20px); }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .gradient-bg {
-      background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
-      background-size: 400% 400%;
-      animation: gradient 15s ease infinite;
-    }
-    .grid-bg {
-      background-image:
-        linear-gradient(rgba(163, 243, 197, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(163, 243, 197, 0.03) 1px, transparent 1px);
-      background-size: 50px 50px;
-    }
-    .floating { animation: float 6s ease-in-out infinite; }
-    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
-    .scale-in { animation: scaleIn 0.5s ease-out forwards; }
+    body { background:#0b0f14; color:#EDEFED }
     .glass {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,.05);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,.12);
     }
-    .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.3); }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #A3F3C5 0%, #7de0a8 100%);
-      color: #0D2D53;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 40px rgba(163, 243, 197, 0.4);
-    }
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: #EDEFED;
-      border: 1px solid rgba(163, 243, 197, 0.3);
-      transition: all 0.3s ease;
-    }
-    .btn-secondary:hover {
-      background: rgba(163, 243, 197, 0.1);
-      border-color: #A3F3C5;
-    }
-
     input, select, textarea {
-      background: rgba(255, 255, 255, 0.95);
-      border: 2px solid rgba(163, 243, 197, 0.3);
-      color: #1a1a1a;
-      transition: all 0.3s ease;
-    }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: #A3F3C5;
-      background: #ffffff;
-      box-shadow: 0 0 20px rgba(163, 243, 197, 0.4);
+      background: rgba(13,45,83,.4)!important;
+      color:#EDEFED!important;
+      caret-color:#A3F3C5!important;
+      border:1px solid rgba(163,243,197,.3)!important;
     }
     input::placeholder, textarea::placeholder {
-      color: #666666;
+      color: rgba(237,239,237,.55);
     }
-    
-    /* Dropdown option styling */
-    select option {
-      background: #ffffff;
-      color: #1a1a1a;
-      padding: 10px;
+    input:focus, select:focus, textarea:focus {
+      outline:none!important;
+      box-shadow:0 0 0 4px rgba(163,243,197,.15);
     }
-    select option:hover {
-      background: #A3F3C5;
+    select option { background:#0D2D53; color:#EDEFED }
+    .btn {
+      background:linear-gradient(135deg,#A3F3C5,#7de0a8);
+      color:#0D2D53;
+      font-weight:600;
     }
   </style>
 </head>
 
-<body class="bg-[#101314] text-[#EDEFED] overflow-x-hidden">
-  <div class="min-h-screen gradient-bg grid-bg relative overflow-hidden">
-    <!-- Floating background elements -->
-    <div class="absolute top-20 left-10 w-72 h-72 bg-[#A3F3C5] opacity-10 rounded-full blur-3xl floating"></div>
-    <div class="absolute bottom-20 right-10 w-96 h-96 bg-[#A3F3C5] opacity-10 rounded-full blur-3xl floating" style="animation-delay:-3s;"></div>
+<body class="flex items-center justify-center min-h-screen px-6">
 
-    <div class="relative z-10 flex items-center justify-center min-h-screen px-6 py-20">
-      <div class="max-w-4xl w-full">
-        
-        <!-- Initial Selection Screen -->
-        <div id="initialScreen" class="text-center fade-in-up">
-          <div class="inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-lg font-medium tracking-widest uppercase mb-8 glow">
-            Error Tracking System
-          </div>
+<div class="max-w-3xl w-full glass rounded-3xl p-10">
 
-          <h1 class="text-7xl md:text-8xl font-extralight leading-none tracking-tight mb-8 bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent">
-            Report<br/>Error
-          </h1>
+<h1 class="text-5xl mb-8 text-center">PBIN Error</h1>
 
-          <p class="text-2xl text-[#9D9F9E] max-w-2xl mx-auto mb-16 font-light leading-relaxed">
-            Select bin type to begin
-          </p>
+<form id="form" class="space-y-6">
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 scale-in">
-            <button onclick="selectBinType('ebin')" class="glass rounded-3xl p-12 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
-              <div class="text-center">
-                <div class="text-6xl font-extralight mb-4 group-hover:text-[#A3F3C5] transition-colors">EBIN</div>
-                <div class="text-[#9D9F9E] text-lg font-light">Quick capture</div>
-              </div>
-            </button>
+  <input id="binNumber" required placeholder="Bin Number" class="w-full p-4 rounded-xl" />
 
-            <button onclick="selectBinType('pbin')" class="glass rounded-3xl p-12 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
-              <div class="text-center">
-                <div class="text-6xl font-extralight mb-4 group-hover:text-[#A3F3C5] transition-colors">PBIN</div>
-                <div class="text-[#9D9F9E] text-lg font-light">Detailed report</div>
-              </div>
-            </button>
-          </div>
+  <select id="issueType" required class="w-full p-4 rounded-xl">
+    <option value="">Issue Type</option>
+    <option>Overage</option>
+    <option>Shortage</option>
+    <option>Wrong Item</option>
+    <option>Missing Item</option>
+  </select>
 
-          <button onclick="goHome()" class="mt-12 text-[#9D9F9E] hover:text-[#A3F3C5] transition-colors text-lg">
-            ← Back to Home
-          </button>
-        </div>
+  <input id="wrongLocation" required placeholder="Wrong Location" class="w-full p-4 rounded-xl" />
+  <input id="correctLocation" required placeholder="Correct Location" class="w-full p-4 rounded-xl" />
+  <input id="pickerName" required placeholder="Picker Name" class="w-full p-4 rounded-xl" />
+  <textarea id="notes" placeholder="Notes (optional)" class="w-full p-4 rounded-xl"></textarea>
 
-        <!-- EBIN Form -->
-        <div id="ebinForm" class="hidden fade-in-up">
-          <div class="text-center mb-12">
-            <div class="inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-sm font-medium tracking-widest uppercase mb-6">
-              EBIN Error
-            </div>
-            <h2 class="text-5xl font-extralight mb-4">Quick Capture</h2>
-            <p class="text-[#9D9F9E]">Enter bin number to log error</p>
-          </div>
+  <button class="btn w-full py-4 rounded-xl text-lg">Submit</button>
 
-          <div class="glass rounded-3xl p-10 max-w-2xl mx-auto">
-            <form id="ebinFormElement" class="space-y-6">
-              <div>
-                <label class="block text-sm font-medium text-[#A3F3C5] mb-3 tracking-wide">BIN NUMBER</label>
-                <input type="text" id="ebinNumber" required 
-                       class="w-full px-6 py-4 rounded-xl text-xl tracking-wider" 
-                       placeholder="Enter bin number">
-              </div>
+</form>
 
-              <div class="flex gap-4 pt-4">
-                <button type="submit" class="flex-1 btn-primary py-4 rounded-xl text-lg">
-                  Submit Error
-                </button>
-                <button type="button" onclick="resetForm()" class="btn-secondary px-8 py-4 rounded-xl text-lg">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+<p id="status" class="text-center mt-4"></p>
+</div>
 
-        <!-- PBIN Form -->
-        <div id="pbinForm" class="hidden fade-in-up">
-          <div class="text-center mb-12">
-            <div class="inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-sm font-medium tracking-widest uppercase mb-6">
-              PBIN Error
-            </div>
-            <h2 class="text-5xl font-extralight mb-4">Detailed Report</h2>
-            <p class="text-[#9D9F9E]">Complete error details</p>
-          </div>
+<script>
+/* 🔴 REPLACE THIS AFTER DEPLOYING APPS SCRIPT */
+const GOOGLE_SCRIPT_URL = "PASTE_WEB_APP_EXEC_URL_HERE";
 
-          <div class="glass rounded-3xl p-10 max-w-3xl mx-auto">
-            <form id="pbinFormElement" class="space-y-8">
-              
-              <!-- Bin Number -->
-              <div>
-                <label class="block text-sm font-medium text-[#A3F3C5] mb-3 tracking-wide">BIN NUMBER</label>
-                <input type="text" id="pbinNumber" required 
-                       class="w-full px-6 py-4 rounded-xl text-xl tracking-wider" 
-                       placeholder="Enter bin number">
-              </div>
+document.getElementById("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  document.getElementById("status").textContent = "Submitting...";
 
-              <!-- Issue Type -->
-              <div>
-                <label class="block text-sm font-medium text-[#A3F3C5] mb-3 tracking-wide">WHAT IS THE ISSUE?</label>
-                <select id="issueType" required class="w-full px-6 py-4 rounded-xl text-lg">
-                  <option value="">Select issue type...</option>
-                  <option value="overage">Overage</option>
-                  <option value="shortage">Shortage</option>
-                  <option value="wrong_item">Wrong Item</option>
-                  <option value="missing_item">Missing Item</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
+  const data = {
+    timestamp: new Date().toISOString(),
+    binType: "PBIN",
+    binNumber: binNumber.value,
+    issueType: issueType.value,
+    wrongLocation: wrongLocation.value,
+    correctLocation: correctLocation.value,
+    pickerName: pickerName.value,
+    additionalNotes: notes.value || "N/A"
+  };
 
-              <!-- Wrong Pick Location -->
-              <div>
-                <label class="block text-sm font-medium text-[#A3F3C5] mb-3 tracking-wide">WHERE WAS THE WRONG ITEM PICKED FROM?</label>
-                <input type="text" id="wrongLocation" required 
-                       class="w-full px-6 py-4 rounded-xl" 
-                       placeholder="Enter location">
-              </div>
+  await fetch(GOOGLE_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify(data)
+  });
 
-              <!-- Correct Location -->
-              <div>
-                <label class="block text-sm font-medium text-[#A3F3C5] mb-3 tracking-wide">WHERE SHOULD THEY HAVE PICKED FROM?</label>
-                <input type="text" id="correctLocation" required 
-                       class="w-full px-6 py-4 rounded-xl" 
-                       placeholder="Enter correct location">
-              </div>
+  document.getElementById("status").textContent = "✅ Submitted";
+  e.target.reset();
+});
+</script>
 
-              <!-- Picker Name -->
-              <div>
-                <label class="block text-sm font-medium text-[#A3F3C5] mb-3 tracking-wide">WHO WAS THE PICKER?</label>
-                <input type="text" id="pickerName" required 
-                       class="w-full px-6 py-4 rounded-xl" 
-                       placeholder="Enter picker name">
-              </div>
-
-              <!-- Additional Notes -->
-              <div>
-                <label class="block text-sm font-medium text-[#A3F3C5] mb-3 tracking-wide">ADDITIONAL NOTES (Optional)</label>
-                <textarea id="additionalNotes" rows="4" 
-                          class="w-full px-6 py-4 rounded-xl resize-none" 
-                          placeholder="Any additional information..."></textarea>
-              </div>
-
-              <div class="flex gap-4 pt-4">
-                <button type="submit" class="flex-1 btn-primary py-4 rounded-xl text-lg">
-                  Submit Error Report
-                </button>
-                <button type="button" onclick="resetForm()" class="btn-secondary px-8 py-4 rounded-xl text-lg">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- Success Message -->
-        <div id="successMessage" class="hidden fade-in-up text-center">
-          <div class="glass rounded-3xl p-16 max-w-2xl mx-auto glow">
-            <div class="text-[#A3F3C5] text-8xl mb-6">✓</div>
-            <h2 class="text-5xl font-extralight mb-4">Error Logged</h2>
-            <p class="text-[#9D9F9E] text-xl mb-8">Your report has been submitted successfully</p>
-            <button onclick="resetForm()" class="btn-primary px-12 py-4 rounded-xl text-lg">
-              Report Another Error
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // ============================================
-    // CONFIGURATION - REPLACE WITH YOUR GOOGLE SHEET INFO
-    // ============================================
-    const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
-    
-    // ============================================
-    // UI STATE MANAGEMENT
-    // ============================================
-    let currentBinType = null;
-
-    function selectBinType(type) {
-      currentBinType = type;
-      document.getElementById('initialScreen').classList.add('hidden');
-      
-      if (type === 'ebin') {
-        document.getElementById('ebinForm').classList.remove('hidden');
-      } else {
-        document.getElementById('pbinForm').classList.remove('hidden');
-      }
-    }
-
-    function resetForm() {
-      document.getElementById('initialScreen').classList.remove('hidden');
-      document.getElementById('ebinForm').classList.add('hidden');
-      document.getElementById('pbinForm').classList.add('hidden');
-      document.getElementById('successMessage').classList.add('hidden');
-      
-      document.getElementById('ebinFormElement').reset();
-      document.getElementById('pbinFormElement').reset();
-      
-      currentBinType = null;
-    }
-
-    function goHome() {
-      window.location.href = 'https://drake-arch.github.io/atomix-opps/';
-    }
-
-    function showSuccess() {
-      document.getElementById('ebinForm').classList.add('hidden');
-      document.getElementById('pbinForm').classList.add('hidden');
-      document.getElementById('successMessage').classList.remove('hidden');
-    }
-
-    // ============================================
-    // FORM SUBMISSION HANDLERS
-    // ============================================
-    
-    // EBIN Form Submit
-    document.getElementById('ebinFormElement').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const data = {
-        timestamp: new Date().toISOString(),
-        binType: 'EBIN',
-        binNumber: document.getElementById('ebinNumber').value,
-        issueType: 'N/A',
-        wrongLocation: 'N/A',
-        correctLocation: 'N/A',
-        pickerName: 'N/A',
-        additionalNotes: 'N/A'
-      };
-
-      await submitToGoogleSheet(data);
-    });
-
-    // PBIN Form Submit
-    document.getElementById('pbinFormElement').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const data = {
-        timestamp: new Date().toISOString(),
-        binType: 'PBIN',
-        binNumber: document.getElementById('pbinNumber').value,
-        issueType: document.getElementById('issueType').value,
-        wrongLocation: document.getElementById('wrongLocation').value,
-        correctLocation: document.getElementById('correctLocation').value,
-        pickerName: document.getElementById('pickerName').value,
-        additionalNotes: document.getElementById('additionalNotes').value || 'N/A'
-      };
-
-      await submitToGoogleSheet(data);
-    });
-
-    // ============================================
-    // GOOGLE SHEETS INTEGRATION
-    // ============================================
-    async function submitToGoogleSheet(data) {
-      const submitButton = event.submitter;
-      const originalText = submitButton.innerHTML;
-      
-      // Show loading state
-      submitButton.disabled = true;
-      submitButton.innerHTML = 'Submitting...';
-      submitButton.style.opacity = '0.6';
-
-      try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data)
-        });
-
-        // Show success message
-        showSuccess();
-        
-        // Reset form after short delay
-        setTimeout(() => {
-          submitButton.disabled = false;
-          submitButton.innerHTML = originalText;
-          submitButton.style.opacity = '1';
-        }, 1000);
-
-      } catch (error) {
-        console.error('Error submitting to Google Sheets:', error);
-        alert('Error submitting report. Please try again.');
-        
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalText;
-        submitButton.style.opacity = '1';
-      }
-    }
-  </script>
 </body>
 </html>
