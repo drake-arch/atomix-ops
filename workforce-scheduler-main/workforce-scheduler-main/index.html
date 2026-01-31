@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Atomix Workforce Scheduler</title>
+
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .gradient-bg {
+      background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(163, 243, 197, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(163, 243, 197, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .floating { animation: float 6s ease-in-out infinite; }
+    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+    .scale-in { animation: scaleIn 0.5s ease-out forwards; }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.25); }
+
+    /* Make tables scroll nicely on iOS */
+    * { -webkit-tap-highlight-color: transparent; }
+  </style>
+</head>
+
+
+<body class="bg-[#101314] text-[#EDEFED] overflow-x-hidden">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useMemo, useState } = React;
+
+    const AtomixLogo = () => {
+      // Inline SVG (no image file needed)
+      // Approximates your Atomix mark: circular arrows + hex + "atomix" wordmark
+      return (
+        <div className="flex items-center gap-3 select-none">
+          <svg
+            className="h-10 w-10"
+            viewBox="0 0 64 64"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            {/* Outer circle */}
+            <circle cx="32" cy="32" r="26" stroke="#A3F3C5" strokeWidth="3" opacity="0.95" />
+
+            {/* Arrow (top-right, clockwise) */}
+            <path
+              d="M47 18a22 22 0 0 1 6 16"
+              stroke="#A3F3C5"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            <path
+              d="M53 34l-3-3m3 3l-4 1"
+              stroke="#A3F3C5"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+
+            {/* Arrow (bottom-left, clockwise) */}
+            <path
+              d="M17 46a22 22 0 0 1-6-16"
+              stroke="#A3F3C5"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            <path
+              d="M11 30l3 3m-3-3l4-1"
+              stroke="#A3F3C5"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+
+            {/* Hex/cube-ish icon */}
+            <path
+              d="M32 18l14 8v12l-14 8-14-8V26l14-8Z"
+              stroke="#A3F3C5"
+              strokeWidth="3"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M32 18v28"
+              stroke="#A3F3C5"
+              strokeWidth="3"
+              opacity="0.85"
+            />
+            <path
+              d="M18 26l14 8 14-8"
+              stroke="#A3F3C5"
+              strokeWidth="3"
+              opacity="0.85"
+              strokeLinejoin="round"
+            />
+          </svg>
+
+          <div className="text-[#A3F3C5] font-semibold tracking-wide text-2xl leading-none">
+            <span className="text-[#A3F3C5]">atomix</span>
+          </div>
+        </div>
+      );
+    };
+
+    const StatCard = ({ label, value, valueClass = "text-white" }) => (
+      <div className="glass rounded-3xl p-6">
+        <div className="text-sm text-[#9D9F9E] mb-2">{label}</div>
+        <div className={`text-3xl font-bold ${valueClass}`}>{value}</div>
+      </div>
+    );
+
+    const WorkforceScheduler = () => {
+      const [ordersPerWeek, setOrdersPerWeek] = useState(25000);
+      const [totalEmployees, setTotalEmployees] = useState(50);
+      const [ordersPerPersonHour, setOrdersPerPersonHour] = useState(12.5);
+      const [otMultiplier, setOtMultiplier] = useState(1.5);
+
+      const [shifts, setShifts] = useState([
+        {
+          id: 1,
+          name: "First Shift",
+          startTime: "6:00 AM",
+          duration: 10,
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          peoplePerDay: 20,
+        },
+        {
+          id: 2,
+          name: "Second Shift",
+          startTime: "12:00 PM",
+          duration: 10,
+          days: ["Sunday", "Monday", "Tuesday", "Wednesday"],
+          peoplePerDay: 20,
+        },
+      ]);
+
+      const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+      const addShift = () => {
+        setShifts((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            name: `Shift ${prev.length + 1}`,
+            startTime: "8:00 AM",
+            duration: 8,
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            peoplePerDay: 10,
+          },
+        ]);
+      };
+
+      const removeShift = (id) => setShifts((prev) => prev.filter((s) => s.id !== id));
+      const updateShift = (id, field, value) =>
+        setShifts((prev) => prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
+
+      const toggleDay = (shiftId, day) => {
+        setShifts((prev) =>
+          prev.map((s) => {
+            if (s.id !== shiftId) return s;
+            const days = s.days.includes(day) ? s.days.filter((d) => d !== day) : [...s.days, day];
+            return { ...s, days };
+          })
+        );
+      };
+
+      const calculations = useMemo(() => {
+        const hoursNeededPerWeek = ordersPerWeek / ordersPerPersonHour;
+        let totalHoursProvided = 0;
+        let totalEmployeesUsed = 0;
+
+        shifts.forEach((shift) => {
+          const hoursPerWeek = shift.days.length * shift.duration * shift.peoplePerDay;
+          totalHoursProvided += hoursPerWeek;
+
+          const employeesInShift = ((shift.days.length * shift.duration) / 40) * shift.peoplePerDay;
+          totalEmployeesUsed += Math.ceil(employeesInShift);
+        });
+
+        const coverage = (totalHoursProvided / hoursNeededPerWeek) * 100;
+
+        const employeeHoursMap = new Map();
+        shifts.forEach((shift) => {
+          const hoursPerWeekPerPerson = shift.duration * shift.days.length;
+          for (let i = 0; i < shift.peoplePerDay; i++) {
+            const empId = `${shift.name}-${i}`;
+            employeeHoursMap.set(empId, (employeeHoursMap.get(empId) || 0) + hoursPerWeekPerPerson);
+          }
+        });
+
+        let regularTime = 0, minorOT = 0, moderateOT = 0, heavyOT = 0, totalOTHours = 0;
+        employeeHoursMap.forEach((hours) => {
+          if (hours <= 40) regularTime++;
+          else if (hours <= 45) { minorOT++; totalOTHours += hours - 40; }
+          else if (hours <= 50) { moderateOT++; totalOTHours += hours - 40; }
+          else { heavyOT++; totalOTHours += hours - 40; }
+        });
+
+        const totalPeopleAnalyzed = employeeHoursMap.size;
+        const peopleOnOT = minorOT + moderateOT + heavyOT;
+        const otPercentage = totalPeopleAnalyzed ? (peopleOnOT / totalPeopleAnalyzed) * 100 : 0;
+
+        return {
+          hoursNeededPerWeek,
+          coverage,
+          totalEmployeesUsed,
+          otRisk: { regularTime, minorOT, moderateOT, heavyOT, totalPeopleAnalyzed, otPercentage }
+        };
+      }, [ordersPerWeek, ordersPerPersonHour, shifts]);
+
+      const weeklyGrid = useMemo(() => {
+        const grid = {};
+        daysOfWeek.forEach((day) => (grid[day] = shifts.filter((s) => s.days.includes(day))));
+        return grid;
+      }, [shifts]);
+
+      const exportCSV = () => {
+        let csv = "Atomix Workforce Schedule\n\n";
+        csv += `Orders Per Week,${ordersPerWeek}\n`;
+        csv += `Total Employees,${totalEmployees}\n`;
+        csv += `Coverage,${calculations.coverage.toFixed(1)}%\n\n`;
+        csv += "Day,Shifts,People,Hours\n";
+
+        daysOfWeek.forEach((day) => {
+          const dayShifts = weeklyGrid[day];
+          const people = dayShifts.reduce((sum, s) => sum + s.peoplePerDay, 0);
+          const hours = dayShifts.reduce((sum, s) => sum + s.peoplePerDay * s.duration, 0);
+          csv += `${day},${dayShifts.length},${people},${hours}\n`;
+        });
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "atomix_schedule.csv";
+        a.click();
+      };
+
+      return (
+        <div className="min-h-screen gradient-bg grid-bg relative overflow-hidden">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-[#A3F3C5] opacity-10 rounded-full blur-3xl floating"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#A3F3C5] opacity-10 rounded-full blur-3xl floating" style={{animationDelay:"-3s"}}></div>
+          <div className="relative z-10">
+          {/* Header that matches your screenshot layout */}
+          <header className="glass">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+              {/* Top row: logo left, export right */}
+              <div className="flex items-center justify-between gap-3">
+                <AtomixLogo />
+                <button
+                  onClick={exportCSV}
+                  className="px-5 py-3 rounded-xl bg-[#A3F3C5] text-[#101314] font-semibold hover:bg-[#b8f7d4] flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 20h16" />
+                  </svg>
+                  Export CSV
+                </button>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-white/10">
+                
+              <div className="inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-sm sm:text-base font-medium tracking-widest uppercase mb-5 glow">
+                Scheduling
+              </div>
+
+                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+                  Workforce Scheduler
+                </h1>
+                <p className="text-[#9D9F9E] mt-2">
+                  High-Touch Scheduling for High-Growth Teams
+                </p>
+              </div>
+            </div>
+          </header>
+
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            {/* Top Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <StatCard label="Hours Needed" value={Math.round(calculations.hoursNeededPerWeek)} />
+              <StatCard
+                label="Coverage"
+                value={`${calculations.coverage.toFixed(0)}%`}
+                valueClass={calculations.coverage >= 100 ? "text-[#A3F3C5]" : "text-red-400"}
+              />
+              <StatCard label="Employees" value={`${calculations.totalEmployeesUsed}/${totalEmployees}`} />
+              <StatCard
+                label="OT Risk"
+                value={`${calculations.otRisk.otPercentage.toFixed(0)}%`}
+                valueClass={calculations.otRisk.otPercentage > 30 ? "text-red-400" : "text-[#A3F3C5]"}
+              />
+            </div>
+
+            {/* Settings + Shifts */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              {/* Settings */}
+              <section className="glass rounded-3xl p-6">
+                <h2 className="text-xl font-semibold text-[#A3F3C5] mb-4">Settings</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-[#9D9F9E] mb-2">Orders/Week</label>
+                    <input
+                      type="number"
+                      value={ordersPerWeek}
+                      onChange={(e) => setOrdersPerWeek(Number(e.target.value))}
+                      className="w-full px-4 py-3 bg-[#101314] border border-white/15 rounded-xl text-white"
+                      inputMode="numeric"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[#9D9F9E] mb-2">Employees</label>
+                    <input
+                      type="number"
+                      value={totalEmployees}
+                      onChange={(e) => setTotalEmployees(Number(e.target.value))}
+                      className="w-full px-4 py-3 bg-[#101314] border border-white/15 rounded-xl text-white"
+                      inputMode="numeric"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[#9D9F9E] mb-2">Orders/Person/Hr</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      value={ordersPerPersonHour}
+                      onChange={(e) => setOrdersPerPersonHour(Number(e.target.value))}
+                      className="w-full px-4 py-3 bg-[#101314] border border-white/15 rounded-xl text-white"
+                      inputMode="decimal"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[#9D9F9E] mb-2">OT Multiplier</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={otMultiplier}
+                      onChange={(e) => setOtMultiplier(Number(e.target.value))}
+                      className="w-full px-4 py-3 bg-[#101314] border border-white/15 rounded-xl text-white"
+                      inputMode="decimal"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Shifts */}
+              <section className="lg:col-span-2 glass rounded-3xl p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                  <h2 className="text-xl font-semibold text-[#A3F3C5]">Shifts</h2>
+                  <button
+                    onClick={addShift}
+                    className="w-full sm:w-auto px-5 py-3 rounded-xl bg-[#A3F3C5] text-[#101314] font-semibold hover:bg-[#b8f7d4]"
+                  >
+                    + Add Shift
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {shifts.map((shift) => (
+                    <div key={shift.id} className="bg-[#101314] border border-white/15 rounded-2xl p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 mb-3">
+                        <div className="sm:col-span-3">
+                          <input
+                            type="text"
+                            value={shift.name}
+                            onChange={(e) => updateShift(shift.id, "name", e.target.value)}
+                            className="w-full px-3 py-3 sm:py-2 bg-[#101314] border border-white/15 rounded-xl text-white"
+                            placeholder="Shift name"
+                          />
+                        </div>
+                        <div className="sm:col-span-3">
+                          <input
+                            type="text"
+                            value={shift.startTime}
+                            onChange={(e) => updateShift(shift.id, "startTime", e.target.value)}
+                            className="w-full px-3 py-3 sm:py-2 bg-[#101314] border border-white/15 rounded-xl text-white"
+                            placeholder="6:00 AM"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <input
+                            type="number"
+                            value={shift.duration}
+                            onChange={(e) => updateShift(shift.id, "duration", Number(e.target.value))}
+                            className="w-full px-3 py-3 sm:py-2 bg-[#101314] border border-white/15 rounded-xl text-white"
+                            inputMode="numeric"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <input
+                            type="number"
+                            value={shift.peoplePerDay}
+                            onChange={(e) => updateShift(shift.id, "peoplePerDay", Number(e.target.value))}
+                            className="w-full px-3 py-3 sm:py-2 bg-[#101314] border border-white/15 rounded-xl text-white"
+                            inputMode="numeric"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <button
+                            onClick={() => removeShift(shift.id)}
+                            className="w-full px-3 py-3 sm:py-2 rounded-xl bg-red-900/30 text-red-300 hover:bg-red-900/50"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {daysOfWeek.map((day) => (
+                          <button
+                            key={day}
+                            onClick={() => toggleDay(shift.id, day)}
+                            className={`px-3 py-2 rounded-xl text-sm font-medium ${
+                              shift.days.includes(day) ? "bg-[#A3F3C5] text-[#101314]" : "bg-white/10 text-[#EDEFED]"
+                            }`}
+                          >
+                            {day.substring(0, 3)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            {/* Weekly Schedule */}
+            <section className="glass rounded-3xl p-6 mb-8">
+              <h2 className="text-xl font-semibold text-[#A3F3C5] mb-4">Weekly Schedule</h2>
+
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="min-w-[720px] px-4 sm:px-0">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-white/15">
+                        <th className="text-left py-3 px-4 text-[#9D9F9E]">Day</th>
+                        <th className="text-left py-3 px-4 text-[#9D9F9E]">Shifts</th>
+                        <th className="text-right py-3 px-4 text-[#9D9F9E]">People</th>
+                        <th className="text-right py-3 px-4 text-[#9D9F9E]">Hours</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {daysOfWeek.map((day) => {
+                        const dayShifts = weeklyGrid[day];
+                        const totalPeople = dayShifts.reduce((sum, s) => sum + s.peoplePerDay, 0);
+                        const totalHours = dayShifts.reduce((sum, s) => sum + s.peoplePerDay * s.duration, 0);
+                        return (
+                          <tr key={day} className="border-b border-white/10">
+                            <td className="py-3 px-4 font-medium">{day}</td>
+                            <td className="py-3 px-4">{dayShifts.length ? dayShifts.map(s => s.name).join(", ") : "No shifts"}</td>
+                            <td className="py-3 px-4 text-right font-semibold">{totalPeople}</td>
+                            <td className="py-3 px-4 text-right">{totalHours}h</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          </main>
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<WorkforceScheduler />);
+  </script>
+</body>
+</html>
