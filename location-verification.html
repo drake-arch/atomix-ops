@@ -140,6 +140,24 @@
       border-color: #A3F3C5;
     }
 
+    .btn-empty {
+      background: #6b7280;
+      color: #EDEFED;
+      padding: 1rem 2rem;
+      border-radius: 0.75rem;
+      font-size: 1.125rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid #9ca3af;
+    }
+
+    .btn-empty:hover {
+      background: #9ca3af;
+      border-color: #d1d5db;
+      transform: scale(1.05);
+    }
+
     .btn:disabled {
       opacity: 0.3;
       cursor: not-allowed;
@@ -217,6 +235,12 @@
       color: #f87171;
     }
 
+    .alert-info {
+      background: rgba(59, 130, 246, 0.3);
+      border-color: #3b82f6;
+      color: #93c5fd;
+    }
+
     .progress-bar {
       background: #2a2d2e;
       height: 0.75rem;
@@ -277,6 +301,7 @@
       cursor: pointer;
       transition: all 0.3s;
       text-align: center;
+      position: relative;
     }
 
     .choice-card:hover {
@@ -301,6 +326,20 @@
     .choice-desc {
       font-size: 1rem;
       color: #9D9F9E;
+    }
+
+    .badge {
+      position: absolute;
+      top: -0.5rem;
+      right: -0.5rem;
+      background: #ef4444;
+      color: white;
+      border-radius: 9999px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+      animation: pulse 2s ease-in-out infinite;
     }
 
     .calc-icon {
@@ -510,6 +549,81 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 1.5rem;
     }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background: #1a1d1e;
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      max-width: 500px;
+      width: 90%;
+      border: 2px solid #A3F3C5;
+    }
+
+    .modal-title {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #A3F3C5;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .modal-text {
+      font-size: 1.125rem;
+      color: #EDEFED;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: none;
+    }
+
+    .modal-btn-primary {
+      background: #A3F3C5;
+      color: #101314;
+    }
+
+    .modal-btn-primary:hover {
+      background: #8de0ad;
+      transform: scale(1.05);
+    }
+
+    .modal-btn-secondary {
+      background: #2a2d2e;
+      color: #EDEFED;
+      border: 1px solid #3a3d3e;
+    }
+
+    .modal-btn-secondary:hover {
+      background: #3a3d3e;
+      border-color: #A3F3C5;
+    }
   </style>
 </head>
 <body>
@@ -518,7 +632,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <script>
-    const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwj2RFctSenpguEEe4comXIHPOiHjNZt0ULFOU7QLpjun_RKnODgoPMellUGtW9qIhfBg/exec';
+    const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwhoq97heouRC2FXqVvH9olEgKpYWvwupBlMlX_EafurZYAV-ZkYkwbav4EpNd8iqqg4Q/exec';
 
     let state = {
       stage: 'name',
@@ -533,7 +647,8 @@
       awaitingCount: false,
       locationVerified: false,
       upcEntered: false,
-      lastUPCInputTime: 0
+      lastUPCInputTime: 0,
+      queueCount: 0
     };
 
     let audioContext;
@@ -571,6 +686,116 @@
       playBeep(400, 200);
     }
 
+    // Session persistence functions
+    function saveSession() {
+      const session = {
+        employeeName: state.employeeName,
+        verificationMode: state.verificationMode,
+        locationData: state.locationData,
+        currentIndex: state.currentIndex,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('locationVerificationSession', JSON.stringify(session));
+    }
+
+    function loadSession() {
+      const saved = localStorage.getItem('locationVerificationSession');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+      return null;
+    }
+
+    function clearSession() {
+      localStorage.removeItem('locationVerificationSession');
+    }
+
+    function checkForSavedSession() {
+      const saved = loadSession();
+      if (saved && saved.locationData && saved.locationData.length > 0) {
+        showResumeModal(saved);
+      }
+    }
+
+    function showResumeModal(saved) {
+      const progress = saved.currentIndex;
+      const total = saved.locationData.length;
+      const mode = saved.verificationMode === 'count' ? 'Count' : 'Verification';
+      
+      const modal = `
+        <div class="modal-overlay" id="resumeModal">
+          <div class="modal-content scale-in">
+            <div class="modal-title">Welcome back, ${saved.employeeName}!</div>
+            <div class="modal-text">
+              You have an in-progress session:<br/><br/>
+              <strong>Mode:</strong> ${mode}<br/>
+              <strong>Progress:</strong> ${progress} of ${total} locations<br/><br/>
+              Would you like to resume where you left off?
+            </div>
+            <div class="modal-buttons">
+              <button class="modal-btn modal-btn-primary" onclick="resumeSession()">Resume Session</button>
+              <button class="modal-btn modal-btn-secondary" onclick="startFresh()">Start Fresh</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+
+    function resumeSession() {
+      const saved = loadSession();
+      state.employeeName = saved.employeeName;
+      state.verificationMode = saved.verificationMode;
+      state.locationData = saved.locationData;
+      state.currentIndex = saved.currentIndex;
+      state.stage = 'verify';
+      
+      document.getElementById('resumeModal').remove();
+      render();
+    }
+
+    function startFresh() {
+      clearSession();
+      document.getElementById('resumeModal').remove();
+    }
+
+    // Fetch queue count
+    async function fetchQueueCount() {
+      try {
+        const response = await fetch(`${SHEETS_URL}?action=get_queue`);
+        const data = await response.json();
+        if (data.result === 'success') {
+          state.queueCount = data.queue.length;
+        }
+      } catch (error) {
+        console.error('Failed to fetch queue:', error);
+      }
+    }
+
+    // Fetch queue data for count mode
+    async function fetchQueueData() {
+      try {
+        const response = await fetch(`${SHEETS_URL}?action=get_queue`);
+        const data = await response.json();
+        if (data.result === 'success' && data.queue.length > 0) {
+          // Convert queue to locationData format
+          state.locationData = data.queue.map(item => ({
+            location: item.location,
+            upc: item.expected_upc,
+            unitCount: item.expected_count
+          }));
+          state.stage = 'verify';
+          showAlert(`✅ Loaded ${data.queue.length} locations from queue`, 'success');
+          render();
+        } else {
+          showAlert('✅ No pending counts in queue!', 'success');
+        }
+      } catch (error) {
+        showAlert('Failed to load queue data', 'error');
+      }
+    }
+
     function setName() {
       const name = document.getElementById('employeeName').value.trim();
       if (!name) {
@@ -579,13 +804,21 @@
       }
       state.employeeName = name;
       state.stage = 'choice';
+      fetchQueueCount(); // Check queue count
       render();
     }
 
     function selectMode(mode) {
       state.verificationMode = mode;
-      state.stage = 'upload';
-      render();
+      
+      if (mode === 'count') {
+        // Count mode - fetch from queue
+        fetchQueueData();
+      } else {
+        // Verification mode - upload file
+        state.stage = 'upload';
+        render();
+      }
     }
 
     function parseExcelFile(file) {
@@ -613,29 +846,20 @@
         return;
       }
 
-      // Get the first row to find column headers
       const firstRow = data[0];
       const headers = Object.keys(firstRow);
       
-      // Find the correct column names (case-insensitive search)
-      let locationCol = null;
-      let upcCol = null;
-      let countCol = null;
-      
-      // Search for Location column
-      locationCol = headers.find(h => 
+      let locationCol = headers.find(h => 
         h.toLowerCase() === 'location' || 
         h.toLowerCase() === 'loc'
       );
       
-      // Search for UPC column
-      upcCol = headers.find(h => 
+      let upcCol = headers.find(h => 
         h.toLowerCase() === 'upc' || 
         h.toLowerCase() === 'sku'
       );
       
-      // Search for Count column (optional)
-      countCol = headers.find(h => 
+      let countCol = headers.find(h => 
         h.toLowerCase() === 'location on hand' ||
         h.toLowerCase() === 'locationonhand' ||
         h.toLowerCase() === 'count' ||
@@ -657,7 +881,6 @@
 
       console.log(`Found columns - Location: "${locationCol}", UPC: "${upcCol}", Count: "${countCol}"`);
 
-      // Parse the data using the found column names
       const normalized = data.map(row => {
         let location = String(row[locationCol] || '').trim();
         let upc = String(row[upcCol] || '').trim();
@@ -672,8 +895,10 @@
       }
 
       state.locationData = normalized;
+      state.currentIndex = 0;
       state.stage = 'verify';
       showAlert(`✅ File loaded: ${normalized.length} locations`, 'success');
+      saveSession();
       render();
     }
 
@@ -720,19 +945,16 @@
       const scanned = event.target.value.trim();
       const current = state.locationData[state.currentIndex];
       
-      // Update button state
       const submitBtn = document.getElementById('submitUPCBtn');
       if (submitBtn) {
         submitBtn.disabled = scanned.length === 0;
       }
       
-      // Store values
       if (scanned.length > 0) {
         state.tempUPCResult = scanned === current.upc;
         state.tempScannedUPC = scanned;
       }
       
-      // Auto-submit for fast scan (barcode scanner)
       const currentTime = Date.now();
       const timeSinceLastInput = currentTime - state.lastUPCInputTime;
       state.lastUPCInputTime = currentTime;
@@ -769,9 +991,32 @@
           if (countInput) countInput.focus();
         }, 100);
       } else {
+        // Verification mode - check if wrong UPC and add to queue
+        if (!isCorrect) {
+          addToQueue('Wrong UPC');
+        }
         logResult(isCorrect, scanned, null, null);
         moveToNext();
       }
+    }
+
+    function handleEmptyLocation() {
+      const current = state.locationData[state.currentIndex];
+      
+      playSuccessBeep();
+      
+      // Check if system expects inventory
+      if (current.unitCount > 0) {
+        // System expects inventory but location is empty - add to queue
+        addToQueue('Empty Location');
+        showAlert(`⚠️ Empty location! Added to count queue (Expected: ${current.unitCount})`, 'error');
+      } else {
+        // System expects empty, location is empty - correct!
+        showAlert('✅ Location confirmed empty', 'success');
+      }
+      
+      logResult(null, 'EMPTY', current.unitCount, 0, 'Empty');
+      moveToNext();
     }
 
     function submitCount() {
@@ -785,18 +1030,46 @@
       }
       
       logResult(state.tempUPCResult, state.tempScannedUPC, current.unitCount, count);
+      
+      // Mark as completed in queue
+      completeQueueItem(current.location);
+      
       state.awaitingCount = false;
       moveToNext();
     }
 
-    function logResult(isCorrect, scannedUPC, expectedCount, actualCount) {
+    async function addToQueue(reason) {
+      const current = state.locationData[state.currentIndex];
+      
+      await logToSheets({
+        location: current.location,
+        expected_upc: current.upc,
+        expected_count: current.unitCount,
+        add_to_queue: true,
+        queue_reason: reason
+      });
+      
+      state.queueCount++;
+      fetchQueueCount(); // Refresh count
+    }
+
+    async function completeQueueItem(location) {
+      await logToSheets({
+        location: location,
+        complete_queue_item: true
+      });
+      
+      fetchQueueCount(); // Refresh count
+    }
+
+    function logResult(isCorrect, scannedUPC, expectedCount, actualCount, status = null) {
       const current = state.locationData[state.currentIndex];
       
       logToSheets({
         location: current.location,
         expected_upc: current.upc,
         scanned_upc: scannedUPC,
-        upc_status: isCorrect ? 'Correct' : 'Incorrect',
+        upc_status: status || (isCorrect ? 'Correct' : 'Incorrect'),
         expected_count: expectedCount,
         actual_count: actualCount,
         step: state.currentIndex + 1,
@@ -816,9 +1089,11 @@
           state.locationVerified = false;
           state.upcEntered = false;
           state.lastUPCInputTime = 0;
+          saveSession();
           render();
         } else {
           state.stage = 'complete';
+          clearSession();
           render();
         }
       }, 1000);
@@ -860,7 +1135,6 @@
           state.calcOperator = null;
           state.calcPrevValue = null;
           
-          // Update the count input field
           const countInput = document.getElementById('countInput');
           if (countInput) {
             countInput.value = state.calcValue;
@@ -892,37 +1166,31 @@
     }
 
     function updateVerifyScreen() {
-      // Only update the dynamic parts, not full re-render
       if (state.stage !== 'verify') return;
       
       const current = state.locationData[state.currentIndex];
       const scanned = state.currentIndex;
       const remaining = state.locationData.length - state.currentIndex;
       
-      // Update stats
       const stats = document.querySelectorAll('.stat-value');
       if (stats[0]) stats[0].textContent = scanned;
       if (stats[1]) stats[1].textContent = remaining;
       
-      // Update UPC section visibility
       const upcSection = document.getElementById('upcSection');
       if (upcSection) {
         upcSection.style.display = state.locationVerified ? 'block' : 'none';
       }
       
-      // Update count section visibility
       const countSection = document.getElementById('countSection');
       if (countSection) {
         countSection.style.display = state.awaitingCount ? 'block' : 'none';
       }
       
-      // Update calculator visibility
       const calcModal = document.getElementById('calcModal');
       if (calcModal) {
         calcModal.style.display = state.showCalculator ? 'flex' : 'none';
       }
       
-      // Update calc display
       const calcDisplay = document.querySelector('.calc-display');
       if (calcDisplay) {
         let displayText = state.calcValue || '0';
@@ -932,7 +1200,6 @@
         calcDisplay.textContent = displayText;
       }
       
-      // Update calc icon visibility
       const calcIcon = document.getElementById('calcIcon');
       if (calcIcon) {
         calcIcon.style.display = state.awaitingCount ? 'flex' : 'none';
@@ -992,10 +1259,11 @@
                     <div class="choice-desc">Verify location and UPC only</div>
                   </div>
 
-                  <div class="choice-card" onclick="selectMode('count')">
+                  <div class="choice-card" onclick="selectMode('count')" style="position: relative;">
+                    ${state.queueCount > 0 ? `<div class="badge">${state.queueCount} pending</div>` : ''}
                     <div class="choice-icon">📊</div>
                     <div class="choice-title">Location Count</div>
-                    <div class="choice-desc">Verify location, UPC, and unit count</div>
+                    <div class="choice-desc">Count inventory from queue</div>
                   </div>
                 </div>
               </div>
@@ -1015,7 +1283,7 @@
             <div class="container">
               <div class="card scale-in" style="max-width: 48rem;">
                 <h1 class="title">Upload File</h1>
-                <p class="subtitle">${state.verificationMode === 'count' ? 'Location Count Mode' : 'Location Verification Mode'}</p>
+                <p class="subtitle">Location Verification Mode</p>
 
                 <div id="alertBox"></div>
 
@@ -1024,7 +1292,7 @@
                     👤 ${state.employeeName}
                   </div>
                   <div style="font-size: 1rem; color: #A3F3C5;">
-                    ${state.verificationMode === 'count' ? '📊 Count Mode' : '🔍 Verification Mode'}
+                    🔍 Verification Mode
                   </div>
                 </div>
 
@@ -1096,7 +1364,7 @@
 
                 <div id="upcSection" style="display: ${state.locationVerified ? 'block' : 'none'}; margin-bottom: 1.5rem;">
                   <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
-                    📦 Scan UPC
+                    📦 Scan UPC or Click Empty
                   </label>
                   <div class="scan-input-section">
                     <div class="scan-input-wrapper">
@@ -1104,6 +1372,11 @@
                     </div>
                     <button id="submitUPCBtn" onclick="submitUPC()" class="submit-btn glow" disabled>
                       ✓ Submit
+                    </button>
+                  </div>
+                  <div style="margin-top: 1rem; text-align: center;">
+                    <button onclick="handleEmptyLocation()" class="btn-empty">
+                      🗑️ Empty Location
                     </button>
                   </div>
                 </div>
@@ -1241,6 +1514,13 @@
         }
       }, 100);
     }
+
+    // Check for saved session on load
+    window.addEventListener('DOMContentLoaded', () => {
+      checkForSavedSession();
+      fetchQueueCount();
+      render();
+    });
 
     render();
   </script>
