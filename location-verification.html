@@ -891,9 +891,25 @@
       setTimeout(() => { alertDiv.innerHTML = ''; }, 3000);
     }
 
-    function goHome() {
-      if (confirm('Return home? Progress will be lost.')) {
-        window.location.href = './index.html';
+    function restartTool() {
+      if (confirm('Restart and return to beginning? Progress will be lost.')) {
+        // Reset state completely
+        state = {
+          stage: 'name',
+          employeeName: '',
+          verificationMode: null,
+          locationData: null,
+          currentIndex: 0,
+          calcValue: '',
+          calcOperator: null,
+          calcPrevValue: null,
+          showCalculator: false,
+          awaitingCount: false,
+          locationVerified: false,
+          upcEntered: false,
+          lastUPCInputTime: 0
+        };
+        render();
       }
     }
 
@@ -1058,8 +1074,8 @@
         }
         
         content = `
-          <button onclick="goHome()" class="home-btn pulse">
-            🏠 Home
+          <button onclick="restartTool()" class="home-btn pulse">
+            ↺ Restart
           </button>
           
           <div class="gradient-bg grid-bg" style="min-height: 100vh; position: relative;">
@@ -1199,8 +1215,8 @@
                 </div>
               </div>
               
-              <button onclick="goHome()" class="btn btn-primary glow" style="max-width: 24rem; margin: 0 auto;">
-                Back to Home
+              <button onclick="restartTool()" class="btn btn-primary glow" style="max-width: 24rem; margin: 0 auto;">
+                Start New Session
               </button>
             </div>
           </div>
