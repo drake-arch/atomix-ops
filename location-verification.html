@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location Verification</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #101314;
+      color: #EDEFED;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .gradient-bg {
+      background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+    }
+
+    .floating { animation: float 6s ease-in-out infinite; }
+    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+    .scale-in { animation: scaleIn 0.5s ease-out forwards; }
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+    .slide-up { animation: slideUp 0.3s ease-out forwards; }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.3); }
+
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(163, 243, 197, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(163, 243, 197, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+
+    .container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .home-btn {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      color: #A3F3C5;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+    }
+
+    .home-btn:hover {
+      background: #1e2223;
+      transform: translateX(-5px);
+    }
+
+    .btn {
+      padding: 1.25rem 3rem;
+      border-radius: 1rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: #A3F3C5;
+      color: #101314;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #8de0ad;
+      transform: scale(1.05);
+    }
+
+    .btn-secondary {
+      background: #2a2d2e;
+      color: #EDEFED;
+      border: 1px solid #3a3d3e;
+    }
+
+    .btn-secondary:hover {
+      background: #3a3d3e;
+      border-color: #A3F3C5;
+    }
+
+    .btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      max-width: 56rem;
+      width: 100%;
+    }
+
+    .title {
+      font-size: 3.75rem;
+      font-weight: 300;
+      text-align: center;
+      background: linear-gradient(to right, white, #A3F3C5);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #9D9F9E;
+      font-size: 1.125rem;
+      margin-bottom: 3rem;
+    }
+
+    .input {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      background: #1a1d1e;
+      border: 2px solid #2a2d2e;
+      border-radius: 0.75rem;
+      color: #EDEFED;
+      font-size: 1.125rem;
+      transition: all 0.3s;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #A3F3C5;
+      box-shadow: 0 0 0 3px rgba(163, 243, 197, 0.3);
+    }
+
+    .input-scan {
+      font-size: 2rem;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .alert {
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid;
+      font-weight: 500;
+    }
+
+    .alert-success {
+      background: rgba(6, 78, 59, 0.3);
+      border-color: #10b981;
+      color: #34d399;
+    }
+
+    .alert-error {
+      background: rgba(127, 29, 29, 0.3);
+      border-color: #ef4444;
+      color: #f87171;
+    }
+
+    .progress-bar {
+      background: #2a2d2e;
+      height: 0.75rem;
+      border-radius: 100px;
+      overflow: hidden;
+      margin: 2rem 0 1rem;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #0D2D53, #1a4d7a, #A3F3C5);
+      height: 100%;
+      transition: width 0.5s;
+    }
+
+    .location-card {
+      background: linear-gradient(135deg, #0D2D53, #1a4d7a);
+      border-radius: 1rem;
+      padding: 3rem 2rem;
+      text-align: center;
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .location-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #0D2D53, #A3F3C5, #0D2D53);
+    }
+
+    .location-label {
+      font-size: 0.875rem;
+      color: #A3F3C5;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .location-value {
+      font-size: 5rem;
+      color: white;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      margin-bottom: 1rem;
+      letter-spacing: 0.1em;
+    }
+
+    .choice-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .choice-card:hover {
+      border-color: #A3F3C5;
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(163, 243, 197, 0.2);
+    }
+
+    .choice-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    .choice-title {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #EDEFED;
+      margin-bottom: 0.5rem;
+    }
+
+    .choice-desc {
+      font-size: 1rem;
+      color: #9D9F9E;
+    }
+
+    .calc-icon {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 4rem;
+      height: 4rem;
+      background: #A3F3C5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(163, 243, 197, 0.5);
+      transition: all 0.3s;
+      z-index: 100;
+    }
+
+    .calc-icon:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 30px rgba(163, 243, 197, 0.7);
+    }
+
+    .calc-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      backdrop-filter: blur(5px);
+    }
+
+    .calc-container {
+      background: #1a1d1e;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      border: 2px solid #A3F3C5;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .calc-display {
+      background: #101314;
+      border: 2px solid #2a2d2e;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      font-size: 2.5rem;
+      font-family: 'Courier New', monospace;
+      text-align: right;
+      margin-bottom: 1rem;
+      color: #A3F3C5;
+      min-height: 80px;
+      word-break: break-all;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+
+    .calc-btn {
+      padding: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #2a2d2e;
+      color: #EDEFED;
+    }
+
+    .calc-btn:hover {
+      background: #3a3d3e;
+      transform: scale(1.05);
+    }
+
+    .calc-btn:active {
+      transform: scale(0.95);
+    }
+
+    .calc-btn-clear {
+      background: #ef4444;
+      color: white;
+    }
+
+    .calc-btn-equals {
+      background: #A3F3C5;
+      color: #101314;
+      font-weight: 700;
+    }
+
+    .calc-btn-close {
+      background: #6b7280;
+      color: white;
+      grid-column: span 4;
+    }
+
+    .scan-input-section {
+      display: flex;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .scan-input-wrapper {
+      flex: 1;
+    }
+
+    .count-input-section {
+      display: flex;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .count-input-wrapper {
+      flex: 1;
+    }
+
+    .submit-btn {
+      padding: 1rem 2rem;
+      background: #A3F3C5;
+      color: #101314;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 1.125rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      background: #8de0ad;
+      transform: scale(1.05);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      background: #6b7280;
+    }
+
+    .hidden { display: none !important; }
+    
+    .orb {
+      position: absolute;
+      background: #A3F3C5;
+      opacity: 0.1;
+      border-radius: 50%;
+      filter: blur(60px);
+    }
+
+    .orb-1 {
+      top: 5rem;
+      left: 2.5rem;
+      width: 18rem;
+      height: 18rem;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .orb-2 {
+      bottom: 5rem;
+      right: 2.5rem;
+      width: 24rem;
+      height: 24rem;
+      animation: float 6s ease-in-out infinite;
+      animation-delay: -3s;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #A3F3C5;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #9D9F9E;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <script>
+    const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwj2RFctSenpguEEe4comXIHPOiHjNZt0ULFOU7QLpjun_RKnODgoPMellUGtW9qIhfBg/exec';
+
+    let state = {
+      stage: 'name',
+      employeeName: '',
+      verificationMode: null,
+      locationData: null,
+      currentIndex: 0,
+      calcValue: '',
+      calcOperator: null,
+      calcPrevValue: null,
+      showCalculator: false,
+      awaitingCount: false,
+      locationVerified: false,
+      upcEntered: false,
+      lastUPCInputTime: 0
+    };
+
+    let audioContext;
+    
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playBeep(frequency = 800, duration = 100) {
+      initAudio();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration / 1000);
+    }
+
+    function playSuccessBeep() {
+      playBeep(800, 100);
+      setTimeout(() => playBeep(1000, 100), 100);
+    }
+
+    function playErrorBeep() {
+      playBeep(400, 200);
+    }
+
+    function setName() {
+      const name = document.getElementById('employeeName').value.trim();
+      if (!name) {
+        showAlert('⚠️ Please enter your name', 'error');
+        return;
+      }
+      state.employeeName = name;
+      state.stage = 'choice';
+      render();
+    }
+
+    function selectMode(mode) {
+      state.verificationMode = mode;
+      state.stage = 'upload';
+      render();
+    }
+
+    function parseExcelFile(file) {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+          
+          validateLocationData(jsonData);
+        } catch (error) {
+          showAlert(`Error reading file: ${error.message}`, 'error');
+        }
+      };
+      
+      reader.readAsArrayBuffer(file);
+    }
+
+    function validateLocationData(data) {
+      if (data.length === 0) {
+        showAlert('File is empty', 'error');
+        return;
+      }
+
+      // Get the first row to find column headers
+      const firstRow = data[0];
+      const headers = Object.keys(firstRow);
+      
+      // Find the correct column names (case-insensitive search)
+      let locationCol = null;
+      let upcCol = null;
+      let countCol = null;
+      
+      // Search for Location column
+      locationCol = headers.find(h => 
+        h.toLowerCase() === 'location' || 
+        h.toLowerCase() === 'loc'
+      );
+      
+      // Search for UPC column
+      upcCol = headers.find(h => 
+        h.toLowerCase() === 'upc' || 
+        h.toLowerCase() === 'sku'
+      );
+      
+      // Search for Count column (optional)
+      countCol = headers.find(h => 
+        h.toLowerCase() === 'location on hand' ||
+        h.toLowerCase() === 'locationonhand' ||
+        h.toLowerCase() === 'count' ||
+        h.toLowerCase() === 'qty' ||
+        h.toLowerCase() === 'quantity' ||
+        h.toLowerCase() === 'unit count' ||
+        h.toLowerCase() === 'unitcount'
+      );
+      
+      if (!locationCol) {
+        showAlert('❌ Could not find "Location" column in file', 'error');
+        return;
+      }
+      
+      if (!upcCol) {
+        showAlert('❌ Could not find "UPC" or "SKU" column in file', 'error');
+        return;
+      }
+
+      console.log(`Found columns - Location: "${locationCol}", UPC: "${upcCol}", Count: "${countCol}"`);
+
+      // Parse the data using the found column names
+      const normalized = data.map(row => {
+        let location = String(row[locationCol] || '').trim();
+        let upc = String(row[upcCol] || '').trim();
+        let unitCount = countCol ? parseInt(row[countCol] || 0) : 0;
+        
+        return { location, upc, unitCount };
+      }).filter(row => row.location && row.upc);
+
+      if (normalized.length === 0) {
+        showAlert('No valid location and UPC data found', 'error');
+        return;
+      }
+
+      state.locationData = normalized;
+      state.stage = 'verify';
+      showAlert(`✅ File loaded: ${normalized.length} locations`, 'success');
+      render();
+    }
+
+    async function logToSheets(eventData) {
+      const payload = {
+        timestamp: new Date().toISOString(),
+        employee_name: state.employeeName,
+        verification_mode: state.verificationMode,
+        ...eventData
+      };
+
+      try {
+        await fetch(SHEETS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        console.log('Logged to sheets:', payload);
+      } catch (error) {
+        console.error('Failed to log to sheets:', error);
+      }
+    }
+
+    function handleLocationInput(event) {
+      const scanned = event.target.value.trim().toUpperCase();
+      const current = state.locationData[state.currentIndex];
+      
+      if (scanned.length >= current.location.length) {
+        if (scanned === current.location.toUpperCase()) {
+          playSuccessBeep();
+          showAlert('✅ Location verified', 'success');
+          state.locationVerified = true;
+          updateVerifyScreen();
+        } else {
+          playErrorBeep();
+          showAlert(`❌ Wrong location! Expected: ${current.location}`, 'error');
+          event.target.value = '';
+        }
+      }
+    }
+
+    function handleUPCInput(event) {
+      const scanned = event.target.value.trim();
+      const current = state.locationData[state.currentIndex];
+      
+      // Update button state
+      const submitBtn = document.getElementById('submitUPCBtn');
+      if (submitBtn) {
+        submitBtn.disabled = scanned.length === 0;
+      }
+      
+      // Store values
+      if (scanned.length > 0) {
+        state.tempUPCResult = scanned === current.upc;
+        state.tempScannedUPC = scanned;
+      }
+      
+      // Auto-submit for fast scan (barcode scanner)
+      const currentTime = Date.now();
+      const timeSinceLastInput = currentTime - state.lastUPCInputTime;
+      state.lastUPCInputTime = currentTime;
+      
+      if (scanned.length >= current.upc.length && timeSinceLastInput < 50) {
+        submitUPC();
+      }
+    }
+
+    function submitUPC() {
+      const upcInput = document.getElementById('upcScan');
+      const scanned = upcInput.value.trim();
+      
+      if (!scanned) {
+        showAlert('⚠️ Please enter UPC', 'error');
+        return;
+      }
+      
+      const current = state.locationData[state.currentIndex];
+      const isCorrect = scanned === current.upc;
+      
+      state.tempUPCResult = isCorrect;
+      state.tempScannedUPC = scanned;
+      
+      playSuccessBeep();
+      
+      if (state.verificationMode === 'count') {
+        state.awaitingCount = true;
+        state.locationVerified = false;
+        showAlert('✓ UPC recorded. Enter count below.', 'success');
+        updateVerifyScreen();
+        setTimeout(() => {
+          const countInput = document.getElementById('countInput');
+          if (countInput) countInput.focus();
+        }, 100);
+      } else {
+        logResult(isCorrect, scanned, null, null);
+        moveToNext();
+      }
+    }
+
+    function submitCount() {
+      const countInput = document.getElementById('countInput');
+      const count = parseInt(countInput.value);
+      const current = state.locationData[state.currentIndex];
+      
+      if (isNaN(count) || count < 0) {
+        showAlert('⚠️ Please enter a valid count', 'error');
+        return;
+      }
+      
+      logResult(state.tempUPCResult, state.tempScannedUPC, current.unitCount, count);
+      state.awaitingCount = false;
+      moveToNext();
+    }
+
+    function logResult(isCorrect, scannedUPC, expectedCount, actualCount) {
+      const current = state.locationData[state.currentIndex];
+      
+      logToSheets({
+        location: current.location,
+        expected_upc: current.upc,
+        scanned_upc: scannedUPC,
+        upc_status: isCorrect ? 'Correct' : 'Incorrect',
+        expected_count: expectedCount,
+        actual_count: actualCount,
+        step: state.currentIndex + 1,
+        total_steps: state.locationData.length
+      });
+    }
+
+    function moveToNext() {
+      showAlert('✓ Recorded, moving to next...', 'success');
+      
+      setTimeout(() => {
+        if (state.currentIndex < state.locationData.length - 1) {
+          state.currentIndex++;
+          state.calcValue = '';
+          state.calcOperator = null;
+          state.calcPrevValue = null;
+          state.locationVerified = false;
+          state.upcEntered = false;
+          state.lastUPCInputTime = 0;
+          render();
+        } else {
+          state.stage = 'complete';
+          render();
+        }
+      }, 1000);
+    }
+
+    function calcPress(val) {
+      if (val === 'C') {
+        state.calcValue = '';
+        state.calcOperator = null;
+        state.calcPrevValue = null;
+      } else if (['+', '-', '×', '÷'].includes(val)) {
+        if (state.calcValue) {
+          state.calcPrevValue = parseFloat(state.calcValue);
+          state.calcOperator = val;
+          state.calcValue = '';
+        }
+      } else if (val === '=') {
+        if (state.calcOperator && state.calcPrevValue !== null && state.calcValue) {
+          const prev = state.calcPrevValue;
+          const current = parseFloat(state.calcValue);
+          let result = 0;
+          
+          switch (state.calcOperator) {
+            case '+':
+              result = prev + current;
+              break;
+            case '-':
+              result = prev - current;
+              break;
+            case '×':
+              result = prev * current;
+              break;
+            case '÷':
+              result = prev / current;
+              break;
+          }
+          
+          state.calcValue = Math.round(result).toString();
+          state.calcOperator = null;
+          state.calcPrevValue = null;
+          
+          // Update the count input field
+          const countInput = document.getElementById('countInput');
+          if (countInput) {
+            countInput.value = state.calcValue;
+          }
+        }
+      } else {
+        state.calcValue += val;
+      }
+      
+      updateVerifyScreen();
+    }
+
+    function toggleCalculator() {
+      state.showCalculator = !state.showCalculator;
+      updateVerifyScreen();
+    }
+
+    function closeCalculator() {
+      state.showCalculator = false;
+      updateVerifyScreen();
+    }
+
+    function showAlert(message, type) {
+      const alertDiv = document.getElementById('alertBox');
+      if (!alertDiv) return;
+      
+      alertDiv.innerHTML = `<div class="alert alert-${type} fade-in-up">${message}</div>`;
+      setTimeout(() => { alertDiv.innerHTML = ''; }, 3000);
+    }
+
+    function goHome() {
+      if (confirm('Return home? Progress will be lost.')) {
+        window.location.href = './index.html';
+      }
+    }
+
+    function updateVerifyScreen() {
+      // Only update the dynamic parts, not full re-render
+      if (state.stage !== 'verify') return;
+      
+      const current = state.locationData[state.currentIndex];
+      const scanned = state.currentIndex;
+      const remaining = state.locationData.length - state.currentIndex;
+      
+      // Update stats
+      const stats = document.querySelectorAll('.stat-value');
+      if (stats[0]) stats[0].textContent = scanned;
+      if (stats[1]) stats[1].textContent = remaining;
+      
+      // Update UPC section visibility
+      const upcSection = document.getElementById('upcSection');
+      if (upcSection) {
+        upcSection.style.display = state.locationVerified ? 'block' : 'none';
+      }
+      
+      // Update count section visibility
+      const countSection = document.getElementById('countSection');
+      if (countSection) {
+        countSection.style.display = state.awaitingCount ? 'block' : 'none';
+      }
+      
+      // Update calculator visibility
+      const calcModal = document.getElementById('calcModal');
+      if (calcModal) {
+        calcModal.style.display = state.showCalculator ? 'flex' : 'none';
+      }
+      
+      // Update calc display
+      const calcDisplay = document.querySelector('.calc-display');
+      if (calcDisplay) {
+        let displayText = state.calcValue || '0';
+        if (state.calcOperator && state.calcPrevValue !== null) {
+          displayText = `${state.calcPrevValue} ${state.calcOperator} ${state.calcValue || ''}`;
+        }
+        calcDisplay.textContent = displayText;
+      }
+      
+      // Update calc icon visibility
+      const calcIcon = document.getElementById('calcIcon');
+      if (calcIcon) {
+        calcIcon.style.display = state.awaitingCount ? 'flex' : 'none';
+      }
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+      let content = '';
+
+      if (state.stage === 'name') {
+        content = `
+          <div class="gradient-bg grid-bg" style="min-height: 100vh; position: relative;">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            
+            <div class="container">
+              <div class="card scale-in" style="max-width: 48rem;">
+                <h1 class="title">Location<br/>Verification</h1>
+                <p class="subtitle">Ensure inventory accuracy</p>
+
+                <div id="alertBox"></div>
+
+                <div style="margin-bottom: 2rem;">
+                  <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">Employee Name / ID</label>
+                  <input type="text" id="employeeName" class="input" placeholder="Enter your name or ID" autofocus>
+                </div>
+
+                <button onclick="setName()" class="btn btn-primary glow">
+                  Continue →
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (state.stage === 'choice') {
+        content = `
+          <button onclick="state.stage = 'name'; render();" class="home-btn">
+            ← Back
+          </button>
+
+          <div class="gradient-bg grid-bg" style="min-height: 100vh; position: relative;">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            
+            <div class="container">
+              <div class="card scale-in" style="max-width: 56rem;">
+                <h1 class="title">Choose Mode</h1>
+                <p class="subtitle">Select verification type</p>
+
+                <div id="alertBox"></div>
+
+                <div class="grid-2">
+                  <div class="choice-card" onclick="selectMode('verification')">
+                    <div class="choice-icon">🔍</div>
+                    <div class="choice-title">Location Verification</div>
+                    <div class="choice-desc">Verify location and UPC only</div>
+                  </div>
+
+                  <div class="choice-card" onclick="selectMode('count')">
+                    <div class="choice-icon">📊</div>
+                    <div class="choice-title">Location Count</div>
+                    <div class="choice-desc">Verify location, UPC, and unit count</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (state.stage === 'upload') {
+        content = `
+          <button onclick="state.stage = 'choice'; render();" class="home-btn">
+            ← Back
+          </button>
+
+          <div class="gradient-bg grid-bg" style="min-height: 100vh; position: relative;">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            
+            <div class="container">
+              <div class="card scale-in" style="max-width: 48rem;">
+                <h1 class="title">Upload File</h1>
+                <p class="subtitle">${state.verificationMode === 'count' ? 'Location Count Mode' : 'Location Verification Mode'}</p>
+
+                <div id="alertBox"></div>
+
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; text-align: center;">
+                  <div style="font-size: 1.5rem; font-weight: 600; color: #EDEFED; margin-bottom: 0.5rem;">
+                    👤 ${state.employeeName}
+                  </div>
+                  <div style="font-size: 1rem; color: #A3F3C5;">
+                    ${state.verificationMode === 'count' ? '📊 Count Mode' : '🔍 Verification Mode'}
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                  <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">Upload Your Location File</label>
+                  <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+                  <button onclick="document.getElementById('fileInput').click()" class="btn btn-secondary">
+                    📁 Choose File
+                  </button>
+                  <p style="text-align: center; color: #9D9F9E; font-size: 0.875rem; margin-top: 0.75rem;">Excel or CSV with Location and UPC columns</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (state.stage === 'verify') {
+        const current = state.locationData[state.currentIndex];
+        const progress = ((state.currentIndex / state.locationData.length) * 100).toFixed(0);
+        const scanned = state.currentIndex;
+        const remaining = state.locationData.length - state.currentIndex;
+        
+        let displayText = state.calcValue || '0';
+        if (state.calcOperator && state.calcPrevValue !== null) {
+          displayText = `${state.calcPrevValue} ${state.calcOperator} ${state.calcValue || ''}`;
+        }
+        
+        content = `
+          <button onclick="goHome()" class="home-btn pulse">
+            🏠 Home
+          </button>
+          
+          <div class="gradient-bg grid-bg" style="min-height: 100vh; position: relative;">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            
+            <div class="container">
+              <div class="card scale-in" style="max-width: 64rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                  <div style="color: #A3F3C5; font-weight: 600; font-size: 1.125rem;">
+                    ${state.employeeName}
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    ${state.verificationMode === 'count' ? '<span style="background: #A3F3C5; color: #101314; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 700; font-size: 0.875rem;">📊 COUNT MODE</span>' : '<span style="background: rgba(255, 255, 255, 0.1); color: #A3F3C5; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 700; font-size: 0.875rem;">🔍 VERIFY MODE</span>'}
+                  </div>
+                </div>
+
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+                <div style="text-align: center; color: #9D9F9E; font-size: 0.875rem; font-weight: 600; margin-top: 0.75rem;">
+                  Location ${state.currentIndex + 1} of ${state.locationData.length}
+                </div>
+
+                <div class="location-card glow">
+                  <div class="location-label">📍 Go to Location</div>
+                  <div class="location-value">${current.location}</div>
+                </div>
+
+                <div id="alertBox"></div>
+
+                ${!state.locationVerified ? `
+                <div style="margin-bottom: 1.5rem;">
+                  <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+                    🔍 Scan Location
+                  </label>
+                  <input type="text" id="locationScan" class="input input-scan" placeholder="SCAN LOCATION" autofocus>
+                </div>
+                ` : ''}
+
+                <div id="upcSection" style="display: ${state.locationVerified ? 'block' : 'none'}; margin-bottom: 1.5rem;">
+                  <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+                    📦 Scan UPC
+                  </label>
+                  <div class="scan-input-section">
+                    <div class="scan-input-wrapper">
+                      <input type="text" id="upcScan" class="input input-scan" placeholder="SCAN UPC" autofocus>
+                    </div>
+                    <button id="submitUPCBtn" onclick="submitUPC()" class="submit-btn glow" disabled>
+                      ✓ Submit
+                    </button>
+                  </div>
+                </div>
+
+                <div id="countSection" style="display: ${state.awaitingCount ? 'block' : 'none'}; margin-bottom: 1.5rem;">
+                  <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+                    📊 Enter Unit Count
+                  </label>
+                  <div class="count-input-section">
+                    <div class="count-input-wrapper">
+                      <input type="number" id="countInput" class="input input-scan" placeholder="0" min="0" value="${state.calcValue}">
+                    </div>
+                    <button onclick="submitCount()" class="submit-btn glow">
+                      ✓ Submit
+                    </button>
+                  </div>
+                </div>
+
+                <div class="stats-grid">
+                  <div class="stat-card">
+                    <div class="stat-value">${scanned}</div>
+                    <div class="stat-label">Scanned</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-value">${remaining}</div>
+                    <div class="stat-label">Remaining</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="calcIcon" class="calc-icon pulse" style="display: ${state.awaitingCount ? 'flex' : 'none'};" onclick="toggleCalculator()">
+            🔢
+          </div>
+
+          <div id="calcModal" class="calc-modal" style="display: ${state.showCalculator ? 'flex' : 'none'};" onclick="if(event.target === this) closeCalculator()">
+            <div class="calc-container slide-up">
+              <div style="text-align: center; font-size: 1.25rem; font-weight: 600; color: #A3F3C5; margin-bottom: 1rem;">
+                Calculator
+              </div>
+              <div class="calc-display">${displayText}</div>
+              <div class="calc-grid">
+                <button class="calc-btn" onclick="calcPress('7')">7</button>
+                <button class="calc-btn" onclick="calcPress('8')">8</button>
+                <button class="calc-btn" onclick="calcPress('9')">9</button>
+                <button class="calc-btn" onclick="calcPress('÷')">÷</button>
+                
+                <button class="calc-btn" onclick="calcPress('4')">4</button>
+                <button class="calc-btn" onclick="calcPress('5')">5</button>
+                <button class="calc-btn" onclick="calcPress('6')">6</button>
+                <button class="calc-btn" onclick="calcPress('×')">×</button>
+                
+                <button class="calc-btn" onclick="calcPress('1')">1</button>
+                <button class="calc-btn" onclick="calcPress('2')">2</button>
+                <button class="calc-btn" onclick="calcPress('3')">3</button>
+                <button class="calc-btn" onclick="calcPress('-')">-</button>
+                
+                <button class="calc-btn calc-btn-clear" onclick="calcPress('C')">C</button>
+                <button class="calc-btn" onclick="calcPress('0')">0</button>
+                <button class="calc-btn calc-btn-equals" onclick="calcPress('=')">=</button>
+                <button class="calc-btn" onclick="calcPress('+')">+</button>
+                
+                <button class="calc-btn calc-btn-close" onclick="closeCalculator()">Close</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (state.stage === 'complete') {
+        const totalScanned = state.locationData.length;
+        
+        content = `
+          <div class="gradient-bg grid-bg container">
+            <div class="card scale-in" style="text-align: center; padding: 4rem;">
+              <div style="font-size: 6rem; margin-bottom: 2rem;" class="pulse">🎉</div>
+              <h2 style="font-size: 4rem; font-weight: 300; margin-bottom: 1.5rem; background: linear-gradient(to right, white, #A3F3C5); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                ${state.verificationMode === 'count' ? 'Count' : 'Verification'} Complete!
+              </h2>
+              <p style="color: #9D9F9E; font-size: 1.5rem; margin-bottom: 3rem; font-weight: 300;">
+                Excellent work, ${state.employeeName}!
+              </p>
+              
+              <div style="max-width: 24rem; margin: 0 auto 3rem;">
+                <div class="stat-card" style="padding: 2rem;">
+                  <div class="stat-value" style="font-size: 4rem;">${totalScanned}</div>
+                  <div class="stat-label" style="font-size: 1rem;">Locations ${state.verificationMode === 'count' ? 'Counted' : 'Verified'}</div>
+                </div>
+              </div>
+              
+              <button onclick="goHome()" class="btn btn-primary glow" style="max-width: 24rem; margin: 0 auto;">
+                Back to Home
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      app.innerHTML = content;
+
+      setTimeout(() => {
+        if (state.stage === 'name') {
+          const nameInput = document.getElementById('employeeName');
+          if (nameInput) {
+            nameInput.focus();
+            nameInput.addEventListener('keypress', (e) => {
+              if (e.key === 'Enter') setName();
+            });
+          }
+        }
+
+        if (state.stage === 'upload') {
+          const fileInput = document.getElementById('fileInput');
+          if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+              const file = e.target.files[0];
+              if (file) {
+                parseExcelFile(file);
+              }
+            });
+          }
+        }
+        
+        if (state.stage === 'verify') {
+          const locationInput = document.getElementById('locationScan');
+          const upcInput = document.getElementById('upcScan');
+          
+          if (locationInput) {
+            locationInput.focus();
+            locationInput.addEventListener('input', handleLocationInput);
+          }
+          
+          if (upcInput) {
+            upcInput.addEventListener('input', handleUPCInput);
+          }
+        }
+      }, 100);
+    }
+
+    render();
+  </script>
+</body>
+</html>
