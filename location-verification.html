@@ -648,7 +648,8 @@
       locationVerified: false,
       upcEntered: false,
       lastUPCInputTime: 0,
-      queueCount: 0
+      queueCount: 0,
+      countSource: null // 'queue' or 'upload'
     };
 
     let audioContext;
@@ -693,6 +694,7 @@
         verificationMode: state.verificationMode,
         locationData: state.locationData,
         currentIndex: state.currentIndex,
+        countSource: state.countSource,
         timestamp: new Date().toISOString()
       };
       localStorage.setItem('locationVerificationSession', JSON.stringify(session));
@@ -749,6 +751,7 @@
       state.verificationMode = saved.verificationMode;
       state.locationData = saved.locationData;
       state.currentIndex = saved.currentIndex;
+      state.countSource = saved.countSource;
       state.stage = 'verify';
       
       document.getElementById('resumeModal').remove();
@@ -779,14 +782,15 @@
         const response = await fetch(`${SHEETS_URL}?action=get_queue`);
         const data = await response.json();
         if (data.result === 'success' && data.queue.length > 0) {
-          // Convert queue to locationData format
           state.locationData = data.queue.map(item => ({
             location: item.location,
             upc: item.expected_upc,
             unitCount: item.expected_count
           }));
           state.stage = 'verify';
+          state.countSource = 'queue';
           showAlert(`✅ Loaded ${data.queue.length} locations from queue`, 'success');
+          saveSession();
           render();
         } else {
           showAlert('✅ No pending counts in queue!', 'success');
@@ -804,7 +808,7 @@
       }
       state.employeeName = name;
       state.stage = 'choice';
-      fetchQueueCount(); // Check queue count
+      fetchQueueCount();
       render();
     }
 
@@ -812,10 +816,24 @@
       state.verificationMode = mode;
       
       if (mode === 'count') {
-        // Count mode - fetch from queue
-        fetchQueueData();
+        // Show count source selection
+        state.stage = 'countSource';
+        render();
       } else {
         // Verification mode - upload file
+        state.stage = 'upload';
+        render();
+      }
+    }
+
+    function selectCountSource(source) {
+      state.countSource = source;
+      
+      if (source === 'queue') {
+        // Load from queue
+        fetchQueueData();
+      } else {
+        // Upload file
         state.stage = 'upload';
         render();
       }
@@ -896,6 +914,12 @@
 
       state.locationData = normalized;
       state.currentIndex = 0;
+      
+      // Set countSource to 'upload' if in count mode
+      if (state.verificationMode === 'count' && !state.countSource) {
+        state.countSource = 'upload';
+      }
+      
       state.stage = 'verify';
       showAlert(`✅ File loaded: ${normalized.length} locations`, 'success');
       saveSession();
@@ -1007,11 +1031,14 @@
       
       // Check if system expects inventory
       if (current.unitCount > 0) {
-        // System expects inventory but location is empty - add to queue
-        addToQueue('Empty Location');
-        showAlert(`⚠️ Empty location! Added to count queue (Expected: ${current.unitCount})`, 'error');
+        // Only add to queue if in verification mode
+        if (state.verificationMode === 'verification') {
+          addToQueue('Empty Location');
+          showAlert(`⚠️ Empty location! Added to count queue (Expected: ${current.unitCount})`, 'error');
+        } else {
+          showAlert(`⚠️ Empty location! (Expected: ${current.unitCount})`, 'error');
+        }
       } else {
-        // System expects empty, location is empty - correct!
         showAlert('✅ Location confirmed empty', 'success');
       }
       
@@ -1031,8 +1058,10 @@
       
       logResult(state.tempUPCResult, state.tempScannedUPC, current.unitCount, count);
       
-      // Mark as completed in queue
-      completeQueueItem(current.location);
+      // Mark as completed in queue if counting from queue
+      if (state.countSource === 'queue') {
+        completeQueueItem(current.location);
+      }
       
       state.awaitingCount = false;
       moveToNext();
@@ -1050,7 +1079,7 @@
       });
       
       state.queueCount++;
-      fetchQueueCount(); // Refresh count
+      fetchQueueCount();
     }
 
     async function completeQueueItem(location) {
@@ -1059,7 +1088,7 @@
         complete_queue_item: true
       });
       
-      fetchQueueCount(); // Refresh count
+      fetchQueueCount();
     }
 
     function logResult(isCorrect, scannedUPC, expectedCount, actualCount, status = null) {
@@ -1263,14 +1292,14 @@
                     ${state.queueCount > 0 ? `<div class="badge">${state.queueCount} pending</div>` : ''}
                     <div class="choice-icon">📊</div>
                     <div class="choice-title">Location Count</div>
-                    <div class="choice-desc">Count inventory from queue</div>
+                    <div class="choice-desc">Count inventory - Queue or Upload</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         `;
-      } else if (state.stage === 'upload') {
+      } else if (state.stage === 'countSource') {
         content = `
           <button onclick="state.stage = 'choice'; render();" class="home-btn">
             ← Back
@@ -1281,9 +1310,44 @@
             <div class="orb orb-2"></div>
             
             <div class="container">
+              <div class="card scale-in" style="max-width: 56rem;">
+                <h1 class="title">Count Mode</h1>
+                <p class="subtitle">Choose data source</p>
+
+                <div id="alertBox"></div>
+
+                <div class="grid-2">
+                  <div class="choice-card" onclick="selectCountSource('queue')" style="position: relative;">
+                    ${state.queueCount > 0 ? `<div class="badge">${state.queueCount} locations</div>` : ''}
+                    <div class="choice-icon">📥</div>
+                    <div class="choice-title">From Queue</div>
+                    <div class="choice-desc">Count auto-queued locations</div>
+                  </div>
+
+                  <div class="choice-card" onclick="selectCountSource('upload')">
+                    <div class="choice-icon">📁</div>
+                    <div class="choice-title">Upload File</div>
+                    <div class="choice-desc">Count specific locations from file</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (state.stage === 'upload') {
+        content = `
+          <button onclick="state.stage = state.verificationMode === 'count' ? 'countSource' : 'choice'; render();" class="home-btn">
+            ← Back
+          </button>
+
+          <div class="gradient-bg grid-bg" style="min-height: 100vh; position: relative;">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            
+            <div class="container">
               <div class="card scale-in" style="max-width: 48rem;">
                 <h1 class="title">Upload File</h1>
-                <p class="subtitle">Location Verification Mode</p>
+                <p class="subtitle">${state.verificationMode === 'count' ? 'Location Count Mode' : 'Location Verification Mode'}</p>
 
                 <div id="alertBox"></div>
 
@@ -1292,7 +1356,7 @@
                     👤 ${state.employeeName}
                   </div>
                   <div style="font-size: 1rem; color: #A3F3C5;">
-                    🔍 Verification Mode
+                    ${state.verificationMode === 'count' ? '📊 Count Mode' : '🔍 Verification Mode'}
                   </div>
                 </div>
 
@@ -1515,7 +1579,6 @@
       }, 100);
     }
 
-    // Check for saved session on load
     window.addEventListener('DOMContentLoaded', () => {
       checkForSavedSession();
       fetchQueueCount();
