@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Location Verification - Atomix Logistics</title>
+    <title>Location Verification v6.0 - Atomix Logistics</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -14,7 +14,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #0D2D53 0%, #1a4d7a 100%);
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
             min-height: 100vh;
             padding: 20px;
             color: #ffffff;
@@ -34,40 +34,42 @@
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 8px;
-            color: #A3F3C5;
+            color: #FFFFFF;
         }
 
         .header p {
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             border-radius: 16px;
             padding: 24px;
             margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            color: #0D2D53;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            color: #333;
         }
 
         .upload-section {
             text-align: center;
             padding: 40px 20px;
-            border: 2px dashed #0D2D53;
+            border: 3px dashed #1976D2;
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: #E3F2FD;
         }
 
         .upload-section:hover {
-            border-color: #A3F3C5;
-            background: rgba(163, 243, 197, 0.1);
+            border-color: #4CAF50;
+            background: #C8E6C9;
         }
 
         .upload-section.active {
-            border-color: #A3F3C5;
-            background: rgba(163, 243, 197, 0.2);
+            border-color: #4CAF50;
+            background: #A5D6A7;
         }
 
         .upload-icon {
@@ -92,43 +94,43 @@
         }
 
         .btn-primary {
-            background: #0D2D53;
+            background: #1976D2;
             color: #ffffff;
         }
 
         .btn-primary:hover {
-            background: #1a4d7a;
+            background: #1565C0;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(13, 45, 83, 0.3);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
         }
 
         .btn-success {
-            background: #10b981;
+            background: #4CAF50;
             color: #ffffff;
         }
 
         .btn-success:hover {
-            background: #059669;
+            background: #45A049;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
         }
 
         .btn-danger {
-            background: #ef4444;
+            background: #F44336;
             color: #ffffff;
         }
 
         .btn-danger:hover {
-            background: #dc2626;
+            background: #E53935;
         }
 
         .btn-warning {
-            background: #fbbf24;
-            color: #0D2D53;
+            background: #FF9800;
+            color: #ffffff;
         }
 
         .btn-warning:hover {
-            background: #f59e0b;
+            background: #FB8C00;
         }
 
         .btn:disabled {
@@ -145,15 +147,15 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #0D2D53;
+            color: #333;
         }
 
         .input-group input,
         .input-group select {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             font-size: 18px;
-            border: 2px solid #e5e7eb;
+            border: 2px solid #BBDEFB;
             border-radius: 8px;
             transition: border-color 0.3s ease;
             font-family: 'Courier New', monospace;
@@ -162,31 +164,32 @@
         .input-group input:focus,
         .input-group select:focus {
             outline: none;
-            border-color: #0D2D53;
+            border-color: #1976D2;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
         }
 
         .status-badge {
             display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 16px;
             margin-bottom: 16px;
         }
 
         .status-correct {
-            background: #D4EDDA;
-            color: #155724;
+            background: #4CAF50;
+            color: #FFFFFF;
         }
 
         .status-incorrect {
-            background: #F8D7DA;
-            color: #721C24;
+            background: #F44336;
+            color: #FFFFFF;
         }
 
         .status-empty {
-            background: #E3F2FD;
-            color: #1565C0;
+            background: #2196F3;
+            color: #FFFFFF;
         }
 
         .hidden {
@@ -198,7 +201,7 @@
             justify-content: space-around;
             margin-top: 20px;
             padding: 20px;
-            background: rgba(163, 243, 197, 0.1);
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
             border-radius: 12px;
         }
 
@@ -207,31 +210,34 @@
         }
 
         .stat-value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
-            color: #0D2D53;
+            color: #1976D2;
         }
 
         .stat-label {
             font-size: 12px;
-            color: #666;
+            color: #555;
             margin-top: 4px;
+            font-weight: 600;
         }
 
         .location-info {
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
             padding: 16px;
             border-radius: 8px;
             margin-bottom: 16px;
+            border: 2px solid #FBC02D;
         }
 
         .location-info p {
-            margin: 4px 0;
+            margin: 6px 0;
             font-size: 14px;
+            font-weight: 600;
         }
 
         .location-info strong {
-            color: #0D2D53;
+            color: #F57F17;
         }
 
         @keyframes slideIn {
@@ -250,39 +256,44 @@
         }
 
         .queue-badge {
-            background: #fbbf24;
-            color: #0D2D53;
-            padding: 4px 12px;
-            border-radius: 12px;
+            background: #FF9800;
+            color: #FFFFFF;
+            padding: 6px 14px;
+            border-radius: 15px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             margin-left: 8px;
         }
 
         .session-info {
-            background: rgba(163, 243, 197, 0.2);
-            padding: 12px;
+            background: linear-gradient(135deg, #E1BEE7 0%, #CE93D8 100%);
+            padding: 14px;
             border-radius: 8px;
             margin-bottom: 16px;
             font-size: 14px;
+            font-weight: 600;
+            color: #4A148C;
+            border: 2px solid #9C27B0;
         }
 
-        .debug-info {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
+        .timer-display {
+            background: #E0F2F1;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 16px;
-            font-size: 12px;
-            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 600;
+            color: #004D40;
+            text-align: center;
+            border: 2px solid #00897B;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📍 Location Verification</h1>
-            <p>Atomix Logistics v5.2 FIXED</p>
+            <h1>📍 Location Verification v6.0</h1>
+            <p>Atomix Logistics - Professional Edition</p>
         </div>
 
         <!-- Upload Section -->
@@ -298,17 +309,10 @@
 
         <!-- Session Setup -->
         <div id="sessionCard" class="card hidden">
-            <h3 style="margin-bottom: 16px;">Session Setup</h3>
+            <h3 style="margin-bottom: 16px; color: #1976D2;">Session Setup</h3>
             <div class="input-group">
                 <label for="employeeName">Your Name</label>
                 <input type="text" id="employeeName" placeholder="Enter your name" />
-            </div>
-            <div class="input-group">
-                <label for="verificationMode">Mode</label>
-                <select id="verificationMode">
-                    <option value="verification">Location Verification</option>
-                    <option value="count">Count Verification</option>
-                </select>
             </div>
             <button class="btn btn-primary" onclick="startSession()">Start Session</button>
         </div>
@@ -316,7 +320,7 @@
         <!-- Scanning Section -->
         <div id="scanCard" class="card hidden">
             <div class="session-info">
-                <strong id="sessionEmployee"></strong> • <span id="sessionMode"></span>
+                <strong id="sessionEmployee"></strong>
             </div>
 
             <div class="stats">
@@ -332,6 +336,10 @@
                     <div class="stat-value" id="accuracy">0%</div>
                     <div class="stat-label">Accuracy</div>
                 </div>
+            </div>
+
+            <div class="timer-display hidden" id="timerDisplay">
+                ⏱️ Scan Time: <span id="timerValue">0.0s</span>
             </div>
 
             <div class="input-group" style="margin-top: 24px;">
@@ -363,13 +371,6 @@
                 />
             </div>
 
-            <!-- Debug info -->
-            <div id="debugInfo" class="debug-info hidden">
-                <strong>🔍 Debug Info:</strong><br>
-                Captured: <span id="debugCaptured"></span><br>
-                Length: <span id="debugLength"></span> characters
-            </div>
-
             <div id="resultSection" class="hidden">
                 <div id="statusBadge" class="status-badge"></div>
             </div>
@@ -384,20 +385,23 @@
     </div>
 
     <script>
-        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbylB5yoJrpLCf_AdPiYW2uJptcW-NADw0Zw_jw3Y7ENbxJLmoXTlnciQkeSCGqJo2MdkA/exec';
+        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz6dGonGWZCZm9GYAatp2yTKJuHmQ_N0SX1zg5Lu2uCzpWRS6y9h73-2VkJy_B3eYk1Hg/exec';
         
         let locationData = {};
         let currentLocation = null;
         let employeeName = '';
-        let verificationMode = 'verification';
         let stats = { correct: 0, incorrect: 0, total: 0 };
         let countQueue = [];
+
+        let scanStartTime = null;
+        let scanEndTime = null;
+        let timerInterval = null;
 
         let scanBuffer = '';
         let scanTimeout = null;
         const SCAN_DELAY = 150;
 
-        const SESSION_KEY = 'atomix_location_verification_session';
+        const SESSION_KEY = 'atomix_location_verification_v6_session';
 
         window.addEventListener('load', () => {
             loadSession();
@@ -410,7 +414,6 @@
             if (employeeName) {
                 const session = {
                     employeeName,
-                    verificationMode,
                     stats,
                     timestamp: new Date().toISOString()
                 };
@@ -506,7 +509,6 @@
 
         function startSession() {
             employeeName = document.getElementById('employeeName').value.trim();
-            verificationMode = document.getElementById('verificationMode').value;
 
             if (!employeeName) {
                 showNotification('⚠️ Please enter your name', 'warning');
@@ -514,12 +516,9 @@
             }
 
             document.getElementById('sessionEmployee').textContent = employeeName;
-            document.getElementById('sessionMode').textContent = verificationMode === 'count' ? 'Count Verification' : 'Location Verification';
 
             document.getElementById('sessionCard').classList.add('hidden');
             document.getElementById('scanCard').classList.remove('hidden');
-
-            document.getElementById('debugInfo').classList.remove('hidden');
 
             saveSession();
             updateStats();
@@ -527,9 +526,6 @@
 
         document.getElementById('locationInput').addEventListener('input', (e) => {
             scanBuffer = e.target.value;
-            
-            document.getElementById('debugCaptured').textContent = scanBuffer;
-            document.getElementById('debugLength').textContent = scanBuffer.length;
             
             if (scanTimeout) {
                 clearTimeout(scanTimeout);
@@ -569,21 +565,43 @@
             currentLocation = normalizedLocation;
             const expectedUPC = locationData[normalizedLocation].upc;
 
+            scanStartTime = new Date();
+            startTimer();
+
             document.getElementById('currentLocation').textContent = normalizedLocation;
             document.getElementById('expectedUPC').textContent = expectedUPC;
             document.getElementById('locationInfo').classList.remove('hidden');
             document.getElementById('upcInputGroup').classList.remove('hidden');
+            document.getElementById('timerDisplay').classList.remove('hidden');
             
             setTimeout(() => {
                 document.getElementById('upcInput').focus();
             }, 100);
         }
 
+        function startTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            timerInterval = setInterval(() => {
+                if (scanStartTime) {
+                    const now = new Date();
+                    const elapsed = (now - scanStartTime) / 1000;
+                    document.getElementById('timerValue').textContent = elapsed.toFixed(1) + 's';
+                }
+            }, 100);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
         document.getElementById('upcInput').addEventListener('input', (e) => {
             scanBuffer = e.target.value;
-            
-            document.getElementById('debugCaptured').textContent = scanBuffer;
-            document.getElementById('debugLength').textContent = scanBuffer.length;
             
             if (scanTimeout) {
                 clearTimeout(scanTimeout);
@@ -612,6 +630,11 @@
         async function processUPC(scannedUPC) {
             if (!scannedUPC || !currentLocation) return;
 
+            scanEndTime = new Date();
+            stopTimer();
+            
+            const scanDurationSeconds = (scanEndTime - scanStartTime) / 1000;
+
             const normalizedScannedUPC = scannedUPC.replace(/\D/g, '');
             const expectedUPC = locationData[currentLocation].upc;
 
@@ -620,8 +643,7 @@
                 scanned: scannedUPC,
                 normalized: normalizedScannedUPC,
                 expected: expectedUPC,
-                scannedLength: normalizedScannedUPC.length,
-                expectedLength: expectedUPC.length
+                duration: scanDurationSeconds.toFixed(2) + 's'
             });
 
             const isCorrect = normalizedScannedUPC === expectedUPC;
@@ -641,7 +663,9 @@
                 expected_upc: expectedUPC,
                 scanned_upc: normalizedScannedUPC,
                 upc_status: status,
-                add_to_queue: !isCorrect
+                scan_start_time: scanStartTime.toISOString(),
+                scan_end_time: scanEndTime.toISOString(),
+                scan_duration_seconds: scanDurationSeconds.toFixed(2)
             });
 
             updateStats();
@@ -650,6 +674,11 @@
 
         async function markEmpty() {
             if (!currentLocation) return;
+
+            scanEndTime = new Date();
+            stopTimer();
+            
+            const scanDurationSeconds = (scanEndTime - scanStartTime) / 1000;
 
             const expectedUPC = locationData[currentLocation].upc;
 
@@ -661,8 +690,9 @@
                 expected_upc: expectedUPC,
                 scanned_upc: '',
                 upc_status: 'Empty',
-                add_to_queue: true,
-                queue_reason: 'Empty location'
+                scan_start_time: scanStartTime.toISOString(),
+                scan_end_time: scanEndTime.toISOString(),
+                scan_duration_seconds: scanDurationSeconds.toFixed(2)
             });
 
             updateStats();
@@ -675,7 +705,7 @@
             const resultSection = document.getElementById('resultSection');
             
             badge.textContent = status === 'Correct' ? '✅ Correct' : 
-                               status === 'Empty' ? '⚠️ Empty' : '❌ Incorrect';
+                               status === 'Empty' ? '⚪ Empty' : '❌ Incorrect';
             badge.className = `status-badge status-${status.toLowerCase()}`;
             
             resultSection.classList.remove('hidden');
@@ -689,11 +719,13 @@
             document.getElementById('upcInputGroup').classList.add('hidden');
             document.getElementById('resultSection').classList.add('hidden');
             document.getElementById('actionButtons').classList.add('hidden');
-            document.getElementById('debugCaptured').textContent = '';
-            document.getElementById('debugLength').textContent = '0';
+            document.getElementById('timerDisplay').classList.add('hidden');
+            document.getElementById('timerValue').textContent = '0.0s';
             
             currentLocation = null;
             scanBuffer = '';
+            scanStartTime = null;
+            scanEndTime = null;
             
             document.getElementById('locationInput').focus();
             
@@ -704,7 +736,8 @@
             document.getElementById('correctCount').textContent = stats.correct;
             document.getElementById('incorrectCount').textContent = stats.incorrect;
             
-            const accuracy = stats.total > 0 ? ((stats.correct / stats.total) * 100).toFixed(1) : 0;
+            const nonEmptyTotal = stats.total;
+            const accuracy = nonEmptyTotal > 0 ? ((stats.correct / nonEmptyTotal) * 100).toFixed(1) : 0;
             document.getElementById('accuracy').textContent = accuracy + '%';
         }
 
@@ -718,7 +751,7 @@
                     const queueBadge = document.getElementById('queueBadge');
                     
                     if (countQueue.length > 0) {
-                        queueBadge.textContent = `${countQueue.length} in queue`;
+                        queueBadge.textContent = `${countQueue.length} need attention`;
                         queueBadge.style.display = 'inline-block';
                     } else {
                         queueBadge.style.display = 'none';
@@ -733,7 +766,6 @@
             const payload = {
                 timestamp: new Date().toISOString(),
                 employee_name: employeeName,
-                verification_mode: verificationMode,
                 ...data
             };
 
