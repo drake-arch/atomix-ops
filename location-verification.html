@@ -217,6 +217,12 @@
       color: #f87171;
     }
 
+    .alert-warning {
+      background: rgba(255, 159, 64, 0.2);
+      border-color: #FF9F40;
+      color: #FFB366;
+    }
+
     .progress-bar {
       background: #2a2d2e;
       height: 0.75rem;
@@ -301,6 +307,17 @@
     .choice-desc {
       font-size: 1rem;
       color: #9D9F9E;
+    }
+
+    .queue-badge {
+      display: inline-block;
+      background: #FF6F00;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      margin-top: 0.5rem;
     }
 
     .calc-icon {
@@ -510,6 +527,25 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 1.5rem;
     }
+
+    .info-box {
+      background: rgba(255, 159, 64, 0.1);
+      border: 1px solid #FF9F40;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .info-box-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-box-text {
+      color: #FFB366;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -533,7 +569,9 @@
       awaitingCount: false,
       locationVerified: false,
       upcEntered: false,
-      lastUPCInputTime: 0
+      lastUPCInputTime: 0,
+      queuedLocations: [], // Locations queued from verification mode
+      loadingQueue: false
     };
 
     let audioContext;
@@ -584,6 +622,53 @@
 
     function selectMode(mode) {
       state.verificationMode = mode;
+      
+      // For count mode, give choice between queue and file upload
+      if (mode === 'count') {
+        state.stage = 'count-choice';
+        loadQueueFromSheets(); // Load queue in background
+      } else {
+        state.stage = 'upload';
+      }
+      render();
+    }
+
+    async function loadQueueFromSheets() {
+      state.loadingQueue = true;
+      try {
+        const response = await fetch(`${SHEETS_URL}?action=get_queue`);
+        const data = await response.json();
+        
+        if (data.result === 'success' && data.queue) {
+          state.queuedLocations = data.queue;
+          console.log('Loaded queue:', state.queuedLocations);
+        }
+      } catch (error) {
+        console.error('Failed to load queue:', error);
+      }
+      state.loadingQueue = false;
+      render();
+    }
+
+    function useQueue() {
+      if (state.queuedLocations.length === 0) {
+        showAlert('⚠️ Queue is empty. Please upload a file instead.', 'warning');
+        return;
+      }
+      
+      // Convert queue to locationData format
+      state.locationData = state.queuedLocations.map(item => ({
+        location: item.location,
+        upc: item.expected_upc,
+        unitCount: 0 // We don't show expected count (blind counting)
+      }));
+      
+      state.stage = 'verify';
+      showAlert(`✅ Loaded ${state.locationData.length} locations from queue`, 'success');
+      render();
+    }
+
+    function useFile() {
       state.stage = 'upload';
       render();
     }
@@ -779,11 +864,18 @@
       
       const current = state.locationData[state.currentIndex];
       const isCorrect = scanned === current.upc;
+      const isEmpty = scanned === '';
       
       console.log(`UPC Check - Expected: "${current.upc}" (len=${current.upc.length}) | Scanned: "${scanned}" (len=${scanned.length}) | Match: ${isCorrect}`);
       
       state.tempUPCResult = isCorrect;
       state.tempScannedUPC = scanned;
+      
+      // If in verification mode and UPC is incorrect or empty, queue it for count mode
+      if (state.verificationMode === 'verification' && (!isCorrect || isEmpty)) {
+        // This will be handled by the Google Apps Script when logging
+        console.log('Incorrect/Empty UPC - will be queued for count mode');
+      }
       
       playSuccessBeep();
       
@@ -824,7 +916,7 @@
         location: current.location,
         expected_upc: current.upc,
         scanned_upc: scannedUPC,
-        upc_status: isCorrect ? 'Correct' : 'Incorrect',
+        upc_status: isCorrect ? 'Correct' : (scannedUPC === '' ? 'Empty' : 'Incorrect'),
         expected_count: expectedCount,
         actual_count: actualCount,
         step: state.currentIndex + 1,
@@ -1036,9 +1128,56 @@
             </div>
           </div>
         `;
-      } else if (state.stage === 'upload') {
+      } else if (state.stage === 'count-choice') {
+        const queueCount = state.queuedLocations.length;
+        const loadingText = state.loadingQueue ? 'Loading...' : `${queueCount} items`;
+        
         content = `
           <button onclick="state.stage = 'choice'; render();" class="home-btn">
+            ← Back
+          </button>
+
+          <div class="gradient-bg grid-bg" style="min-height: 100vh; position: relative;">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            
+            <div class="container">
+              <div class="card scale-in" style="max-width: 56rem;">
+                <h1 class="title">Count Mode</h1>
+                <p class="subtitle">Choose your data source</p>
+
+                <div id="alertBox"></div>
+
+                <div class="grid-2">
+                  <div class="choice-card" onclick="useQueue()">
+                    <div class="choice-icon">⏳</div>
+                    <div class="choice-title">Use Queue</div>
+                    <div class="choice-desc">Count locations from verification errors</div>
+                    <div class="queue-badge">${loadingText}</div>
+                  </div>
+
+                  <div class="choice-card" onclick="useFile()">
+                    <div class="choice-icon">📁</div>
+                    <div class="choice-title">Upload File</div>
+                    <div class="choice-desc">Count locations from Excel/CSV file</div>
+                  </div>
+                </div>
+
+                ${queueCount > 0 ? `
+                <div class="info-box">
+                  <div class="info-box-icon">ℹ️</div>
+                  <div class="info-box-text">
+                    Queue contains ${queueCount} location${queueCount !== 1 ? 's' : ''} flagged during verification
+                  </div>
+                </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (state.stage === 'upload') {
+        content = `
+          <button onclick="state.stage = '${state.verificationMode === 'count' ? 'count-choice' : 'choice'}'; render();" class="home-btn">
             ← Back
           </button>
 
