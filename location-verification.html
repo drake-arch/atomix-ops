@@ -716,11 +716,14 @@
         h.toLowerCase() === 'loc'
       );
       
-      // Search for UPC column (Column E)
-      upcCol = headers.find(h => 
-        h.toLowerCase() === 'upc' || 
-        h.toLowerCase() === 'sku'
-      );
+      // Search for UPC column (Column E) - PRIORITIZE 'upc' over 'sku'
+      upcCol = headers.find(h => h.toLowerCase() === 'upc');
+      
+      // Only fall back to SKU if UPC column doesn't exist
+      if (!upcCol) {
+        upcCol = headers.find(h => h.toLowerCase() === 'sku');
+        console.warn('UPC column not found, falling back to SKU column');
+      }
       
       // Search for Count column (Column B - Location On Hand)
       countCol = headers.find(h => 
@@ -750,7 +753,7 @@
         // Column A - Location: Convert to string and trim
         let location = String(row[locationCol] || '').trim();
         
-        // Column E - UPC: Ensure full UPC is captured as string
+        // UPC Column: Ensure full UPC is captured as string
         let upcRaw = row[upcCol];
         let upc = '';
         
@@ -768,7 +771,7 @@
         
         // Debug log for first few rows
         if (index < 5) {
-          console.log(`Row ${index + 1}: Location="${location}" | UPC="${upc}" (len=${upc.length}) | Count=${unitCount}`);
+          console.log(`Row ${index + 1}: Location="${location}" | UPC="${upc}" (len=${upc.length}, col="${upcCol}") | Count=${unitCount}`);
         }
         
         return { location, upc, unitCount };
