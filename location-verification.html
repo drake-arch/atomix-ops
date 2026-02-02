@@ -468,6 +468,38 @@
       background: #6b7280;
     }
 
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .action-btn {
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      color: #EDEFED;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .action-btn:hover {
+      border-color: #FF9F40;
+      background: rgba(255, 159, 64, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .action-btn-icon {
+      display: block;
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
     .hidden { display: none !important; }
     
     .orb {
@@ -571,7 +603,8 @@
       upcEntered: false,
       lastUPCInputTime: 0,
       queuedLocations: [], // Locations queued from verification mode
-      loadingQueue: false
+      loadingQueue: false,
+      validUPCs: [] // All valid UPCs from uploaded file
     };
 
     let audioContext;
@@ -785,6 +818,10 @@
       console.log(`Loaded ${normalized.length} valid rows`);
       console.log('Sample data:', normalized.slice(0, 3));
 
+      // Extract all unique UPCs for validation
+      state.validUPCs = [...new Set(normalized.map(row => row.upc))];
+      console.log(`Extracted ${state.validUPCs.length} unique valid UPCs`);
+
       state.locationData = normalized;
       state.stage = 'verify';
       showAlert(`✅ File loaded: ${normalized.length} locations`, 'success');
@@ -832,7 +869,6 @@
 
     function handleUPCInput(event) {
       const scanned = event.target.value.trim();
-      const current = state.locationData[state.currentIndex];
       
       // Update button state
       const submitBtn = document.getElementById('submitUPCBtn');
@@ -840,18 +876,12 @@
         submitBtn.disabled = scanned.length === 0;
       }
       
-      // Store values
-      if (scanned.length > 0) {
-        state.tempUPCResult = scanned === current.upc;
-        state.tempScannedUPC = scanned;
-      }
-      
       // Auto-submit for fast scan (barcode scanner)
       const currentTime = Date.now();
       const timeSinceLastInput = currentTime - state.lastUPCInputTime;
       state.lastUPCInputTime = currentTime;
       
-      if (scanned.length >= current.upc.length && timeSinceLastInput < 50) {
+      if (scanned.length >= 8 && timeSinceLastInput < 50) {
         submitUPC();
       }
     }
@@ -866,18 +896,29 @@
       }
       
       const current = state.locationData[state.currentIndex];
-      const isCorrect = scanned === current.upc;
-      const isEmpty = scanned === '';
       
-      console.log(`UPC Check - Expected: "${current.upc}" (len=${current.upc.length}) | Scanned: "${scanned}" (len=${scanned.length}) | Match: ${isCorrect}`);
+      // Check if scanned UPC exists in our valid UPCs list
+      const isValidUPC = state.validUPCs.includes(scanned);
+      
+      if (!isValidUPC) {
+        playErrorBeep();
+        showAlert(`❌ Invalid UPC! This UPC is not in the system. Please scan again.`, 'error');
+        upcInput.value = '';
+        upcInput.focus();
+        return;
+      }
+      
+      // UPC is valid, now check if it matches expected
+      const isCorrect = scanned === current.upc;
+      
+      console.log(`UPC Check - Expected: "${current.upc}" | Scanned: "${scanned}" | Valid: ${isValidUPC} | Match: ${isCorrect}`);
       
       state.tempUPCResult = isCorrect;
       state.tempScannedUPC = scanned;
       
-      // If in verification mode and UPC is incorrect or empty, queue it for count mode
-      if (state.verificationMode === 'verification' && (!isCorrect || isEmpty)) {
-        // This will be handled by the Google Apps Script when logging
-        console.log('Incorrect/Empty UPC - will be queued for count mode');
+      // If in verification mode and UPC is incorrect, queue it for count mode
+      if (state.verificationMode === 'verification' && !isCorrect) {
+        console.log('Incorrect UPC - will be queued for count mode');
       }
       
       playSuccessBeep();
@@ -895,6 +936,63 @@
         logResult(isCorrect, scanned, null, null);
         moveToNext();
       }
+    }
+
+    function handleNoUPC() {
+      const current = state.locationData[state.currentIndex];
+      
+      playSuccessBeep();
+      
+      console.log('No UPC at location');
+      
+      state.tempUPCResult = false;
+      state.tempScannedUPC = 'NO_UPC';
+      
+      if (state.verificationMode === 'count') {
+        state.awaitingCount = true;
+        state.locationVerified = false;
+        showAlert('✓ No UPC recorded. Enter count below.', 'success');
+        updateVerifyScreen();
+        setTimeout(() => {
+          const countInput = document.getElementById('countInput');
+          if (countInput) countInput.focus();
+        }, 100);
+      } else {
+        logResult(false, 'NO_UPC', null, null);
+        moveToNext();
+      }
+    }
+
+    function handleNoItem() {
+      const current = state.locationData[state.currentIndex];
+      
+      playSuccessBeep();
+      
+      console.log('No item at location');
+      
+      if (state.verificationMode === 'count') {
+        logResult(false, 'NO_ITEM', 0, 0);
+      } else {
+        logResult(false, 'NO_ITEM', null, null);
+      }
+      
+      moveToNext();
+    }
+
+    function handleMixedLocation() {
+      const current = state.locationData[state.currentIndex];
+      
+      playSuccessBeep();
+      
+      console.log('Mixed location detected');
+      
+      if (state.verificationMode === 'count') {
+        logResult(false, 'MIXED_LOCATION', null, null);
+      } else {
+        logResult(false, 'MIXED_LOCATION', null, null);
+      }
+      
+      moveToNext();
     }
 
     function submitCount() {
@@ -915,11 +1013,22 @@
     function logResult(isCorrect, scannedUPC, expectedCount, actualCount) {
       const current = state.locationData[state.currentIndex];
       
+      let upcStatus = 'Correct';
+      if (scannedUPC === 'NO_UPC') {
+        upcStatus = 'No UPC';
+      } else if (scannedUPC === 'NO_ITEM') {
+        upcStatus = 'No Item';
+      } else if (scannedUPC === 'MIXED_LOCATION') {
+        upcStatus = 'Mixed Location';
+      } else if (!isCorrect) {
+        upcStatus = 'Incorrect';
+      }
+      
       logToSheets({
         location: current.location,
         expected_upc: current.upc,
         scanned_upc: scannedUPC,
-        upc_status: isCorrect ? 'Correct' : (scannedUPC === '' ? 'Empty' : 'Incorrect'),
+        upc_status: upcStatus,
         expected_count: expectedCount,
         actual_count: actualCount,
         step: state.currentIndex + 1,
@@ -1037,6 +1146,12 @@
       const upcSection = document.getElementById('upcSection');
       if (upcSection) {
         upcSection.style.display = state.locationVerified ? 'block' : 'none';
+      }
+      
+      // Update action buttons visibility
+      const actionButtons = document.getElementById('actionButtons');
+      if (actionButtons) {
+        actionButtons.style.display = state.locationVerified ? 'block' : 'none';
       }
       
       // Update count section visibility
@@ -1280,6 +1395,23 @@
                     </div>
                     <button id="submitUPCBtn" onclick="submitUPC()" class="submit-btn glow" disabled>
                       ✓ Submit
+                    </button>
+                  </div>
+                </div>
+
+                <div id="actionButtons" style="display: ${state.locationVerified ? 'block' : 'none'};">
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="handleNoUPC()">
+                      <span class="action-btn-icon">🚫</span>
+                      No UPC
+                    </button>
+                    <button class="action-btn" onclick="handleNoItem()">
+                      <span class="action-btn-icon">📭</span>
+                      No Item
+                    </button>
+                    <button class="action-btn" onclick="handleMixedLocation()">
+                      <span class="action-btn-icon">🔀</span>
+                      Mixed Location
                     </button>
                   </div>
                 </div>
