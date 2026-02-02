@@ -594,10 +594,13 @@
       reader.onload = (e) => {
         try {
           const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
+          const workbook = XLSX.read(data, { type: 'array', cellText: false, cellDates: false });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
           
+          // Use raw: false to get formatted string values (preserves leading zeros and full precision)
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { raw: false, defval: '' });
+          
+          console.log('Parsed data sample:', jsonData.slice(0, 3));
           validateLocationData(jsonData);
         } catch (error) {
           showAlert(`Error reading file: ${error.message}`, 'error');
@@ -622,19 +625,19 @@
       let upcCol = null;
       let countCol = null;
       
-      // Search for Location column
+      // Search for Location column (Column A)
       locationCol = headers.find(h => 
         h.toLowerCase() === 'location' || 
         h.toLowerCase() === 'loc'
       );
       
-      // Search for UPC column
+      // Search for UPC column (Column E)
       upcCol = headers.find(h => 
         h.toLowerCase() === 'upc' || 
         h.toLowerCase() === 'sku'
       );
       
-      // Search for Count column (optional)
+      // Search for Count column (Column B - Location On Hand)
       countCol = headers.find(h => 
         h.toLowerCase() === 'location on hand' ||
         h.toLowerCase() === 'locationonhand' ||
@@ -658,10 +661,30 @@
       console.log(`Found columns - Location: "${locationCol}", UPC: "${upcCol}", Count: "${countCol}"`);
 
       // Parse the data using the found column names
-      const normalized = data.map(row => {
+      const normalized = data.map((row, index) => {
+        // Column A - Location: Convert to string and trim
         let location = String(row[locationCol] || '').trim();
-        let upc = String(row[upcCol] || '').trim();
+        
+        // Column E - UPC: Ensure full UPC is captured as string
+        let upcRaw = row[upcCol];
+        let upc = '';
+        
+        if (upcRaw === null || upcRaw === undefined || upcRaw === '') {
+          upc = '';
+        } else {
+          // Convert to string, preserving all digits
+          upc = String(upcRaw).trim();
+          // Remove any leading apostrophes that Excel might add for text formatting
+          upc = upc.replace(/^'+/, '');
+        }
+        
+        // Column B - Location On Hand: Parse as integer
         let unitCount = countCol ? parseInt(row[countCol] || 0) : 0;
+        
+        // Debug log for first few rows
+        if (index < 5) {
+          console.log(`Row ${index + 1}: Location="${location}" | UPC="${upc}" (len=${upc.length}) | Count=${unitCount}`);
+        }
         
         return { location, upc, unitCount };
       }).filter(row => row.location && row.upc);
@@ -670,6 +693,9 @@
         showAlert('No valid location and UPC data found', 'error');
         return;
       }
+
+      console.log(`Loaded ${normalized.length} valid rows`);
+      console.log('Sample data:', normalized.slice(0, 3));
 
       state.locationData = normalized;
       state.stage = 'verify';
@@ -753,6 +779,8 @@
       
       const current = state.locationData[state.currentIndex];
       const isCorrect = scanned === current.upc;
+      
+      console.log(`UPC Check - Expected: "${current.upc}" (len=${current.upc.length}) | Scanned: "${scanned}" (len=${scanned.length}) | Match: ${isCorrect}`);
       
       state.tempUPCResult = isCorrect;
       state.tempScannedUPC = scanned;
@@ -1040,7 +1068,7 @@
                   <button onclick="document.getElementById('fileInput').click()" class="btn btn-secondary">
                     📁 Choose File
                   </button>
-                  <p style="text-align: center; color: #9D9F9E; font-size: 0.875rem; margin-top: 0.75rem;">Excel or CSV with Location and UPC columns</p>
+                  <p style="text-align: center; color: #9D9F9E; font-size: 0.875rem; margin-top: 0.75rem;">Excel or CSV with Location (A), Location On Hand (B), and UPC (E) columns</p>
                 </div>
               </div>
             </div>
