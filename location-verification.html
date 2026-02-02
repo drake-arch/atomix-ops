@@ -152,10 +152,11 @@
         .input-group select {
             width: 100%;
             padding: 12px;
-            font-size: 16px;
+            font-size: 18px;
             border: 2px solid #e5e7eb;
             border-radius: 8px;
             transition: border-color 0.3s ease;
+            font-family: 'Courier New', monospace;
         }
 
         .input-group input:focus,
@@ -265,13 +266,23 @@
             margin-bottom: 16px;
             font-size: 14px;
         }
+
+        .debug-info {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📍 Location Verification</h1>
-            <p>Atomix Logistics</p>
+            <p>Atomix Logistics v5.2 FIXED</p>
         </div>
 
         <!-- Upload Section -->
@@ -328,7 +339,13 @@
                     Scan Location
                     <span class="queue-badge" id="queueBadge" style="display: none;">0 in queue</span>
                 </label>
-                <input type="text" id="locationInput" placeholder="Scan location barcode" autofocus />
+                <input 
+                    type="text" 
+                    id="locationInput" 
+                    placeholder="Scan location barcode" 
+                    autocomplete="off"
+                    autofocus 
+                />
             </div>
 
             <div id="locationInfo" class="location-info hidden">
@@ -338,7 +355,19 @@
 
             <div class="input-group hidden" id="upcInputGroup">
                 <label for="upcInput">Scan UPC</label>
-                <input type="text" id="upcInput" placeholder="Scan UPC barcode" />
+                <input 
+                    type="text" 
+                    id="upcInput" 
+                    placeholder="Scan UPC barcode"
+                    autocomplete="off"
+                />
+            </div>
+
+            <!-- Debug info -->
+            <div id="debugInfo" class="debug-info hidden">
+                <strong>🔍 Debug Info:</strong><br>
+                Captured: <span id="debugCaptured"></span><br>
+                Length: <span id="debugLength"></span> characters
             </div>
 
             <div id="resultSection" class="hidden">
@@ -355,10 +384,8 @@
     </div>
 
     <script>
-        // Configuration
-        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwhoq97heouRC2FXqVvH9olEgKpYWvwupBlMlX_EafurZYAV-ZkYkwbav4EpNd8iqqg4Q/exec';
+        const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbylB5yoJrpLCf_AdPiYW2uJptcW-NADw0Zw_jw3Y7ENbxJLmoXTlnciQkeSCGqJo2MdkA/exec';
         
-        // State
         let locationData = {};
         let currentLocation = null;
         let employeeName = '';
@@ -366,16 +393,17 @@
         let stats = { correct: 0, incorrect: 0, total: 0 };
         let countQueue = [];
 
-        // Session persistence
+        let scanBuffer = '';
+        let scanTimeout = null;
+        const SCAN_DELAY = 150;
+
         const SESSION_KEY = 'atomix_location_verification_session';
 
-        // Load session on page load
         window.addEventListener('load', () => {
             loadSession();
             loadQueue();
         });
 
-        // Save session periodically
         setInterval(saveSession, 5000);
 
         function saveSession() {
@@ -409,7 +437,6 @@
             }
         }
 
-        // File Upload Handler
         document.getElementById('fileInput').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -442,20 +469,15 @@
                         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                         const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
                         
-                        // Parse the data
                         const locations = {};
                         
-                        // Skip header row (row 0)
                         for (let i = 1; i < jsonData.length; i++) {
                             const row = jsonData[i];
                             
-                            // Column A (index 0) = Location
-                            // Column E (index 4) = UPC
                             const location = row[0];
                             const upc = row[4];
                             
                             if (location && upc) {
-                                // Normalize UPC to digits only
                                 const normalizedUPC = String(upc).replace(/\D/g, '');
                                 
                                 if (normalizedUPC) {
@@ -497,25 +519,47 @@
             document.getElementById('sessionCard').classList.add('hidden');
             document.getElementById('scanCard').classList.remove('hidden');
 
+            document.getElementById('debugInfo').classList.remove('hidden');
+
             saveSession();
             updateStats();
         }
 
-        // Location Input Handler
+        document.getElementById('locationInput').addEventListener('input', (e) => {
+            scanBuffer = e.target.value;
+            
+            document.getElementById('debugCaptured').textContent = scanBuffer;
+            document.getElementById('debugLength').textContent = scanBuffer.length;
+            
+            if (scanTimeout) {
+                clearTimeout(scanTimeout);
+            }
+            
+            scanTimeout = setTimeout(() => {
+                if (scanBuffer.trim()) {
+                    processLocation(scanBuffer.trim());
+                    scanBuffer = '';
+                }
+            }, SCAN_DELAY);
+        });
+
         document.getElementById('locationInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const location = e.target.value.trim();
-                processLocation(location);
+                e.preventDefault();
+                if (scanTimeout) {
+                    clearTimeout(scanTimeout);
+                }
+                if (e.target.value.trim()) {
+                    processLocation(e.target.value.trim());
+                }
             }
         });
 
         function processLocation(location) {
             if (!location) return;
 
-            // Normalize location to uppercase
             const normalizedLocation = location.toUpperCase();
             
-            // Check if location exists in data
             if (!locationData[normalizedLocation]) {
                 showNotification('⚠️ Location not found in uploaded file', 'warning');
                 document.getElementById('locationInput').value = '';
@@ -530,32 +574,59 @@
             document.getElementById('locationInfo').classList.remove('hidden');
             document.getElementById('upcInputGroup').classList.remove('hidden');
             
-            // Focus UPC input
             setTimeout(() => {
                 document.getElementById('upcInput').focus();
             }, 100);
         }
 
-        // UPC Input Handler
+        document.getElementById('upcInput').addEventListener('input', (e) => {
+            scanBuffer = e.target.value;
+            
+            document.getElementById('debugCaptured').textContent = scanBuffer;
+            document.getElementById('debugLength').textContent = scanBuffer.length;
+            
+            if (scanTimeout) {
+                clearTimeout(scanTimeout);
+            }
+            
+            scanTimeout = setTimeout(() => {
+                if (scanBuffer.trim()) {
+                    processUPC(scanBuffer.trim());
+                    scanBuffer = '';
+                }
+            }, SCAN_DELAY);
+        });
+
         document.getElementById('upcInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const scannedUPC = e.target.value.trim();
-                processUPC(scannedUPC);
+                e.preventDefault();
+                if (scanTimeout) {
+                    clearTimeout(scanTimeout);
+                }
+                if (e.target.value.trim()) {
+                    processUPC(e.target.value.trim());
+                }
             }
         });
 
         async function processUPC(scannedUPC) {
             if (!scannedUPC || !currentLocation) return;
 
-            // Normalize scanned UPC to digits only
             const normalizedScannedUPC = scannedUPC.replace(/\D/g, '');
             const expectedUPC = locationData[currentLocation].upc;
 
-            // Compare UPC to UPC
+            console.log('Processing UPC:', {
+                location: currentLocation,
+                scanned: scannedUPC,
+                normalized: normalizedScannedUPC,
+                expected: expectedUPC,
+                scannedLength: normalizedScannedUPC.length,
+                expectedLength: expectedUPC.length
+            });
+
             const isCorrect = normalizedScannedUPC === expectedUPC;
             const status = isCorrect ? 'Correct' : 'Incorrect';
 
-            // Update stats
             stats.total++;
             if (isCorrect) {
                 stats.correct++;
@@ -563,16 +634,14 @@
                 stats.incorrect++;
             }
 
-            // Show result
             showResult(status);
 
-            // Send to Google Sheets
             await sendToSheets({
                 location: currentLocation,
                 expected_upc: expectedUPC,
                 scanned_upc: normalizedScannedUPC,
                 upc_status: status,
-                add_to_queue: !isCorrect // Auto-queue incorrect scans
+                add_to_queue: !isCorrect
             });
 
             updateStats();
@@ -614,20 +683,20 @@
         }
 
         function nextLocation() {
-            // Reset form
             document.getElementById('locationInput').value = '';
             document.getElementById('upcInput').value = '';
             document.getElementById('locationInfo').classList.add('hidden');
             document.getElementById('upcInputGroup').classList.add('hidden');
             document.getElementById('resultSection').classList.add('hidden');
             document.getElementById('actionButtons').classList.add('hidden');
+            document.getElementById('debugCaptured').textContent = '';
+            document.getElementById('debugLength').textContent = '0';
             
             currentLocation = null;
+            scanBuffer = '';
             
-            // Focus location input
             document.getElementById('locationInput').focus();
             
-            // Reload queue
             loadQueue();
         }
 
