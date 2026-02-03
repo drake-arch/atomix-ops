@@ -427,8 +427,8 @@
   <script>
     const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwj2RFctSenpguEEe4comXIHPOiHjNZt0ULFOU7QLpjun_RKnODgoPMellUGtW9qIhfBg/exec';
 
-    // ✅ 150ms "scan settle" time so it captures the full UPC
-    const UPC_SCAN_SETTLE_MS = 150;
+    // ✅ 150ms “scan finished” delay for UPC
+    const UPC_SCAN_DELAY_MS = 150;
 
     let state = {
       stage: 'name',
@@ -448,9 +448,8 @@
       loadingQueue: false,
       validUPCs: [],
 
-      // ✅ Auto-submit debounce state (no submit button needed)
+      // ✅ new helpers for auto-submit
       upcAutoTimer: null,
-      lastUPCValue: '',
       upcAutoLock: false
     };
 
@@ -698,79 +697,79 @@
       }
     }
 
-    // ✅ Auto-submit UPC after it "settles" for 150ms (no submit button)
+    // ✅ UPC input: auto-submit after 150ms of no new characters
     function handleUPCInput(event) {
       const upcInput = event.target;
-      const raw = upcInput.value;
+      const scanned = upcInput.value.trim();
 
-      // Reset any pending timer
+      // keep button behavior (looks same), but not required to click
+      const submitBtn = document.getElementById('submitUPCBtn');
+      if (submitBtn) submitBtn.disabled = scanned.length === 0;
+
+      // reset timer on every key / scan chunk
       if (state.upcAutoTimer) clearTimeout(state.upcAutoTimer);
 
-      state.lastUPCValue = raw;
+      // don't auto-submit if empty
+      if (!scanned) return;
 
       state.upcAutoTimer = setTimeout(() => {
-        // If input changed again, don't submit yet
-        if (upcInput.value !== state.lastUPCValue) return;
-
-        const trimmed = upcInput.value.trim();
-        if (!trimmed) return;
-
-        // Prevent double fires (some scanners send extra events)
+        // prevent double fires
         if (state.upcAutoLock) return;
         state.upcAutoLock = true;
 
         submitUPC();
 
         // unlock shortly after
-        setTimeout(() => { state.upcAutoLock = false; }, 250);
-      }, UPC_SCAN_SETTLE_MS);
+        setTimeout(() => { state.upcAutoLock = false; }, 50);
+      }, UPC_SCAN_DELAY_MS);
     }
 
-    // ✅ submitUPC() with NO master list + NO retry/3-scan logic
+    // ✅ submitUPC(): NO master list, NO retries, just record correct/incorrect
     function submitUPC() {
       const upcInput = document.getElementById('upcScan');
       const current = state.locationData[state.currentIndex];
 
+      if (!upcInput || !current) return;
+
       const scanned = upcInput.value.trim().replace(/^'+/, '').toUpperCase();
       const expected = String(current.upc).trim().replace(/^'+/, '').toUpperCase();
 
-      if (!scanned) return;
-
-      // ✅ IF CORRECT → ACCEPT IMMEDIATELY
-      if (scanned === expected) {
-        state.tempUPCResult = true;
-        state.tempScannedUPC = scanned;
-
-        playSuccessBeep();
-
-        if (state.verificationMode === 'count') {
-          state.awaitingCount = true;
-          state.locationVerified = false;
-          showAlert('✅ UPC correct. Enter count.', 'success');
-          updateVerifyScreen();
-
-          setTimeout(() => {
-            const countInput = document.getElementById('countInput');
-            if (countInput) countInput.focus();
-          }, 100);
-        } else {
-          logResult(true, scanned, null, null);
-          moveToNext();
-        }
-
+      if (!scanned) {
+        showAlert('⚠️ Please enter UPC', 'error');
         return;
       }
 
-      // ❌ WRONG UPC → error + clear + refocus (no retries, no master list)
-      playErrorBeep();
-      showAlert(`❌ Wrong UPC! Expected: ${expected}`, 'error');
+      const isCorrect = (scanned === expected);
 
-      upcInput.classList.add('shake');
-      setTimeout(() => upcInput.classList.remove('shake'), 500);
+      state.tempUPCResult = isCorrect;
+      state.tempScannedUPC = scanned;
 
+      if (isCorrect) {
+        playSuccessBeep();
+        showAlert('✅ UPC correct.', 'success');
+      } else {
+        playErrorBeep();
+        showAlert(`⚠️ UPC recorded (expected ${current.upc})`, 'warning');
+      }
+
+      // clear UPC box so next step is clean
       upcInput.value = '';
-      upcInput.focus();
-      updateVerifyScreen();
+      const submitBtn = document.getElementById('submitUPCBtn');
+      if (submitBtn) submitBtn.disabled = true;
+
+      if (state.verificationMode === 'count') {
+        state.awaitingCount = true;
+        state.locationVerified = false;
+        updateVerifyScreen();
+
+        setTimeout(() => {
+          const countInput = document.getElementById('countInput');
+          if (countInput) countInput.focus();
+        }, 100);
+      } else {
+        logResult(isCorrect, scanned, null, null);
+        moveToNext();
+      }
     }
 
     function handleNoUPC() {
@@ -864,13 +863,9 @@
           state.locationVerified = false;
           state.upcEntered = false;
           state.lastUPCInputTime = 0;
-
-          // reset debounce state
-          if (state.upcAutoTimer) clearTimeout(state.upcAutoTimer);
+          state.awaitingCount = false;
           state.upcAutoTimer = null;
-          state.lastUPCValue = '';
           state.upcAutoLock = false;
-
           render();
         } else {
           state.stage = 'complete';
@@ -1186,9 +1181,9 @@
                     <div class="scan-input-wrapper">
                       <input type="text" id="upcScan" class="input input-scan" placeholder="SCAN UPC" autofocus>
                     </div>
-                  </div>
-                  <div style="margin-top: 0.75rem; text-align: center; color: #9D9F9E; font-size: 0.875rem;">
-                    Auto-submits after ${UPC_SCAN_SETTLE_MS}ms
+                    <button id="submitUPCBtn" onclick="submitUPC()" class="submit-btn glow" disabled>
+                      ✓ Submit
+                    </button>
                   </div>
                 </div>
 
@@ -1337,7 +1332,7 @@
           if (upcInput) {
             upcInput.addEventListener('input', handleUPCInput);
 
-            // Keep Enter just in case someone types manually
+            // Enter still works, but not needed
             upcInput.addEventListener('keypress', (e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
