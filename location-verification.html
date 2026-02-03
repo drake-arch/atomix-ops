@@ -1430,13 +1430,13 @@
 
                 <div id="alertBox"></div>
 
-                ${!state.locationVerified ? `
-                <div style="margin-bottom: 1.5rem;">
-                  <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
-                    🔍 Scan Location
-                  </label>
-                  <input type="text" id="locationScan" class="input input-scan" placeholder="SCAN LOCATION" autofocus>
-                </div>
+           <div id="locationSection" style="display: ${state.locationVerified ? 'none' : 'block'}; margin-bottom: 1.5rem;">
+  <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+    🔍 Scan Location
+  </label>
+  <input type="text" id="locationScan" class="input input-scan" placeholder="SCAN LOCATION" autofocus>
+</div>
+
                 ` : ''}
 
                 <div id="upcSection" style="display: ${state.locationVerified ? 'block' : 'none'}; margin-bottom: 1.5rem;">
@@ -1615,5 +1615,6 @@
   </script>
 </body>
 </html>
+
 
 
