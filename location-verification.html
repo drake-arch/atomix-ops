@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Location Verification</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -427,30 +427,33 @@
   <script>
     const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwj2RFctSenpguEEe4comXIHPOiHjNZt0ULFOU7QLpjun_RKnODgoPMellUGtW9qIhfBg/exec';
 
-    // ✅ 150ms “scan finished” delay for UPC
-    const UPC_SCAN_DELAY_MS = 150;
-
     let state = {
       stage: 'name',
       employeeName: '',
       verificationMode: null,
       locationData: null,
       currentIndex: 0,
+
       calcValue: '',
       calcOperator: null,
       calcPrevValue: null,
       showCalculator: false,
+
       awaitingCount: false,
       locationVerified: false,
-      upcEntered: false,
+
       lastUPCInputTime: 0,
+      upcAutoTimer: null,
+
       queuedLocations: [],
       loadingQueue: false,
+
       validUPCs: [],
 
-      // ✅ new helpers for auto-submit
-      upcAutoTimer: null,
-      upcAutoLock: false
+      // temp values for logging
+      tempUPCResult: null,
+      tempScannedUPC: '',
+      tempUPCInMasterList: true
     };
 
     let audioContext;
@@ -580,23 +583,19 @@
       const firstRow = data[0];
       const headers = Object.keys(firstRow);
 
-      let locationCol = null;
-      let upcCol = null;
-      let countCol = null;
-
-      locationCol = headers.find(h =>
+      let locationCol = headers.find(h =>
         h.toLowerCase() === 'location' ||
         h.toLowerCase() === 'loc'
       );
 
-      upcCol = headers.find(h => h.toLowerCase() === 'upc');
+      let upcCol = headers.find(h => h.toLowerCase() === 'upc');
 
       if (!upcCol) {
         upcCol = headers.find(h => h.toLowerCase() === 'sku');
         console.warn('UPC column not found, falling back to SKU column');
       }
 
-      countCol = headers.find(h =>
+      let countCol = headers.find(h =>
         h.toLowerCase() === 'location on hand' ||
         h.toLowerCase() === 'locationonhand' ||
         h.toLowerCase() === 'count' ||
@@ -680,7 +679,7 @@
 
           state.locationVerified = true;
 
-          // Hide location input immediately (your behavior)
+          // Hide location input immediately
           event.target.style.display = 'none';
 
           setTimeout(() => {
@@ -697,35 +696,25 @@
       }
     }
 
-    // ✅ UPC input: auto-submit after 150ms of no new characters
+    // ✅ Auto-submit after 150ms idle
     function handleUPCInput(event) {
       const upcInput = event.target;
-      const scanned = upcInput.value.trim();
 
-      // keep button behavior (looks same), but not required to click
-      const submitBtn = document.getElementById('submitUPCBtn');
-      if (submitBtn) submitBtn.disabled = scanned.length === 0;
+      state.lastUPCInputTime = Date.now();
 
-      // reset timer on every key / scan chunk
       if (state.upcAutoTimer) clearTimeout(state.upcAutoTimer);
 
-      // don't auto-submit if empty
-      if (!scanned) return;
-
       state.upcAutoTimer = setTimeout(() => {
-        // prevent double fires
-        if (state.upcAutoLock) return;
-        state.upcAutoLock = true;
-
-        submitUPC();
-
-        // unlock shortly after
-        setTimeout(() => { state.upcAutoLock = false; }, 50);
-      }, UPC_SCAN_DELAY_MS);
+        if (Date.now() - state.lastUPCInputTime >= 150) {
+          if (upcInput.value.trim().length > 0) {
+            submitUPC(true);
+          }
+        }
+      }, 150);
     }
 
-    // ✅ submitUPC(): NO master list, NO retries, just record correct/incorrect
-    function submitUPC() {
+    // ✅ No master list, no retries, no blocking
+    function submitUPC(fromAuto = false) {
       const upcInput = document.getElementById('upcScan');
       const current = state.locationData[state.currentIndex];
 
@@ -735,6 +724,7 @@
       const expected = String(current.upc).trim().replace(/^'+/, '').toUpperCase();
 
       if (!scanned) {
+        if (fromAuto) return;
         showAlert('⚠️ Please enter UPC', 'error');
         return;
       }
@@ -743,23 +733,23 @@
 
       state.tempUPCResult = isCorrect;
       state.tempScannedUPC = scanned;
+      state.tempUPCInMasterList = true;
 
       if (isCorrect) {
         playSuccessBeep();
-        showAlert('✅ UPC correct.', 'success');
+        showAlert('✅ UPC recorded', 'success');
       } else {
         playErrorBeep();
-        showAlert(`⚠️ UPC recorded (expected ${current.upc})`, 'warning');
+        showAlert('⚠️ UPC recorded (does not match expected)', 'warning');
       }
 
-      // clear UPC box so next step is clean
+      // clear input for next scan
       upcInput.value = '';
-      const submitBtn = document.getElementById('submitUPCBtn');
-      if (submitBtn) submitBtn.disabled = true;
 
       if (state.verificationMode === 'count') {
         state.awaitingCount = true;
         state.locationVerified = false;
+
         updateVerifyScreen();
 
         setTimeout(() => {
@@ -777,6 +767,7 @@
 
       state.tempUPCResult = false;
       state.tempScannedUPC = 'NO_UPC';
+      state.tempUPCInMasterList = true;
 
       if (state.verificationMode === 'count') {
         state.awaitingCount = true;
@@ -847,7 +838,8 @@
         expected_count: expectedCount,
         actual_count: actualCount,
         step: state.currentIndex + 1,
-        total_steps: state.locationData.length
+        total_steps: state.locationData.length,
+        in_master_list: true
       });
     }
 
@@ -861,11 +853,11 @@
           state.calcOperator = null;
           state.calcPrevValue = null;
           state.locationVerified = false;
-          state.upcEntered = false;
           state.lastUPCInputTime = 0;
-          state.awaitingCount = false;
-          state.upcAutoTimer = null;
-          state.upcAutoLock = false;
+          if (state.upcAutoTimer) {
+            clearTimeout(state.upcAutoTimer);
+            state.upcAutoTimer = null;
+          }
           render();
         } else {
           state.stage = 'complete';
@@ -1181,9 +1173,7 @@
                     <div class="scan-input-wrapper">
                       <input type="text" id="upcScan" class="input input-scan" placeholder="SCAN UPC" autofocus>
                     </div>
-                    <button id="submitUPCBtn" onclick="submitUPC()" class="submit-btn glow" disabled>
-                      ✓ Submit
-                    </button>
+                    <!-- ✅ Submit button removed; auto-submits after 150ms -->
                   </div>
                 </div>
 
@@ -1332,11 +1322,11 @@
           if (upcInput) {
             upcInput.addEventListener('input', handleUPCInput);
 
-            // Enter still works, but not needed
+            // optional: Enter still works (manual submit)
             upcInput.addEventListener('keypress', (e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                submitUPC();
+                submitUPC(false);
               }
             });
           }
