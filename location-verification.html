@@ -883,13 +883,8 @@
         submitBtn.disabled = scanned.length === 0;
       }
       
-      const currentTime = Date.now();
-      const timeSinceLastInput = currentTime - state.lastUPCInputTime;
-      state.lastUPCInputTime = currentTime;
-      
-      if (scanned.length >= 8 && timeSinceLastInput < 50) {
-        submitUPC();
-      }
+      // Don't auto-submit - wait for Enter key or button click
+      // This prevents partial UPC scans from being submitted
     }
 
     function submitUPC() {
