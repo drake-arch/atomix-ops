@@ -902,7 +902,9 @@ function handleLocationInput(event) {
 
     function submitUPC() {
   const upcInput = document.getElementById('upcScan');
-  const scanned = upcInput.value.trim();
+const scanned = upcInput.value.trim().replace(/^'+/, '').toUpperCase();
+const expected = String(current.upc).trim().replace(/^'+/, '').toUpperCase();
+
 
   if (!scanned) {
     showAlert('⚠️ Please enter UPC', 'error');
@@ -912,7 +914,8 @@ function handleLocationInput(event) {
   const current = state.locationData[state.currentIndex];
 
   // ✅ NEW: First check if scanned UPC matches expected UPC exactly
-  const isCorrect = scanned === current.upc;
+ const isCorrect = scanned === expected;
+
 
   // If correct, accept immediately — no retries, no shake.
   if (isCorrect) {
@@ -1617,6 +1620,7 @@ function handleLocationInput(event) {
   </script>
 </body>
 </html>
+
 
 
 
