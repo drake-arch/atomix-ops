@@ -917,16 +917,16 @@ function submitUPC() {
 
   // ✅ IF CORRECT → ACCEPT IMMEDIATELY (NO RETRIES)
   if (scanned === expected) {
-    playSuccessBeep();
+    state.tempUPCResult = true;
+    state.tempScannedUPC = scanned;
+    state.tempUPCInMasterList = true;
     state.upcRetryCount = 0;
 
+    playSuccessBeep();
+
     if (state.verificationMode === 'count') {
-      state.tempUPCResult = true;
-      state.tempScannedUPC = scanned;
-      state.tempUPCInMasterList = true;
       state.awaitingCount = true;
       state.locationVerified = false;
-
       showAlert('✅ UPC correct. Enter count.', 'success');
       updateVerifyScreen();
 
@@ -939,51 +939,10 @@ function submitUPC() {
       moveToNext();
     }
 
-    return; // 🔑 STOP HERE — do NOT continue to retry logic
+    return; // 🔑 STOP HERE — do NOT continue
   }
 
-  // ⬇️ leave the rest of your existing submitUPC() code exactly as-is below this
-
-
-
-  if (!scanned) {
-    showAlert('⚠️ Please enter UPC', 'error');
-    return;
-  }
-
-  const current = state.locationData[state.currentIndex];
-
-  // ✅ NEW: First check if scanned UPC matches expected UPC exactly
- const isCorrect = scanned === expected;
-
-
-  // If correct, accept immediately — no retries, no shake.
-  if (isCorrect) {
-    state.tempUPCResult = true;
-    state.tempScannedUPC = scanned;
-    state.tempUPCInMasterList = true; // doesn't matter here, it's correct
-    state.upcRetryCount = 0;
-
-    playSuccessBeep();
-
-    if (state.verificationMode === 'count') {
-      state.awaitingCount = true;
-      state.locationVerified = false;
-      showAlert('✓ UPC recorded. Enter count below.', 'success');
-      updateVerifyScreen();
-      setTimeout(() => {
-        const countInput = document.getElementById('countInput');
-        if (countInput) countInput.focus();
-      }, 100);
-    } else {
-      logResult(true, scanned, null, null);
-      moveToNext();
-    }
-
-    return; // ✅ important: stop here
-  }
-
-  // Not correct — now apply your master list validation + retries
+  // ❌ NOT CORRECT → keep your existing retry/master list logic
   const isInMasterList = state.masterUPCs.includes(scanned);
 
   if (!isInMasterList) {
@@ -992,6 +951,7 @@ function submitUPC() {
     if (state.upcRetryCount < state.maxUPCRetries) {
       playErrorBeep();
       const attemptsLeft = state.maxUPCRetries - state.upcRetryCount;
+
       showAlert(
         `❌ UPC not found in system! Please try again. (${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining)`,
         'error'
@@ -1009,6 +969,31 @@ function submitUPC() {
       showAlert(`⚠️ UPC accepted after ${state.maxUPCRetries} attempts (not in master list)`, 'warning');
     }
   }
+
+  // UPC is wrong but in master list OR max retries reached
+  state.tempUPCResult = false;
+  state.tempScannedUPC = scanned;
+  state.tempUPCInMasterList = isInMasterList;
+  state.upcRetryCount = 0;
+
+  playSuccessBeep();
+
+  if (state.verificationMode === 'count') {
+    state.awaitingCount = true;
+    state.locationVerified = false;
+    showAlert('✓ UPC recorded. Enter count below.', 'success');
+    updateVerifyScreen();
+
+    setTimeout(() => {
+      const countInput = document.getElementById('countInput');
+      if (countInput) countInput.focus();
+    }, 100);
+  } else {
+    logResult(false, scanned, null, null);
+    moveToNext();
+  }
+}
+
 
   // UPC is not correct but is in master list OR max retries reached
   state.tempUPCResult = false;
@@ -1660,6 +1645,7 @@ function submitUPC() {
   </script>
 </body>
 </html>
+
 
 
 
