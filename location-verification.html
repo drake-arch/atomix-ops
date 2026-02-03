@@ -856,24 +856,35 @@
       }
     }
 
-    function handleLocationInput(event) {
-      const scanned = event.target.value.trim().toUpperCase();
-      const current = state.locationData[state.currentIndex];
-      
-      if (scanned.length >= current.location.length) {
-        if (scanned === current.location.toUpperCase()) {
-          playSuccessBeep();
-          showAlert('✅ Location verified', 'success');
-          state.locationVerified = true;
-          state.upcRetryCount = 0; // Reset retry counter
-          updateVerifyScreen();
-        } else {
-          playErrorBeep();
-          showAlert(`❌ Wrong location! Expected: ${current.location}`, 'error');
-          event.target.value = '';
+  function handleLocationInput(event) {
+  const scanned = event.target.value.trim().toUpperCase();
+  const current = state.locationData[state.currentIndex];
+
+  if (scanned.length >= current.location.length) {
+    if (scanned === current.location.toUpperCase()) {
+      playSuccessBeep();
+      showAlert('✅ Location verified', 'success');
+      state.locationVerified = true;
+      state.upcRetryCount = 0; // Reset retry counter
+      updateVerifyScreen();
+
+      // ✅ NEW: move focus directly to UPC input (no click needed)
+      setTimeout(() => {
+        const upcInput = document.getElementById('upcScan');
+        if (upcInput) {
+          upcInput.focus();
+          upcInput.select?.();
         }
-      }
+      }, 50);
+
+    } else {
+      playErrorBeep();
+      showAlert(`❌ Wrong location! Expected: ${current.location}`, 'error');
+      event.target.value = '';
     }
+  }
+}
+
 
     function handleUPCInput(event) {
       const scanned = event.target.value.trim();
@@ -1581,3 +1592,4 @@
   </script>
 </body>
 </html>
+
