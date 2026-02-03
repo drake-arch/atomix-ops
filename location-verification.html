@@ -899,72 +899,95 @@
     }
 
     function submitUPC() {
-      const upcInput = document.getElementById('upcScan');
-      const scanned = upcInput.value.trim();
-      
-      if (!scanned) {
-        showAlert('⚠️ Please enter UPC', 'error');
-        return;
-      }
-      
-      const current = state.locationData[state.currentIndex];
-      
-      // CHECK AGAINST MASTER UPC LIST
-      const isInMasterList = state.masterUPCs.includes(scanned);
-      
-      if (!isInMasterList) {
-        state.upcRetryCount++;
-        
-        if (state.upcRetryCount < state.maxUPCRetries) {
-          playErrorBeep();
-          const attemptsLeft = state.maxUPCRetries - state.upcRetryCount;
-          showAlert(`❌ UPC not found in system! Please try again. (${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining)`, 'error');
-          
-          // Add shake animation to input
-          upcInput.classList.add('shake');
-          setTimeout(() => upcInput.classList.remove('shake'), 500);
-          
-          upcInput.value = '';
-          upcInput.focus();
-          updateVerifyScreen(); // Update retry badge
-          return;
-        } else {
-          // Max retries reached, accept the scan but log it as questionable
-          console.warn(`⚠️ Max retries reached. Accepting UPC: ${scanned}`);
-          showAlert(`⚠️ UPC accepted after ${state.maxUPCRetries} attempts (not in master list)`, 'warning');
-        }
-      }
-      
-      // UPC is valid or max retries reached
-      const isCorrect = scanned === current.upc;
-      
-      console.log(`UPC Check - Expected: "${current.upc}" | Scanned: "${scanned}" | In Master: ${isInMasterList} | Match: ${isCorrect}`);
-      
-      state.tempUPCResult = isCorrect;
-      state.tempScannedUPC = scanned;
-      state.tempUPCInMasterList = isInMasterList;
-      state.upcRetryCount = 0; // Reset counter after successful submit
-      
-      if (state.verificationMode === 'verification' && !isCorrect) {
-        console.log('Incorrect UPC - will be queued for count mode');
-      }
-      
-      playSuccessBeep();
-      
-      if (state.verificationMode === 'count') {
-        state.awaitingCount = true;
-        state.locationVerified = false;
-        showAlert('✓ UPC recorded. Enter count below.', 'success');
-        updateVerifyScreen();
-        setTimeout(() => {
-          const countInput = document.getElementById('countInput');
-          if (countInput) countInput.focus();
-        }, 100);
-      } else {
-        logResult(isCorrect, scanned, null, null);
-        moveToNext();
-      }
+  const upcInput = document.getElementById('upcScan');
+  const scanned = upcInput.value.trim();
+
+  if (!scanned) {
+    showAlert('⚠️ Please enter UPC', 'error');
+    return;
+  }
+
+  const current = state.locationData[state.currentIndex];
+
+  // ✅ NEW: First check if scanned UPC matches expected UPC exactly
+  const isCorrect = scanned === current.upc;
+
+  // If correct, accept immediately — no retries, no shake.
+  if (isCorrect) {
+    state.tempUPCResult = true;
+    state.tempScannedUPC = scanned;
+    state.tempUPCInMasterList = true; // doesn't matter here, it's correct
+    state.upcRetryCount = 0;
+
+    playSuccessBeep();
+
+    if (state.verificationMode === 'count') {
+      state.awaitingCount = true;
+      state.locationVerified = false;
+      showAlert('✓ UPC recorded. Enter count below.', 'success');
+      updateVerifyScreen();
+      setTimeout(() => {
+        const countInput = document.getElementById('countInput');
+        if (countInput) countInput.focus();
+      }, 100);
+    } else {
+      logResult(true, scanned, null, null);
+      moveToNext();
     }
+
+    return; // ✅ important: stop here
+  }
+
+  // Not correct — now apply your master list validation + retries
+  const isInMasterList = state.masterUPCs.includes(scanned);
+
+  if (!isInMasterList) {
+    state.upcRetryCount++;
+
+    if (state.upcRetryCount < state.maxUPCRetries) {
+      playErrorBeep();
+      const attemptsLeft = state.maxUPCRetries - state.upcRetryCount;
+      showAlert(
+        `❌ UPC not found in system! Please try again. (${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining)`,
+        'error'
+      );
+
+      upcInput.classList.add('shake');
+      setTimeout(() => upcInput.classList.remove('shake'), 500);
+
+      upcInput.value = '';
+      upcInput.focus();
+      updateVerifyScreen();
+      return;
+    } else {
+      console.warn(`⚠️ Max retries reached. Accepting UPC: ${scanned}`);
+      showAlert(`⚠️ UPC accepted after ${state.maxUPCRetries} attempts (not in master list)`, 'warning');
+    }
+  }
+
+  // UPC is not correct but is in master list OR max retries reached
+  state.tempUPCResult = false;
+  state.tempScannedUPC = scanned;
+  state.tempUPCInMasterList = isInMasterList;
+  state.upcRetryCount = 0;
+
+  playSuccessBeep();
+
+  if (state.verificationMode === 'count') {
+    state.awaitingCount = true;
+    state.locationVerified = false;
+    showAlert('✓ UPC recorded. Enter count below.', 'success');
+    updateVerifyScreen();
+    setTimeout(() => {
+      const countInput = document.getElementById('countInput');
+      if (countInput) countInput.focus();
+    }, 100);
+  } else {
+    logResult(false, scanned, null, null);
+    moveToNext();
+  }
+}
+
 
     function handleNoUPC() {
       playSuccessBeep();
@@ -1592,4 +1615,5 @@
   </script>
 </body>
 </html>
+
 
