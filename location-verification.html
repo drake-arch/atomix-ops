@@ -857,34 +857,37 @@
     }
 
 function handleLocationInput(event) {
-  const scanned = event.target.value.trim().toUpperCase();
   const current = state.locationData[state.currentIndex];
+  const scanned = event.target.value.trim().toUpperCase();
+  const expectedLoc = String(current.location).trim().toUpperCase();
 
-  if (scanned.length >= current.location.length) {
-    if (scanned === current.location.toUpperCase()) {
-      playSuccessBeep();
-      showAlert('✅ Location verified', 'success');
+  // wait until scan length is at least expected
+  if (scanned.length < expectedLoc.length) return;
 
-      state.locationVerified = true;
-      state.upcRetryCount = 0;
+  if (scanned === expectedLoc) {
+    playSuccessBeep();
+    showAlert('✅ Location verified', 'success');
 
-      // 👇 HIDE location input immediately
-      event.target.style.display = 'none';
+    state.locationVerified = true;
+    state.upcRetryCount = 0;
 
-      // 👇 FOCUS UPC input automatically
-      setTimeout(() => {
-        const upcInput = document.getElementById('upcScan');
-        if (upcInput) upcInput.focus();
-      }, 50);
+    updateVerifyScreen();
 
-      updateVerifyScreen();
-    } else {
-      playErrorBeep();
-      showAlert(`❌ Wrong location! Expected: ${current.location}`, 'error');
-      event.target.value = '';
-    }
+    // ready for UPC
+    setTimeout(() => {
+      const upc = document.getElementById('upcScan');
+      if (upc) {
+        upc.value = '';
+        upc.focus();
+      }
+    }, 50);
+  } else {
+    playErrorBeep();
+    showAlert(`❌ Wrong location! Expected: ${current.location}`, 'error');
+    event.target.value = '';
   }
 }
+
 
 
 
@@ -900,10 +903,47 @@ function handleLocationInput(event) {
       // This prevents partial UPC scans from being submitted
     }
 
-    function submitUPC() {
+function submitUPC() {
   const upcInput = document.getElementById('upcScan');
-const scanned = upcInput.value.trim().replace(/^'+/, '').toUpperCase();
-const expected = String(current.upc).trim().replace(/^'+/, '').toUpperCase();
+  const current = state.locationData[state.currentIndex];
+
+  const scanned = upcInput.value.trim().replace(/^'+/, '').toUpperCase();
+  const expected = String(current.upc).trim().replace(/^'+/, '').toUpperCase();
+
+  if (!scanned) {
+    showAlert('⚠️ Please enter UPC', 'error');
+    return;
+  }
+
+  // ✅ IF CORRECT → ACCEPT IMMEDIATELY (NO RETRIES)
+  if (scanned === expected) {
+    playSuccessBeep();
+    state.upcRetryCount = 0;
+
+    if (state.verificationMode === 'count') {
+      state.tempUPCResult = true;
+      state.tempScannedUPC = scanned;
+      state.tempUPCInMasterList = true;
+      state.awaitingCount = true;
+      state.locationVerified = false;
+
+      showAlert('✅ UPC correct. Enter count.', 'success');
+      updateVerifyScreen();
+
+      setTimeout(() => {
+        const countInput = document.getElementById('countInput');
+        if (countInput) countInput.focus();
+      }, 100);
+    } else {
+      logResult(true, scanned, null, null);
+      moveToNext();
+    }
+
+    return; // 🔑 STOP HERE — do NOT continue to retry logic
+  }
+
+  // ⬇️ leave the rest of your existing submitUPC() code exactly as-is below this
+
 
 
   if (!scanned) {
@@ -1620,6 +1660,7 @@ const expected = String(current.upc).trim().replace(/^'+/, '').toUpperCase();
   </script>
 </body>
 </html>
+
 
 
 
