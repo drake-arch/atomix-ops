@@ -49,6 +49,12 @@
       to { transform: translateY(0); opacity: 1; }
     }
 
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
     .gradient-bg {
       background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
       background-size: 400% 400%;
@@ -60,6 +66,7 @@
     .scale-in { animation: scaleIn 0.5s ease-out forwards; }
     .pulse { animation: pulse 2s ease-in-out infinite; }
     .slide-up { animation: slideUp 0.3s ease-out forwards; }
+    .shake { animation: shake 0.5s ease-in-out; }
 
     .glass {
       background: rgba(255, 255, 255, 0.05);
@@ -500,6 +507,17 @@
       margin-bottom: 0.25rem;
     }
 
+    .retry-badge {
+      display: inline-block;
+      background: #FF6F00;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 0.5rem;
+    }
+
     .hidden { display: none !important; }
     
     .orb {
@@ -586,6 +604,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <script>
+    const MASTER_UPC_LIST = ["77008822", "TEN-SHOLIN-7IN-BLA-M", "850067507246", "196852942442", "699838210967", "688187256573", "850067507383", "UKG1009AMSMB", "755795375672", "852667954291", "755795500005", "196704789836", "647379157333", "755795375689", "318743_B96E46", "721718982074", "196704236156", "615678320970", "8721161533078", "196704789942", "726597174213", "850067507352", "71336131430299", "850059570006", "A-0470-Z", "810074564151", "735380389345", "183049953", "860014439155", "788362055875", "TEN-SHOLIN-7IN-BLU-XL", "850059570920", "A-0310-Z", "699838211018", "810074563826", "680226149730", "655646969824", "860012920815", "810047100935", "810074561556", "655646969992", "655646969725", "850031515253", "71336131563067", "860012818006", "PKG-ENV-MIX-9205-8SMPLR", "860014056116", "A-0590-Z", "655646969978", "755795702041", "850008282454", "860013286330", "850059570746", "755795700061", "5065024276409", "647379157074", "860014439100", "850067507338", "850059570005", "755795371087", "850004554197", "850059570388", "755795375795", "5065024276164", "688187257075", "XLSSSB23S1", "850067507079", "860007199233", "196704789959", "TEN-SHOLIN-5IN-BLU-M", "628942044243", "721718981763", "860009085350", "A-0320-Z", "1218-FBA", "688187257259", "196044055400", "850067507215", "755795375306", "755795252638", "9781681255897", "1,115", "685239891171", "NOO-PIC-ENERGY", "369401031174", "74301366", "5065024276072", "850004554494", "196704789973", "198168868416", "782706246158", "850031515314", "DINOMATT", "755795700658", "306208_9652F1", "810074561587", "655646969695", "UKG1028AMSMB", "196704789881", "SeafoamShaker", "5065007346532", "BOOTSNAKE CLAY", "850059570760", "657381832913", "850050193654", "A-0540-Z", "OC-Tee-Navy-Medium", "810074561976", "306447_9652F1", "739608143597", "A-0550-Z", "92830134", "LIB-LAUNDRYBAG", "1,120", "196852463220", "680226149518", "431106805547", "755795783019", "852667954147", "782706246813", "755795375139", "810047100096", "810074563970", "198715651201", "810074562195", "726597174220", "755795254120", "755795500197", "8721161533016", "1,154", "306207_9652F1", "71336131397531", "688187256733", "783970062550", "628774087241", "MW-SHO-5IN-GRE-L", "810168580777", "0108721161533207", "810074560214", "04340553449435", "860010637661", "5065007346693", "850059570034", "306200_3B4ABF", "IQ-802-ULT-v2", "860014367410", "UKG1052AMSMB", "734189034111", "850050193067", "Defective-Iron-Mat", "256438533800", "69881014", "810074563697", "755795950381", "UNJ-BRRY-SMPL-MC150", "UKG1050AMSMB", "A-0510-Z", "8881300389024", "755795700078", "196704789805", "688187257112", "MW-UND--BLA-M", "UKG1012AM", "810047100157", "1,113", "628942044250", "850050193555", "850059570024", "726597174442", "810047100706", "860009085329", "850059570692", "755795655101", "810047100072", "755795700627", "850059570025", "71336131181051", "850059570791", "860014439148", "613527141745", "9780807768761", "850050193647", "DINO", "755795375597", "655646969718", "655646969671", "OC-SHO-7IN-BLA-L", "196852201501", "755795950701", "1,164", "UKG1049AM", "810074560580", "810074563406", "850050193708", "755795700115", "BCKITBAGII", "QuarantineSKU-Walnut", "5065007346938", "850050193593", "752259517487", "1,148", "850059570081", "850067507123", "850050193081", "850050193609", "810074562829", "721718982029", "810047100898", "755795252706", "810074561228", "Dune_JumpRope", "721718982128", "810074561433", "856984008002", "810074564229", "198168701799", "KOI-LED-BLACK", "UKG1086AM", "850058107417", "1,132", "860010649466", "UKG1022AMSMB", "000000", "850004554746", "755795950480", "810047101505", "23433", "628173710016", "UKG1027AM", "755795375740", "KOI-SHORT-BLUE", "46398134", "688187256993", "680226149280", "565836099181", "UKG1050AM", "755795952033", "755795500234", "199284735026", "00850081228028", "810047101093", "5065007346891", "306206_3B4ABF", "860010649404", "ART-BOOK-01", "647379157180", "9362075000219", "5060897290149", "755795950657", "850004554739", "9781954631038", "810047100294", "850059570562", "UKG1055AMSMB", "198715835557", "97347931215931", "613527333539", "5200141340408", "1,151", "UKG1065AM", "688187256962", "91448246", "699838211001", "680226149303", "37410175940", "051141933320", "9780545842402", "5065007346495", "KOI-LONG-COPPER", "KOI-LONG-SILVER", "810047100324", "721718982005", "91120566", "71336131213819", "9780645051308", "755795254137", "198168126752", "721718982081", "755795375801", "850067507482", "5065007346129", "755795375771", "A-0410-Z", "755795702058", "850067507239", "UKG1056AM", "755795855723", "5065007346082", "UKG1104AMSMB", "850067507024", "628774087050", "5200141340514", "9362075000288", "810047100584", "850050193456", "791126013523", "647379157272", "196704236231", "810074562560", "Towel", "850059570128", "UKG1014AM", "860012266937", "850050193074", "755795950909", "755795950800", "850004554081", "X004FRSF2Z", "UKG1087AM", "860014056123", "850059570913", "A-0300-Z", "688187256689", "1992847716666", "755795500173", "721718982098", "688187256627", "306446_9652F1", "UNJ-COLA-SMPL-MC150", "860010963517", "755795700139", "810168580753", "319059_B96E46", "721718981718", "628173710047", "734189034159", "850050193586", "UKG1065AMSMB", "810074562836", "199284647824", "10198715813378", "810074563871", "UKG1002AMSMB", "850067507376", "UKG1062AMSMB", "860012676200", "755795252591", "850050193104", "Rosewater_JumpRope", "5065024276249", "UKG1012AMSMB", "860014056109", "810074562997", "755795500180", "5065007346662", "810074564212", "755795950770", "199284001930", "726597174572", "5065024276430", "850067507222", "850050193364", "196852932481", "5065024276423", "614204485404", "198168259184", "755795950527", "X003S0BEGJ", "755795375399", "281068258899", "655646969626", "850067507444", "755795254182", "1,127", "33584411524", "850050193111", "850059570022", "9781681254722", "X003YBLJPN", "850067507093", "850059570029", "850050193135", "850059570944", "850059570040", "7118418329880", "613527026882", "0000", "UKG1019AM", "196852565801", "196852092567", "860010649411", "98359478", "A-0400-Z", "50108496653915", "647379157227", "956567538", "197644043705", "726597174046", "755795950091", "A-0100-Z", "5065007346150", "850004554616", "72978631124187", "BOOTSNAKE BLACKNRED", "KOI-LONG-WHITE", "699838210943", "628173710023", "UKG1020AM", "A-0180-Z", "647379157142", "UKG1058AM", "9362075000264", "25440160769883", "810168580999", "647379157197", "810074563987", "1,157", "850067507369", "850059570555", "9508383837257", "9362075000028", "850024783331", "860006277963", "850067507253", "755795950947", "810074561594", "UKG1005AM", "41272161430491", "1,122", "860012676293", "XMERCH-MUG-BISTRO", "850004554463", "755795705011", "755795700085", "647379157289", "755795704120", "198715850703", "197644210497", "195893423569", "184028366924", "688187257174", "850050193425", "1,144", "5065007346846", "50108496686683", "860010637609", "850050193449", "196704789799", "0187211615331086", "860012676279", "647379157340", "199284064317", "755795175012", "DEMO DAY POSTCARD", "199874523460", "622147052914", "PilatesBands", "755795190848", "810074564144", "5065007346716", "755795702034", "9508633219574", "448308122473", "15307958", "97347931183163", "739608143733", "850059570033", "699838210950", "688187257006", "PKG-BOX-ULT-V2", "UNJ-LIP-SMPL-MC150", "810047101109", "810047101000", "199284723269", "810047101130", "DripOffWipes", "134673678945", "306206_9652F1", "860013286316", "721718981879", "655646969640", "AH01-1303D1-US", "BOOTSNAKE XL", "OC-UND-BLA-M", "628942044236", "850067507345", "755795950718", "647379157098", "OC-UND-BLA-L", "1992849459516", "OC-SHO-5IN-BLA-XL", "791126013578", "1,111", "850067507086", "10850004554099", "197644324637", "9781416625490", "850059570035", "755795950374", "721718981848", "04340553842651", "755795950862", "755795254267", "85358641177307", "755795252829", "850059570579", "755795950015", "755795950923", "850059570593", "25958673123419", "1,126", "196852980383", "721718981756", "UKG1018AM", "755795950039", "647379157364", "0726597174183", "196044055363", "685239891713", "726597174305", "810047101161", "A-0640-Z", "306209_3B4ABF", "TEN-SHOLIN-5IN-BLA-L", "860014200601", "850067507499", "755795700054", "DB001", "850081228035", "196852535293", "MW-UND--GRE-XL", "850050193395", "850067507284", "721718981862", "850059570586", "A-0560-Z", "755795252812", "850067507413", "850050193630", "850059570524", "810047100522", "198168667583", "860010649480", "MW-SHO-5IN-GRE-S", "92862902", "199284473966", "755795700634", "04340553678811", "755795950060", "8721161533009", "TEN-SHOLIN-5IN-BLA-M", "860012920860", "755795500258", "5065007346181", "810074563666", "Bootsnake CLAY XL", "647379157241", "688187257464", "647379157432", "798118472283", "196704789911", "1,130", "755795254199", "860011268918", "199284782839", "OC-Tee-Black-Small", "850004554814", "860010649497", "755795655231", "647379157401", "628173710115", "755795375962", "UKG1022AM", "810074563451", "5065007346518", "782706246806", "755795954037", "613527027735", "860012920877", "306313_3B4ABF", "782706246165", "5200141340484", "850059570395", "810074562775", "1,119", "647379157210", "657381832876", "295212937311", "800927746472", "196704236262", "55527831647195", "810074564137", "X002TT8CK1", "1,129", "UKG1068AM", "680226149242", "755795375818", "UKG1031AMSMB", "195893612277", "850059570777", "1,142", "680226149914", "655646970035", "850067507390", "197644473397", "UKG1016AMSMB", "5065007346112", "1,147", "755795701006", "UKG1058AMSMB", "UKG1049AMSMB", "739608143504", "UKG1057AMSMB", "647379157203", "BOOTSNAKE STANDARD", "195893246373", "55527839380443", "688187257457", "196704789904", "850004554104", "00810074564083", "318744_B96E46", "A-0610-Z", "196044055370", "199284771666", "755795705004", "360620265", "1,118", "850059570050", "647379157357", "850059570500", "810047100249", "810074564076", "54222262", "810168580128", "810074564304", "850067507116", "A-0290-Z", "UKG1021AM", "UKG1029AM", "613527016739", "199284329522", "A-0190-Z", "655646969954", "10850004554439", "5065024276225", "OC-UND-GRE-XL", "810047100034", "696550208753", "850050193098", "A-0220-Z", "688187257426", "782706246141", "UKG1087AMSMB", "755795700153", "850059570739", "104272312514", "850059570043", "721718982111", "755795375351", "850004554753", "735380129811", "782706246189", "657381832883", "850031515079", "198168952528", "860011626992", "810074564274", "680226149785", "850067507260", "647379157067", "UKG1063AM", "860009085367", "A-0250-Z", "9781339012087", "Defective-Seafoam-Mat", "557336489", "860006277970", "850059570715", "198168069639", "850067507055", "655646970080", "782706246868", "734189034142", "196044055417", "810047101017", "196704236224", "850059570463", "9781960574909", "655646969916", "850059570975", "196852081905", "647379157159", "810047100263", "721718981787", "850059570722", "69946550", "UKG1104AM", "850004554685", "8277266447", "810074563901", "755795950787", "810047100010", "45446070", "5065007346006", "08721161533191", "850067507314", "860011626961", "726597174541", "688187257297", "628173710085", "655646969930", "00850081228042", "199284385603", "628942044229", "10850004554422", "755795700009", "00810074564045", "X004FRSMDR", "603856241244", "810074561310", "721718982036", "318745_B96E46", "721718982135", "628173710030", "850059570111", "655646969817", "1,153", "319060_1E4B93", "1,136", "688187256979", "850004554524", "680226149976", "680226149532", "791126013509", "850004554166", "9781119653325", "647379157326", "680226149969", "860012920808", "850004554777", "755795855655", "9362075000226", "9781338879025", "0108721161533221", "850050193043", "852667953478", "196704236132", "9781119712619", "5060897290385", "850059570015", "306199_3B4ABF", "98326710", "755795950916", "1,165", "850031515154", "A-0600-Z", "755795655064", "850067507437", "198715482560", "PK-0302", "MW-SHO-5IN-GRE-XL", "A-0430-Z", "628173710078", "9781119813576", "726597174602", "198168855492", "850059570067", "Bootsnake BlackNRed XL", "721718981817", "306210_3B4ABF", "613527447021", "5065007346242", "755795375450", "850050193418", "810074563925", "5200141340453", "696550217359", "721718981701", "647379157371", "198168345801", "B0DB2RMVYC", "850050193012", "8721161533139", "MW-UND--GRE-M", "UKG1064MGB", "850067507062", "688187256580", "A-0630-Z", "647379157425", "810047101574", "5065007346020", "KOI-SHORT-WHITE", "647379157029", "850059570609", "WhiteShaker", "628942044304", "A-0530-Z", "SS24-WEEK-PEC", "OC-SHO-7IN-GRE-L", "UKG1059AM", "791126013585", "860012266906", "198168482391", "196704789812", "850067507154", "195893456222", "850004554074", "UKG1060AMSMB", "647379157005", "850050193357", "788362055868", "UKG1051AMSMB", "UKG1010AMSMB", "UKG1002AM", "755795375146", "647379157234", "810089550705", "810074562171", "647379157166", "XLSSSB23S2", "318746_1E4B93", "UKG1060AM", "UKG1092AM", "755795375849", "685239891157", "755795500067", "9781506365831", "860006277925", "A-0520-Z", "A-0580-Z", "318746_B96E46", "1,150", "791126013516", "755795375832", "755795610025", "860012920884", "850004554920", "860012818099", "197644328130", "354367052159", "5065024276218", "683132935558", "850059570032", "850067507406", "774045156912", "A-0020-Z", "688187257235", "850059570517", "850050193623", "5065024276089", "688187257471", "755795950985", "783970062543", "755795700146", "HTS", "TEN-SHOLIN-7IN-BLA-XL", "850059570010", "628173710184", "71115492426459", "680226149662", "810168580289", "755795950121", "860008891808", "810047100102", "680226149167", "791126013608", "10755795191552", "850067507161", "860013833701", "655646969985", "1,114", "1,135", "UKG1056AMSMB", "860011305613", "755795950077", "UKG1003AM", "08721161533238", "72978631256955", "306204_3B4ABF", "850004554906", "198168951699", "860012818051", "198168328675", "25958673090651", "UKG1054AM", "34876126", "850067507277", "12345", "1,112", "306200_9652F1", "755795376006", "628774087111", "755795705035", "318748_1E4B93", "UKG1055AM", "72978631091419", "850050193401", "655646970066", "Ten-Tee-Navy-Medium", "UKG1010AM", "OC-SHOLIN-7IN-GRE-M", "755795175029", "5200141340439", "810047101116", "810074564243", "755795950404", "810074561280", "850059570807", "680226149273", "688187257150", "850059570449", "810074564236", "A-0500-Z", "850059570041", "755795375702", "199284154759", "96983478", "810047101123", "850004554470", "655646970028", "UKG1086AMSMB", "850050193531", "860013692216", "810168580395", "739608143603", "5065007346198", "850059570009", "850059570302", "860010913956", "850059570023", "850004554487", "850055707085", "755795950671", "755795252645", "810074563413", "647379157296", "198168565209", "71336131048283", "318747_1E4B93", "761862379078", "BCGTPRCC", "37429157", "850050193548", "721718982159", "810047100089", "810047100454", "739608143726", "810168580807", "628942044311", "755795254250", "9781071902660", "850059570012", "850067507307", "810047100836", "199284775596", "850067507475", "318743_1E4B93", "647379157135", "850081228004", "680226149402", "850059570026", "850059570951", "850050193036", "755795375276", "850059570074", "647379157265", "810074563338", "1,143", "196704236286", "98261174", "OC-SHOLIN-7IN-GRE-XL", "850059570007", "198168988299", "UKG1061AMSMB", "5065007346099", "755795950893", "755795700016", "92164534", "721718981992", "5065007346488", "739608143535", "1,155", "647379157319", "UKG1061AM", "850050193524", "810074560122", "860012818075", "UKG1053AM", "UKG1052AM", "1,156", "1,141", "726597173971", "UKG1032AM", "850004554654", "UKG1064MGW", "9507681758981", "850059570042", "755795950886", "755795254175", "735380164492", "196704236316", "613527409470", "850067507031", "UKG1020AMSMB", "860012920853", "5065007346440", "850059570036", "QuarantineSKU-Beech", "755795375498", "1,128", "137485937285", "655646969756", "850067507451", "MW-UND--GRE-L", "735380285388", "755795950930", "850050193029", "655646970004", "850059570038", "00850059570371", "628774087104", "721718981671", "810074561051", "1,121", "A-0440-Z", "628942044281", "9781960574329", "UNJUNKD-SHIP-M", "628774087029", "850059570548", "OC-Tee-Black-Medium", "685239891751", "860014439117", "85358641044539", "852667954000", "721718981695", "850050193159", "860010913925", "850059570296", "306204_9652F1", "23422", "783970062482", "14879064772571", "850050193005", "810074560795", "647379157258", "850059570470", "5065007346396", "70673362524763", "850050193340", "810047100027", "198168195758", "196704789829", "KOI-LONG-BLACK", "860012818044", "688187257051", "791126013646", "9781681254036", "810074564267", "OC-UND-BLU-XL", "UKG1003AMSMB", "306208_3B4ABF", "A-0270-Z", "UKG1016AM", "734189034135", "628774087081", "850004554760", "Iron_Jumprope", "850059570487", "699838210981", "850059570968", "319059_1E4B93", "628774087067", "5060897290392", "810047100904", "755795950664", "755795252805", "UKG1053AMSMB", "860010963500", "850059570890", "5200141340460", "628173710139", "196704236217", "29606070", "647379157128", "850059570104", "OC-SHO-5IN-BLA-M", "810047100591", "9362075000196", "TEN-SHOLIN-7IN-BLA-L", "1,133", "647379157173", "850050193128", "755795375948", "850067507048", "1234", "721718982104", "198168719923", "850059570906", "544251572601", "41272151364955", "10195893533470", "860012920839", "92895670", "5065024276010", "850004554678", "850050193616", "721718981770", "721718982012", "UC900", "61074614", "40005", "196704236163", "755795375825", "647379157470", "755795254113", "850051903405", "196852357277", "810047100003", "726597174381", "1,134", "755795701549", "5065007346945", "UKG1021AMSMB", "810074560917", "810074561143", "850058107042", "850059570425", "721718981831", "196704789966", "1992844481550", "0", "NOO-MIS-BTL", "688187256948", "42280496", "60094902", "782706246196", "5065007346358", "A-0070-Z", "TEN-SHOLIN-5IN-BLA-XL", "647379157388", "810074562133", "688187256702", "615678376632", "850059570418", "88905654", "360619240", "810074564168", "FBFR0001", "810074560849", "726597174367", "A-0420-Z", "755795252720", "UKG1018AMSMB", "860012817979", "810074563772", "2349", "852667953515", "BlackShaker", "783970062499", "5065024276232", "810074562164", "850067507178", "TEN-SHOLIN-7IN-BLA-S", "755795500081", "860012817986", "739608143542", "318742_B96E46", "810047100188", "850059570401", "10755795191545", "199284521582", "70208694", "UKG1028AM", "UKG1029AMSMB", "1211-FBA", "860009085312", "A-0110-Z", "XSSPRSMLBOX", "688187257273", "755795252614", "UKG1027AMSMB", "615678069459", "755795375979", "850004554722", "850081228011", "647379157395", "UKG1017AM", "655646970011", "20195893968163", "A-0140-Z", "613527463281", "1", "SIMONTOTE", "688187256610", "850004554555", "850050193579", "860012920846", "699838210998", "860012818037", "198168606162", "647379157418", "1,146", "850059570883", "5065007346648", "A-0200-Z", "783970062505", "688187257358", "852667954239", "69684406", "OC-SHOLIN-5IN-GRE-XL", "instasleep", "810047100171", "810074563994", "BRA-EEO-WH-36B", "UKG1062AM", "54321", "860011268925", "850067507017", "306207_3B4ABF", "1,116", "10850004554415", "850004554098", "688187257372", "25958673156187", "791126013493", "755795375993", "810074564007", "1,123", "850055707092", "KOI-LONG-TEAL", "739608143511", "UKG1031AM", "645707448078", "628942044267", "685553998632", "850004554500", "850067507420", "755795375696", "850059570753", "UKG1051AM", "UKG1009AM", "191770245750", "739608143665", "860007199202", "850004554050", "9781032126623", "688187257396", "306314_3B4ABF", "A-0480-Z", "198168072547", "724751987853", "KOI-LONG-BLUE", "628774087258", "X_SS_PRBOX", "38475679", "791126013547", "UKG1098AM", "850004554562", "UKG1059AMSMB", "810074562188", "UKG1004AM", "782706246134", "860012817993", "IQ-TK-SMPLR-V2", "198168913086", "685239891508", "810168580401", "726597173957", "688187256825", "318748_B96E46", "628774087142", "306446_3B4ABF", "721718982043", "196704236187", "5065007346068", "1,149", "850059570159", "196704789980", "850050193050", "RWB XL", "850059570098", "755795655088", "KOI-LED-WHITE", "850004554067", "755795950350", "755795950978", "5065007346341", "78722742", "319060_B96E46", "979-8-893-74009-7", "783970062512", "850059570531", "UKG1057AM", "850050193692", "198168389133", "755795375511", "850050193142", "721718982142", "UKG1017AMSMB", "628942044298", "810074563529", "651886437253", "RWB STANDARD", "721718981886", "196852391363", "5065007346013", "306210_9652F1", "860013692223", "OC-SHOLIN-7IN-GRE-L", "739608143559", "A-0370-Z", "850050193685", "810047100317", "721718981800", "860013286347", "OC-SHO-7IN-GRE-M", "721718981688", "9781575424354", "810047100164", "850067507109", "726597173964", "1,140", "A-0460-Z", "755795950206", "657381832852", "5065024276201", "798118472764", "1,139", "628774087036", "850004554210", "793591701363", "721718981749", "32432310", "9781523506644", "UKG1032AMSMB", "810168580869", "UKG1014AMSMB", "860012920891", "810074563888", "OC-SHOLIN-5IN-GRE-L", "810168580104", "850024783379", "755795252607", "5200141340422", "A-0090-Z", "23411", "123456000018", "1992840643174", "810074563963", "810074564090", "726597173940", "850067507147", "5065007346525", "688187257310", "1,158", "810074563819", "860014367403", "850050193388", "755795950756", "655646970196", "UNJ-TNG-SMPL-MC150", "755795702065", "755795375788", "647379157302", "810047100942", "755795375054", "55670454", "810074564298", "850059570999", "810074564069", "655646969800", "860011626985", "OC-SHOLIN-5IN-RED-XL", "850050193432", "A-0380-Z", "850067507000", "659465185861", "A-0330-Z", "5200141340491", "850067507130", "197644338054", "688187256559", "810074561037", "850058107400", "755795254212", "810074563703", "196852772889", "794712625353", "860012818068", "860011626978", "5065007346433", "755795375504", "850059570039", "850004554517", "628173710153", "850059570982", "NOO-H22-JADE", "850008282447", "5065024276096", "688187257334", "850008282232", "UKG1068AMSMB", "23455", "791126013530", "860010649428", "810047101512", "696550224517", "647379157050", "OC-SHOLIN-5IN-RED-M", "850004554548", "23208067", "67780294189", "810074563314", "755795500050", "00850081228059", "5065024276171", "196852354382", "XeroStrip mint 300", "850059570326", "04340553514971", "196704236309", "860011268901", "688187257198", "680226149136", "KOI-LONG-GOLD", "755795375931", "755795610018", "318749_B96E46", "755795705028"];
+
+
     const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwj2RFctSenpguEEe4comXIHPOiHjNZt0ULFOU7QLpjun_RKnODgoPMellUGtW9qIhfBg/exec';
 
     let state = {
@@ -602,9 +623,12 @@
       locationVerified: false,
       upcEntered: false,
       lastUPCInputTime: 0,
-      queuedLocations: [], // Locations queued from verification mode
+      queuedLocations: [],
       loadingQueue: false,
-      validUPCs: [] // All valid UPCs from uploaded file
+      validUPCs: [],
+      masterUPCs: MASTER_UPC_LIST,
+      upcRetryCount: 0,
+      maxUPCRetries: 3
     };
 
     let audioContext;
@@ -656,10 +680,9 @@
     function selectMode(mode) {
       state.verificationMode = mode;
       
-      // For count mode, give choice between queue and file upload
       if (mode === 'count') {
         state.stage = 'count-choice';
-        loadQueueFromSheets(); // Load queue in background
+        loadQueueFromSheets();
       } else {
         state.stage = 'upload';
       }
@@ -689,11 +712,10 @@
         return;
       }
       
-      // Convert queue to locationData format
       state.locationData = state.queuedLocations.map(item => ({
         location: item.location,
         upc: item.expected_upc,
-        unitCount: 0 // We don't show expected count (blind counting)
+        unitCount: 0
       }));
       
       state.stage = 'verify';
@@ -715,7 +737,6 @@
           const workbook = XLSX.read(data, { type: 'array', cellText: false, cellDates: false });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           
-          // Use raw: false to get formatted string values (preserves leading zeros and full precision)
           const jsonData = XLSX.utils.sheet_to_json(firstSheet, { raw: false, defval: '' });
           
           console.log('Parsed data sample:', jsonData.slice(0, 3));
@@ -734,31 +755,25 @@
         return;
       }
 
-      // Get the first row to find column headers
       const firstRow = data[0];
       const headers = Object.keys(firstRow);
       
-      // Find the correct column names (case-insensitive search)
       let locationCol = null;
       let upcCol = null;
       let countCol = null;
       
-      // Search for Location column (Column A)
       locationCol = headers.find(h => 
         h.toLowerCase() === 'location' || 
         h.toLowerCase() === 'loc'
       );
       
-      // Search for UPC column (Column E) - PRIORITIZE 'upc' over 'sku'
       upcCol = headers.find(h => h.toLowerCase() === 'upc');
       
-      // Only fall back to SKU if UPC column doesn't exist
       if (!upcCol) {
         upcCol = headers.find(h => h.toLowerCase() === 'sku');
         console.warn('UPC column not found, falling back to SKU column');
       }
       
-      // Search for Count column (Column B - Location On Hand)
       countCol = headers.find(h => 
         h.toLowerCase() === 'location on hand' ||
         h.toLowerCase() === 'locationonhand' ||
@@ -781,28 +796,21 @@
 
       console.log(`Found columns - Location: "${locationCol}", UPC: "${upcCol}", Count: "${countCol}"`);
 
-      // Parse the data using the found column names
       const normalized = data.map((row, index) => {
-        // Column A - Location: Convert to string and trim
         let location = String(row[locationCol] || '').trim();
         
-        // UPC Column: Ensure full UPC is captured as string
         let upcRaw = row[upcCol];
         let upc = '';
         
         if (upcRaw === null || upcRaw === undefined || upcRaw === '') {
           upc = '';
         } else {
-          // Convert to string, preserving all digits
           upc = String(upcRaw).trim();
-          // Remove any leading apostrophes that Excel might add for text formatting
           upc = upc.replace(/^'+/, '');
         }
         
-        // Column B - Location On Hand: Parse as integer
         let unitCount = countCol ? parseInt(row[countCol] || 0) : 0;
         
-        // Debug log for first few rows
         if (index < 5) {
           console.log(`Row ${index + 1}: Location="${location}" | UPC="${upc}" (len=${upc.length}, col="${upcCol}") | Count=${unitCount}`);
         }
@@ -818,7 +826,6 @@
       console.log(`Loaded ${normalized.length} valid rows`);
       console.log('Sample data:', normalized.slice(0, 3));
 
-      // Extract all unique UPCs for validation
       state.validUPCs = [...new Set(normalized.map(row => row.upc))];
       console.log(`Extracted ${state.validUPCs.length} unique valid UPCs`);
 
@@ -858,6 +865,7 @@
           playSuccessBeep();
           showAlert('✅ Location verified', 'success');
           state.locationVerified = true;
+          state.upcRetryCount = 0; // Reset retry counter
           updateVerifyScreen();
         } else {
           playErrorBeep();
@@ -870,13 +878,11 @@
     function handleUPCInput(event) {
       const scanned = event.target.value.trim();
       
-      // Update button state
       const submitBtn = document.getElementById('submitUPCBtn');
       if (submitBtn) {
         submitBtn.disabled = scanned.length === 0;
       }
       
-      // Auto-submit for fast scan (barcode scanner)
       const currentTime = Date.now();
       const timeSinceLastInput = currentTime - state.lastUPCInputTime;
       state.lastUPCInputTime = currentTime;
@@ -897,26 +903,42 @@
       
       const current = state.locationData[state.currentIndex];
       
-      // Check if scanned UPC exists in our valid UPCs list
-      const isValidUPC = state.validUPCs.includes(scanned);
+      // CHECK AGAINST MASTER UPC LIST
+      const isInMasterList = state.masterUPCs.includes(scanned);
       
-      if (!isValidUPC) {
-        playErrorBeep();
-        showAlert(`❌ Invalid UPC! This UPC is not in the system. Please scan again.`, 'error');
-        upcInput.value = '';
-        upcInput.focus();
-        return;
+      if (!isInMasterList) {
+        state.upcRetryCount++;
+        
+        if (state.upcRetryCount < state.maxUPCRetries) {
+          playErrorBeep();
+          const attemptsLeft = state.maxUPCRetries - state.upcRetryCount;
+          showAlert(`❌ UPC not found in system! Please try again. (${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining)`, 'error');
+          
+          // Add shake animation to input
+          upcInput.classList.add('shake');
+          setTimeout(() => upcInput.classList.remove('shake'), 500);
+          
+          upcInput.value = '';
+          upcInput.focus();
+          updateVerifyScreen(); // Update retry badge
+          return;
+        } else {
+          // Max retries reached, accept the scan but log it as questionable
+          console.warn(`⚠️ Max retries reached. Accepting UPC: ${scanned}`);
+          showAlert(`⚠️ UPC accepted after ${state.maxUPCRetries} attempts (not in master list)`, 'warning');
+        }
       }
       
-      // UPC is valid, now check if it matches expected
+      // UPC is valid or max retries reached
       const isCorrect = scanned === current.upc;
       
-      console.log(`UPC Check - Expected: "${current.upc}" | Scanned: "${scanned}" | Valid: ${isValidUPC} | Match: ${isCorrect}`);
+      console.log(`UPC Check - Expected: "${current.upc}" | Scanned: "${scanned}" | In Master: ${isInMasterList} | Match: ${isCorrect}`);
       
       state.tempUPCResult = isCorrect;
       state.tempScannedUPC = scanned;
+      state.tempUPCInMasterList = isInMasterList;
+      state.upcRetryCount = 0; // Reset counter after successful submit
       
-      // If in verification mode and UPC is incorrect, queue it for count mode
       if (state.verificationMode === 'verification' && !isCorrect) {
         console.log('Incorrect UPC - will be queued for count mode');
       }
@@ -939,14 +961,12 @@
     }
 
     function handleNoUPC() {
-      const current = state.locationData[state.currentIndex];
-      
       playSuccessBeep();
-      
       console.log('No UPC at location');
       
       state.tempUPCResult = false;
       state.tempScannedUPC = 'NO_UPC';
+      state.upcRetryCount = 0;
       
       if (state.verificationMode === 'count') {
         state.awaitingCount = true;
@@ -964,11 +984,9 @@
     }
 
     function handleNoItem() {
-      const current = state.locationData[state.currentIndex];
-      
       playSuccessBeep();
-      
       console.log('No item at location');
+      state.upcRetryCount = 0;
       
       if (state.verificationMode === 'count') {
         logResult(false, 'NO_ITEM', 0, 0);
@@ -980,11 +998,9 @@
     }
 
     function handleMixedLocation() {
-      const current = state.locationData[state.currentIndex];
-      
       playSuccessBeep();
-      
       console.log('Mixed location detected');
+      state.upcRetryCount = 0;
       
       if (state.verificationMode === 'count') {
         logResult(false, 'MIXED_LOCATION', null, null);
@@ -1007,6 +1023,7 @@
       
       logResult(state.tempUPCResult, state.tempScannedUPC, current.unitCount, count);
       state.awaitingCount = false;
+      state.upcRetryCount = 0;
       moveToNext();
     }
 
@@ -1032,7 +1049,8 @@
         expected_count: expectedCount,
         actual_count: actualCount,
         step: state.currentIndex + 1,
-        total_steps: state.locationData.length
+        total_steps: state.locationData.length,
+        in_master_list: state.tempUPCInMasterList !== undefined ? state.tempUPCInMasterList : true
       });
     }
 
@@ -1048,6 +1066,7 @@
           state.locationVerified = false;
           state.upcEntered = false;
           state.lastUPCInputTime = 0;
+          state.upcRetryCount = 0;
           render();
         } else {
           state.stage = 'complete';
@@ -1092,7 +1111,6 @@
           state.calcOperator = null;
           state.calcPrevValue = null;
           
-          // Update the count input field
           const countInput = document.getElementById('countInput');
           if (countInput) {
             countInput.value = state.calcValue;
@@ -1120,53 +1138,46 @@
       if (!alertDiv) return;
       
       alertDiv.innerHTML = `<div class="alert alert-${type} fade-in-up">${message}</div>`;
-      setTimeout(() => { alertDiv.innerHTML = ''; }, 3000);
+      setTimeout(() => { alertDiv.innerHTML = ''; }, 4000);
     }
 
     function goHome() {
       if (confirm('Return home? Progress will be lost.')) {
-        window.location.href = './index.html';
+        window.location.reload();
       }
     }
 
     function updateVerifyScreen() {
-      // Only update the dynamic parts, not full re-render
       if (state.stage !== 'verify') return;
       
       const current = state.locationData[state.currentIndex];
       const scanned = state.currentIndex;
       const remaining = state.locationData.length - state.currentIndex;
       
-      // Update stats
       const stats = document.querySelectorAll('.stat-value');
       if (stats[0]) stats[0].textContent = scanned;
       if (stats[1]) stats[1].textContent = remaining;
       
-      // Update UPC section visibility
       const upcSection = document.getElementById('upcSection');
       if (upcSection) {
         upcSection.style.display = state.locationVerified ? 'block' : 'none';
       }
       
-      // Update action buttons visibility
       const actionButtons = document.getElementById('actionButtons');
       if (actionButtons) {
         actionButtons.style.display = state.locationVerified ? 'block' : 'none';
       }
       
-      // Update count section visibility
       const countSection = document.getElementById('countSection');
       if (countSection) {
         countSection.style.display = state.awaitingCount ? 'block' : 'none';
       }
       
-      // Update calculator visibility
       const calcModal = document.getElementById('calcModal');
       if (calcModal) {
         calcModal.style.display = state.showCalculator ? 'flex' : 'none';
       }
       
-      // Update calc display
       const calcDisplay = document.querySelector('.calc-display');
       if (calcDisplay) {
         let displayText = state.calcValue || '0';
@@ -1176,10 +1187,20 @@
         calcDisplay.textContent = displayText;
       }
       
-      // Update calc icon visibility
       const calcIcon = document.getElementById('calcIcon');
       if (calcIcon) {
         calcIcon.style.display = state.awaitingCount ? 'flex' : 'none';
+      }
+      
+      // Update retry badge
+      const retryBadge = document.getElementById('retryBadge');
+      if (retryBadge) {
+        if (state.upcRetryCount > 0) {
+          retryBadge.textContent = `Attempt ${state.upcRetryCount + 1}/${state.maxUPCRetries}`;
+          retryBadge.style.display = 'inline-block';
+        } else {
+          retryBadge.style.display = 'none';
+        }
       }
     }
 
@@ -1208,6 +1229,10 @@
                 <button onclick="setName()" class="btn btn-primary glow">
                   Continue →
                 </button>
+                
+                <div style="margin-top: 1.5rem; text-align: center; color: #9D9F9E; font-size: 0.875rem;">
+                  <p>✅ ${state.masterUPCs.length} UPCs loaded from master list</p>
+                </div>
               </div>
             </div>
           </div>
@@ -1388,6 +1413,7 @@
                 <div id="upcSection" style="display: ${state.locationVerified ? 'block' : 'none'}; margin-bottom: 1.5rem;">
                   <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
                     📦 Scan UPC
+                    <span id="retryBadge" class="retry-badge" style="display: ${state.upcRetryCount > 0 ? 'inline-block' : 'none'};">Attempt ${state.upcRetryCount + 1}/${state.maxUPCRetries}</span>
                   </label>
                   <div class="scan-input-section">
                     <div class="scan-input-wrapper">
@@ -1407,7 +1433,7 @@
                     </button>
                     <button class="action-btn" onclick="handleNoItem()">
                       <span class="action-btn-icon">📭</span>
-                      No Item
+                      Nothing Here
                     </button>
                     <button class="action-btn" onclick="handleMixedLocation()">
                       <span class="action-btn-icon">🔀</span>
@@ -1545,6 +1571,12 @@
           
           if (upcInput) {
             upcInput.addEventListener('input', handleUPCInput);
+            upcInput.addEventListener('keypress', (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                submitUPC();
+              }
+            });
           }
         }
       }, 100);
