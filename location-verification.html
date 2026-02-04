@@ -696,7 +696,7 @@
       }
     }
 
-    // ✅ Auto-submit after 150ms idle
+    // ✅ Auto-submit after 300ms idle (allows full barcode scan to complete)
     function handleUPCInput(event) {
       const upcInput = event.target;
 
@@ -705,12 +705,12 @@
       if (state.upcAutoTimer) clearTimeout(state.upcAutoTimer);
 
       state.upcAutoTimer = setTimeout(() => {
-        if (Date.now() - state.lastUPCInputTime >= 150) {
+        if (Date.now() - state.lastUPCInputTime >= 300) {
           if (upcInput.value.trim().length > 0) {
             submitUPC(true);
           }
         }
-      }, 150);
+      }, 300);
     }
 
     // ✅ No master list, no retries, no blocking
@@ -1173,7 +1173,7 @@
                     <div class="scan-input-wrapper">
                       <input type="text" id="upcScan" class="input input-scan" placeholder="SCAN UPC" autofocus>
                     </div>
-                    <!-- ✅ Submit button removed; auto-submits after 150ms -->
+                    <!-- ✅ Auto-submits after 300ms idle -->
                   </div>
                 </div>
 
