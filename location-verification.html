@@ -453,7 +453,12 @@
       // temp values for logging
       tempUPCResult: null,
       tempScannedUPC: '',
-      tempUPCInMasterList: true
+      tempUPCInMasterList: true,
+
+      // open verification state
+      openScannedLocation: '',
+      openScannedUPC: '',
+      openTotalScans: 0
     };
 
     let audioContext;
@@ -508,6 +513,9 @@
       if (mode === 'count') {
         state.stage = 'count-choice';
         loadQueueFromSheets();
+      } else if (mode === 'open') {
+        state.stage = 'open-verify';
+        render();
       } else {
         state.stage = 'upload';
       }
@@ -666,6 +674,165 @@
       } catch (error) {
         console.error('Failed to log to sheets:', error);
       }
+    }
+
+    function handleOpenLocationInput(event) {
+      const scanned = event.target.value.trim().toUpperCase();
+
+      if (scanned.length >= 3 && event.key === 'Enter') {
+        state.openScannedLocation = scanned;
+        playSuccessBeep();
+        showAlert('✅ Location captured', 'success');
+        
+        event.target.style.display = 'none';
+        
+        setTimeout(() => {
+          const upcInput = document.getElementById('openUpcScan');
+          if (upcInput) upcInput.focus();
+        }, 50);
+        
+        updateOpenVerifyScreen();
+      }
+    }
+
+    function handleOpenUPCInput(event) {
+      const upcInput = event.target;
+
+      state.lastUPCInputTime = Date.now();
+
+      if (state.upcAutoTimer) clearTimeout(state.upcAutoTimer);
+
+      state.upcAutoTimer = setTimeout(() => {
+        if (Date.now() - state.lastUPCInputTime >= 300) {
+          if (upcInput.value.trim().length > 0) {
+            submitOpenUPC();
+          }
+        }
+      }, 300);
+    }
+
+    function submitOpenUPC() {
+      const upcInput = document.getElementById('openUpcScan');
+      if (!upcInput) return;
+
+      const scanned = upcInput.value.trim().replace(/^'+/, '').toUpperCase();
+
+      if (!scanned) return;
+
+      state.openScannedUPC = scanned;
+      playSuccessBeep();
+      showAlert('✅ UPC recorded', 'success');
+
+      logOpenResult(state.openScannedLocation, scanned);
+      
+      state.openTotalScans++;
+      state.openScannedLocation = '';
+      state.openScannedUPC = '';
+      
+      upcInput.value = '';
+      
+      setTimeout(() => {
+        const locationInput = document.getElementById('openLocationScan');
+        if (locationInput) {
+          locationInput.style.display = 'block';
+          locationInput.value = '';
+          locationInput.focus();
+        }
+        updateOpenVerifyScreen();
+      }, 500);
+    }
+
+    function handleOpenNoUPC() {
+      playSuccessBeep();
+      logOpenResult(state.openScannedLocation, 'NO_UPC');
+      
+      state.openTotalScans++;
+      state.openScannedLocation = '';
+      state.openScannedUPC = '';
+      
+      setTimeout(() => {
+        const locationInput = document.getElementById('openLocationScan');
+        if (locationInput) {
+          locationInput.style.display = 'block';
+          locationInput.value = '';
+          locationInput.focus();
+        }
+        updateOpenVerifyScreen();
+      }, 500);
+    }
+
+    function handleOpenNoItem() {
+      playSuccessBeep();
+      logOpenResult(state.openScannedLocation, 'NO_ITEM');
+      
+      state.openTotalScans++;
+      state.openScannedLocation = '';
+      state.openScannedUPC = '';
+      
+      setTimeout(() => {
+        const locationInput = document.getElementById('openLocationScan');
+        if (locationInput) {
+          locationInput.style.display = 'block';
+          locationInput.value = '';
+          locationInput.focus();
+        }
+        updateOpenVerifyScreen();
+      }, 500);
+    }
+
+    function handleOpenMixedLocation() {
+      playSuccessBeep();
+      logOpenResult(state.openScannedLocation, 'MIXED_LOCATION');
+      
+      state.openTotalScans++;
+      state.openScannedLocation = '';
+      state.openScannedUPC = '';
+      
+      setTimeout(() => {
+        const locationInput = document.getElementById('openLocationScan');
+        if (locationInput) {
+          locationInput.style.display = 'block';
+          locationInput.value = '';
+          locationInput.focus();
+        }
+        updateOpenVerifyScreen();
+      }, 500);
+    }
+
+    function logOpenResult(location, scannedUPC) {
+      let upcStatus = 'Scanned';
+      if (scannedUPC === 'NO_UPC') upcStatus = 'No UPC';
+      else if (scannedUPC === 'NO_ITEM') upcStatus = 'No Item';
+      else if (scannedUPC === 'MIXED_LOCATION') upcStatus = 'Mixed Location';
+
+      logToSheets({
+        location: location,
+        expected_upc: '',
+        scanned_upc: scannedUPC,
+        upc_status: upcStatus,
+        expected_count: null,
+        actual_count: null,
+        step: state.openTotalScans + 1,
+        total_steps: null,
+        in_master_list: true,
+        sheet_name: 'master_open'
+      });
+    }
+
+    function updateOpenVerifyScreen() {
+      if (state.stage !== 'open-verify') return;
+
+      const stats = document.querySelectorAll('.stat-value');
+      if (stats[0]) stats[0].textContent = state.openTotalScans;
+
+      const locationSection = document.getElementById('openLocationSection');
+      if (locationSection) locationSection.style.display = state.openScannedLocation ? 'none' : 'block';
+
+      const upcSection = document.getElementById('openUpcSection');
+      if (upcSection) upcSection.style.display = state.openScannedLocation ? 'block' : 'none';
+
+      const actionButtons = document.getElementById('openActionButtons');
+      if (actionButtons) actionButtons.style.display = state.openScannedLocation ? 'block' : 'none';
     }
 
     function handleLocationInput(event) {
@@ -1009,7 +1176,7 @@
 
                 <div id="alertBox"></div>
 
-                <div class="grid-2">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
                   <div class="choice-card" onclick="selectMode('verification')">
                     <div class="choice-icon">🔍</div>
                     <div class="choice-title">Location Verification</div>
@@ -1020,6 +1187,12 @@
                     <div class="choice-icon">📊</div>
                     <div class="choice-title">Location Count</div>
                     <div class="choice-desc">Verify location, UPC, and unit count</div>
+                  </div>
+
+                  <div class="choice-card" onclick="selectMode('open')">
+                    <div class="choice-icon">🌐</div>
+                    <div class="choice-title">Open Verification</div>
+                    <div class="choice-desc">Scan any location freely</div>
                   </div>
                 </div>
               </div>
@@ -1258,6 +1431,85 @@
             </div>
           </div>
         `;
+      } else if (state.stage === 'open-verify') {
+        content = `
+          <button onclick="goHome()" class="home-btn pulse">
+            🏠 Home
+          </button>
+
+          <div class="gradient-bg grid-bg" style="min-height: 100vh; position: relative;">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+
+            <div class="container">
+              <div class="card scale-in" style="max-width: 64rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                  <div style="color: #A3F3C5; font-weight: 600; font-size: 1.125rem;">
+                    ${state.employeeName}
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="background: rgba(255, 255, 255, 0.1); color: #A3F3C5; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 700; font-size: 0.875rem;">🌐 OPEN MODE</span>
+                  </div>
+                </div>
+
+                <div class="location-card glow">
+                  <div class="location-label">🌐 Open Verification</div>
+                  <div style="font-size: 2rem; color: white; font-weight: 600; margin-bottom: 1rem;">
+                    Scan any location
+                  </div>
+                </div>
+
+                <div id="alertBox"></div>
+
+                <div id="openLocationSection" style="display: ${state.openScannedLocation ? 'none' : 'block'}; margin-bottom: 1.5rem;">
+                  <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+                    🔍 Scan Location
+                  </label>
+                  <input type="text" id="openLocationScan" class="input input-scan" placeholder="SCAN LOCATION" autofocus>
+                </div>
+
+                <div id="openUpcSection" style="display: ${state.openScannedLocation ? 'block' : 'none'}; margin-bottom: 1.5rem;">
+                  <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #9D9F9E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+                    📦 Scan UPC
+                  </label>
+                  <div class="scan-input-section">
+                    <div class="scan-input-wrapper">
+                      <input type="text" id="openUpcScan" class="input input-scan" placeholder="SCAN UPC">
+                    </div>
+                  </div>
+                </div>
+
+                <div id="openActionButtons" style="display: ${state.openScannedLocation ? 'block' : 'none'};">
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="handleOpenNoUPC()">
+                      <span class="action-btn-icon">🚫</span>
+                      No UPC
+                    </button>
+                    <button class="action-btn" onclick="handleOpenNoItem()">
+                      <span class="action-btn-icon">📭</span>
+                      Nothing Here
+                    </button>
+                    <button class="action-btn" onclick="handleOpenMixedLocation()">
+                      <span class="action-btn-icon">🔀</span>
+                      Mixed Location
+                    </button>
+                  </div>
+                </div>
+
+                <div class="stats-grid">
+                  <div class="stat-card">
+                    <div class="stat-value">${state.openTotalScans}</div>
+                    <div class="stat-label">Total Scanned</div>
+                  </div>
+                  <div class="stat-card" style="background: rgba(163, 243, 197, 0.1);">
+                    <div class="stat-value" style="color: #A3F3C5;">∞</div>
+                    <div class="stat-label">Free Mode</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
       } else if (state.stage === 'complete') {
         const totalScanned = state.locationData.length;
 
@@ -1329,6 +1581,20 @@
                 submitUPC(false);
               }
             });
+          }
+        }
+
+        if (state.stage === 'open-verify') {
+          const openLocationInput = document.getElementById('openLocationScan');
+          const openUpcInput = document.getElementById('openUpcScan');
+
+          if (openLocationInput) {
+            openLocationInput.focus();
+            openLocationInput.addEventListener('keypress', handleOpenLocationInput);
+          }
+
+          if (openUpcInput) {
+            openUpcInput.addEventListener('input', handleOpenUPCInput);
           }
         }
       }, 100);
