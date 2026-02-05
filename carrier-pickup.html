@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carrier Pickup - Atomix OPS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .gradient-bg {
+      background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(163, 243, 197, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(163, 243, 197, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.3); }
+
+    .photo-preview {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body class="bg-[#101314] text-[#EDEFED]">
+  <div class="min-h-screen gradient-bg grid-bg relative">
+    <div class="relative z-10 px-6 py-12">
+      <!-- Header -->
+      <div class="max-w-4xl mx-auto mb-8 fade-in-up">
+        <button onclick="window.history.back()" class="text-[#A3F3C5] hover:text-white transition-colors mb-6 flex items-center gap-2">
+          <span>←</span> Back to Home
+        </button>
+        
+        <div class="inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-sm font-medium tracking-widest uppercase mb-4 glow">
+          Module
+        </div>
+        <h1 class="text-6xl font-extralight tracking-tight mb-3 bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent">
+          Carrier Pickup
+        </h1>
+        <p class="text-xl text-[#9D9F9E] font-light">
+          Verify carrier pickups and area checks.
+        </p>
+      </div>
+
+      <!-- Form -->
+      <div class="max-w-4xl mx-auto">
+        <form id="carrierPickupForm" class="glass rounded-3xl p-8 space-y-8">
+          
+          <!-- Basic Information -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-light text-[#A3F3C5] border-b border-[#A3F3C5]/20 pb-3">Basic Information</h2>
+            
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">What's the Carrier?</label>
+              <input type="text" id="carrier" required
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors" 
+                placeholder="e.g., FedEx, UPS, XPO, etc." />
+            </div>
+          </div>
+
+          <!-- Verification Questions -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-light text-[#A3F3C5] border-b border-[#A3F3C5]/20 pb-3">Verification Checklist</h2>
+            
+            <div class="space-y-4">
+              <div class="bg-[#1e2223] rounded-lg p-4">
+                <label class="block text-sm font-medium mb-3">Did they take everything?</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="tookEverything" value="Yes" required class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>Yes</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="tookEverything" value="No" class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>No</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="bg-[#1e2223] rounded-lg p-4">
+                <label class="block text-sm font-medium mb-3">Did you check Lights area?</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="checkedLights" value="Yes" required class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>Yes</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="checkedLights" value="No" class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>No</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="bg-[#1e2223] rounded-lg p-4">
+                <label class="block text-sm font-medium mb-3">Did you check B2B area?</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="checkedB2B" value="Yes" required class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>Yes</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="checkedB2B" value="No" class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>No</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quantity Information -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-light text-[#A3F3C5] border-b border-[#A3F3C5]/20 pb-3">Pickup Details</h2>
+            
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">How many pallets did they take?</label>
+              <input type="number" id="palletCount" required min="0"
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">How many gaylords did they take?</label>
+              <input type="number" id="gaylordCount" required min="0"
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors" />
+            </div>
+          </div>
+
+          <!-- Notes Section -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-light text-[#A3F3C5] border-b border-[#A3F3C5]/20 pb-3">Additional Notes</h2>
+            
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Notes</label>
+              <textarea id="notes" rows="4"
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors resize-none"
+                placeholder="Enter any additional observations or concerns..."></textarea>
+            </div>
+          </div>
+
+          <!-- Manager Sign-Off -->
+          <div class="pt-4 border-t border-[#A3F3C5]/20">
+            <button type="submit" id="signOffButton"
+              class="w-full bg-[#A3F3C5] hover:bg-[#8cd9ad] text-[#0D2D53] font-semibold py-4 rounded-lg transition-all transform hover:scale-[1.02] glow">
+              Manager Sign-Off - Submit to Google Sheets
+            </button>
+          </div>
+
+          <!-- Success Message -->
+          <div id="successMessage" class="hidden bg-[#A3F3C5]/20 border border-[#A3F3C5] rounded-lg p-4 text-center">
+            <p class="text-[#A3F3C5] font-medium">✓ Carrier pickup successfully submitted!</p>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="text-center mt-10 text-[#9D9F9E] text-sm">
+        enjoy the journey
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Form submission
+    document.getElementById('carrierPickupForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Disable submit button to prevent double submission
+      const submitButton = document.getElementById('signOffButton');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Submitting...';
+
+      const formData = {
+        timestamp: new Date().toISOString(),
+        carrier: document.getElementById('carrier').value,
+        tookEverything: document.querySelector('input[name="tookEverything"]:checked').value,
+        checkedLights: document.querySelector('input[name="checkedLights"]:checked').value,
+        checkedB2B: document.querySelector('input[name="checkedB2B"]:checked').value,
+        palletCount: document.getElementById('palletCount').value,
+        gaylordCount: document.getElementById('gaylordCount').value,
+        notes: document.getElementById('notes').value
+      };
+
+      // Send to Google Sheets
+      // Replace 'YOUR_GOOGLE_APPS_SCRIPT_URL' with your actual deployed script URL
+      const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+
+      // Check if script URL is configured
+      if (scriptURL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') {
+        console.log('Form Data (Test Mode):', formData);
+        alert('✓ Test Mode: Form validated successfully!\n\nTo enable Google Sheets integration:\n1. Follow the setup instructions\n2. Deploy the Google Apps Script\n3. Replace YOUR_GOOGLE_APPS_SCRIPT_URL in the code\n\nForm data has been logged to the console.');
+        
+        // Re-enable button
+        submitButton.disabled = false;
+        submitButton.textContent = 'Manager Sign-Off - Submit to Google Sheets';
+        return;
+      }
+
+      try {
+        const response = await fetch(scriptURL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+
+        // Show success message
+        document.getElementById('successMessage').classList.remove('hidden');
+        
+        // Clear form after 2 seconds
+        setTimeout(() => {
+          document.getElementById('carrierPickupForm').reset();
+          document.getElementById('successMessage').classList.add('hidden');
+          submitButton.disabled = false;
+          submitButton.textContent = 'Manager Sign-Off - Submit to Google Sheets';
+        }, 2000);
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error submitting form. Please check:\n\n1. Google Apps Script URL is correct\n2. Script is deployed as Web App\n3. Script permissions are set to "Anyone"\n\nError details in console.');
+        
+        // Re-enable button
+        submitButton.disabled = false;
+        submitButton.textContent = 'Manager Sign-Off - Submit to Google Sheets';
+      }
+    });
+  </script>
+</body>
+</html>
