@@ -211,19 +211,8 @@
       };
 
       // Send to Google Sheets
-      // Replace 'YOUR_GOOGLE_APPS_SCRIPT_URL' with your actual deployed script URL
-      const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
-
-      // Check if script URL is configured
-      if (scriptURL === 'https://script.google.com/a/macros/atomixlogistics.com/s/AKfycbz7LHLdiS7Sc2ZMskWPD2ZgXpJZqBRBk8RD4I8DcRdErFBjPCk_Rby0PupZSZ9xc9A2IA/exec') {
-        console.log('Form Data (Test Mode):', formData);
-        alert('✓ Test Mode: Form validated successfully!\n\nTo enable Google Sheets integration:\n1. Follow the setup instructions\n2. Deploy the Google Apps Script\n3. Replace YOUR_GOOGLE_APPS_SCRIPT_URL in the code\n\nForm data has been logged to the console.');
-        
-        // Re-enable button
-        submitButton.disabled = false;
-        submitButton.textContent = 'Manager Sign-Off - Submit to Google Sheets';
-        return;
-      }
+      // USE THE SAME URL AS YOUR FREIGHT AUDIT FORM
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbzNwvNLEpxit-mKcQMxeKk41gRsJHs2MQuA_sVaiUehdHqNeKcryq8dKr12oXmB2Q/exec';
 
       try {
         const response = await fetch(scriptURL, {
