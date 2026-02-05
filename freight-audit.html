@@ -80,6 +80,13 @@
             </div>
 
             <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Carrier</label>
+              <input type="text" id="carrier" required
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors" 
+                placeholder="e.g., FedEx, UPS, XPO, etc." />
+            </div>
+
+            <div>
               <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Order Number</label>
               <input type="text" id="orderNumber" required
                 class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors" />
@@ -97,17 +104,17 @@
             <h2 class="text-2xl font-light text-[#A3F3C5] border-b border-[#A3F3C5]/20 pb-3">Photo Documentation</h2>
             
             <div>
-              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Photo of Pallets</label>
-              <input type="file" id="photoPallets" accept="image/*" capture="environment"
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Photos of Pallets (Multiple)</label>
+              <input type="file" id="photoPallets" accept="image/*" capture="environment" multiple
                 class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#A3F3C5] file:text-[#0D2D53] file:font-medium hover:file:bg-[#8cd9ad] transition-colors" />
-              <div id="previewPallets" class="mt-3"></div>
+              <div id="previewPallets" class="mt-3 flex flex-wrap gap-2"></div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Photo of BOL (Bill of Lading)</label>
-              <input type="file" id="photoBOL" accept="image/*" capture="environment"
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Photos of BOL (Multiple)</label>
+              <input type="file" id="photoBOL" accept="image/*" capture="environment" multiple
                 class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#A3F3C5] file:text-[#0D2D53] file:font-medium hover:file:bg-[#8cd9ad] transition-colors" />
-              <div id="previewBOL" class="mt-3"></div>
+              <div id="previewBOL" class="mt-3 flex flex-wrap gap-2"></div>
             </div>
           </div>
 
@@ -209,19 +216,27 @@
   </div>
 
   <script>
-    // Photo preview functionality
+    // Photo preview functionality for MULTIPLE photos
     function setupPhotoPreview(inputId, previewId) {
       const input = document.getElementById(inputId);
       const preview = document.getElementById(previewId);
       
       input.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            preview.innerHTML = `<img src="${e.target.result}" class="photo-preview border border-[#A3F3C5]/30" alt="Preview">`;
-          };
-          reader.readAsDataURL(file);
+        const files = e.target.files;
+        preview.innerHTML = '';
+        
+        if (files && files.length > 0) {
+          Array.from(files).forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              const img = document.createElement('img');
+              img.src = e.target.result;
+              img.className = 'photo-preview border border-[#A3F3C5]/30';
+              img.alt = `Preview ${index + 1}`;
+              preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+          });
         }
       });
     }
@@ -233,9 +248,15 @@
     document.getElementById('freightAuditForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
+      // Disable submit button to prevent double submission
+      const submitButton = document.getElementById('approveButton');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Submitting...';
+
       const formData = {
         timestamp: new Date().toISOString(),
         name: document.getElementById('name').value,
+        carrier: document.getElementById('carrier').value,
         orderNumber: document.getElementById('orderNumber').value,
         palletCount: document.getElementById('palletCount').value,
         bolMatch: document.querySelector('input[name="bolMatch"]:checked').value,
@@ -243,13 +264,24 @@
         labeledProperly: document.querySelector('input[name="labeledProperly"]:checked').value,
         markedShipped: document.querySelector('input[name="markedShipped"]:checked').value,
         notes: document.getElementById('notes').value,
-        photoPallets: await fileToBase64('photoPallets'),
-        photoBOL: await fileToBase64('photoBOL')
+        photoPallets: await filesToBase64Array('photoPallets'),
+        photoBOL: await filesToBase64Array('photoBOL')
       };
 
       // Send to Google Sheets
       // Replace 'YOUR_GOOGLE_APPS_SCRIPT_URL' with your actual deployed script URL
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbzMuvNUEWp1t-mKcQKx4xKIigP6jUhA2MQWA_SVaIUd6hWjeN6KexyqB4KFJZqXm02Q/exec';
+      const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+
+      // Check if script URL is configured
+      if (scriptURL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') {
+        console.log('Form Data (Test Mode):', formData);
+        alert('✓ Test Mode: Form validated successfully!\n\nTo enable Google Sheets integration:\n1. Follow the setup instructions\n2. Deploy the Google Apps Script\n3. Replace YOUR_GOOGLE_APPS_SCRIPT_URL in the code\n\nForm data has been logged to the console.');
+        
+        // Re-enable button
+        submitButton.disabled = false;
+        submitButton.textContent = 'Manager Approved - Submit to Google Sheets';
+        return;
+      }
 
       try {
         const response = await fetch(scriptURL, {
@@ -270,27 +302,40 @@
           document.getElementById('previewPallets').innerHTML = '';
           document.getElementById('previewBOL').innerHTML = '';
           document.getElementById('successMessage').classList.add('hidden');
+          submitButton.disabled = false;
+          submitButton.textContent = 'Manager Approved - Submit to Google Sheets';
         }, 2000);
 
       } catch (error) {
         console.error('Error:', error);
-        alert('Error submitting form. Please try again.');
+        alert('Error submitting form. Please check:\n\n1. Google Apps Script URL is correct\n2. Script is deployed as Web App\n3. Script permissions are set to "Anyone"\n\nError details in console.');
+        
+        // Re-enable button
+        submitButton.disabled = false;
+        submitButton.textContent = 'Manager Approved - Submit to Google Sheets';
       }
     });
 
-    // Helper function to convert file to base64
-    async function fileToBase64(inputId) {
+    // Helper function to convert MULTIPLE files to base64 array
+    async function filesToBase64Array(inputId) {
       const input = document.getElementById(inputId);
-      const file = input.files[0];
+      const files = input.files;
       
-      if (!file) return '';
+      if (!files || files.length === 0) return [];
       
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      const base64Array = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(files[i]);
+        });
+        base64Array.push(base64);
+      }
+      
+      return base64Array;
     }
   </script>
 </body>
