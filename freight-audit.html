@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Freight Audit - Atomix OPS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .gradient-bg {
+      background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(163, 243, 197, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(163, 243, 197, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.3); }
+
+    .photo-preview {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body class="bg-[#101314] text-[#EDEFED]">
+  <div class="min-h-screen gradient-bg grid-bg relative">
+    <div class="relative z-10 px-6 py-12">
+      <!-- Header -->
+      <div class="max-w-4xl mx-auto mb-8 fade-in-up">
+        <button onclick="window.history.back()" class="text-[#A3F3C5] hover:text-white transition-colors mb-6 flex items-center gap-2">
+          <span>←</span> Back to Home
+        </button>
+        
+        <div class="inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-sm font-medium tracking-widest uppercase mb-4 glow">
+          Module
+        </div>
+        <h1 class="text-6xl font-extralight tracking-tight mb-3 bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent">
+          Freight Audit
+        </h1>
+        <p class="text-xl text-[#9D9F9E] font-light">
+          Verify shipments, pallets, and documentation.
+        </p>
+      </div>
+
+      <!-- Form -->
+      <div class="max-w-4xl mx-auto">
+        <form id="freightAuditForm" class="glass rounded-3xl p-8 space-y-8">
+          
+          <!-- Basic Information -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-light text-[#A3F3C5] border-b border-[#A3F3C5]/20 pb-3">Basic Information</h2>
+            
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Name</label>
+              <input type="text" id="name" required
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Order Number</label>
+              <input type="text" id="orderNumber" required
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Pallet Count</label>
+              <input type="number" id="palletCount" required min="0"
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors" />
+            </div>
+          </div>
+
+          <!-- Photo Uploads -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-light text-[#A3F3C5] border-b border-[#A3F3C5]/20 pb-3">Photo Documentation</h2>
+            
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Photo of Pallets</label>
+              <input type="file" id="photoPallets" accept="image/*" capture="environment"
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#A3F3C5] file:text-[#0D2D53] file:font-medium hover:file:bg-[#8cd9ad] transition-colors" />
+              <div id="previewPallets" class="mt-3"></div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Photo of BOL (Bill of Lading)</label>
+              <input type="file" id="photoBOL" accept="image/*" capture="environment"
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#A3F3C5] file:text-[#0D2D53] file:font-medium hover:file:bg-[#8cd9ad] transition-colors" />
+              <div id="previewBOL" class="mt-3"></div>
+            </div>
+          </div>
+
+          <!-- Verification Questions -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-light text-[#A3F3C5] border-b border-[#A3F3C5]/20 pb-3">Verification Checklist</h2>
+            
+            <div class="space-y-4">
+              <div class="bg-[#1e2223] rounded-lg p-4">
+                <label class="block text-sm font-medium mb-3">Does BOL match the number of pallets?</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="bolMatch" value="Yes" required class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>Yes</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="bolMatch" value="No" class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>No</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="bg-[#1e2223] rounded-lg p-4">
+                <label class="block text-sm font-medium mb-3">Are pallets wrapped properly?</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="wrappedProperly" value="Yes" required class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>Yes</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="wrappedProperly" value="No" class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>No</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="bg-[#1e2223] rounded-lg p-4">
+                <label class="block text-sm font-medium mb-3">Are pallets labeled properly?</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="labeledProperly" value="Yes" required class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>Yes</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="labeledProperly" value="No" class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>No</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="bg-[#1e2223] rounded-lg p-4">
+                <label class="block text-sm font-medium mb-3">Has order been marked as shipped?</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="markedShipped" value="Yes" required class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>Yes</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="markedShipped" value="No" class="w-4 h-4 text-[#A3F3C5] focus:ring-[#A3F3C5]" />
+                    <span>No</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes Section -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-light text-[#A3F3C5] border-b border-[#A3F3C5]/20 pb-3">Additional Notes</h2>
+            
+            <div>
+              <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Notes</label>
+              <textarea id="notes" rows="4"
+                class="w-full bg-[#1e2223] border border-[#A3F3C5]/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#A3F3C5] transition-colors resize-none"
+                placeholder="Enter any additional observations or concerns..."></textarea>
+            </div>
+          </div>
+
+          <!-- Manager Approval -->
+          <div class="pt-4 border-t border-[#A3F3C5]/20">
+            <button type="submit" id="approveButton"
+              class="w-full bg-[#A3F3C5] hover:bg-[#8cd9ad] text-[#0D2D53] font-semibold py-4 rounded-lg transition-all transform hover:scale-[1.02] glow">
+              Manager Approved - Submit to Google Sheets
+            </button>
+          </div>
+
+          <!-- Success Message -->
+          <div id="successMessage" class="hidden bg-[#A3F3C5]/20 border border-[#A3F3C5] rounded-lg p-4 text-center">
+            <p class="text-[#A3F3C5] font-medium">✓ Freight audit successfully submitted!</p>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="text-center mt-10 text-[#9D9F9E] text-sm">
+        enjoy the journey
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Photo preview functionality
+    function setupPhotoPreview(inputId, previewId) {
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      
+      input.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" class="photo-preview border border-[#A3F3C5]/30" alt="Preview">`;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    setupPhotoPreview('photoPallets', 'previewPallets');
+    setupPhotoPreview('photoBOL', 'previewBOL');
+
+    // Form submission
+    document.getElementById('freightAuditForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const formData = {
+        timestamp: new Date().toISOString(),
+        name: document.getElementById('name').value,
+        orderNumber: document.getElementById('orderNumber').value,
+        palletCount: document.getElementById('palletCount').value,
+        bolMatch: document.querySelector('input[name="bolMatch"]:checked').value,
+        wrappedProperly: document.querySelector('input[name="wrappedProperly"]:checked').value,
+        labeledProperly: document.querySelector('input[name="labeledProperly"]:checked').value,
+        markedShipped: document.querySelector('input[name="markedShipped"]:checked').value,
+        notes: document.getElementById('notes').value,
+        photoPallets: await fileToBase64('photoPallets'),
+        photoBOL: await fileToBase64('photoBOL')
+      };
+
+      // Send to Google Sheets
+      // Replace 'YOUR_GOOGLE_APPS_SCRIPT_URL' with your actual deployed script URL
+      const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+
+      try {
+        const response = await fetch(scriptURL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+
+        // Show success message
+        document.getElementById('successMessage').classList.remove('hidden');
+        
+        // Clear form after 2 seconds
+        setTimeout(() => {
+          document.getElementById('freightAuditForm').reset();
+          document.getElementById('previewPallets').innerHTML = '';
+          document.getElementById('previewBOL').innerHTML = '';
+          document.getElementById('successMessage').classList.add('hidden');
+        }, 2000);
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error submitting form. Please try again.');
+      }
+    });
+
+    // Helper function to convert file to base64
+    async function fileToBase64(inputId) {
+      const input = document.getElementById(inputId);
+      const file = input.files[0];
+      
+      if (!file) return '';
+      
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+</body>
+</html>
