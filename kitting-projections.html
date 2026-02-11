@@ -791,18 +791,6 @@
       });
     }
 
-    // Auto-calculate on input change for projections (optional)
-    const projInputs = ['totalKits', 'kitsPerHour', 'numDays', 'hoursPerDay'];
-    projInputs.forEach(id => {
-      document.getElementById(id).addEventListener('input', () => {
-        const projectName = document.getElementById('projectName').value;
-        const kitName = document.getElementById('kitName').value;
-        if (projectName && kitName) {
-          calculateProjections();
-        }
-      });
-    });
-
     // ===== DATA PERSISTENCE FUNCTIONS =====
 
     async function saveProjectionData(data) {
