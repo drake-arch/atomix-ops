@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kitting Projections - Atomix OPS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .gradient-bg {
+      background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(163, 243, 197, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(163, 243, 197, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.3); }
+  </style>
+</head>
+
+<body class="bg-[#101314] text-[#EDEFED]">
+  <div class="min-h-screen gradient-bg grid-bg">
+    <div class="relative z-10 px-6 py-12">
+      <!-- Header -->
+      <div class="max-w-7xl mx-auto mb-12">
+        <button onclick="window.location.href='./index.html'" class="text-[#A3F3C5] hover:text-white transition-colors mb-6 flex items-center gap-2">
+          <span>←</span> Back to Home
+        </button>
+        
+        <div class="fade-in-up">
+          <div class="inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-sm font-medium tracking-widest uppercase mb-4 glow">
+            Labor Planning
+          </div>
+          <h1 class="text-6xl font-extralight mb-4 bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent">
+            Kitting Projections
+          </h1>
+          <p class="text-xl text-[#9D9F9E] font-light">Calculate staffing needs and profitability for kit production</p>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          <!-- Input Form -->
+          <div class="glass rounded-3xl p-8 fade-in-up">
+            <h2 class="text-3xl font-light mb-8 text-[#A3F3C5]">Project Details</h2>
+            
+            <div class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Project Name</label>
+                <input type="text" id="projectName" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="Enter project name">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Kit Name/Type</label>
+                <input type="text" id="kitName" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="Enter kit type">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Total Kits to Create</label>
+                <input type="number" id="totalKits" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="0" min="1">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Expected Kits Per Hour (per person)</label>
+                <input type="number" id="kitsPerHour" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="0" min="1" step="0.1">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Number of Days Available</label>
+                <input type="number" id="numDays" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="0" min="1">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Hours Per Day</label>
+                <input type="number" id="hoursPerDay" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="8" min="1" max="24" value="8">
+              </div>
+
+              <button onclick="calculate()" 
+                class="w-full bg-[#A3F3C5] hover:bg-[#8cd9ad] text-[#0D2D53] font-medium py-4 rounded-xl transition-all transform hover:scale-[1.02] glow">
+                Calculate Projections
+              </button>
+            </div>
+          </div>
+
+          <!-- Results Panel -->
+          <div class="space-y-6">
+            <!-- Summary Cards -->
+            <div id="resultsPanel" class="hidden space-y-6 fade-in-up">
+              
+              <!-- Key Metrics -->
+              <div class="glass rounded-3xl p-8">
+                <h2 class="text-3xl font-light mb-6 text-[#A3F3C5]">Labor Requirements</h2>
+                
+                <div class="grid grid-cols-2 gap-6">
+                  <div class="bg-[#1e2223] rounded-xl p-6">
+                    <div class="text-[#9D9F9E] text-sm mb-2">Bodies Needed</div>
+                    <div class="text-4xl font-light text-white" id="bodiesNeeded">0</div>
+                  </div>
+                  
+                  <div class="bg-[#1e2223] rounded-xl p-6">
+                    <div class="text-[#9D9F9E] text-sm mb-2">Total Hours</div>
+                    <div class="text-4xl font-light text-white" id="totalHours">0</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Financial Summary -->
+              <div class="glass rounded-3xl p-8">
+                <h2 class="text-3xl font-light mb-6 text-[#A3F3C5]">Financial Summary</h2>
+                
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center py-3 border-b border-[#2a2e2f]">
+                    <span class="text-[#9D9F9E]">Labor Cost</span>
+                    <span class="text-2xl font-light text-white" id="laborCost">$0.00</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center py-3 border-b border-[#2a2e2f]">
+                    <span class="text-[#9D9F9E]">Revenue (@ $0.50/kit)</span>
+                    <span class="text-2xl font-light text-white" id="revenue">$0.00</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center py-4 mt-4">
+                    <span class="text-xl font-medium">Net Profit/Loss</span>
+                    <span class="text-3xl font-light" id="netProfit">$0.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Profitability Chart -->
+              <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-light mb-6 text-[#A3F3C5]">Profitability Analysis</h2>
+                <canvas id="profitChart" class="w-full" height="200"></canvas>
+              </div>
+
+              <!-- Additional Metrics -->
+              <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-light mb-6 text-[#A3F3C5]">Project Details</h2>
+                
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Cost per Kit</span>
+                    <span class="text-lg text-white" id="costPerKit">$0.00</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Profit per Kit</span>
+                    <span class="text-lg text-white" id="profitPerKit">$0.00</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Profit Margin</span>
+                    <span class="text-lg text-white" id="profitMargin">0%</span>
+                  </div>
+
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Kits per Day (per person)</span>
+                    <span class="text-lg text-white" id="kitsPerDay">0</span>
+                  </div>
+
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Total Kits per Day (all staff)</span>
+                    <span class="text-lg text-white" id="totalKitsPerDay">0</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Initial State Message -->
+            <div id="initialMessage" class="glass rounded-3xl p-12 text-center">
+              <div class="text-6xl mb-6">📊</div>
+              <h3 class="text-2xl font-light text-[#A3F3C5] mb-4">Ready to Calculate</h3>
+              <p class="text-[#9D9F9E]">Enter your project details and click Calculate to see labor requirements and profitability projections.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const LABOR_COST_PER_HOUR = 18.20;
+    const PROFIT_PER_KIT = 0.50;
+    let profitChart = null;
+
+    function calculate() {
+      // Get input values
+      const projectName = document.getElementById('projectName').value;
+      const kitName = document.getElementById('kitName').value;
+      const totalKits = parseFloat(document.getElementById('totalKits').value);
+      const kitsPerHour = parseFloat(document.getElementById('kitsPerHour').value);
+      const numDays = parseFloat(document.getElementById('numDays').value);
+      const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value);
+
+      // Validate inputs
+      if (!projectName || !kitName || !totalKits || !kitsPerHour || !numDays || !hoursPerDay) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      if (totalKits <= 0 || kitsPerHour <= 0 || numDays <= 0 || hoursPerDay <= 0) {
+        alert('All numeric values must be greater than 0');
+        return;
+      }
+
+      // Calculate total available hours per person
+      const totalHoursAvailable = numDays * hoursPerDay;
+      
+      // Calculate kits one person can make in available time
+      const kitsPerPerson = kitsPerHour * totalHoursAvailable;
+      
+      // Calculate number of bodies needed (round up)
+      const bodiesNeeded = Math.ceil(totalKits / kitsPerPerson);
+      
+      // Calculate total hours needed
+      const totalHours = bodiesNeeded * totalHoursAvailable;
+      
+      // Calculate labor cost
+      const laborCost = totalHours * LABOR_COST_PER_HOUR;
+      
+      // Calculate revenue
+      const revenue = totalKits * PROFIT_PER_KIT;
+      
+      // Calculate net profit/loss
+      const netProfit = revenue - laborCost;
+      
+      // Calculate per-kit metrics
+      const costPerKit = laborCost / totalKits;
+      const profitPerKit = (revenue - laborCost) / totalKits;
+      const profitMargin = (profitPerKit / PROFIT_PER_KIT) * 100;
+      
+      // Calculate daily metrics
+      const kitsPerDayPerPerson = kitsPerHour * hoursPerDay;
+      const totalKitsPerDay = kitsPerDayPerPerson * bodiesNeeded;
+
+      // Update UI
+      document.getElementById('bodiesNeeded').textContent = bodiesNeeded;
+      document.getElementById('totalHours').textContent = totalHours.toFixed(1);
+      document.getElementById('laborCost').textContent = `$${laborCost.toFixed(2)}`;
+      document.getElementById('revenue').textContent = `$${revenue.toFixed(2)}`;
+      
+      // Update net profit with color
+      const netProfitElement = document.getElementById('netProfit');
+      netProfitElement.textContent = `$${netProfit.toFixed(2)}`;
+      if (netProfit >= 0) {
+        netProfitElement.className = 'text-3xl font-light text-[#A3F3C5]';
+      } else {
+        netProfitElement.className = 'text-3xl font-light text-red-400';
+      }
+      
+      document.getElementById('costPerKit').textContent = `$${costPerKit.toFixed(2)}`;
+      document.getElementById('profitPerKit').textContent = `$${profitPerKit.toFixed(2)}`;
+      document.getElementById('profitMargin').textContent = `${profitMargin.toFixed(1)}%`;
+      document.getElementById('kitsPerDay').textContent = kitsPerDayPerPerson.toFixed(0);
+      document.getElementById('totalKitsPerDay').textContent = totalKitsPerDay.toFixed(0);
+
+      // Show results panel
+      document.getElementById('initialMessage').classList.add('hidden');
+      document.getElementById('resultsPanel').classList.remove('hidden');
+
+      // Create/update chart
+      createProfitChart(laborCost, revenue, netProfit);
+    }
+
+    function createProfitChart(laborCost, revenue, netProfit) {
+      const ctx = document.getElementById('profitChart').getContext('2d');
+      
+      // Destroy existing chart if it exists
+      if (profitChart) {
+        profitChart.destroy();
+      }
+
+      const isProfitable = netProfit >= 0;
+      
+      profitChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Labor Cost', 'Revenue', 'Net Profit/Loss'],
+          datasets: [{
+            label: 'Amount ($)',
+            data: [laborCost, revenue, Math.abs(netProfit)],
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.7)',
+              'rgba(163, 243, 197, 0.7)',
+              isProfitable ? 'rgba(163, 243, 197, 0.9)' : 'rgba(255, 99, 132, 0.9)'
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(163, 243, 197, 1)',
+              isProfitable ? 'rgba(163, 243, 197, 1)' : 'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: isProfitable ? '✓ PROJECT IS PROFITABLE' : '✗ PROJECT WILL LOSE MONEY',
+              color: isProfitable ? '#A3F3C5' : '#ff6384',
+              font: {
+                size: 16,
+                weight: 'bold'
+              },
+              padding: {
+                bottom: 20
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return '$' + context.parsed.y.toFixed(2);
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#9D9F9E',
+                callback: function(value) {
+                  return '$' + value.toFixed(0);
+                }
+              },
+              grid: {
+                color: 'rgba(163, 243, 197, 0.1)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#9D9F9E'
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Auto-calculate on input change (optional)
+    const inputs = ['totalKits', 'kitsPerHour', 'numDays', 'hoursPerDay'];
+    inputs.forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        const projectName = document.getElementById('projectName').value;
+        const kitName = document.getElementById('kitName').value;
+        if (projectName && kitName) {
+          calculate();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
