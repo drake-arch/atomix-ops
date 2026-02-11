@@ -67,6 +67,9 @@
             <button id="completionBtn" onclick="switchMode('completion')" class="px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white">
               Completion
             </button>
+            <button id="historyBtn" onclick="switchMode('history')" class="px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white">
+              History
+            </button>
           </div>
         </div>
       </div>
@@ -173,6 +176,44 @@
                 class="w-full bg-[#A3F3C5] hover:bg-[#8cd9ad] text-[#0D2D53] font-medium py-4 rounded-xl transition-all transform hover:scale-[1.02] glow">
                 Calculate Performance
               </button>
+            </div>
+          </div>
+
+          <!-- History View -->
+          <div id="historyView" class="glass rounded-3xl p-8 fade-in-up hidden">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-3xl font-light text-[#A3F3C5]">History</h2>
+              <div class="flex gap-3">
+                <button onclick="filterHistory('all')" id="filterAll" class="px-4 py-2 rounded-lg bg-[#A3F3C5] text-[#0D2D53] text-sm font-medium">
+                  All
+                </button>
+                <button onclick="filterHistory('Projection')" id="filterProjection" class="px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]">
+                  Projections
+                </button>
+                <button onclick="filterHistory('Completion')" id="filterCompletion" class="px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]">
+                  Completions
+                </button>
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <input type="text" id="searchHistory" 
+                onkeyup="searchHistory()"
+                class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                placeholder="Search by job/project name...">
+            </div>
+
+            <div id="historyLoading" class="text-center py-12 text-[#9D9F9E]">
+              Loading history...
+            </div>
+
+            <div id="historyResults" class="space-y-4 hidden">
+              <!-- History items will be inserted here -->
+            </div>
+
+            <div id="historyEmpty" class="text-center py-12 text-[#9D9F9E] hidden">
+              <div class="text-5xl mb-4">📋</div>
+              <p>No history found. Start by creating projections or logging completions.</p>
             </div>
           </div>
 
@@ -354,11 +395,16 @@
   </div>
 
   <script>
+    // ===== CONFIGURATION =====
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzpFY7d3ODtxmK0734twn2STo_UBudb_Eg3qZzys_dnqJxzr1aZw7zU0sFSfUgUJErv/exec';
+    
     const LABOR_COST_PER_HOUR = 18.20;
     const PROFIT_PER_KIT = 0.50;
     let profitChart = null;
     let compProfitChart = null;
     let currentMode = 'projection';
+    let currentFilter = 'all';
+    let historyData = [];
 
     function switchMode(mode) {
       currentMode = mode;
@@ -366,31 +412,33 @@
       // Update button styles
       const projectionBtn = document.getElementById('projectionBtn');
       const completionBtn = document.getElementById('completionBtn');
+      const historyBtn = document.getElementById('historyBtn');
+      
+      // Reset all buttons
+      projectionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
+      completionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
+      historyBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
+      
+      // Hide all views
+      document.getElementById('projectionsForm').classList.add('hidden');
+      document.getElementById('completionForm').classList.add('hidden');
+      document.getElementById('historyView').classList.add('hidden');
+      document.getElementById('resultsPanel').classList.add('hidden');
+      document.getElementById('completionResults').classList.add('hidden');
+      document.getElementById('initialMessage').classList.add('hidden');
       
       if (mode === 'projection') {
         projectionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]';
-        completionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
-        
-        // Show/hide forms
         document.getElementById('projectionsForm').classList.remove('hidden');
-        document.getElementById('completionForm').classList.add('hidden');
-        
-        // Show/hide results
-        document.getElementById('resultsPanel').classList.add('hidden');
-        document.getElementById('completionResults').classList.add('hidden');
         document.getElementById('initialMessage').classList.remove('hidden');
-      } else {
+      } else if (mode === 'completion') {
         completionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]';
-        projectionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
-        
-        // Show/hide forms
-        document.getElementById('projectionsForm').classList.add('hidden');
         document.getElementById('completionForm').classList.remove('hidden');
-        
-        // Show/hide results
-        document.getElementById('resultsPanel').classList.add('hidden');
-        document.getElementById('completionResults').classList.add('hidden');
         document.getElementById('initialMessage').classList.remove('hidden');
+      } else if (mode === 'history') {
+        historyBtn.className = 'px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]';
+        document.getElementById('historyView').classList.remove('hidden');
+        loadHistory();
       }
     }
 
@@ -471,6 +519,24 @@
 
       // Create/update chart
       createProfitChart(laborCost, revenue, netProfit);
+
+      // Save projection data
+      saveProjectionData({
+        projectName,
+        kitName,
+        totalKits,
+        bodiesNeeded,
+        totalHours,
+        kitsPerHour,
+        laborCost,
+        revenue,
+        netProfit,
+        costPerKit,
+        profitPerKit,
+        profitMargin,
+        numDays,
+        hoursPerDay
+      });
     }
 
     function calculateCompletion() {
@@ -540,6 +606,23 @@
 
       // Create/update chart
       createCompletionChart(laborCost, revenue, netProfit);
+
+      // Save completion data
+      saveCompletionData({
+        jobName,
+        kitName: compKitName,
+        kitsCompleted,
+        bodiesUsed,
+        hoursSpent,
+        kitsPerBodyPerHour,
+        hoursPerKit,
+        laborCost,
+        revenue,
+        netProfit,
+        costPerKit,
+        profitPerKit,
+        profitMargin
+      });
     }
 
     function createProfitChart(laborCost, revenue, netProfit) {
@@ -719,6 +802,196 @@
         }
       });
     });
+
+    // ===== DATA PERSISTENCE FUNCTIONS =====
+
+    async function saveProjectionData(data) {
+      if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        console.warn('API URL not configured. Data not saved.');
+        return;
+      }
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'saveProjection',
+            ...data
+          })
+        });
+        
+        console.log('Projection saved successfully');
+      } catch (error) {
+        console.error('Error saving projection:', error);
+      }
+    }
+
+    async function saveCompletionData(data) {
+      if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        console.warn('API URL not configured. Data not saved.');
+        return;
+      }
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'saveCompletion',
+            ...data
+          })
+        });
+        
+        console.log('Completion saved successfully');
+      } catch (error) {
+        console.error('Error saving completion:', error);
+      }
+    }
+
+    async function loadHistory() {
+      if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        document.getElementById('historyLoading').classList.add('hidden');
+        document.getElementById('historyEmpty').classList.remove('hidden');
+        document.getElementById('historyEmpty').innerHTML = `
+          <div class="text-5xl mb-4">⚙️</div>
+          <p class="text-xl mb-2">API Not Configured</p>
+          <p class="text-sm">Please set your Google Apps Script URL in the code to enable history.</p>
+        `;
+        return;
+      }
+
+      document.getElementById('historyLoading').classList.remove('hidden');
+      document.getElementById('historyResults').classList.add('hidden');
+      document.getElementById('historyEmpty').classList.add('hidden');
+
+      try {
+        const response = await fetch(`${API_URL}?action=getHistory&type=${currentFilter}&limit=50`);
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data && result.data.length > 0) {
+          historyData = result.data;
+          renderHistory(historyData);
+        } else {
+          document.getElementById('historyLoading').classList.add('hidden');
+          document.getElementById('historyEmpty').classList.remove('hidden');
+        }
+      } catch (error) {
+        console.error('Error loading history:', error);
+        document.getElementById('historyLoading').classList.add('hidden');
+        document.getElementById('historyEmpty').classList.remove('hidden');
+        document.getElementById('historyEmpty').innerHTML = `
+          <div class="text-5xl mb-4">⚠️</div>
+          <p class="text-xl mb-2">Error Loading History</p>
+          <p class="text-sm">Please check your API configuration and try again.</p>
+        `;
+      }
+    }
+
+    function renderHistory(data) {
+      document.getElementById('historyLoading').classList.add('hidden');
+      document.getElementById('historyEmpty').classList.add('hidden');
+      document.getElementById('historyResults').classList.remove('hidden');
+
+      const container = document.getElementById('historyResults');
+      container.innerHTML = '';
+
+      if (data.length === 0) {
+        document.getElementById('historyResults').classList.add('hidden');
+        document.getElementById('historyEmpty').classList.remove('hidden');
+        return;
+      }
+
+      data.forEach(item => {
+        const date = new Date(item.Timestamp);
+        const isProfitable = parseFloat(item['Net Profit']) >= 0;
+        const profitClass = isProfitable ? 'text-[#A3F3C5]' : 'text-red-400';
+        const typeColor = item.Type === 'Projection' ? 'bg-blue-500' : 'bg-[#A3F3C5]';
+
+        const card = document.createElement('div');
+        card.className = 'bg-[#1e2223] rounded-xl p-6 hover:border hover:border-[#A3F3C5] transition-all cursor-pointer';
+        card.onclick = () => viewHistoryDetail(item);
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="${typeColor} text-[#0D2D53] text-xs font-bold px-3 py-1 rounded-full">${item.Type}</span>
+                <span class="text-[#9D9F9E] text-sm">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</span>
+              </div>
+              <h3 class="text-xl font-light text-white">${item['Project/Job Name']}</h3>
+              <p class="text-[#9D9F9E]">${item['Kit Name']}</p>
+            </div>
+            <div class="text-right">
+              <div class="text-2xl font-light ${profitClass}">${isProfitable ? '+' : ''}$${parseFloat(item['Net Profit']).toFixed(2)}</div>
+              <div class="text-sm text-[#9D9F9E]">${parseFloat(item['Profit Margin %']).toFixed(1)}% margin</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <span class="text-[#9D9F9E]">Kits:</span>
+              <span class="text-white font-medium ml-2">${parseFloat(item['Total Kits']).toFixed(0)}</span>
+            </div>
+            <div>
+              <span class="text-[#9D9F9E]">Bodies:</span>
+              <span class="text-white font-medium ml-2">${parseFloat(item['Bodies Used/Needed']).toFixed(0)}</span>
+            </div>
+            <div>
+              <span class="text-[#9D9F9E]">Hours:</span>
+              <span class="text-white font-medium ml-2">${parseFloat(item['Total Hours']).toFixed(1)}</span>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function viewHistoryDetail(item) {
+      // Create modal or detail view
+      alert(`Full details for: ${item['Project/Job Name']}\n\nType: ${item.Type}\nKits: ${item['Total Kits']}\nLabor Cost: $${parseFloat(item['Labor Cost']).toFixed(2)}\nRevenue: $${parseFloat(item['Revenue']).toFixed(2)}\nNet Profit: $${parseFloat(item['Net Profit']).toFixed(2)}`);
+    }
+
+    function filterHistory(type) {
+      currentFilter = type;
+
+      // Update button styles
+      document.getElementById('filterAll').className = type === 'all' 
+        ? 'px-4 py-2 rounded-lg bg-[#A3F3C5] text-[#0D2D53] text-sm font-medium'
+        : 'px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]';
+      document.getElementById('filterProjection').className = type === 'Projection'
+        ? 'px-4 py-2 rounded-lg bg-[#A3F3C5] text-[#0D2D53] text-sm font-medium'
+        : 'px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]';
+      document.getElementById('filterCompletion').className = type === 'Completion'
+        ? 'px-4 py-2 rounded-lg bg-[#A3F3C5] text-[#0D2D53] text-sm font-medium'
+        : 'px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]';
+
+      loadHistory();
+    }
+
+    function searchHistory() {
+      const searchTerm = document.getElementById('searchHistory').value.toLowerCase();
+      
+      if (searchTerm === '') {
+        renderHistory(historyData);
+        return;
+      }
+
+      const filtered = historyData.filter(item => {
+        const name = (item['Project/Job Name'] || '').toLowerCase();
+        const kit = (item['Kit Name'] || '').toLowerCase();
+        return name.includes(searchTerm) || kit.includes(searchTerm);
+      });
+
+      renderHistory(filtered);
+    }
   </script>
 </body>
 </html>
