@@ -53,9 +53,21 @@
             Labor Planning
           </div>
           <h1 class="text-6xl font-extralight mb-4 bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent">
-            Kitting Projections
+            Kitting Analysis
           </h1>
-          <p class="text-xl text-[#9D9F9E] font-light">Calculate staffing needs and profitability for kit production</p>
+          <p class="text-xl text-[#9D9F9E] font-light">Project staffing and track actual performance</p>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="mt-8 flex justify-center">
+          <div class="glass rounded-full p-2 inline-flex gap-2">
+            <button id="projectionBtn" onclick="switchMode('projection')" class="px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]">
+              Projections
+            </button>
+            <button id="completionBtn" onclick="switchMode('completion')" class="px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white">
+              Completion
+            </button>
+          </div>
         </div>
       </div>
 
@@ -63,8 +75,8 @@
       <div class="max-w-7xl mx-auto">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          <!-- Input Form -->
-          <div class="glass rounded-3xl p-8 fade-in-up">
+          <!-- Input Form - Projections Mode -->
+          <div id="projectionsForm" class="glass rounded-3xl p-8 fade-in-up">
             <h2 class="text-3xl font-light mb-8 text-[#A3F3C5]">Project Details</h2>
             
             <div class="space-y-6">
@@ -110,16 +122,63 @@
                   placeholder="8" min="1" max="24" value="8">
               </div>
 
-              <button onclick="calculate()" 
+              <button onclick="calculateProjections()" 
                 class="w-full bg-[#A3F3C5] hover:bg-[#8cd9ad] text-[#0D2D53] font-medium py-4 rounded-xl transition-all transform hover:scale-[1.02] glow">
                 Calculate Projections
               </button>
             </div>
           </div>
 
+          <!-- Input Form - Completion Mode -->
+          <div id="completionForm" class="glass rounded-3xl p-8 fade-in-up hidden">
+            <h2 class="text-3xl font-light mb-8 text-[#A3F3C5]">Job Completion</h2>
+            
+            <div class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Job Name</label>
+                <input type="text" id="jobName" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="Enter job name">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Kit Name/Type</label>
+                <input type="text" id="compKitName" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="Enter kit type">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Total Kits Completed</label>
+                <input type="number" id="kitsCompleted" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="0" min="1">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Number of Bodies Used</label>
+                <input type="number" id="bodiesUsed" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="0" min="1">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Total Hours Spent</label>
+                <input type="number" id="hoursSpent" 
+                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
+                  placeholder="0" min="0.1" step="0.1">
+              </div>
+
+              <button onclick="calculateCompletion()" 
+                class="w-full bg-[#A3F3C5] hover:bg-[#8cd9ad] text-[#0D2D53] font-medium py-4 rounded-xl transition-all transform hover:scale-[1.02] glow">
+                Calculate Performance
+              </button>
+            </div>
+          </div>
+
           <!-- Results Panel -->
           <div class="space-y-6">
-            <!-- Summary Cards -->
+            <!-- Summary Cards - Projections -->
             <div id="resultsPanel" class="hidden space-y-6 fade-in-up">
               
               <!-- Key Metrics -->
@@ -198,7 +257,87 @@
                   </div>
                 </div>
               </div>
+            </div>
 
+            <!-- Summary Cards - Completion -->
+            <div id="completionResults" class="hidden space-y-6 fade-in-up">
+              
+              <!-- Performance Metrics -->
+              <div class="glass rounded-3xl p-8">
+                <h2 class="text-3xl font-light mb-6 text-[#A3F3C5]">Performance Metrics</h2>
+                
+                <div class="grid grid-cols-2 gap-6">
+                  <div class="bg-[#1e2223] rounded-xl p-6">
+                    <div class="text-[#9D9F9E] text-sm mb-2">Kits per Body per Hour</div>
+                    <div class="text-4xl font-light text-white" id="kitsPerBodyPerHour">0</div>
+                  </div>
+                  
+                  <div class="bg-[#1e2223] rounded-xl p-6">
+                    <div class="text-[#9D9F9E] text-sm mb-2">Hours per Kit</div>
+                    <div class="text-4xl font-light text-white" id="hoursPerKit">0</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Financial Summary - Completion -->
+              <div class="glass rounded-3xl p-8">
+                <h2 class="text-3xl font-light mb-6 text-[#A3F3C5]">Financial Summary</h2>
+                
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center py-3 border-b border-[#2a2e2f]">
+                    <span class="text-[#9D9F9E]">Actual Labor Cost</span>
+                    <span class="text-2xl font-light text-white" id="compLaborCost">$0.00</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center py-3 border-b border-[#2a2e2f]">
+                    <span class="text-[#9D9F9E]">Revenue (@ $0.50/kit)</span>
+                    <span class="text-2xl font-light text-white" id="compRevenue">$0.00</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center py-4 mt-4">
+                    <span class="text-xl font-medium">Net Profit/Loss</span>
+                    <span class="text-3xl font-light" id="compNetProfit">$0.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Profitability Chart - Completion -->
+              <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-light mb-6 text-[#A3F3C5]">Actual Performance</h2>
+                <canvas id="compProfitChart" class="w-full" height="200"></canvas>
+              </div>
+
+              <!-- Job Details -->
+              <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-light mb-6 text-[#A3F3C5]">Job Details</h2>
+                
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Cost per Kit</span>
+                    <span class="text-lg text-white" id="compCostPerKit">$0.00</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Profit per Kit</span>
+                    <span class="text-lg text-white" id="compProfitPerKit">$0.00</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Profit Margin</span>
+                    <span class="text-lg text-white" id="compProfitMargin">0%</span>
+                  </div>
+
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Total Kits Completed</span>
+                    <span class="text-lg text-white" id="compTotalKits">0</span>
+                  </div>
+
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#9D9F9E]">Average Hours per Body</span>
+                    <span class="text-lg text-white" id="avgHoursPerBody">0</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Initial State Message -->
@@ -218,8 +357,44 @@
     const LABOR_COST_PER_HOUR = 18.20;
     const PROFIT_PER_KIT = 0.50;
     let profitChart = null;
+    let compProfitChart = null;
+    let currentMode = 'projection';
 
-    function calculate() {
+    function switchMode(mode) {
+      currentMode = mode;
+      
+      // Update button styles
+      const projectionBtn = document.getElementById('projectionBtn');
+      const completionBtn = document.getElementById('completionBtn');
+      
+      if (mode === 'projection') {
+        projectionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]';
+        completionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
+        
+        // Show/hide forms
+        document.getElementById('projectionsForm').classList.remove('hidden');
+        document.getElementById('completionForm').classList.add('hidden');
+        
+        // Show/hide results
+        document.getElementById('resultsPanel').classList.add('hidden');
+        document.getElementById('completionResults').classList.add('hidden');
+        document.getElementById('initialMessage').classList.remove('hidden');
+      } else {
+        completionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]';
+        projectionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
+        
+        // Show/hide forms
+        document.getElementById('projectionsForm').classList.add('hidden');
+        document.getElementById('completionForm').classList.remove('hidden');
+        
+        // Show/hide results
+        document.getElementById('resultsPanel').classList.add('hidden');
+        document.getElementById('completionResults').classList.add('hidden');
+        document.getElementById('initialMessage').classList.remove('hidden');
+      }
+    }
+
+    function calculateProjections() {
       // Get input values
       const projectName = document.getElementById('projectName').value;
       const kitName = document.getElementById('kitName').value;
@@ -296,6 +471,75 @@
 
       // Create/update chart
       createProfitChart(laborCost, revenue, netProfit);
+    }
+
+    function calculateCompletion() {
+      // Get input values
+      const jobName = document.getElementById('jobName').value;
+      const compKitName = document.getElementById('compKitName').value;
+      const kitsCompleted = parseFloat(document.getElementById('kitsCompleted').value);
+      const bodiesUsed = parseFloat(document.getElementById('bodiesUsed').value);
+      const hoursSpent = parseFloat(document.getElementById('hoursSpent').value);
+
+      // Validate inputs
+      if (!jobName || !compKitName || !kitsCompleted || !bodiesUsed || !hoursSpent) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      if (kitsCompleted <= 0 || bodiesUsed <= 0 || hoursSpent <= 0) {
+        alert('All numeric values must be greater than 0');
+        return;
+      }
+
+      // Calculate performance metrics
+      const kitsPerBodyPerHour = kitsCompleted / (bodiesUsed * hoursSpent);
+      const hoursPerKit = hoursSpent / kitsCompleted;
+      
+      // Calculate labor cost
+      const laborCost = hoursSpent * LABOR_COST_PER_HOUR;
+      
+      // Calculate revenue
+      const revenue = kitsCompleted * PROFIT_PER_KIT;
+      
+      // Calculate net profit/loss
+      const netProfit = revenue - laborCost;
+      
+      // Calculate per-kit metrics
+      const costPerKit = laborCost / kitsCompleted;
+      const profitPerKit = (revenue - laborCost) / kitsCompleted;
+      const profitMargin = (profitPerKit / PROFIT_PER_KIT) * 100;
+      
+      // Calculate average hours per body
+      const avgHoursPerBody = hoursSpent / bodiesUsed;
+
+      // Update UI
+      document.getElementById('kitsPerBodyPerHour').textContent = kitsPerBodyPerHour.toFixed(2);
+      document.getElementById('hoursPerKit').textContent = hoursPerKit.toFixed(2);
+      document.getElementById('compLaborCost').textContent = `$${laborCost.toFixed(2)}`;
+      document.getElementById('compRevenue').textContent = `$${revenue.toFixed(2)}`;
+      
+      // Update net profit with color
+      const netProfitElement = document.getElementById('compNetProfit');
+      netProfitElement.textContent = `$${netProfit.toFixed(2)}`;
+      if (netProfit >= 0) {
+        netProfitElement.className = 'text-3xl font-light text-[#A3F3C5]';
+      } else {
+        netProfitElement.className = 'text-3xl font-light text-red-400';
+      }
+      
+      document.getElementById('compCostPerKit').textContent = `$${costPerKit.toFixed(2)}`;
+      document.getElementById('compProfitPerKit').textContent = `$${profitPerKit.toFixed(2)}`;
+      document.getElementById('compProfitMargin').textContent = `${profitMargin.toFixed(1)}%`;
+      document.getElementById('compTotalKits').textContent = kitsCompleted.toFixed(0);
+      document.getElementById('avgHoursPerBody').textContent = avgHoursPerBody.toFixed(1);
+
+      // Show results panel
+      document.getElementById('initialMessage').classList.add('hidden');
+      document.getElementById('completionResults').classList.remove('hidden');
+
+      // Create/update chart
+      createCompletionChart(laborCost, revenue, netProfit);
     }
 
     function createProfitChart(laborCost, revenue, netProfit) {
@@ -381,14 +625,97 @@
       });
     }
 
-    // Auto-calculate on input change (optional)
-    const inputs = ['totalKits', 'kitsPerHour', 'numDays', 'hoursPerDay'];
-    inputs.forEach(id => {
+    function createCompletionChart(laborCost, revenue, netProfit) {
+      const ctx = document.getElementById('compProfitChart').getContext('2d');
+      
+      // Destroy existing chart if it exists
+      if (compProfitChart) {
+        compProfitChart.destroy();
+      }
+
+      const isProfitable = netProfit >= 0;
+      
+      compProfitChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Actual Labor Cost', 'Revenue', 'Net Profit/Loss'],
+          datasets: [{
+            label: 'Amount ($)',
+            data: [laborCost, revenue, Math.abs(netProfit)],
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.7)',
+              'rgba(163, 243, 197, 0.7)',
+              isProfitable ? 'rgba(163, 243, 197, 0.9)' : 'rgba(255, 99, 132, 0.9)'
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(163, 243, 197, 1)',
+              isProfitable ? 'rgba(163, 243, 197, 1)' : 'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: isProfitable ? '✓ JOB WAS PROFITABLE' : '✗ JOB LOST MONEY',
+              color: isProfitable ? '#A3F3C5' : '#ff6384',
+              font: {
+                size: 16,
+                weight: 'bold'
+              },
+              padding: {
+                bottom: 20
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return '$' + context.parsed.y.toFixed(2);
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#9D9F9E',
+                callback: function(value) {
+                  return '$' + value.toFixed(0);
+                }
+              },
+              grid: {
+                color: 'rgba(163, 243, 197, 0.1)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#9D9F9E'
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Auto-calculate on input change for projections (optional)
+    const projInputs = ['totalKits', 'kitsPerHour', 'numDays', 'hoursPerDay'];
+    projInputs.forEach(id => {
       document.getElementById(id).addEventListener('input', () => {
         const projectName = document.getElementById('projectName').value;
         const kitName = document.getElementById('kitName').value;
         if (projectName && kitName) {
-          calculate();
+          calculateProjections();
         }
       });
     });
