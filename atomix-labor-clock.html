@@ -1580,6 +1580,7 @@ function handleDropOnBubble(e, targetBubbleId) {
       emp.clockIn = Date.now();
       addLog(`${emp.name} → ${newBubble.name}`, 'in');
       logEvent('ASSIGN', { empId: emp.id, empName: emp.fullName||emp.name, toDept: newBubble.name, shiftStart: emp.shiftStart||'' });
+      lastSyncPause = Date.now();
     } else {
       addLog(`${emp.name} moved to ${newBubble.name}`, '');
       logEvent('MOVE', { empId: emp.id, empName: emp.fullName||emp.name, toDept: newBubble.name, shiftStart: emp.shiftStart||'' });
@@ -1608,10 +1609,13 @@ function unassignEmployee(empId) {
     emp._breakTimer = null;
   }
 
+  // Capture dept name before clearing
+  const fromBubble = emp.dept ? bubbles.find(x => x.id === emp.dept) : null;
+  const fromDeptName = fromBubble ? fromBubble.name : '';
+
   // Remove from bubble
   if (emp.dept) {
-    const b = bubbles.find(x => x.id === emp.dept);
-    if (b) b.employees = b.employees.filter(id => id !== emp.id);
+    if (fromBubble) fromBubble.employees = fromBubble.employees.filter(id => id !== emp.id);
     emp.dept = null;
   }
 
@@ -1621,10 +1625,13 @@ function unassignEmployee(empId) {
     emp.totalHrs += hrs;
     emp.clockIn = null;
     addLog(`${emp.name} clocked out (${hrs.toFixed(2)}h)`, 'out');
-    logEvent('CLOCK_OUT', { empId: emp.id, empName: emp.fullName||emp.name, fromDept: emp.dept||'', hoursLogged: hrs.toFixed(2) });
+    logEvent('CLOCK_OUT', { empId: emp.id, empName: emp.fullName||emp.name, fromDept: fromDeptName, hoursLogged: hrs.toFixed(2) });
   } else {
     addLog(`${emp.name} unassigned`, '');
+    logEvent('CLOCK_OUT', { empId: emp.id, empName: emp.fullName||emp.name, fromDept: fromDeptName, hoursLogged: '0' });
   }
+  // Pause sync for 10s so this change isn't overwritten immediately
+  lastSyncPause = Date.now();
 
   renderAll();
 }
@@ -2015,6 +2022,7 @@ window.addEventListener('load', () => {
 // ═══════════════════════════════════════════════
 let zoomLevel = 0.55; // start zoomed out a bit so all bubbles visible
 let panX = 0, panY = 0;
+let lastSyncPause = 0; // timestamp of last local action — suppress sync for 10s after
 const ZOOM_MIN = 0.2;
 const ZOOM_MAX = 3.0;
 const ZOOM_STEP = 0.1;
@@ -2491,6 +2499,7 @@ async function fetchLive() {
 }
 
 async function syncFromBackend() {
+  if (Date.now() - lastSyncPause < 10000) return; // suppress sync for 10s after local action
   const live = await fetchLive();
   if (!live || !live.ok) return;
 
