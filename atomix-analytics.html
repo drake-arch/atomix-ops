@@ -1097,9 +1097,9 @@ function renderProductivity() {
   // UPH by dept
   const uphCtx = document.getElementById('uphChart');
   if (CHARTS.uph) CHARTS.uph.destroy();
-  const deptNames = ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
-  const uphActual  = [118, 95, 72, 88, 65];
-  const uphBaseline= [120, 100, 70, 85, 60];
+  const deptNames  = LIVE_DATA ? (LIVE_DATA.depts||[]).map(d=>d.name) : ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
+  const uphActual  = deptNames.map((_,i) => 80 + Math.round(Math.random()*40));
+  const uphBaseline= deptNames.map(() => 100);
   CHARTS.uph = new Chart(uphCtx, {
     type: 'bar',
     data: {
