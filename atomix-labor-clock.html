@@ -1884,11 +1884,10 @@ document.getElementById('ctxRemoveAll').addEventListener('click', () => {
   if (!ctxTarget) return;
   const b = bubbles.find(x => x.id === ctxTarget);
   if (!b) return;
-  b.employees.forEach(eid => {
-    const emp = EMPLOYEES.find(e => e.id === eid);
-    if (emp) emp.dept = null;
+  b.employees.slice().forEach(eid => {
+    unassignEmployee(eid);
   });
-  b.employees = [];
+  lastSyncPause = Date.now() + 20000; // pause sync for 30s total after bulk clear
   renderAll();
 });
 document.getElementById('ctxDelete').addEventListener('click', () => {
