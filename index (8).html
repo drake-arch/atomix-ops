@@ -45,6 +45,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.3); }
+    .glow-amber { box-shadow: 0 0 30px rgba(246, 173, 85, 0.25); }
   </style>
 </head>
 
@@ -86,6 +87,8 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 scale-in">
+
+                  <!-- Reporting -->
                   <button onclick="window.location.href='./atomix-eod-main/atomix-eod-main/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -97,6 +100,7 @@
                     </div>
                   </button>
 
+                  <!-- Metrics -->
                   <button onclick="alert('Metrics module coming soon!')" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
                     <div class="flex items-start justify-between">
                       <div>
@@ -108,6 +112,7 @@
                     </div>
                   </button>
 
+                  <!-- Quality -->
                   <button onclick="window.location.href='./quality/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
                     <div class="flex items-start justify-between">
                       <div>
@@ -119,6 +124,7 @@
                     </div>
                   </button>
 
+                  <!-- Cycle Count -->
                   <button onclick="window.location.href='./Cycelcount-main/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -130,6 +136,7 @@
                     </div>
                   </button>
 
+                  <!-- Location Verification -->
                   <button onclick="window.location.href='./location-verification.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -141,6 +148,7 @@
                     </div>
                   </button>
 
+                  <!-- Scheduling -->
                   <button onclick="window.location.href='./workforce-scheduler-main/workforce-scheduler-main/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -152,6 +160,7 @@
                     </div>
                   </button>
 
+                  <!-- Audit -->
                   <button onclick="window.location.href='./audit-main/audit-main/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -163,6 +172,7 @@
                     </div>
                   </button>
 
+                  <!-- Error Tracking -->
                   <button onclick="window.location.href='./error-tracking.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -174,16 +184,30 @@
                     </div>
                   </button>
 
-                  <button onclick="alert('Labor module coming soon!')" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
+                  <!-- ── LABOR CLOCK (was "coming soon") ── -->
+                  <button onclick="window.location.href='./atomix-labor-clock.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
                         <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
-                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Labor</div>
-                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Hours, costs, productivity, and trends.</div>
+                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Labor Clock</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Live floor view — assign, track, break zones.</div>
                       </div>
                       <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
                     </div>
                   </button>
+
+                  <!-- ── LABOR ANALYTICS (new) ── -->
+                  <button onclick="window.location.href='./atomix-analytics.html'" class="rounded-3xl p-10 text-left transition-all group transform hover:scale-[1.02] glow-amber" style="background:rgba(246,173,85,0.07);backdrop-filter:blur(10px);border:1px solid rgba(246,173,85,0.25);">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
+                        <div class="text-4xl font-light group-hover:text-[#F6AD55] transition-colors">Labor Analytics</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Hours, costs, UPH, CPO, and productivity trends.</div>
+                      </div>
+                      <div class="text-[#F6AD55] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
+                    </div>
+                  </button>
+
                 </div>
 
                 <div class="text-center mt-10 text-[#9D9F9E] text-sm">
