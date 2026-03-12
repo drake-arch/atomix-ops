@@ -1574,8 +1574,10 @@ function handleDropOnBubble(e, targetBubbleId) {
     if (!emp.clockIn) {
       emp.clockIn = Date.now();
       addLog(`${emp.name} → ${newBubble.name}`, 'in');
+      logEvent('ASSIGN', { empId: emp.id, empName: emp.fullName||emp.name, toDept: newBubble.name, shiftStart: emp.shiftStart||'' });
     } else {
       addLog(`${emp.name} moved to ${newBubble.name}`, '');
+      logEvent('MOVE', { empId: emp.id, empName: emp.fullName||emp.name, toDept: newBubble.name, shiftStart: emp.shiftStart||'' });
     }
   }
 
