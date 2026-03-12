@@ -1086,20 +1086,15 @@ const SCRIPT_URL = localStorage.getItem('atomix_script_url') || '';
 const DEVICE_ID  = 'floor-tablet-' + (Math.random().toString(36).slice(2,6));
 
 async function logEvent(type, data = {}) {
-  if (!SCRIPT_URL) return; // no backend configured, silent skip
+  if (!SCRIPT_URL) return;
+  const payload = { type, timestamp: new Date().toISOString(), deviceId: DEVICE_ID, ...data };
   try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode:   'no-cors',
-      headers:{ 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type,
-        timestamp: new Date().toISOString(),
-        deviceId:  DEVICE_ID,
-        ...data,
-      }),
-    });
-  } catch(e) { /* offline — events drop silently, log is local only */ }
+    // Apps Script requires GET with params for cross-origin no-cors calls
+    const url = new URL(SCRIPT_URL);
+    url.searchParams.set('method', 'post');
+    url.searchParams.set('payload', JSON.stringify(payload));
+    fetch(url.toString(), { method: 'GET', mode: 'no-cors' });
+  } catch(e) { /* offline */ }
 }
 
 const EMPLOYEES = [
