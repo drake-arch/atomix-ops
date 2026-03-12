@@ -1087,12 +1087,19 @@ const DEVICE_ID  = 'floor-tablet-' + (Math.random().toString(36).slice(2,6));
 
 async function logEvent(type, data = {}) {
   if (!SCRIPT_URL) return;
-  const payload = { type, timestamp: new Date().toISOString(), deviceId: DEVICE_ID, ...data };
   try {
-    // Apps Script requires GET with params for cross-origin no-cors calls
     const url = new URL(SCRIPT_URL);
     url.searchParams.set('method', 'post');
-    url.searchParams.set('payload', JSON.stringify(payload));
+    url.searchParams.set('type',        type);
+    url.searchParams.set('timestamp',   new Date().toISOString());
+    url.searchParams.set('deviceId',    DEVICE_ID);
+    url.searchParams.set('empId',       data.empId       || '');
+    url.searchParams.set('empName',     data.empName     || '');
+    url.searchParams.set('fromDept',    data.fromDept    || '');
+    url.searchParams.set('toDept',      data.toDept      || '');
+    url.searchParams.set('hoursLogged', data.hoursLogged || '');
+    url.searchParams.set('projectName', data.projectName || '');
+    url.searchParams.set('shiftStart',  data.shiftStart  || '');
     fetch(url.toString(), { method: 'GET', mode: 'no-cors' });
   } catch(e) { /* offline */ }
 }
