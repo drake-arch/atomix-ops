@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atomix Analytics — MKE</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy:    #0D2D53;
+  --navy2:   #0a2240;
+  --green:   #A3F3C5;
+  --green2:  #6ee8a0;
+  --slate:   #9D9F9E;
+  --bg:      #060f1a;
+  --s1:      #0b1e30;
+  --s2:      #0f2540;
+  --s3:      #142d4a;
+  --border:  rgba(163,243,197,0.10);
+  --border2: rgba(163,243,197,0.18);
+  --text:    #dce8f0;
+  --muted:   #4a6a84;
+  --amber:   #F6AD55;
+  --red:     #FC8181;
+  --blue:    #63B3ED;
+  --purple:  #B794F4;
+  --glow:    rgba(163,243,197,0.06);
+  --font-mono: 'DM Mono', monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;flex-direction:column;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* ── HEADER ── */
+header{
+  height:56px;
+  background:var(--s1);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;flex-shrink:0;z-index:100;
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--font-mono);font-size:12px;font-weight:500;
+  color:var(--green);letter-spacing:0.1em;
+}
+.logo-mark{
+  width:30px;height:30px;border-radius:8px;
+  background:var(--navy);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--green);
+}
+.header-right{display:flex;align-items:center;gap:12px;}
+.live-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 6px var(--green);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.live-label{font-size:11px;color:var(--green);font-family:var(--font-mono);letter-spacing:0.06em;}
+.script-url-btn{
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:6px;padding:5px 12px;
+  font-size:11px;color:var(--muted);cursor:pointer;
+  font-family:var(--font-mono);transition:all 0.15s;
+}
+.script-url-btn:hover{border-color:var(--green);color:var(--green);}
+.refresh-btn{
+  background:var(--green);color:var(--navy);
+  border:none;border-radius:6px;padding:5px 14px;
+  font-size:11px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;letter-spacing:0.04em;
+  transition:opacity 0.15s;
+}
+.refresh-btn:hover{opacity:0.85;}
+.last-refresh{font-size:10px;color:var(--muted);font-family:var(--font-mono);}
+
+/* ── NAV TABS ── */
+nav{
+  height:42px;
+  background:var(--s1);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 24px;gap:4px;flex-shrink:0;
+}
+.tab{
+  padding:6px 14px;border-radius:6px;
+  font-size:12px;font-weight:500;
+  color:var(--muted);cursor:pointer;
+  border:none;background:none;
+  transition:all 0.15s;letter-spacing:0.03em;
+}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--s3);color:var(--green);border:1px solid var(--border2);}
+
+/* ── MAIN LAYOUT ── */
+main{flex:1;overflow:hidden;display:flex;position:relative;}
+.view{display:none;flex:1;overflow-y:auto;padding:20px 24px;flex-direction:column;gap:16px;}
+.view.active{display:flex;}
+
+/* ── STAT CARDS ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;flex-shrink:0;}
+.stat-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;
+  position:relative;overflow:hidden;
+  transition:border-color 0.2s;
+}
+.stat-card:hover{border-color:var(--border2);}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--accent,var(--green));opacity:0.7;
+}
+.stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}
+.stat-val{
+  font-family:var(--font-mono);font-size:26px;font-weight:500;
+  color:var(--accent,var(--green));line-height:1;
+}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+.stat-delta{
+  font-size:10px;font-family:var(--font-mono);margin-top:4px;
+  color:var(--green);
+}
+.stat-delta.down{color:var(--red);}
+
+/* ── SECTION HEADERS ── */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:0;
+}
+.section-title{
+  font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--muted);
+}
+.section-action{
+  font-size:10px;color:var(--green);cursor:pointer;
+  font-family:var(--font-mono);background:none;border:none;
+  padding:3px 8px;border-radius:4px;
+  border:1px solid transparent;transition:all 0.15s;
+}
+.section-action:hover{border-color:var(--border2);}
+
+/* ── GRID LAYOUTS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.grid-1-2{display:grid;grid-template-columns:1fr 2fr;gap:14px;}
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
+
+/* ── CHART CARDS ── */
+.chart-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:10px;padding:16px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.chart-card-title{
+  font-size:11px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.08em;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.chart-wrap{position:relative;flex:1;min-height:160px;}
+
+/* ── DEPT BREAKDOWN BARS ── */
+.dept-bar-list{display:flex;flex-direction:column;gap:10px;}
+.dept-bar-item{}
+.dept-bar-header{display:flex;justify-content:space-between;margin-bottom:4px;}
+.dept-bar-name{font-size:12px;font-weight:500;}
+.dept-bar-count{font-size:11px;font-family:var(--font-mono);color:var(--muted);}
+.dept-bar-track{height:6px;background:var(--s3);border-radius:3px;overflow:hidden;}
+.dept-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+
+/* ── EMPLOYEE TABLE ── */
+.emp-table{width:100%;border-collapse:collapse;}
+.emp-table th{
+  text-align:left;font-size:9px;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--muted);font-weight:600;
+  padding:6px 10px;border-bottom:1px solid var(--border);
+}
+.emp-table td{
+  padding:9px 10px;border-bottom:1px solid rgba(163,243,197,0.04);
+  font-size:12px;vertical-align:middle;
+}
+.emp-table tr:hover td{background:rgba(163,243,197,0.03);cursor:pointer;}
+.emp-status{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;
+}
+.emp-status.active{background:rgba(163,243,197,0.12);color:var(--green);}
+.emp-status.break{background:rgba(246,173,85,0.12);color:var(--amber);}
+.emp-status.lunch{background:rgba(99,179,237,0.12);color:var(--blue);}
+.emp-status.idle{background:var(--s3);color:var(--muted);}
+.emp-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.emp-hrs{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.emp-dept-badge{
+  display:inline-block;
+  padding:2px 7px;border-radius:4px;
+  font-size:10px;background:var(--s3);color:var(--text);
+}
+
+/* ── PROJECT TABLE ── */
+.proj-table{width:100%;border-collapse:collapse;}
+.proj-table th{
+  text-align:left;font-size:9px;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--muted);font-weight:600;
+  padding:6px 10px;border-bottom:1px solid var(--border);
+}
+.proj-table td{
+  padding:9px 10px;border-bottom:1px solid rgba(163,243,197,0.04);
+  font-size:12px;
+}
+.proj-progress{
+  display:flex;align-items:center;gap:8px;
+}
+.proj-progress-bar{flex:1;height:4px;background:var(--s3);border-radius:2px;overflow:hidden;}
+.proj-progress-fill{height:100%;border-radius:2px;background:var(--green);}
+.proj-progress-fill.over{background:var(--red);}
+.proj-pct{font-family:var(--font-mono);font-size:10px;color:var(--muted);min-width:32px;}
+.money{font-family:var(--font-mono);color:var(--green);}
+.money.cost{color:var(--amber);}
+.money.margin{color:var(--green2);}
+
+/* ── KPI GAUGES ── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;}
+.kpi-card{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:8px;padding:12px;text-align:center;
+}
+.kpi-label{font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px;}
+.kpi-ring-wrap{position:relative;width:64px;height:64px;margin:0 auto 6px;}
+.kpi-ring-wrap svg{width:64px;height:64px;transform:rotate(-90deg);}
+.kpi-ring-bg{fill:none;stroke:var(--s3);stroke-width:5;}
+.kpi-ring-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 0.6s ease;}
+.kpi-ring-val{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:12px;font-weight:500;
+}
+.kpi-target{font-size:9px;color:var(--muted);}
+
+/* ── DRILL-DOWN MODAL ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(6,15,26,0.85);
+  z-index:500;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--s1);border:1px solid var(--border2);
+  border-radius:14px;width:680px;max-width:95vw;max-height:85vh;
+  overflow:hidden;display:flex;flex-direction:column;
+}
+.modal-header{
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{font-size:15px;font-weight:600;color:var(--text);}
+.modal-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px 8px;border-radius:4px;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+.modal-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.modal-stat{background:var(--s2);border-radius:8px;padding:10px 12px;}
+.modal-stat-val{font-family:var(--font-mono);font-size:18px;color:var(--green);}
+.modal-stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-top:2px;}
+.timeline{display:flex;flex-direction:column;gap:6px;}
+.timeline-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:6px 8px;border-radius:6px;
+}
+.timeline-item:hover{background:var(--s2);}
+.timeline-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.timeline-time{font-family:var(--font-mono);font-size:10px;color:var(--muted);min-width:52px;margin-top:2px;}
+.timeline-text{font-size:11px;color:var(--text);}
+
+/* ── FILTERS ── */
+.filter-row{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:10px 14px;background:var(--s1);border:1px solid var(--border);
+  border-radius:8px;flex-shrink:0;
+}
+.filter-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;}
+.filter-select,.filter-input{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:5px;padding:4px 8px;
+  color:var(--text);font-size:11px;font-family:'DM Sans',sans-serif;
+  outline:none;transition:border-color 0.15s;
+}
+.filter-select:focus,.filter-input:focus{border-color:var(--green);}
+.filter-btn{
+  background:var(--green);color:var(--navy);
+  border:none;border-radius:5px;padding:4px 12px;
+  font-size:11px;font-weight:600;cursor:pointer;
+}
+.export-btn{
+  background:none;border:1px solid var(--border2);
+  border-radius:5px;padding:4px 12px;
+  font-size:11px;color:var(--green);cursor:pointer;
+  font-family:var(--font-mono);transition:all 0.15s;
+  margin-left:auto;
+}
+.export-btn:hover{background:rgba(163,243,197,0.08);}
+
+/* ── CONFIG PANEL ── */
+.config-panel{
+  background:var(--s2);border:1px solid var(--amber);
+  border-radius:10px;padding:16px;
+}
+.config-title{font-size:12px;font-weight:600;color:var(--amber);margin-bottom:12px;letter-spacing:0.04em;}
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.config-field{display:flex;flex-direction:column;gap:4px;}
+.config-field label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;}
+.config-field input{
+  background:var(--s1);border:1px solid var(--border2);
+  border-radius:5px;padding:6px 10px;
+  color:var(--text);font-family:var(--font-mono);font-size:12px;
+  outline:none;transition:border-color 0.15s;
+}
+.config-field input:focus{border-color:var(--amber);}
+.config-save{
+  margin-top:10px;
+  background:var(--amber);color:#1a1000;
+  border:none;border-radius:6px;padding:7px 18px;
+  font-size:12px;font-weight:600;cursor:pointer;
+}
+
+/* ── EMPTY / LOADING STATES ── */
+.empty{
+  text-align:center;padding:40px 20px;
+  color:var(--muted);font-size:13px;
+}
+.empty-icon{font-size:32px;margin-bottom:10px;opacity:0.4;}
+.loading{
+  display:flex;align-items:center;justify-content:center;
+  padding:40px;gap:10px;color:var(--muted);font-size:12px;
+}
+.spinner{
+  width:16px;height:16px;border:2px solid var(--border);
+  border-top-color:var(--green);border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:20px;right:20px;z-index:1000;
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:8px;padding:10px 16px;
+  font-size:12px;color:var(--text);
+  box-shadow:0 8px 30px rgba(0,0,0,0.4);
+  display:none;animation:fadeUp 0.2s ease;
+}
+.toast.show{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">Ax</div>
+    ATOMIX ANALYTICS — MKE
+  </div>
+  <div class="header-right">
+    <div class="live-dot"></div>
+    <div class="live-label">LIVE</div>
+    <span class="last-refresh" id="lastRefresh">—</span>
+    <button class="script-url-btn" onclick="showConfig()">⚙ Configure</button>
+    <button class="refresh-btn" onclick="refreshAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<nav>
+  <button class="tab active" onclick="showView('overview')">Overview</button>
+  <button class="tab" onclick="showView('labor')">Labor Spend</button>
+  <button class="tab" onclick="showView('productivity')">Productivity</button>
+  <button class="tab" onclick="showView('employees')">Employees</button>
+  <button class="tab" onclick="showView('projects')">Projects</button>
+  <button class="tab" onclick="showView('history')">History</button>
+</nav>
+
+<main>
+
+<!-- ══ VIEW: OVERVIEW ══════════════════════════════════════ -->
+<div class="view active" id="view-overview">
+
+  <!-- Live stat cards -->
+  <div class="stat-row" id="overviewStats">
+    <div class="stat-card" style="--accent:var(--green)">
+      <div class="stat-label">Active Headcount</div>
+      <div class="stat-val" id="statActive">—</div>
+      <div class="stat-sub" id="statActiveBreak">— on break · — on lunch</div>
+    </div>
+    <div class="stat-card" style="--accent:var(--blue)">
+      <div class="stat-label">Total Hours Today</div>
+      <div class="stat-val" id="statHours">—</div>
+      <div class="stat-sub">since shift start</div>
+    </div>
+    <div class="stat-card" style="--accent:var(--amber)">
+      <div class="stat-label">Est. Labor Cost</div>
+      <div class="stat-val" id="statCost">—</div>
+      <div class="stat-sub" id="statRate">@ $<span id="cfgRate">18.50</span>/hr avg</div>
+    </div>
+    <div class="stat-card" style="--accent:var(--purple)">
+      <div class="stat-label">Shift Forecast</div>
+      <div class="stat-val" id="statForecast">—</div>
+      <div class="stat-sub">est. end-of-shift cost</div>
+    </div>
+    <div class="stat-card" style="--accent:var(--red)">
+      <div class="stat-label">OT Risk</div>
+      <div class="stat-val" id="statOT">—</div>
+      <div class="stat-sub">vs 10% target</div>
+    </div>
+    <div class="stat-card" style="--accent:var(--green2)">
+      <div class="stat-label">Labor %</div>
+      <div class="stat-val" id="statLaborPct">—</div>
+      <div class="stat-sub">vs 30% target</div>
+    </div>
+  </div>
+
+  <!-- Dept breakdown + activity -->
+  <div class="grid-2-1" style="flex:1;min-height:0;">
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <!-- Dept breakdown bars -->
+      <div class="chart-card">
+        <div class="chart-card-title">Headcount by Department</div>
+        <div id="deptBars" class="dept-bar-list"></div>
+      </div>
+
+      <!-- Hours chart -->
+      <div class="chart-card" style="flex:1;">
+        <div class="chart-card-title">
+          Hours Accrued — Today
+          <span style="font-size:9px;color:var(--muted);font-weight:400;">updated live</span>
+        </div>
+        <div class="chart-wrap" style="min-height:140px;">
+          <canvas id="hoursChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: KPIs + log -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="chart-card">
+        <div class="chart-card-title">KPI Targets</div>
+        <div class="kpi-row" id="kpiRow"></div>
+      </div>
+
+      <div class="chart-card" style="flex:1;overflow:hidden;">
+        <div class="chart-card-title">Live Activity Feed</div>
+        <div id="liveFeed" style="overflow-y:auto;max-height:260px;display:flex;flex-direction:column;gap:3px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VIEW: LABOR SPEND ══════════════════════════════════ -->
+<div class="view" id="view-labor">
+  <div class="filter-row">
+    <span class="filter-label">Period</span>
+    <select class="filter-select" id="laborPeriod" onchange="loadLaborData()">
+      <option value="today">Today</option>
+      <option value="week" selected>This Week</option>
+      <option value="month">This Month</option>
+    </select>
+    <span class="filter-label">Dept</span>
+    <select class="filter-select" id="laborDept" onchange="loadLaborData()">
+      <option value="">All Depts</option>
+    </select>
+    <button class="export-btn" onclick="exportCSV('labor')">↓ Export CSV</button>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-title">Labor Cost by Department</div>
+      <div class="chart-wrap"><canvas id="laborPieChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Daily Labor Cost Trend</div>
+      <div class="chart-wrap"><canvas id="laborTrendChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="stat-card" style="--accent:var(--amber)">
+      <div class="stat-label">Total Labor Cost</div>
+      <div class="stat-val" id="laborTotalCost">—</div>
+      <div class="stat-sub" id="laborPeriodLabel">this week</div>
+    </div>
+    <div class="stat-card" style="--accent:var(--green)">
+      <div class="stat-label">Cost Per Order (CPO)</div>
+      <div class="stat-val" id="laborCPO">—</div>
+      <div class="stat-sub">target &lt;$4.00</div>
+    </div>
+    <div class="stat-card" style="--accent:var(--blue)">
+      <div class="stat-label">Labor % of Revenue</div>
+      <div class="stat-val" id="laborRevPct">—</div>
+      <div class="stat-sub">target &lt;30% · avg 28.6%</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-title">Stacked Hours by Department</div>
+    <div class="chart-wrap" style="min-height:180px;"><canvas id="laborStackedChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ══ VIEW: PRODUCTIVITY ══════════════════════════════════ -->
+<div class="view" id="view-productivity">
+  <div class="kpi-row" id="productivityKPIs" style="flex-shrink:0;"></div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-title">UPH by Department vs. Baseline</div>
+      <div class="chart-wrap"><canvas id="uphChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Headcount: Actual vs. Plan</div>
+      <div class="chart-wrap"><canvas id="hcPlanChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-title">OT % Trend (target &lt;10%)</div>
+      <div class="chart-wrap"><canvas id="otChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Attendance / Absenteeism</div>
+      <div class="chart-wrap"><canvas id="absenceChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VIEW: EMPLOYEES ════════════════════════════════════ -->
+<div class="view" id="view-employees">
+  <div class="filter-row">
+    <span class="filter-label">Search</span>
+    <input class="filter-input" id="empSearch" placeholder="Name..." oninput="filterEmpTable()" style="width:160px;">
+    <span class="filter-label">Dept</span>
+    <select class="filter-select" id="empDeptFilter" onchange="filterEmpTable()">
+      <option value="">All</option>
+    </select>
+    <span class="filter-label">Status</span>
+    <select class="filter-select" id="empStatusFilter" onchange="filterEmpTable()">
+      <option value="">All</option>
+      <option value="active">Active</option>
+      <option value="break">On Break</option>
+      <option value="lunch">Lunch</option>
+      <option value="idle">Unassigned</option>
+    </select>
+    <button class="export-btn" onclick="exportCSV('employees')">↓ Export</button>
+  </div>
+
+  <div class="chart-card" style="flex:1;overflow:hidden;">
+    <table class="emp-table" id="empTable">
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th>Hours Today</th>
+          <th>Hours Week</th>
+          <th>Clock In</th>
+          <th>Shift</th>
+        </tr>
+      </thead>
+      <tbody id="empTableBody"></tbody>
+    </table>
+    <div class="empty" id="empEmpty" style="display:none;">
+      <div class="empty-icon">👤</div>
+      No employees match the filter.
+    </div>
+  </div>
+</div>
+
+<!-- ══ VIEW: PROJECTS ════════════════════════════════════ -->
+<div class="view" id="view-projects">
+  <div class="filter-row">
+    <span class="filter-label">Status</span>
+    <select class="filter-select" id="projStatusFilter" onchange="filterProjTable()">
+      <option value="">All</option>
+      <option value="active">Active</option>
+      <option value="over">Over Budget</option>
+      <option value="complete">Complete</option>
+    </select>
+    <button class="export-btn" onclick="exportCSV('projects')">↓ Export</button>
+  </div>
+
+  <div class="stat-row" style="flex-shrink:0;">
+    <div class="stat-card" style="--accent:var(--green)"><div class="stat-label">Active Projects</div><div class="stat-val" id="projActive">—</div></div>
+    <div class="stat-card" style="--accent:var(--amber)"><div class="stat-label">Total Quoted Hrs</div><div class="stat-val" id="projQuoted">—</div></div>
+    <div class="stat-card" style="--accent:var(--blue)"><div class="stat-label">Total Actual Hrs</div><div class="stat-val" id="projActual">—</div></div>
+    <div class="stat-card" style="--accent:var(--purple)"><div class="stat-label">Est. Total Revenue</div><div class="stat-val" id="projRevenue">—</div></div>
+    <div class="stat-card" style="--accent:var(--red)"><div class="stat-label">Total Supply Cost</div><div class="stat-val" id="projCost">—</div></div>
+  </div>
+
+  <div class="chart-card" style="flex:1;overflow:auto;">
+    <table class="proj-table" id="projTable">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Client</th>
+          <th>Quoted Hrs</th>
+          <th>Actual Hrs</th>
+          <th>Progress</th>
+          <th>Supply Cost</th>
+          <th>Bill Rate</th>
+          <th>Est. Revenue</th>
+          <th>Est. Margin</th>
+        </tr>
+      </thead>
+      <tbody id="projTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ VIEW: HISTORY ═════════════════════════════════════ -->
+<div class="view" id="view-history">
+  <div class="filter-row">
+    <span class="filter-label">From</span>
+    <input type="date" class="filter-input" id="histFrom">
+    <span class="filter-label">To</span>
+    <input type="date" class="filter-input" id="histTo">
+    <span class="filter-label">Dept</span>
+    <select class="filter-select" id="histDept"><option value="">All</option></select>
+    <button class="filter-btn" onclick="loadHistory()">Apply</button>
+    <button class="export-btn" onclick="exportCSV('history')">↓ Export</button>
+  </div>
+
+  <div class="grid-3">
+    <div class="stat-card" style="--accent:var(--green)"><div class="stat-label">Total Hours</div><div class="stat-val" id="histHours">—</div></div>
+    <div class="stat-card" style="--accent:var(--amber)"><div class="stat-label">Total Labor Cost</div><div class="stat-val" id="histCost">—</div></div>
+    <div class="stat-card" style="--accent:var(--blue)"><div class="stat-label">Avg Daily Headcount</div><div class="stat-val" id="histHC">—</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-title">Daily Hours Trend</div>
+      <div class="chart-wrap"><canvas id="histHoursChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Daily Cost Trend</div>
+      <div class="chart-wrap"><canvas id="histCostChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="flex:1;overflow:auto;">
+    <table class="emp-table">
+      <thead>
+        <tr>
+          <th>Date</th><th>Dept</th><th>Headcount</th><th>Hours</th><th>Labor Cost</th><th>OT Hrs</th><th>UPH</th>
+        </tr>
+      </thead>
+      <tbody id="histTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+
+<!-- ══ EMPLOYEE DRILL-DOWN MODAL ═══════════════════════════ -->
+<div class="modal-overlay" id="empModal" onclick="closeEmpModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="empModalName">—</div>
+        <div class="modal-sub" id="empModalSub">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('empModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-stat-row">
+        <div class="modal-stat"><div class="modal-stat-val" id="empModalHrsToday">—</div><div class="modal-stat-label">Hours Today</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" id="empModalHrsWeek">—</div><div class="modal-stat-label">Hours This Week</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" id="empModalBreaks">—</div><div class="modal-stat-label">Breaks Today</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" id="empModalCost">—</div><div class="modal-stat-label">Labor Cost Today</div></div>
+      </div>
+      <div>
+        <div class="chart-card-title" style="margin-bottom:10px;">Activity Timeline — Today</div>
+        <div class="timeline" id="empModalTimeline"></div>
+        <div class="empty" id="empModalEmpty" style="display:none;font-size:11px;padding:20px;">No activity logged yet today.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIG MODAL ════════════════════════════════════════ -->
+<div class="modal-overlay" id="configModal" onclick="closeEmpModal(event)">
+  <div class="modal" style="width:500px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">⚙ Configuration</div>
+        <div class="modal-sub">Connect to Google Apps Script backend</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('configModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="config-panel">
+        <div class="config-title">▸ Google Apps Script URL</div>
+        <div class="config-field">
+          <label>Script Web App URL</label>
+          <input type="text" id="cfgScriptUrl" placeholder="https://script.google.com/macros/s/YOUR_ID/exec" style="width:100%;">
+        </div>
+        <div style="margin-top:8px;font-size:10px;color:var(--muted);">
+          Deploy Apps Script as Web App → Execute as: Me → Access: Anyone → paste URL above
+        </div>
+      </div>
+      <div class="config-panel" style="border-color:var(--border2);">
+        <div class="config-title" style="color:var(--green);">▸ KPI Targets</div>
+        <div class="config-grid">
+          <div class="config-field"><label>Default Hourly Rate ($)</label><input type="number" id="cfgHourlyRate" value="18.50"></div>
+          <div class="config-field"><label>Labor % Target</label><input type="number" id="cfgLaborPct" value="30" step="0.1"></div>
+          <div class="config-field"><label>CPO Target ($)</label><input type="number" id="cfgCPO" value="4.00" step="0.01"></div>
+          <div class="config-field"><label>OT % Target</label><input type="number" id="cfgOTPct" value="10" step="0.1"></div>
+          <div class="config-field"><label>Pick Accuracy Target (%)</label><input type="number" id="cfgAccuracy" value="99.9" step="0.1"></div>
+          <div class="config-field"><label>Auto-refresh (seconds)</label><input type="number" id="cfgRefresh" value="30"></div>
+        </div>
+        <button class="config-save" onclick="saveConfig()">Save & Connect</button>
+      </div>
+      <div style="background:var(--s2);border-radius:8px;padding:12px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Labor Clock → Backend Setup</div>
+        <div style="font-size:11px;color:var(--text);line-height:1.7;">
+          1. In <strong style="color:var(--green);">atomix-labor-clock.html</strong>, open the file and find <code style="background:var(--s3);padding:1px 5px;border-radius:3px;font-size:10px;">SCRIPT_URL</code> near the top<br>
+          2. Paste your Apps Script URL there<br>
+          3. The Labor Clock will start POSTing all events automatically<br>
+          4. This dashboard reads from the same script via GET requests
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════════
+let CONFIG = {
+  scriptUrl:   localStorage.getItem('atomix_script_url') || '',
+  hourlyRate:  parseFloat(localStorage.getItem('atomix_rate') || '18.50'),
+  laborPct:    parseFloat(localStorage.getItem('atomix_labor_pct') || '30'),
+  cpo:         parseFloat(localStorage.getItem('atomix_cpo') || '4.00'),
+  otPct:       parseFloat(localStorage.getItem('atomix_ot_pct') || '10'),
+  accuracy:    parseFloat(localStorage.getItem('atomix_accuracy') || '99.9'),
+  refresh:     parseInt(localStorage.getItem('atomix_refresh') || '30'),
+};
+
+let LIVE_DATA   = null;
+let DAILY_DATA  = [];
+let EMP_DATA    = [];
+let PROJ_DATA   = [];
+let EVENT_DATA  = [];
+let refreshTimer = null;
+
+const DEPT_COLORS = ['#A3F3C5','#63B3ED','#F6AD55','#B794F4','#FC814A','#ED64A6','#68D391'];
+const CHARTS = {};
+
+// ═══════════════════════════════════════════════
+// FETCH
+// ═══════════════════════════════════════════════
+async function apiFetch(action, params = {}) {
+  if (!CONFIG.scriptUrl) return null;
+  const url = new URL(CONFIG.scriptUrl);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  try {
+    const r = await fetch(url.toString());
+    return await r.json();
+  } catch(e) {
+    console.warn('API error:', e);
+    return null;
+  }
+}
+
+async function refreshAll() {
+  document.getElementById('lastRefresh').textContent = 'refreshing…';
+  try {
+    const [live, daily, emps, projs, events] = await Promise.all([
+      apiFetch('live'),
+      apiFetch('daily', { from: daysAgo(30) }),
+      apiFetch('employees'),
+      apiFetch('projects'),
+      apiFetch('events', { from: daysAgo(7), limit: 500 }),
+    ]);
+
+    if (live)   LIVE_DATA   = live;
+    if (daily)  DAILY_DATA  = daily.data || [];
+    if (emps)   EMP_DATA    = emps.employees || [];
+    if (projs)  PROJ_DATA   = projs.projects || [];
+    if (events) EVENT_DATA  = events.events || [];
+
+    renderAll();
+    document.getElementById('lastRefresh').textContent = 'updated ' + new Date().toLocaleTimeString();
+  } catch(e) {
+    document.getElementById('lastRefresh').textContent = 'error — check config';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// DEMO DATA (when no script URL configured)
+// ═══════════════════════════════════════════════
+function loadDemoData() {
+  const depts = ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
+  const now = Date.now();
+  const hrs = (h) => now - h * 3600000;
+
+  LIVE_DATA = {
+    ok: true,
+    active: 38,
+    onBreak: 4,
+    onLunch: 3,
+    totalHoursToday: 142.5,
+    estLaborCost: 2636.25,
+    depts: [
+      { name:'AM Shift',         active:22, onBreak:2, onLunch:1, emps:[] },
+      { name:'PM Shift',         active:7,  onBreak:1, onLunch:1, emps:[] },
+      { name:'Special Projects', active:5,  onBreak:0, onLunch:1, emps:[] },
+      { name:'Inbound',          active:3,  onBreak:1, onLunch:0, emps:[] },
+      { name:'Inventory',        active:1,  onBreak:0, onLunch:0, emps:[] },
+    ],
+  };
+
+  // Demo daily history — last 14 days
+  DAILY_DATA = Array.from({length:14}, (_,i) => {
+    const d = new Date(); d.setDate(d.getDate() - (13-i));
+    const base = 120 + Math.random()*40;
+    return depts.map(dept => ({
+      Date: d.toDateString(),
+      Dept: dept,
+      Headcount: Math.round(5 + Math.random()*20),
+      'Hours Worked': (base * (0.3 + Math.random()*0.4)).toFixed(1),
+      'Labor Cost':   (base * CONFIG.hourlyRate * (0.3 + Math.random()*0.4)).toFixed(2),
+      'OT Hours':     (Math.random()*8).toFixed(1),
+      UPH:            Math.round(80 + Math.random()*40),
+    }));
+  }).flat();
+
+  // Demo employees
+  const names = [
+    ['Kody Malas','AM Shift','active'],['Hugh Myers','PM Shift','active'],
+    ['Laura Perez','AM Shift','active'],['David Domash','PM Shift','break'],
+    ['Edwin Rivera','Special Projects','active'],['Phillip Lamson','Inbound','active'],
+    ['Jakwon Dumukes','Inventory','active'],['Ana Garcia','AM Shift','lunch'],
+    ['Haylee Stern','PM Shift','active'],['Maria Luna','Special Projects','active'],
+    ['Emyly Herrera','Inbound','active'],['Luis Gumucio','Inventory','idle'],
+  ];
+  EMP_DATA = names.map(([name, dept, status], i) => ({
+    'Employee ID': 'e'+(i+1), 'Full Name': name, Dept: dept,
+    Status: status,
+    'Hours Today': (Math.random()*6+1).toFixed(1),
+    'Hours Week': (Math.random()*30+10).toFixed(1),
+    'Clock In': status !== 'idle' ? new Date(hrs(Math.random()*4)).toLocaleTimeString() : '—',
+    'Shift Start': '06:00', 'Shift End': '14:30',
+    Manager: i < 5 ? 'Drake' : 'Kody Malas',
+    'Hourly Rate': 18.50,
+  }));
+
+  // Demo projects
+  PROJ_DATA = [
+    { 'Project Name':'Amazon Returns Q1','Client':'Amazon','Quoted Hours':80,'Actual Hours':67,'Supply Cost':240,'Bill Rate':28,'Start Date':'2026-03-01','End Date':'2026-03-31' },
+    { 'Project Name':'Target Kitting Run','Client':'Target','Quoted Hours':40,'Actual Hours':48,'Supply Cost':180,'Bill Rate':32,'Start Date':'2026-03-05','End Date':'2026-03-15' },
+    { 'Project Name':'Nike Rework Project','Client':'Nike','Quoted Hours':120,'Actual Hours':30,'Supply Cost':90,'Bill Rate':25,'Start Date':'2026-03-10','End Date':'2026-04-10' },
+  ];
+
+  // Demo events
+  EVENT_DATA = names.slice(0,8).flatMap(([name, dept], i) => [
+    { Timestamp: new Date(hrs(2+i*0.3)), 'Event Type':'CLOCK_IN', 'Employee Name':name, 'To Dept':dept },
+    ...(Math.random()>0.6 ? [{ Timestamp: new Date(hrs(1+i*0.2)), 'Event Type':'BREAK_START', 'Employee Name':name }] : []),
+  ]);
+}
+
+// ═══════════════════════════════════════════════
+// RENDER ALL VIEWS
+// ═══════════════════════════════════════════════
+function renderAll() {
+  renderOverview();
+  renderLaborView();
+  renderProductivity();
+  renderEmployeeTable();
+  renderProjectTable();
+  renderHistory();
+}
+
+// ── OVERVIEW ─────────────────────────────────
+function renderOverview() {
+  if (!LIVE_DATA) return;
+  const d = LIVE_DATA;
+
+  document.getElementById('statActive').textContent = d.active ?? '—';
+  document.getElementById('statActiveBreak').textContent = `${d.onBreak??0} on break · ${d.onLunch??0} on lunch`;
+  document.getElementById('statHours').textContent = (d.totalHoursToday ?? 0).toFixed(1) + 'h';
+
+  const cost = d.estLaborCost ?? (d.totalHoursToday * CONFIG.hourlyRate);
+  document.getElementById('statCost').textContent = '$' + fmt(cost);
+  document.getElementById('cfgRate').textContent = CONFIG.hourlyRate.toFixed(2);
+
+  // Forecast: project to 8hr shift end
+  const elapsed = (new Date().getHours() * 60 + new Date().getMinutes()) - 6*60; // mins since 6am
+  const pct = Math.max(0.1, Math.min(1, elapsed / 480));
+  const forecast = cost / pct;
+  document.getElementById('statForecast').textContent = '$' + fmt(forecast);
+
+  // OT placeholder
+  document.getElementById('statOT').textContent = '0%';
+  document.getElementById('statLaborPct').textContent = '—';
+
+  // Dept bars
+  const bars = document.getElementById('deptBars');
+  bars.innerHTML = '';
+  const total = (d.depts||[]).reduce((s,x) => s + x.active + x.onBreak + x.onLunch, 0) || 1;
+  (d.depts||[]).forEach((dept, i) => {
+    const count = dept.active + dept.onBreak + dept.onLunch;
+    const pct   = (count / total * 100).toFixed(0);
+    const color = DEPT_COLORS[i % DEPT_COLORS.length];
+    bars.innerHTML += `
+      <div class="dept-bar-item" onclick="drillDept('${dept.name}')" style="cursor:pointer;">
+        <div class="dept-bar-header">
+          <span class="dept-bar-name" style="color:${color}">${dept.name}</span>
+          <span class="dept-bar-count">${count} <span style="color:var(--muted);font-size:9px;">/ ${dept.active} active</span></span>
+        </div>
+        <div class="dept-bar-track"><div class="dept-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+      </div>`;
+  });
+
+  // KPI rings
+  renderKPIs();
+
+  // Hours chart
+  renderHoursChart();
+
+  // Live feed
+  renderLiveFeed();
+}
+
+function renderKPIs() {
+  const container = document.getElementById('kpiRow');
+  const kpis = [
+    { label:'Labor %',  val: 24.2,  target: CONFIG.laborPct,  unit:'%', good:'under' },
+    { label:'CPO',      val: 3.80,  target: CONFIG.cpo,        unit:'$', good:'under' },
+    { label:'OT %',     val: 4.1,   target: CONFIG.otPct,      unit:'%', good:'under' },
+    { label:'Accuracy', val: 99.7,  target: CONFIG.accuracy,   unit:'%', good:'over'  },
+  ];
+  container.innerHTML = kpis.map(k => {
+    const pct   = Math.min(100, (k.val / (k.good==='under' ? k.target*1.5 : 100)) * 100);
+    const circ  = 2 * Math.PI * 28;
+    const offset = circ - (pct / 100) * circ;
+    const isGood = k.good === 'under' ? k.val <= k.target : k.val >= k.target;
+    const color  = isGood ? '#A3F3C5' : '#FC8181';
+    return `
+      <div class="kpi-card">
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-ring-wrap">
+          <svg viewBox="0 0 64 64">
+            <circle class="kpi-ring-bg" cx="32" cy="32" r="28"/>
+            <circle class="kpi-ring-fill" cx="32" cy="32" r="28"
+              stroke="${color}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+          </svg>
+          <div class="kpi-ring-val" style="color:${color}">
+            ${k.unit === '$' ? '$' : ''}${k.val}${k.unit === '%' ? '%' : ''}
+          </div>
+        </div>
+        <div class="kpi-target">target: ${k.unit==='$'?'$':''}${k.target}${k.unit==='%'?'%':''}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderHoursChart() {
+  const ctx = document.getElementById('hoursChart');
+  if (!ctx) return;
+  if (CHARTS.hours) { CHARTS.hours.destroy(); }
+  const labels = (LIVE_DATA?.depts||[]).map(d => d.name);
+  const vals   = (LIVE_DATA?.depts||[]).map((d,i) => {
+    const hrs = (d.active + d.onBreak + d.onLunch) * (LIVE_DATA.totalHoursToday / Math.max(1, LIVE_DATA.active + LIVE_DATA.onBreak + LIVE_DATA.onLunch));
+    return parseFloat(hrs.toFixed(1));
+  });
+  CHARTS.hours = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: vals, backgroundColor: DEPT_COLORS, borderRadius: 4, borderSkipped: false }] },
+    options: chartOptions({ yTitle: 'Hours', legend: false }),
+  });
+}
+
+function renderLiveFeed() {
+  const feed = document.getElementById('liveFeed');
+  const recent = [...EVENT_DATA].reverse().slice(0, 40);
+  if (recent.length === 0) {
+    feed.innerHTML = '<div class="empty" style="padding:16px;font-size:11px;">No events yet today.</div>';
+    return;
+  }
+  const typeColors = {
+    CLOCK_IN:'#A3F3C5', CLOCK_OUT:'#FC8181', ASSIGN:'#A3F3C5', UNASSIGN:'#FC8181',
+    BREAK_START:'#F6AD55', BREAK_END:'#F6AD55', LUNCH_START:'#63B3ED', LUNCH_END:'#63B3ED',
+    PROJECT_UPDATE:'#B794F4',
+  };
+  feed.innerHTML = recent.map(ev => {
+    const ts = new Date(ev.Timestamp);
+    const color = typeColors[ev['Event Type']] || '#9D9F9E';
+    const label = (ev['Event Type']||'').replace(/_/g,' ');
+    return `
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:${color}"></div>
+        <div class="timeline-time">${ts.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="timeline-text">
+          <strong>${ev['Employee Name']||ev['Employee ID']||'—'}</strong>
+          <span style="color:var(--muted);"> — ${label}</span>
+          ${ev['To Dept'] ? `<span style="color:var(--muted);"> → ${ev['To Dept']}</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── LABOR VIEW ────────────────────────────────
+function renderLaborView() {
+  if (!DAILY_DATA.length) return;
+  populateDeptFilter('laborDept');
+  populateDeptFilter('histDept');
+
+  // Aggregate by dept
+  const bydept = {};
+  DAILY_DATA.forEach(r => {
+    bydept[r.Dept] = bydept[r.Dept] || { cost:0, hours:0 };
+    bydept[r.Dept].cost  += parseFloat(r['Labor Cost']||0);
+    bydept[r.Dept].hours += parseFloat(r['Hours Worked']||0);
+  });
+
+  const depts  = Object.keys(bydept);
+  const costs  = depts.map(d => bydept[d].cost.toFixed(2));
+  const total  = depts.reduce((s,d) => s + bydept[d].cost, 0);
+
+  document.getElementById('laborTotalCost').textContent = '$' + fmt(total);
+  document.getElementById('laborCPO').textContent = '$' + (total / Math.max(1, DAILY_DATA.length * 500)).toFixed(2);
+  document.getElementById('laborRevPct').textContent = '—';
+
+  // Pie chart
+  const pieCtx = document.getElementById('laborPieChart');
+  if (CHARTS.laborPie) CHARTS.laborPie.destroy();
+  CHARTS.laborPie = new Chart(pieCtx, {
+    type: 'doughnut',
+    data: { labels: depts, datasets: [{ data: costs, backgroundColor: DEPT_COLORS, borderWidth: 0 }] },
+    options: { ...chartOptions({ legend: true }), cutout: '60%' },
+  });
+
+  // Trend line
+  const days = [...new Set(DAILY_DATA.map(r => r.Date))].sort().slice(-14);
+  const trendCtx = document.getElementById('laborTrendChart');
+  if (CHARTS.laborTrend) CHARTS.laborTrend.destroy();
+  const dailyTotals = days.map(d =>
+    DAILY_DATA.filter(r => r.Date === d).reduce((s,r) => s + parseFloat(r['Labor Cost']||0), 0).toFixed(2)
+  );
+  CHARTS.laborTrend = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+      labels: days.map(d => new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'})),
+      datasets: [{ data: dailyTotals, borderColor: '#A3F3C5', backgroundColor: 'rgba(163,243,197,0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 }]
+    },
+    options: chartOptions({ yTitle: 'Cost ($)', legend: false }),
+  });
+
+  // Stacked
+  const stackCtx = document.getElementById('laborStackedChart');
+  if (CHARTS.laborStacked) CHARTS.laborStacked.destroy();
+  CHARTS.laborStacked = new Chart(stackCtx, {
+    type: 'bar',
+    data: {
+      labels: days.map(d => new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'})),
+      datasets: depts.map((dept, i) => ({
+        label: dept,
+        data: days.map(d => {
+          const r = DAILY_DATA.find(x => x.Date === d && x.Dept === dept);
+          return r ? parseFloat(r['Hours Worked']||0).toFixed(1) : 0;
+        }),
+        backgroundColor: DEPT_COLORS[i % DEPT_COLORS.length],
+        borderRadius: 2,
+      }))
+    },
+    options: { ...chartOptions({ yTitle: 'Hours', legend: true }), scales: { x: { ...darkScales().x, stacked: true }, y: { ...darkScales().y, stacked: true } } },
+  });
+}
+
+// ── PRODUCTIVITY VIEW ─────────────────────────
+function renderProductivity() {
+  // UPH by dept
+  const uphCtx = document.getElementById('uphChart');
+  if (CHARTS.uph) CHARTS.uph.destroy();
+  const deptNames = ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
+  const uphActual  = [118, 95, 72, 88, 65];
+  const uphBaseline= [120, 100, 70, 85, 60];
+  CHARTS.uph = new Chart(uphCtx, {
+    type: 'bar',
+    data: {
+      labels: deptNames,
+      datasets: [
+        { label:'Actual UPH',   data: uphActual,   backgroundColor:'rgba(163,243,197,0.7)', borderRadius:4 },
+        { label:'Baseline UPH', data: uphBaseline, backgroundColor:'rgba(99,179,237,0.3)',  borderRadius:4, borderDash:[5,3] },
+      ]
+    },
+    options: chartOptions({ yTitle: 'Units/Hour', legend: true }),
+  });
+
+  // Headcount plan vs actual (last 7 days)
+  const hcCtx = document.getElementById('hcPlanChart');
+  if (CHARTS.hcPlan) CHARTS.hcPlan.destroy();
+  const hcDays = last7Days();
+  CHARTS.hcPlan = new Chart(hcCtx, {
+    type: 'line',
+    data: {
+      labels: hcDays,
+      datasets: [
+        { label:'Actual HC',  data: Array.from({length:7},()=>Math.round(30+Math.random()*15)), borderColor:'#A3F3C5', backgroundColor:'rgba(163,243,197,0.08)', tension:0.4, fill:true, borderWidth:2, pointRadius:3 },
+        { label:'Planned HC', data: Array.from({length:7},()=>40), borderColor:'rgba(246,173,85,0.5)', borderDash:[6,3], tension:0, borderWidth:1.5, pointRadius:0 },
+      ]
+    },
+    options: chartOptions({ yTitle: 'Headcount', legend: true }),
+  });
+
+  // OT % trend
+  const otCtx = document.getElementById('otChart');
+  if (CHARTS.ot) CHARTS.ot.destroy();
+  CHARTS.ot = new Chart(otCtx, {
+    type: 'line',
+    data: {
+      labels: hcDays,
+      datasets: [
+        { label:'OT %', data: Array.from({length:7},()=>(Math.random()*12).toFixed(1)), borderColor:'#FC8181', backgroundColor:'rgba(252,129,129,0.08)', tension:0.4, fill:true, borderWidth:2, pointRadius:3 },
+        { label:'Target 10%', data: Array.from({length:7},()=>10), borderColor:'rgba(246,173,85,0.4)', borderDash:[6,3], borderWidth:1.5, pointRadius:0 },
+      ]
+    },
+    options: chartOptions({ yTitle: 'OT %', legend: true }),
+  });
+
+  // Absence
+  const absCtx = document.getElementById('absenceChart');
+  if (CHARTS.abs) CHARTS.abs.destroy();
+  CHARTS.abs = new Chart(absCtx, {
+    type: 'bar',
+    data: {
+      labels: hcDays,
+      datasets: [
+        { label:'Present',  data: Array.from({length:7},()=>Math.round(35+Math.random()*10)), backgroundColor:'rgba(163,243,197,0.5)', borderRadius:3 },
+        { label:'Absent',   data: Array.from({length:7},()=>Math.round(Math.random()*5)),     backgroundColor:'rgba(252,129,129,0.5)', borderRadius:3 },
+      ]
+    },
+    options: { ...chartOptions({yTitle:'Count',legend:true}), scales:{x:{...darkScales().x,stacked:true},y:{...darkScales().y,stacked:true}} },
+  });
+}
+
+// ── EMPLOYEE TABLE ────────────────────────────
+function renderEmployeeTable() {
+  populateDeptFilter('empDeptFilter');
+  filterEmpTable();
+}
+
+function filterEmpTable() {
+  const search = (document.getElementById('empSearch')?.value||'').toLowerCase();
+  const dept   = document.getElementById('empDeptFilter')?.value||'';
+  const status = document.getElementById('empStatusFilter')?.value||'';
+
+  const filtered = EMP_DATA.filter(e => {
+    const name = (e['Full Name']||'').toLowerCase();
+    if (search && !name.includes(search)) return false;
+    if (dept   && e.Dept !== dept)         return false;
+    if (status && e.Status !== status)     return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('empTableBody');
+  tbody.innerHTML = filtered.map(emp => {
+    const statusCls = emp.Status || 'idle';
+    const dotColors = {active:'#A3F3C5',break:'#F6AD55',lunch:'#63B3ED',idle:'#4a6a84'};
+    return `
+      <tr onclick="openEmpDrill('${emp['Employee ID']}')">
+        <td><strong>${emp['Full Name']||'—'}</strong>${emp.Manager?`<div style="font-size:9px;color:var(--muted);">${emp.Manager}</div>`:''}</td>
+        <td><span class="emp-dept-badge">${emp.Dept||'—'}</span></td>
+        <td><span class="emp-status ${statusCls}"><span class="emp-dot" style="background:${dotColors[statusCls]||'#4a6a84'}"></span>${statusCls}</span></td>
+        <td class="emp-hrs">${emp['Hours Today']||'0.0'}h</td>
+        <td class="emp-hrs">${emp['Hours Week']||'0.0'}h</td>
+        <td style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">${emp['Clock In']||'—'}</td>
+        <td style="font-size:10px;color:var(--muted);">${emp['Shift Start']||'—'} – ${emp['Shift End']||'—'}</td>
+      </tr>`;
+  }).join('');
+
+  const empty = document.getElementById('empEmpty');
+  if (empty) empty.style.display = filtered.length ? 'none' : 'block';
+}
+
+// ── PROJECT TABLE ────────────────────────────
+function renderProjectTable() {
+  filterProjTable();
+
+  // Header stats
+  const active  = PROJ_DATA.filter(p => !p['End Date'] || new Date(p['End Date']) >= new Date());
+  const quoted  = PROJ_DATA.reduce((s,p) => s + parseFloat(p['Quoted Hours']||0), 0);
+  const actual  = PROJ_DATA.reduce((s,p) => s + parseFloat(p['Actual Hours']||0), 0);
+  const revenue = PROJ_DATA.reduce((s,p) => s + parseFloat(p['Quoted Hours']||0)*parseFloat(p['Bill Rate']||0), 0);
+  const cost    = PROJ_DATA.reduce((s,p) => s + parseFloat(p['Supply Cost']||0), 0);
+
+  document.getElementById('projActive').textContent  = active.length;
+  document.getElementById('projQuoted').textContent  = quoted.toFixed(0) + 'h';
+  document.getElementById('projActual').textContent  = actual.toFixed(0) + 'h';
+  document.getElementById('projRevenue').textContent = '$' + fmt(revenue);
+  document.getElementById('projCost').textContent    = '$' + fmt(cost);
+}
+
+function filterProjTable() {
+  const status = document.getElementById('projStatusFilter')?.value||'';
+  const today  = new Date();
+  const filtered = PROJ_DATA.filter(p => {
+    if (!status) return true;
+    const pctUsed = parseFloat(p['Actual Hours']||0) / Math.max(1, parseFloat(p['Quoted Hours']||1));
+    const ended   = p['End Date'] && new Date(p['End Date']) < today;
+    if (status === 'active')   return !ended;
+    if (status === 'over')     return pctUsed > 1;
+    if (status === 'complete') return ended;
+    return true;
+  });
+
+  const tbody = document.getElementById('projTableBody');
+  tbody.innerHTML = filtered.map(p => {
+    const quoted = parseFloat(p['Quoted Hours']||0);
+    const actual = parseFloat(p['Actual Hours']||0);
+    const pct    = quoted > 0 ? Math.min(200, actual/quoted*100) : 0;
+    const over   = pct > 100;
+    const rate   = parseFloat(p['Bill Rate']||0);
+    const cost   = parseFloat(p['Supply Cost']||0);
+    const rev    = quoted * rate + cost;
+    const laborCost = actual * CONFIG.hourlyRate;
+    const margin = rev - laborCost - cost;
+    return `
+      <tr>
+        <td><strong>${p['Project Name']||'—'}</strong></td>
+        <td style="color:var(--muted)">${p.Client||'—'}</td>
+        <td class="emp-hrs">${quoted}h</td>
+        <td class="emp-hrs">${actual}h</td>
+        <td>
+          <div class="proj-progress">
+            <div class="proj-progress-bar"><div class="proj-progress-fill${over?' over':''}" style="width:${Math.min(100,pct)}%"></div></div>
+            <div class="proj-pct">${pct.toFixed(0)}%</div>
+          </div>
+        </td>
+        <td class="money cost">$${fmt(cost)}</td>
+        <td class="emp-hrs">$${rate}/hr</td>
+        <td class="money">$${fmt(rev)}</td>
+        <td class="money ${margin>=0?'margin':'cost'}">$${fmt(Math.abs(margin))} ${margin>=0?'▲':'▼'}</td>
+      </tr>`;
+  }).join('');
+}
+
+// ── HISTORY VIEW ─────────────────────────────
+function renderHistory() {
+  if (!DAILY_DATA.length) return;
+
+  const totalHours = DAILY_DATA.reduce((s,r) => s + parseFloat(r['Hours Worked']||0), 0);
+  const totalCost  = DAILY_DATA.reduce((s,r) => s + parseFloat(r['Labor Cost']||0), 0);
+  const avgHC      = DAILY_DATA.reduce((s,r) => s + parseFloat(r.Headcount||0), 0) / Math.max(1, DAILY_DATA.length);
+
+  document.getElementById('histHours').textContent = totalHours.toFixed(0) + 'h';
+  document.getElementById('histCost').textContent  = '$' + fmt(totalCost);
+  document.getElementById('histHC').textContent    = avgHC.toFixed(0);
+
+  const days = [...new Set(DAILY_DATA.map(r => r.Date))].sort().slice(-14);
+  const dailyHours = days.map(d => DAILY_DATA.filter(r => r.Date===d).reduce((s,r)=>s+parseFloat(r['Hours Worked']||0),0).toFixed(1));
+  const dailyCosts = days.map(d => DAILY_DATA.filter(r => r.Date===d).reduce((s,r)=>s+parseFloat(r['Labor Cost']||0),0).toFixed(2));
+  const dayLabels  = days.map(d => new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'}));
+
+  const hhCtx = document.getElementById('histHoursChart');
+  if (CHARTS.histH) CHARTS.histH.destroy();
+  CHARTS.histH = new Chart(hhCtx, {
+    type: 'bar',
+    data: { labels: dayLabels, datasets: [{ data: dailyHours, backgroundColor:'rgba(163,243,197,0.5)', borderRadius:3, borderSkipped:false }] },
+    options: chartOptions({ yTitle:'Hours', legend:false }),
+  });
+
+  const hcCtx = document.getElementById('histCostChart');
+  if (CHARTS.histC) CHARTS.histC.destroy();
+  CHARTS.histC = new Chart(hcCtx, {
+    type: 'line',
+    data: { labels: dayLabels, datasets: [{ data: dailyCosts, borderColor:'#F6AD55', backgroundColor:'rgba(246,173,85,0.08)', fill:true, tension:0.4, borderWidth:2, pointRadius:3 }] },
+    options: chartOptions({ yTitle:'Cost ($)', legend:false }),
+  });
+
+  const tbody = document.getElementById('histTableBody');
+  const sorted = [...DAILY_DATA].sort((a,b) => new Date(b.Date) - new Date(a.Date));
+  tbody.innerHTML = sorted.slice(0,100).map(r => `
+    <tr>
+      <td style="font-family:var(--font-mono);font-size:10px;">${new Date(r.Date).toLocaleDateString()}</td>
+      <td>${r.Dept||'—'}</td>
+      <td class="emp-hrs">${r.Headcount||0}</td>
+      <td class="emp-hrs">${parseFloat(r['Hours Worked']||0).toFixed(1)}h</td>
+      <td class="money">$${fmt(parseFloat(r['Labor Cost']||0))}</td>
+      <td class="emp-hrs">${parseFloat(r['OT Hours']||0).toFixed(1)}h</td>
+      <td class="emp-hrs">${r.UPH||'—'}</td>
+    </tr>`).join('');
+}
+
+function loadHistory() { renderHistory(); }
+
+// ═══════════════════════════════════════════════
+// DRILL-DOWN MODALS
+// ═══════════════════════════════════════════════
+function openEmpDrill(empId) {
+  const emp = EMP_DATA.find(e => e['Employee ID'] === empId);
+  if (!emp) return;
+
+  document.getElementById('empModalName').textContent = emp['Full Name'] || empId;
+  document.getElementById('empModalSub').textContent  = `${emp.Dept||'Unassigned'} · ${emp['Shift Start']||'—'} – ${emp['Shift End']||'—'}`;
+  document.getElementById('empModalHrsToday').textContent = (emp['Hours Today']||'0.0') + 'h';
+  document.getElementById('empModalHrsWeek').textContent  = (emp['Hours Week']||'0.0') + 'h';
+
+  const empEvents = EVENT_DATA.filter(e => e['Employee Name'] === emp['Full Name']);
+  document.getElementById('empModalBreaks').textContent = empEvents.filter(e=>e['Event Type']==='BREAK_START').length;
+  document.getElementById('empModalCost').textContent   = '$' + fmt(parseFloat(emp['Hours Today']||0) * CONFIG.hourlyRate);
+
+  const typeColors = { CLOCK_IN:'#A3F3C5',CLOCK_OUT:'#FC8181',ASSIGN:'#A3F3C5',UNASSIGN:'#FC8181',BREAK_START:'#F6AD55',BREAK_END:'#F6AD55',LUNCH_START:'#63B3ED',LUNCH_END:'#63B3ED' };
+  const timeline = document.getElementById('empModalTimeline');
+  const empty    = document.getElementById('empModalEmpty');
+  timeline.innerHTML = empEvents.map(ev => {
+    const ts    = new Date(ev.Timestamp);
+    const color = typeColors[ev['Event Type']] || '#9D9F9E';
+    const label = (ev['Event Type']||'').replace(/_/g,' ');
+    return `
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:${color}"></div>
+        <div class="timeline-time">${ts.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="timeline-text">${label}${ev['To Dept']?` → <strong>${ev['To Dept']}</strong>`:''}</div>
+      </div>`;
+  }).join('');
+  empty.style.display = empEvents.length ? 'none' : 'block';
+
+  document.getElementById('empModal').classList.add('open');
+}
+
+function drillDept(name) { showView('employees'); }
+
+function closeEmpModal(e) {
+  if (e.target.classList.contains('modal-overlay')) closeModal(e.target.id);
+}
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+
+// ═══════════════════════════════════════════════
+// CHART HELPERS
+// ═══════════════════════════════════════════════
+function darkScales() {
+  return {
+    x: { grid:{ color:'rgba(163,243,197,0.04)', drawBorder:false }, ticks:{ color:'#4a6a84', font:{size:9}, maxRotation:0 }, border:{ display:false } },
+    y: { grid:{ color:'rgba(163,243,197,0.06)', drawBorder:false }, ticks:{ color:'#4a6a84', font:{size:9} }, border:{ display:false } },
+  };
+}
+function chartOptions({ yTitle='', legend=false } = {}) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: legend, position:'bottom', labels:{ color:'#4a6a84', font:{size:9}, padding:12, boxWidth:10 } },
+      tooltip: { backgroundColor:'#0f2540', titleColor:'#dce8f0', bodyColor:'#9D9F9E', borderColor:'rgba(163,243,197,0.2)', borderWidth:1, padding:8 },
+    },
+    scales: darkScales(),
+  };
+}
+
+// ═══════════════════════════════════════════════
+// FILTER HELPERS
+// ═══════════════════════════════════════════════
+function populateDeptFilter(selectId) {
+  const sel = document.getElementById(selectId);
+  if (!sel || sel.options.length > 1) return;
+  const depts = [...new Set(DAILY_DATA.map(r=>r.Dept).filter(Boolean))];
+  depts.forEach(d => { const o = document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); });
+}
+
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+function showConfig() {
+  document.getElementById('cfgScriptUrl').value   = CONFIG.scriptUrl;
+  document.getElementById('cfgHourlyRate').value  = CONFIG.hourlyRate;
+  document.getElementById('cfgLaborPct').value    = CONFIG.laborPct;
+  document.getElementById('cfgCPO').value         = CONFIG.cpo;
+  document.getElementById('cfgOTPct').value       = CONFIG.otPct;
+  document.getElementById('cfgAccuracy').value    = CONFIG.accuracy;
+  document.getElementById('cfgRefresh').value     = CONFIG.refresh;
+  document.getElementById('configModal').classList.add('open');
+}
+function saveConfig() {
+  CONFIG.scriptUrl  = document.getElementById('cfgScriptUrl').value.trim();
+  CONFIG.hourlyRate = parseFloat(document.getElementById('cfgHourlyRate').value);
+  CONFIG.laborPct   = parseFloat(document.getElementById('cfgLaborPct').value);
+  CONFIG.cpo        = parseFloat(document.getElementById('cfgCPO').value);
+  CONFIG.otPct      = parseFloat(document.getElementById('cfgOTPct').value);
+  CONFIG.accuracy   = parseFloat(document.getElementById('cfgAccuracy').value);
+  CONFIG.refresh    = parseInt(document.getElementById('cfgRefresh').value);
+
+  Object.entries({ atomix_script_url:CONFIG.scriptUrl, atomix_rate:CONFIG.hourlyRate, atomix_labor_pct:CONFIG.laborPct, atomix_cpo:CONFIG.cpo, atomix_ot_pct:CONFIG.otPct, atomix_accuracy:CONFIG.accuracy, atomix_refresh:CONFIG.refresh })
+    .forEach(([k,v]) => localStorage.setItem(k,v));
+
+  closeModal('configModal');
+  toast('Config saved. Connecting…');
+  startAutoRefresh();
+  refreshAll();
+}
+
+// ═══════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════
+function exportCSV(type) {
+  let rows, filename;
+  if (type === 'labor' || type === 'history') {
+    rows = [['Date','Dept','Headcount','Hours','Labor Cost','OT Hrs','UPH'], ...DAILY_DATA.map(r=>[r.Date,r.Dept,r.Headcount,r['Hours Worked'],r['Labor Cost'],r['OT Hours'],r.UPH])];
+    filename = 'atomix_labor_' + today() + '.csv';
+  } else if (type === 'employees') {
+    rows = [['ID','Name','Dept','Status','Hours Today','Hours Week'], ...EMP_DATA.map(e=>[e['Employee ID'],e['Full Name'],e.Dept,e.Status,e['Hours Today'],e['Hours Week']])];
+    filename = 'atomix_employees_' + today() + '.csv';
+  } else if (type === 'projects') {
+    rows = [['Project','Client','Quoted Hrs','Actual Hrs','Supply Cost','Bill Rate'], ...PROJ_DATA.map(p=>[p['Project Name'],p.Client,p['Quoted Hours'],p['Actual Hours'],p['Supply Cost'],p['Bill Rate']])];
+    filename = 'atomix_projects_' + today() + '.csv';
+  }
+  const csv  = rows.map(r => r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const a    = Object.assign(document.createElement('a'), { href:URL.createObjectURL(blob), download:filename });
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Exported ' + filename);
+}
+
+// ═══════════════════════════════════════════════
+// MISC HELPERS
+// ═══════════════════════════════════════════════
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + id)?.classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => { if (t.textContent.toLowerCase().includes(id.split('-')[0])) t.classList.add('active'); });
+}
+function loadLaborData() { renderLaborView(); }
+function fmt(n) { return parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function daysAgo(n) { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().split('T')[0]; }
+function today()    { return new Date().toISOString().split('T')[0]; }
+function last7Days(){ return Array.from({length:7},(_,i)=>{ const d=new Date(); d.setDate(d.getDate()-(6-i)); return d.toLocaleDateString('en',{month:'short',day:'numeric'}); }); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function startAutoRefresh() {
+  clearInterval(refreshTimer);
+  if (CONFIG.scriptUrl && CONFIG.refresh > 0) {
+    refreshTimer = setInterval(refreshAll, CONFIG.refresh * 1000);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('load', () => {
+  // Set default history dates
+  const today = new Date();
+  const week  = new Date(); week.setDate(week.getDate() - 7);
+  document.getElementById('histFrom').value = week.toISOString().split('T')[0];
+  document.getElementById('histTo').value   = today.toISOString().split('T')[0];
+
+  if (CONFIG.scriptUrl) {
+    refreshAll();
+    startAutoRefresh();
+  } else {
+    // Load demo data so dashboard isn't empty
+    loadDemoData();
+    renderAll();
+    document.getElementById('lastRefresh').textContent = 'demo mode — configure script URL';
+  }
+});
+</script>
+</body>
+</html>
