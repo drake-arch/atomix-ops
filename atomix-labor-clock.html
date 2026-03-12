@@ -1822,17 +1822,16 @@ function setupCreator() {
       employees: [],
       parentId: parentId || null,
     };
+    // Place bubble exactly at center of current viewport
+    const canvasEl = document.getElementById('canvasArea');
+    newBubble.bx = (canvasEl.clientWidth  / 2 - panX) / zoomLevel;
+    newBubble.by = (canvasEl.clientHeight / 2 - panY) / zoomLevel;
     bubbles.push(newBubble);
     document.getElementById('nbName').value = '';
     document.getElementById('nbParent').value = '';
     form.classList.remove('show');
     addLog(`"${name}" created${parentId ? ' inside ' + bubbles.find(b=>b.id===parentId)?.name : ''}`, '');
     renderAll();
-    // Pan to new bubble so it's always visible
-    const canvasEl = document.getElementById('canvasArea');
-    panX = canvasEl.clientWidth  / 2 - newBubble.bx * zoomLevel;
-    panY = canvasEl.clientHeight / 2 - newBubble.by * zoomLevel;
-    applyTransform(true);
   });
 }
 
