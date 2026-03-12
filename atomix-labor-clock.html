@@ -1828,6 +1828,11 @@ function setupCreator() {
     form.classList.remove('show');
     addLog(`"${name}" created${parentId ? ' inside ' + bubbles.find(b=>b.id===parentId)?.name : ''}`, '');
     renderAll();
+    // Pan to new bubble so it's always visible
+    const canvasEl = document.getElementById('canvasArea');
+    panX = canvasEl.clientWidth  / 2 - newBubble.bx * zoomLevel;
+    panY = canvasEl.clientHeight / 2 - newBubble.by * zoomLevel;
+    applyTransform(true);
   });
 }
 
