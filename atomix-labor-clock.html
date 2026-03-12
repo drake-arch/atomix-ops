@@ -2302,6 +2302,7 @@ function saveSpModal() {
 // ROSTER PANEL
 // ═══════════════════════════════════════════════
 const DEPT_COLORS_HEX = ['#A3F3C5','#63B3ED','#F6AD55','#9F7AEA','#FC814A','#ED64A6','#48BB78'];
+const BUBBLE_COLORS = DEPT_COLORS_HEX;
 let rosterCollapsed = {}; // deptId -> bool
 
 function renderRoster() {
@@ -2440,6 +2441,60 @@ function toggleRoster() {
 }
 
 // ═══════════════════════════════════════════════
+// BACKEND SYNC — load live state from sheet
+// ═══════════════════════════════════════════════
+async function fetchLive() {
+  if (!SCRIPT_URL) return null;
+  try {
+    const url = new URL(SCRIPT_URL);
+    url.searchParams.set('action', 'live');
+    const r = await fetch(url.toString());
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+async function syncFromBackend() {
+  const live = await fetchLive();
+  if (!live || !live.ok) return;
+
+  // Reset all employees to unassigned
+  EMPLOYEES.forEach(emp => {
+    emp.dept    = null;
+    emp.clockIn = null;
+    emp.onBreak = false;
+    emp.onLunch = false;
+  });
+
+  // Reset all bubble employee lists
+  bubbles.forEach(b => { b.employees = []; });
+
+  // Re-apply live state from backend
+  (live.employees || []).forEach(s => {
+    const emp = EMPLOYEES.find(e => e.fullName === s.name || e.name === s.name || e.id === s.empId);
+    if (!emp) return;
+
+    // Find or create the bubble for this dept
+    let bubble = bubbles.find(b => b.name === s.dept);
+    if (!bubble && s.dept) {
+      bubble = { id: 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2,5), name: s.dept, x: 200 + bubbles.length * 160, y: 200, bx: 300 + bubbles.length * 160, by: 250, employees: [], color: BUBBLE_COLORS[bubbles.length % BUBBLE_COLORS.length], isChild: false, parentId: null };
+      bubbles.push(bubble);
+    }
+
+    if (bubble && !bubble.employees.includes(emp.id)) {
+      bubble.employees.push(emp.id);
+      emp.dept    = bubble.id;
+      emp.clockIn = emp.clockIn || Date.now();
+    }
+
+    emp.onBreak = s.onBreak || false;
+    emp.onLunch = s.onLunch || false;
+  });
+
+  renderAll();
+  console.log('[Atomix] Synced from backend:', (live.employees||[]).length, 'active');
+}
+
+// ═══════════════════════════════════════════════
 // BACKEND STATUS
 // ═══════════════════════════════════════════════
 function promptScriptUrl() {
@@ -2460,6 +2515,11 @@ function updateBackendStatus() {
 setInterval(renderAll, 30000);
 // Refresh break countdowns every 60s
 setInterval(renderBreakZones, 60000);
+// Sync state from backend every 20s (keeps multiple tabs in sync)
+if (SCRIPT_URL) {
+  syncFromBackend(); // load on startup
+  setInterval(syncFromBackend, 20000);
+}
 </script>
 
 <!-- EMPLOYEE PROFILE MODAL -->
