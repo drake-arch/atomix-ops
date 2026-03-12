@@ -45,6 +45,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.3); }
+    .glow-amber { box-shadow: 0 0 30px rgba(246, 173, 85, 0.25); }
   </style>
 </head>
 
@@ -57,94 +58,6 @@
     function showView(view) {
       currentView = view;
       render();
-    }
-
-    /* ── Freight Shipped Modal ── */
-    function openFreightShipped() {
-      const modal = document.getElementById('freightModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-    function closeFreightShipped() {
-      const modal = document.getElementById('freightModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-    function calcMarkup() {
-      const cost = parseFloat(document.getElementById('fs_cost').value) || 0;
-      const markup = cost * 1.4;
-      document.getElementById('fs_markup').value = markup > 0 ? '$' + markup.toFixed(2) : '';
-    }
-    const FREIGHT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKDYBtQt1JhM052nZVfieQKMb2isdGOCO7kLqKYFPT4pe8HEz1bBm7rluVokr2AtNm/exec';
-
-    async function submitFreightShipped(e) {
-      e.preventDefault();
-      const btn = e.target.querySelector('button[type="submit"]');
-      btn.textContent = 'Saving…';
-      btn.disabled = true;
-
-      const row = {
-        customer:    document.getElementById('fs_customer').value,
-        date:        document.getElementById('fs_date').value,
-        po:          document.getElementById('fs_po').value,
-        carrier:     document.getElementById('fs_carrier').value,
-        destination: document.getElementById('fs_destination').value,
-        cost:        document.getElementById('fs_cost').value,
-        markup:      document.getElementById('fs_markup').value,
-        pallets:     document.getElementById('fs_pallets').value,
-      };
-
-      try {
-        await fetch(FREIGHT_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(row)
-        });
-
-        // Also save to localStorage as local backup
-        let rows = JSON.parse(localStorage.getItem('freightShipped') || '[]');
-        rows.unshift(row);
-        localStorage.setItem('freightShipped', JSON.stringify(rows));
-
-        document.getElementById('freightForm').reset();
-        document.getElementById('fs_markup').value = '';
-        renderFreightTable();
-        btn.textContent = '✓ Logged!';
-        btn.style.background = '#6ee7a0';
-        setTimeout(() => {
-          btn.textContent = 'Log Shipment →';
-          btn.style.background = '';
-          btn.disabled = false;
-        }, 2500);
-
-      } catch(err) {
-        btn.textContent = 'Error — Retry';
-        btn.style.background = '#f87171';
-        btn.disabled = false;
-        alert('Failed to save to Google Sheets: ' + err.message);
-      }
-    }
-    function renderFreightTable() {
-      const rows = JSON.parse(localStorage.getItem('freightShipped') || '[]');
-      const tbody = document.getElementById('freightTableBody');
-      if (!tbody) return;
-      if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-[#9D9F9E] py-6 text-sm">No shipments logged yet.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = rows.map(r => `
-        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-          <td class="px-4 py-3 text-sm">${r.customer}</td>
-          <td class="px-4 py-3 text-sm">${r.date}</td>
-          <td class="px-4 py-3 text-sm font-mono">${r.po}</td>
-          <td class="px-4 py-3 text-sm">${r.carrier}</td>
-          <td class="px-4 py-3 text-sm">${r.destination}</td>
-          <td class="px-4 py-3 text-sm font-mono">$${parseFloat(r.cost).toFixed(2)}</td>
-          <td class="px-4 py-3 text-sm font-mono text-[#A3F3C5]">${r.markup}</td>
-          <td class="px-4 py-3 text-sm text-center">${r.pallets}</td>
-        </tr>
-      `).join('');
     }
 
     function render() {
@@ -174,6 +87,8 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 scale-in">
+
+                  <!-- Reporting -->
                   <button onclick="window.location.href='./atomix-eod-main/atomix-eod-main/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -185,6 +100,7 @@
                     </div>
                   </button>
 
+                  <!-- Metrics -->
                   <button onclick="alert('Metrics module coming soon!')" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
                     <div class="flex items-start justify-between">
                       <div>
@@ -196,6 +112,7 @@
                     </div>
                   </button>
 
+                  <!-- Quality -->
                   <button onclick="window.location.href='./quality/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
                     <div class="flex items-start justify-between">
                       <div>
@@ -207,6 +124,7 @@
                     </div>
                   </button>
 
+                  <!-- Cycle Count -->
                   <button onclick="window.location.href='./Cycelcount-main/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -218,6 +136,7 @@
                     </div>
                   </button>
 
+                  <!-- Location Verification -->
                   <button onclick="window.location.href='./location-verification.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -229,6 +148,7 @@
                     </div>
                   </button>
 
+                  <!-- Scheduling -->
                   <button onclick="window.location.href='./workforce-scheduler-main/workforce-scheduler-main/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -240,6 +160,7 @@
                     </div>
                   </button>
 
+                  <!-- Audit -->
                   <button onclick="window.location.href='./audit-main/audit-main/index.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -251,6 +172,7 @@
                     </div>
                   </button>
 
+                  <!-- Error Tracking -->
                   <button onclick="window.location.href='./error-tracking.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
@@ -262,59 +184,27 @@
                     </div>
                   </button>
 
-                  <button onclick="alert('Labor module coming soon!')" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02]">
+                  <!-- ── LABOR CLOCK (was "coming soon") ── -->
+                  <button onclick="window.location.href='./atomix-labor-clock.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
                     <div class="flex items-start justify-between">
                       <div>
                         <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
-                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Labor</div>
-                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Hours, costs, productivity, and trends.</div>
+                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Labor Clock</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Live floor view — assign, track, break zones.</div>
                       </div>
                       <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
                     </div>
                   </button>
 
-                  <button onclick="window.location.href='./freight-audit.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
+                  <!-- ── LABOR ANALYTICS (new) ── -->
+                  <button onclick="window.location.href='./atomix-analytics.html'" class="rounded-3xl p-10 text-left transition-all group transform hover:scale-[1.02] glow-amber" style="background:rgba(246,173,85,0.07);backdrop-filter:blur(10px);border:1px solid rgba(246,173,85,0.25);">
                     <div class="flex items-start justify-between">
                       <div>
-                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
-                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Freight Audit</div>
-                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Verify shipments, pallets, and documentation.</div>
+                        <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
+                        <div class="text-4xl font-light group-hover:text-[#F6AD55] transition-colors">Labor Analytics</div>
+                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Hours, costs, UPH, CPO, and productivity trends.</div>
                       </div>
-                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
-                    </div>
-                  </button>
-
-                  <button onclick="window.location.href='./carrier-pickup.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
-                    <div class="flex items-start justify-between">
-                      <div>
-                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
-                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Carrier Pickup</div>
-                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Verify carrier pickups and area checks.</div>
-                      </div>
-                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
-                    </div>
-                  </button>
-
-                  <button onclick="window.location.href='./kitting-projections.html'" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
-                    <div class="flex items-start justify-between">
-                      <div>
-                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
-                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Kitting Projections</div>
-                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Calculate labor needs and profitability for kit production.</div>
-                      </div>
-                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
-                    </div>
-                  </button>
-
-                  <!-- ── NEW: Freight Shipped ── -->
-                  <button onclick="openFreightShipped()" class="glass rounded-3xl p-10 text-left hover:border-[#A3F3C5] hover:bg-[#1e2223] transition-all group transform hover:scale-[1.02] glow">
-                    <div class="flex items-start justify-between">
-                      <div>
-                        <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Module</div>
-                        <div class="text-4xl font-light group-hover:text-[#A3F3C5] transition-colors">Freight Shipped</div>
-                        <div class="mt-3 text-[#9D9F9E] text-lg font-light">Log shipments, costs, markups, and pallet counts.</div>
-                      </div>
-                      <div class="text-[#A3F3C5] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
+                      <div class="text-[#F6AD55] text-2xl opacity-70 group-hover:opacity-100 transition-opacity">→</div>
                     </div>
                   </button>
 
@@ -326,125 +216,10 @@
               </div>
             </div>
           </div>
-
-          <!-- ── Freight Shipped Modal ── -->
-          <div id="freightModal" class="hidden fixed inset-0 z-50 items-center justify-center p-4" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);">
-            <div class="glass rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" style="border:1px solid rgba(163,243,197,0.3);">
-
-              <!-- Header -->
-              <div class="flex items-center justify-between px-10 pt-10 pb-6 border-b border-white/10">
-                <div>
-                  <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-1">Module</div>
-                  <h2 class="text-4xl font-light">Freight Shipped</h2>
-                </div>
-                <button onclick="closeFreightShipped()" class="text-[#9D9F9E] hover:text-white transition-colors text-3xl font-light leading-none">×</button>
-              </div>
-
-              <!-- Form -->
-              <form id="freightForm" onsubmit="submitFreightShipped(event)" class="px-10 py-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <!-- Customer -->
-                <div class="flex flex-col gap-2">
-                  <label class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Customer</label>
-                  <input id="fs_customer" required type="text" placeholder="Customer name"
-                    class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[#EDEFED] placeholder-[#9D9F9E] focus:outline-none focus:border-[#A3F3C5] transition-colors text-sm" />
-                </div>
-
-                <!-- Date -->
-                <div class="flex flex-col gap-2">
-                  <label class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Date</label>
-                  <input id="fs_date" required type="date"
-                    class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[#EDEFED] focus:outline-none focus:border-[#A3F3C5] transition-colors text-sm" style="color-scheme:dark;" />
-                </div>
-
-                <!-- PO Number -->
-                <div class="flex flex-col gap-2">
-                  <label class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">PO Number</label>
-                  <input id="fs_po" required type="text" placeholder="PO-XXXX"
-                    class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[#EDEFED] placeholder-[#9D9F9E] focus:outline-none focus:border-[#A3F3C5] transition-colors text-sm font-mono" />
-                </div>
-
-                <!-- Carrier -->
-                <div class="flex flex-col gap-2">
-                  <label class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Carrier</label>
-                  <input id="fs_carrier" required type="text" placeholder="e.g. FedEx, UPS, XPO"
-                    class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[#EDEFED] placeholder-[#9D9F9E] focus:outline-none focus:border-[#A3F3C5] transition-colors text-sm" />
-                </div>
-
-                <!-- Destination -->
-                <div class="flex flex-col gap-2">
-                  <label class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Destination</label>
-                  <input id="fs_destination" required type="text" placeholder="City, State or ZIP"
-                    class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[#EDEFED] placeholder-[#9D9F9E] focus:outline-none focus:border-[#A3F3C5] transition-colors text-sm" />
-                </div>
-
-                <!-- Number of Pallets -->
-                <div class="flex flex-col gap-2">
-                  <label class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Number of Pallets</label>
-                  <input id="fs_pallets" required type="number" min="1" placeholder="0"
-                    class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[#EDEFED] placeholder-[#9D9F9E] focus:outline-none focus:border-[#A3F3C5] transition-colors text-sm" />
-                </div>
-
-                <!-- Original Cost -->
-                <div class="flex flex-col gap-2">
-                  <label class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Original Cost ($)</label>
-                  <input id="fs_cost" required type="number" min="0" step="0.01" placeholder="0.00"
-                    oninput="calcMarkup()"
-                    class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[#EDEFED] placeholder-[#9D9F9E] focus:outline-none focus:border-[#A3F3C5] transition-colors text-sm font-mono" />
-                </div>
-
-                <!-- Cost + 40% (auto) -->
-                <div class="flex flex-col gap-2">
-                  <label class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Cost + 40% <span class="normal-case text-[#9D9F9E] tracking-normal">(auto)</span></label>
-                  <input id="fs_markup" readonly type="text" placeholder="Calculated automatically"
-                    class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[#A3F3C5] placeholder-[#9D9F9E] cursor-not-allowed text-sm font-mono" />
-                </div>
-
-                <!-- Submit -->
-                <div class="md:col-span-2 flex justify-end gap-4 pt-2">
-                  <button type="button" onclick="closeFreightShipped()"
-                    class="px-8 py-3 rounded-xl border border-white/10 text-[#9D9F9E] hover:text-white hover:border-white/30 transition-all text-sm">
-                    Cancel
-                  </button>
-                  <button type="submit"
-                    class="px-8 py-3 rounded-xl bg-[#A3F3C5] text-[#0D2D53] font-semibold hover:bg-white transition-all text-sm glow">
-                    Log Shipment →
-                  </button>
-                </div>
-              </form>
-
-              <!-- Log Table -->
-              <div class="px-10 pb-10">
-                <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-4">Shipment Log</div>
-                <div class="overflow-x-auto rounded-2xl border border-white/10">
-                  <table class="w-full text-left">
-                    <thead>
-                      <tr class="border-b border-white/10 bg-white/5">
-                        <th class="px-4 py-3 text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Customer</th>
-                        <th class="px-4 py-3 text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Date</th>
-                        <th class="px-4 py-3 text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">PO #</th>
-                        <th class="px-4 py-3 text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Carrier</th>
-                        <th class="px-4 py-3 text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Destination</th>
-                        <th class="px-4 py-3 text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Orig. Cost</th>
-                        <th class="px-4 py-3 text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">+40%</th>
-                        <th class="px-4 py-3 text-[#A3F3C5] text-xs font-medium tracking-widest uppercase text-center">Pallets</th>
-                      </tr>
-                    </thead>
-                    <tbody id="freightTableBody">
-                      <tr><td colspan="8" class="text-center text-[#9D9F9E] py-6 text-sm">No shipments logged yet.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-            </div>
-          </div>
         `;
       }
 
       app.innerHTML = content;
-      // Populate table after render
-      if (currentView === 'home') renderFreightTable();
     }
 
     render();
