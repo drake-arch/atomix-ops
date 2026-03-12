@@ -951,6 +951,7 @@
       <button class="zoom-btn" id="zoomOut" title="Zoom out">−</button>
       <span class="zoom-val" id="zoomVal">100%</span>
       <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
+      <button class="zoom-btn" id="fitAllBtn" title="Fit all bubbles in view" style="margin-left:4px;font-size:10px;padding:0 6px;">⊡</button>
     </div>
   </div>
 </header>
@@ -1481,8 +1482,12 @@ document.addEventListener('mousemove', e => {
   // Convert screen delta to virtual canvas coords (account for zoom)
   const vx = (e.clientX - bubbleDrag.startScreenX) / zoomLevel + bubbleDrag.startBX;
   const vy = (e.clientY - bubbleDrag.startScreenY) / zoomLevel + bubbleDrag.startBY;
-  b.bx = vx;
-  b.by = vy;
+  // Clamp to safe zone so bubbles can't be lost off-canvas
+  const canvasEl = document.getElementById('canvasArea');
+  const maxX = canvasEl.clientWidth  / zoomLevel - 60;
+  const maxY = canvasEl.clientHeight / zoomLevel - 60;
+  b.bx = Math.max(60, Math.min(vx, maxX));
+  b.by = Math.max(60, Math.min(vy, maxY));
   el.style.left = (b.bx - size/2) + 'px';
   el.style.top  = (b.by - size/2) + 'px';
 });
@@ -1809,8 +1814,8 @@ function setupCreator() {
       id: 'b' + (++bubbleIdCounter),
       name,
       colorIdx: selectedColorIdx,
-      bx: 600 + Math.random() * 600,
-      by: 300 + Math.random() * 400,
+      bx: 200 + Math.random() * 500,
+      by: 150 + Math.random() * 300,
       cx: 0.4 + Math.random() * 0.2,
       cy: 0.4 + Math.random() * 0.2,
       size: parentId ? 55 : 90,
@@ -2034,6 +2039,34 @@ function zoomAroundPoint(cx, cy, newZoom) {
   applyTransform(false);
   updateBackendStatus();
 }
+
+// FIT ALL — pan+zoom to show all bubbles
+function fitAll() {
+  if (!bubbles.length) return;
+  const canvas = document.getElementById('canvasLayer').parentElement;
+  const cw = canvas.clientWidth;
+  const ch = canvas.clientHeight;
+  const pad = 80;
+
+  const xs = bubbles.map(b => b.bx);
+  const ys = bubbles.map(b => b.by);
+  const minX = Math.min(...xs) - 120;
+  const minY = Math.min(...ys) - 120;
+  const maxX = Math.max(...xs) + 120;
+  const maxY = Math.max(...ys) + 120;
+
+  const contentW = maxX - minX;
+  const contentH = maxY - minY;
+  const scaleX = (cw - pad*2) / contentW;
+  const scaleY = (ch - pad*2) / contentH;
+  zoomLevel = Math.min(scaleX, scaleY, 1.2);
+
+  panX = (cw/2) - (minX + contentW/2) * zoomLevel;
+  panY = (ch/2) - (minY + contentH/2) * zoomLevel;
+  applyTransform(true);
+}
+
+document.getElementById('fitAllBtn').addEventListener('click', fitAll);
 
 document.getElementById('zoomIn').addEventListener('click', () => {
   const ca = document.getElementById('canvasArea');
@@ -2476,7 +2509,15 @@ async function syncFromBackend() {
     // Find or create the bubble for this dept
     let bubble = bubbles.find(b => b.name === s.dept);
     if (!bubble && s.dept) {
-      bubble = { id: 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2,5), name: s.dept, x: 200 + bubbles.length * 160, y: 200, bx: 300 + bubbles.length * 160, by: 250, employees: [], color: BUBBLE_COLORS[bubbles.length % BUBBLE_COLORS.length], isChild: false, parentId: null };
+      const existingBx = bubbles.length ? bubbles.reduce((s,b)=>s+b.bx,0)/bubbles.length : 500;
+      const existingBy = bubbles.length ? bubbles.reduce((s,b)=>s+b.by,0)/bubbles.length : 400;
+      const angle = (bubbles.length * 137.5) * Math.PI / 180;
+      const radius = 250 + bubbles.length * 30;
+      const rawBx = existingBx + Math.cos(angle)*radius;
+      const rawBy = existingBy + Math.sin(angle)*radius;
+      const canvasW = (document.getElementById('canvasArea')?.clientWidth  || 1200) / zoomLevel;
+      const canvasH = (document.getElementById('canvasArea')?.clientHeight || 700)  / zoomLevel;
+      bubble = { id: 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2,5), name: s.dept, bx: Math.max(100, Math.min(rawBx, canvasW-100)), by: Math.max(100, Math.min(rawBy, canvasH-100)), colorIdx: bubbles.length % BUBBLE_COLORS.length, size: 90, employees: [], parentId: null };
       bubbles.push(bubble);
     }
 
