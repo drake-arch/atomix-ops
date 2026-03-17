@@ -910,12 +910,11 @@ function renderOverview() {
   document.getElementById('cfgRate').textContent = CONFIG.hourlyRate.toFixed(2);
 
   // Forecast: project to 8hr shift end
-  const elapsed = (new Date().getHours() * 60 + new Date().getMinutes()) - 6*60; // mins since 6am
+  const elapsed = (new Date().getHours() * 60 + new Date().getMinutes()) - 6*60;
   const pct = Math.max(0.1, Math.min(1, elapsed / 480));
   const forecast = cost / pct;
   document.getElementById('statForecast').textContent = '$' + fmt(forecast);
 
-  // OT placeholder
   document.getElementById('statOT').textContent = '0%';
   document.getElementById('statLaborPct').textContent = '—';
 
@@ -937,13 +936,8 @@ function renderOverview() {
       </div>`;
   });
 
-  // KPI rings
   renderKPIs();
-
-  // Hours chart
   renderHoursChart();
-
-  // Live feed
   renderLiveFeed();
 }
 
@@ -984,9 +978,9 @@ function renderHoursChart() {
   if (!ctx) return;
   if (CHARTS.hours) { CHARTS.hours.destroy(); }
   const labels = (LIVE_DATA?.depts||[]).map(d => d.name);
-  const vals   = (LIVE_DATA?.depts||[]).map((d,i) => {
-    const hrs = (d.active + d.onBreak + d.onLunch) * (LIVE_DATA.totalHoursToday / Math.max(1, LIVE_DATA.active + LIVE_DATA.onBreak + LIVE_DATA.onLunch));
-    return parseFloat(hrs.toFixed(1));
+  const vals   = (LIVE_DATA?.depts||[]).map((d) => {
+    const h = (d.active + d.onBreak + d.onLunch) * (LIVE_DATA.totalHoursToday / Math.max(1, LIVE_DATA.active + LIVE_DATA.onBreak + LIVE_DATA.onLunch));
+    return parseFloat(h.toFixed(1));
   });
   CHARTS.hours = new Chart(ctx, {
     type: 'bar',
@@ -1030,7 +1024,6 @@ function renderLaborView() {
   populateDeptFilter('laborDept');
   populateDeptFilter('histDept');
 
-  // Aggregate by dept
   const bydept = {};
   DAILY_DATA.forEach(r => {
     bydept[r.Dept] = bydept[r.Dept] || { cost:0, hours:0 };
@@ -1046,7 +1039,6 @@ function renderLaborView() {
   document.getElementById('laborCPO').textContent = '$' + (total / Math.max(1, DAILY_DATA.length * 500)).toFixed(2);
   document.getElementById('laborRevPct').textContent = '—';
 
-  // Pie chart
   const pieCtx = document.getElementById('laborPieChart');
   if (CHARTS.laborPie) CHARTS.laborPie.destroy();
   CHARTS.laborPie = new Chart(pieCtx, {
@@ -1055,7 +1047,6 @@ function renderLaborView() {
     options: { ...chartOptions({ legend: true }), cutout: '60%' },
   });
 
-  // Trend line
   const days = [...new Set(DAILY_DATA.map(r => r.Date))].sort().slice(-14);
   const trendCtx = document.getElementById('laborTrendChart');
   if (CHARTS.laborTrend) CHARTS.laborTrend.destroy();
@@ -1071,7 +1062,6 @@ function renderLaborView() {
     options: chartOptions({ yTitle: 'Cost ($)', legend: false }),
   });
 
-  // Stacked
   const stackCtx = document.getElementById('laborStackedChart');
   if (CHARTS.laborStacked) CHARTS.laborStacked.destroy();
   CHARTS.laborStacked = new Chart(stackCtx, {
@@ -1094,7 +1084,6 @@ function renderLaborView() {
 
 // ── PRODUCTIVITY VIEW ─────────────────────────
 function renderProductivity() {
-  // UPH by dept
   const uphCtx = document.getElementById('uphChart');
   if (CHARTS.uph) CHARTS.uph.destroy();
   const deptNames  = LIVE_DATA ? (LIVE_DATA.depts||[]).map(d=>d.name) : ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
@@ -1106,13 +1095,12 @@ function renderProductivity() {
       labels: deptNames,
       datasets: [
         { label:'Actual UPH',   data: uphActual,   backgroundColor:'rgba(163,243,197,0.7)', borderRadius:4 },
-        { label:'Baseline UPH', data: uphBaseline, backgroundColor:'rgba(99,179,237,0.3)',  borderRadius:4, borderDash:[5,3] },
+        { label:'Baseline UPH', data: uphBaseline, backgroundColor:'rgba(99,179,237,0.3)',  borderRadius:4 },
       ]
     },
     options: chartOptions({ yTitle: 'Units/Hour', legend: true }),
   });
 
-  // Headcount plan vs actual (last 7 days)
   const hcCtx = document.getElementById('hcPlanChart');
   if (CHARTS.hcPlan) CHARTS.hcPlan.destroy();
   const hcDays = last7Days();
@@ -1128,7 +1116,6 @@ function renderProductivity() {
     options: chartOptions({ yTitle: 'Headcount', legend: true }),
   });
 
-  // OT % trend
   const otCtx = document.getElementById('otChart');
   if (CHARTS.ot) CHARTS.ot.destroy();
   CHARTS.ot = new Chart(otCtx, {
@@ -1143,7 +1130,6 @@ function renderProductivity() {
     options: chartOptions({ yTitle: 'OT %', legend: true }),
   });
 
-  // Absence
   const absCtx = document.getElementById('absenceChart');
   if (CHARTS.abs) CHARTS.abs.destroy();
   CHARTS.abs = new Chart(absCtx, {
@@ -1198,11 +1184,10 @@ function filterEmpTable() {
   if (empty) empty.style.display = filtered.length ? 'none' : 'block';
 }
 
-// ── PROJECT TABLE ────────────────────────────
+// ── PROJECT TABLE ─────────────────────────────
 function renderProjectTable() {
   filterProjTable();
 
-  // Header stats
   const active  = PROJ_DATA.filter(p => !p['End Date'] || new Date(p['End Date']) >= new Date());
   const quoted  = PROJ_DATA.reduce((s,p) => s + parseFloat(p['Quoted Hours']||0), 0);
   const actual  = PROJ_DATA.reduce((s,p) => s + parseFloat(p['Actual Hours']||0), 0);
@@ -1260,7 +1245,7 @@ function filterProjTable() {
   }).join('');
 }
 
-// ── HISTORY VIEW ─────────────────────────────
+// ── HISTORY VIEW ──────────────────────────────
 function renderHistory() {
   if (!DAILY_DATA.length) return;
 
@@ -1376,9 +1361,15 @@ function chartOptions({ yTitle='', legend=false } = {}) {
 // ═══════════════════════════════════════════════
 function populateDeptFilter(selectId) {
   const sel = document.getElementById(selectId);
-  if (!sel || sel.options.length > 1) return;
-  const depts = [...new Set(DAILY_DATA.map(r=>r.Dept).filter(Boolean))];
-  depts.forEach(d => { const o = document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); });
+  if (!sel) return;
+  // Clear existing options except the first "All" option, then repopulate
+  while (sel.options.length > 1) sel.remove(1);
+  const depts = [...new Set(DAILY_DATA.map(r => r.Dept).filter(Boolean))];
+  depts.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    sel.appendChild(o);
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -1403,8 +1394,15 @@ function saveConfig() {
   CONFIG.accuracy   = parseFloat(document.getElementById('cfgAccuracy').value);
   CONFIG.refresh    = parseInt(document.getElementById('cfgRefresh').value);
 
-  Object.entries({ atomix_script_url:CONFIG.scriptUrl, atomix_rate:CONFIG.hourlyRate, atomix_labor_pct:CONFIG.laborPct, atomix_cpo:CONFIG.cpo, atomix_ot_pct:CONFIG.otPct, atomix_accuracy:CONFIG.accuracy, atomix_refresh:CONFIG.refresh })
-    .forEach(([k,v]) => localStorage.setItem(k,v));
+  Object.entries({
+    atomix_script_url: CONFIG.scriptUrl,
+    atomix_rate:       CONFIG.hourlyRate,
+    atomix_labor_pct:  CONFIG.laborPct,
+    atomix_cpo:        CONFIG.cpo,
+    atomix_ot_pct:     CONFIG.otPct,
+    atomix_accuracy:   CONFIG.accuracy,
+    atomix_refresh:    CONFIG.refresh,
+  }).forEach(([k,v]) => localStorage.setItem(k,v));
 
   closeModal('configModal');
   toast('Config saved. Connecting…');
@@ -1437,12 +1435,26 @@ function exportCSV(type) {
 // ═══════════════════════════════════════════════
 // MISC HELPERS
 // ═══════════════════════════════════════════════
+
+// FIX: Re-render charts after tab becomes visible.
+// Chart.js cannot calculate canvas dimensions when the parent element is display:none,
+// resulting in 0-height charts and blank-looking tabs on first visit.
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('view-' + id)?.classList.add('active');
-  document.querySelectorAll('.tab').forEach(t => { if (t.textContent.toLowerCase().includes(id.split('-')[0])) t.classList.add('active'); });
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.textContent.toLowerCase().includes(id.split('-')[0])) t.classList.add('active');
+  });
+  // Wait one frame for the view to be visible, then re-render
+  requestAnimationFrame(() => {
+    if (id === 'labor')        renderLaborView();
+    if (id === 'productivity') renderProductivity();
+    if (id === 'employees')    renderEmployeeTable();
+    if (id === 'history')      renderHistory();
+  });
 }
+
 function loadLaborData() { renderLaborView(); }
 function fmt(n) { return parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function daysAgo(n) { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().split('T')[0]; }
@@ -1464,7 +1476,6 @@ function startAutoRefresh() {
 // INIT
 // ═══════════════════════════════════════════════
 window.addEventListener('load', () => {
-  // Set default history dates
   const today = new Date();
   const week  = new Date(); week.setDate(week.getDate() - 7);
   document.getElementById('histFrom').value = week.toISOString().split('T')[0];
@@ -1474,7 +1485,6 @@ window.addEventListener('load', () => {
     refreshAll();
     startAutoRefresh();
   } else {
-    // Load demo data so dashboard isn't empty
     loadDemoData();
     renderAll();
     document.getElementById('lastRefresh').textContent = 'demo mode — configure script URL';
