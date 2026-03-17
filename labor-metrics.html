@@ -13,6 +13,10 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+    @keyframes pulse-risk {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
     .gradient-bg {
       background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
       background-size: 400% 400%;
@@ -25,13 +29,11 @@
       background-size: 50px 50px;
     }
     .glass {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255,255,255,0.05);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255,255,255,0.1);
     }
-    .glow { box-shadow: 0 0 20px rgba(163, 243, 197, 0.15); }
     .mono { font-family: 'IBM Plex Mono', monospace; }
-
     input[type=number] {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(163,243,197,0.15);
@@ -46,97 +48,80 @@
     }
     input[type=number]:focus { border-color: rgba(163,243,197,0.5); }
     input[type=number]::placeholder { color: rgba(163,243,197,0.2); }
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { opacity: 0.3; }
-
+    input[type=number]::-webkit-inner-spin-button { opacity: 0.3; }
     .tab-btn {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(163,243,197,0.4);
-      padding: 10px 20px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(163,243,197,0.4); padding: 10px 20px; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: all 0.2s;
     }
     .tab-btn.active { color: #A3F3C5; border-bottom-color: #A3F3C5; }
     .tab-btn:hover:not(.active) { color: rgba(163,243,197,0.7); }
-
     .kpi-card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(163,243,197,0.12);
-      border-radius: 20px;
-      padding: 20px;
-      transition: border-color 0.2s;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(163,243,197,0.12);
+      border-radius: 20px; padding: 20px; transition: border-color 0.2s;
     }
     .kpi-card.good { border-color: rgba(163,243,197,0.35); }
     .kpi-card.warn { border-color: rgba(246,173,85,0.35); }
     .kpi-card.bad  { border-color: rgba(245,95,95,0.3); }
-
-    .gap-card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(163,243,197,0.12);
-      border-radius: 20px;
-      padding: 20px;
+    .surface-card {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(163,243,197,0.12);
+      border-radius: 20px; padding: 20px 24px;
     }
-
-    .prog-track {
-      height: 4px;
-      background: rgba(163,243,197,0.08);
-      border-radius: 2px;
-      overflow: hidden;
+    .rev-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid rgba(163,243,197,0.06);
     }
-    .prog-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
-
+    .rev-row:last-child { border-bottom: none; }
+    .rev-label { font-size: 11px; color: rgba(157,159,158,1); letter-spacing: 0.03em; }
+    .rev-sub { font-size: 10px; color: rgba(157,159,158,0.6); margin-top: 2px; }
+    .rev-val { font-family: 'IBM Plex Mono', monospace; font-size: 15px; text-align: right; }
+    /* Meter */
+    .meter-track {
+      position: relative; height: 8px; background: rgba(163,243,197,0.08);
+      border-radius: 4px; margin: 10px 0 4px; overflow: visible;
+    }
+    .meter-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease, background 0.3s; }
+    .meter-goal {
+      position: absolute; top: -4px; width: 2px; height: 16px;
+      background: rgba(163,243,197,0.45); border-radius: 1px;
+    }
+    .meter-goal::after {
+      content: '12%'; position: absolute; top: -16px; left: 50%;
+      transform: translateX(-50%); font-size: 9px; color: rgba(163,243,197,0.5);
+      white-space: nowrap; font-family: 'IBM Plex Mono', monospace;
+    }
+    /* Risk */
+    .risk-panel { border-radius: 20px; padding: 20px 24px; border: 1px solid; }
+    .risk-panel.clear    { background: rgba(163,243,197,0.04); border-color: rgba(163,243,197,0.2); }
+    .risk-panel.elevated { background: rgba(246,173,85,0.05);  border-color: rgba(246,173,85,0.3); }
+    .risk-panel.critical { background: rgba(245,95,95,0.05);   border-color: rgba(245,95,95,0.3); animation: pulse-risk 2.5s ease-in-out infinite; }
+    .risk-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(163,243,197,0.05); }
+    .risk-item:last-child { border-bottom: none; }
+    .risk-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+    .prog-track { height: 4px; background: rgba(163,243,197,0.08); border-radius: 2px; overflow: hidden; }
+    .prog-fill  { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
     .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 4px 10px;
-      border-radius: 6px;
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 6px;
     }
     .badge.good { background: rgba(163,243,197,0.1); color: #A3F3C5; border: 1px solid rgba(163,243,197,0.2); }
-    .badge.warn { background: rgba(246,173,85,0.1); color: #F6AD55; border: 1px solid rgba(246,173,85,0.2); }
-    .badge.bad  { background: rgba(245,95,95,0.1); color: #F55F5F; border: 1px solid rgba(245,95,95,0.2); }
-
+    .badge.warn { background: rgba(246,173,85,0.1);  color: #F6AD55; border: 1px solid rgba(246,173,85,0.2); }
+    .badge.bad  { background: rgba(245,95,95,0.1);   color: #F55F5F; border: 1px solid rgba(245,95,95,0.2); }
     .week-tag {
-      display: inline-block;
-      background: rgba(163,243,197,0.08);
-      color: rgba(163,243,197,0.6);
-      border-radius: 5px;
-      font-size: 10px;
-      padding: 2px 8px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      font-family: 'IBM Plex Mono', monospace;
+      display: inline-block; background: rgba(163,243,197,0.08); color: rgba(163,243,197,0.6);
+      border-radius: 5px; font-size: 10px; padding: 2px 8px; font-weight: 700;
+      letter-spacing: 0.08em; font-family: 'IBM Plex Mono', monospace;
     }
-
     .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(13,26,23,0.95);
-      border: 1px solid rgba(163,243,197,0.4);
-      border-radius: 12px;
-      padding: 12px 20px;
-      font-size: 12px;
-      color: #A3F3C5;
-      font-family: 'IBM Plex Mono', monospace;
-      z-index: 99;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: all 0.3s;
-      pointer-events: none;
+      position: fixed; bottom: 20px; right: 20px; background: rgba(13,26,23,0.95);
+      border: 1px solid rgba(163,243,197,0.4); border-radius: 12px; padding: 12px 20px;
+      font-size: 12px; color: #A3F3C5; font-family: 'IBM Plex Mono', monospace;
+      z-index: 99; opacity: 0; transform: translateY(8px); transition: all 0.3s; pointer-events: none;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
-
 <body class="bg-[#101314] text-[#EDEFED] overflow-x-hidden">
 <div class="min-h-screen gradient-bg grid-bg">
   <div class="max-w-5xl mx-auto px-6 py-10">
@@ -157,53 +142,30 @@
 
     <!-- Tabs -->
     <div class="flex border-b border-[#A3F3C5]/10 mb-8">
-      <div class="tab-btn active" id="tab-daily" onclick="showTab('daily')">Daily Input</div>
-      <div class="tab-btn" id="tab-results" onclick="showTab('results')">Results</div>
-      <div class="tab-btn" id="tab-history" onclick="showTab('history')">History</div>
+      <div class="tab-btn active" id="tab-daily"   onclick="showTab('daily')">Daily Input</div>
+      <div class="tab-btn"        id="tab-results" onclick="showTab('results')">Results</div>
+      <div class="tab-btn"        id="tab-history" onclick="showTab('history')">History</div>
     </div>
 
-    <!-- DAILY INPUT -->
+    <!-- ══════════════════════ DAILY INPUT ══════════════════════ -->
     <div id="panel-daily">
       <div class="text-[#A3F3C5] text-xs font-bold tracking-widest uppercase mb-4 opacity-60">Yesterday's Actuals</div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div>
-          <div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Hours Worked</div>
-          <input type="number" id="inp-hours" placeholder="e.g. 120" step="0.5">
-        </div>
-        <div>
-          <div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Labor Cost ($)</div>
-          <input type="number" id="inp-cost" placeholder="e.g. 1800">
-        </div>
-        <div>
-          <div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Orders Processed</div>
-          <input type="number" id="inp-orders" placeholder="e.g. 520">
-        </div>
-        <div>
-          <div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Units Processed</div>
-          <input type="number" id="inp-units" placeholder="e.g. 1400">
-        </div>
+        <div><div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Hours Worked</div><input type="number" id="inp-hours" placeholder="e.g. 120" step="0.5"></div>
+        <div><div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Labor Cost ($)</div><input type="number" id="inp-cost" placeholder="e.g. 1800"></div>
+        <div><div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Orders Processed</div><input type="number" id="inp-orders" placeholder="e.g. 520"></div>
+        <div><div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Units Processed</div><input type="number" id="inp-units" placeholder="e.g. 1400"></div>
       </div>
 
       <div class="border-t border-[#A3F3C5]/10 my-6"></div>
       <div class="text-[#A3F3C5] text-xs font-bold tracking-widest uppercase mb-4 opacity-60">Weekly Targets</div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div>
-          <div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Monthly Revenue ($)</div>
-          <input type="number" id="inp-rev" placeholder="e.g. 250000">
-        </div>
-        <div>
-          <div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Weekly Labor Spend ($)</div>
-          <input type="number" id="inp-weekly-spend" placeholder="e.g. 9000">
-        </div>
-        <div>
-          <div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Weekly Orders</div>
-          <input type="number" id="inp-weekly-orders" placeholder="e.g. 2600">
-        </div>
-        <div>
-          <div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Weekly Hours</div>
-          <input type="number" id="inp-weekly-hours" placeholder="e.g. 600">
-        </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+        <div><div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Monthly Revenue ($)</div><input type="number" id="inp-rev" placeholder="e.g. 250000"></div>
+        <div><div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Working Days / Month</div><input type="number" id="inp-workdays" placeholder="e.g. 21" step="1"></div>
+        <div><div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Weekly Orders Target</div><input type="number" id="inp-weekly-orders" placeholder="e.g. 2600"></div>
+        <div><div class="text-[#9D9F9E] text-xs tracking-wide mb-2">Weekly Hours Target</div><input type="number" id="inp-weekly-hours" placeholder="e.g. 600"></div>
       </div>
+      <div class="mono text-xs text-[#9D9F9E]/40 mb-6">Weekly labor budget auto-calculated at 12% of weekly revenue.</div>
 
       <div class="flex items-center gap-4 flex-wrap">
         <button onclick="saveDay()" class="px-6 py-3 rounded-2xl bg-[#A3F3C5] text-[#0D2D53] text-xs font-bold tracking-widest uppercase hover:bg-white transition-colors">Save Day →</button>
@@ -212,11 +174,12 @@
       <div class="mono text-xs text-[#9D9F9E] mt-4" id="day-count-label"></div>
     </div>
 
-    <!-- RESULTS -->
+    <!-- ══════════════════════ RESULTS ══════════════════════ -->
     <div id="panel-results" style="display:none;">
       <div id="res-empty" class="text-center py-16 text-[#9D9F9E] mono text-sm">No data yet — log a day first.</div>
       <div id="res-content" style="display:none;">
 
+        <!-- Yesterday KPIs -->
         <div class="text-[#A3F3C5] text-xs font-bold tracking-widest uppercase mb-4 opacity-60">Yesterday's Performance</div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div class="kpi-card" id="card-cpo">
@@ -224,7 +187,7 @@
             <div class="text-3xl font-extralight mono" id="val-cpo">—</div>
             <div class="text-xs text-[#9D9F9E] mt-2">Goal: $1.20</div>
           </div>
-          <div class="kpi-card" id="card-cpu">
+          <div class="kpi-card">
             <div class="text-xs tracking-widest uppercase text-[#9D9F9E] mb-3">Cost Per Unit</div>
             <div class="text-3xl font-extralight mono text-[#5B9CF6]" id="val-cpu">—</div>
             <div class="text-xs text-[#9D9F9E] mt-2">Units processed</div>
@@ -243,78 +206,126 @@
 
         <div class="border-t border-[#A3F3C5]/10 my-6"></div>
 
+        <!-- WTD -->
         <div class="flex items-center gap-3 mb-4">
           <div class="text-[#A3F3C5] text-xs font-bold tracking-widest uppercase opacity-60">Week-to-Date</div>
           <span id="wk-badge"></span>
         </div>
-
         <div class="glass rounded-3xl p-6 mb-6 grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div class="text-center">
-            <div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-orders">—</div>
-            <div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">Orders</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-hours">—</div>
-            <div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">Hours</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-spend">—</div>
-            <div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">Spend</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-cpo">—</div>
-            <div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">CPO WTD</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-days">—</div>
-            <div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">Days</div>
-          </div>
+          <div class="text-center"><div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-orders">—</div><div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">Orders</div></div>
+          <div class="text-center"><div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-hours">—</div><div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">Hours</div></div>
+          <div class="text-center"><div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-spend">—</div><div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">Spend</div></div>
+          <div class="text-center"><div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-cpo">—</div><div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">CPO WTD</div></div>
+          <div class="text-center"><div class="text-2xl font-extralight text-[#A3F3C5] mono" id="wtd-days">—</div><div class="text-xs text-[#9D9F9E] tracking-widest uppercase mt-1">Days</div></div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div><div class="flex justify-between text-xs text-[#9D9F9E] mono mb-2"><span>Orders</span><span id="pt-orders">—</span></div><div class="prog-track"><div class="prog-fill bg-blue-400/70" id="pb-orders" style="width:0%"></div></div></div>
+          <div><div class="flex justify-between text-xs text-[#9D9F9E] mono mb-2"><span>Hours</span><span id="pt-hours">—</span></div><div class="prog-track"><div class="prog-fill bg-[#A3F3C5]/70" id="pb-hours" style="width:0%"></div></div></div>
+          <div><div class="flex justify-between text-xs text-[#9D9F9E] mono mb-2"><span>Spend vs Budget</span><span id="pt-spend">—</span></div><div class="prog-track"><div class="prog-fill" id="pb-spend" style="width:0%;background:rgba(246,173,85,0.7)"></div></div></div>
         </div>
 
-        <div class="space-y-4 mb-8">
-          <div>
-            <div class="flex justify-between text-xs text-[#9D9F9E] mono mb-2"><span>Orders</span><span id="pt-orders">—</span></div>
-            <div class="prog-track"><div class="prog-fill bg-blue-400/70" id="pb-orders" style="width:0%"></div></div>
+        <div class="border-t border-[#A3F3C5]/10 my-6"></div>
+
+        <!-- ── Revenue % Guide ── -->
+        <div class="text-[#A3F3C5] text-xs font-bold tracking-widest uppercase mb-4 opacity-60">Revenue % Guide</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+
+          <!-- Spend breakdown -->
+          <div class="surface-card">
+            <div class="rev-row">
+              <div><div class="rev-label">Daily Revenue</div><div class="rev-sub">Monthly ÷ working days</div></div>
+              <div class="rev-val text-[#A3F3C5]" id="rg-daily-rev">—</div>
+            </div>
+            <div class="rev-row">
+              <div><div class="rev-label">Daily Labor Budget @ 12%</div><div class="rev-sub">Max spend per day</div></div>
+              <div class="rev-val text-[#A3F3C5]" id="rg-daily-budget">—</div>
+            </div>
+            <div class="rev-row">
+              <div><div class="rev-label">Weekly Revenue</div><div class="rev-sub">Monthly ÷ 4.33 weeks</div></div>
+              <div class="rev-val text-[#A3F3C5]" id="rg-weekly-rev">—</div>
+            </div>
+            <div class="rev-row">
+              <div><div class="rev-label">Weekly Labor Budget @ 12%</div><div class="rev-sub">Max spend this week</div></div>
+              <div class="rev-val text-[#A3F3C5]" id="rg-weekly-budget">—</div>
+            </div>
+            <div class="rev-row">
+              <div><div class="rev-label">Yesterday's Spend</div><div class="rev-sub" id="rg-yesterday-vs">vs daily budget</div></div>
+              <div class="rev-val" id="rg-yesterday-spend">—</div>
+            </div>
           </div>
-          <div>
-            <div class="flex justify-between text-xs text-[#9D9F9E] mono mb-2"><span>Hours</span><span id="pt-hours">—</span></div>
-            <div class="prog-track"><div class="prog-fill bg-[#A3F3C5]/70" id="pb-hours" style="width:0%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between text-xs text-[#9D9F9E] mono mb-2"><span>Spend</span><span id="pt-spend">—</span></div>
-            <div class="prog-track"><div class="prog-fill" id="pb-spend" style="width:0%;background:rgba(246,173,85,0.7)"></div></div>
+
+          <!-- Projected EOW meter -->
+          <div class="surface-card flex flex-col justify-between">
+            <div>
+              <div class="text-xs text-[#9D9F9E] tracking-widest uppercase mb-1">Projected End-of-Week Labor %</div>
+              <div class="text-xs mono text-[#9D9F9E]/50 mb-3">At current daily spend pace</div>
+              <div class="flex items-end gap-3 mb-1">
+                <div class="text-5xl font-extralight mono" id="rg-proj-pct">—</div>
+                <div class="text-sm text-[#9D9F9E] mb-2">vs 12% goal</div>
+              </div>
+              <div class="meter-track">
+                <div class="meter-fill" id="rg-meter" style="width:0%"></div>
+                <div class="meter-goal" style="left:60%"></div>
+              </div>
+              <div class="flex justify-between text-xs mono text-[#9D9F9E]/40 mt-1"><span>0%</span><span>20%</span></div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/5">
+              <div class="rev-row" style="padding:7px 0;">
+                <div><div class="rev-label">Budget Remaining</div><div class="rev-sub">to stay at 12%</div></div>
+                <div class="rev-val" id="rg-spend-left">—</div>
+              </div>
+              <div class="rev-row" style="padding:7px 0;">
+                <div><div class="rev-label">Max Per Remaining Day</div><div class="rev-sub" id="rg-days-left-label">— days left</div></div>
+                <div class="rev-val" id="rg-per-day">—</div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="border-t border-[#A3F3C5]/10 my-6"></div>
-        <div class="text-[#A3F3C5] text-xs font-bold tracking-widest uppercase mb-4 opacity-60">Gap Analysis</div>
+
+        <!-- ── At Risk ── -->
+        <div class="flex items-center gap-3 mb-4">
+          <div class="text-[#A3F3C5] text-xs font-bold tracking-widest uppercase opacity-60">At Risk</div>
+          <span id="risk-summary-badge"></span>
+          <span class="mono text-xs text-[#9D9F9E]/50" id="risk-score-label"></span>
+        </div>
+        <div class="risk-panel mb-6" id="risk-panel">
+          <div class="text-sm font-light mb-4" id="risk-headline">Calculating...</div>
+          <div id="risk-items"></div>
+        </div>
+
+        <div class="border-t border-[#A3F3C5]/10 my-6"></div>
+
+        <!-- Gap cards -->
+        <div class="text-[#A3F3C5] text-xs font-bold tracking-widest uppercase mb-4 opacity-60">Gap to Target</div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="gap-card">
+          <div class="surface-card">
             <div class="text-xs tracking-widest uppercase text-[#9D9F9E] mb-3">Orders Needed</div>
             <div class="text-3xl font-extralight mono text-[#F6AD55]" id="g-orders">—</div>
-            <div class="text-xs text-[#9D9F9E] mt-2" id="g-orders-sub">to hit weekly target</div>
+            <div class="text-xs text-[#9D9F9E] mt-2" id="g-orders-sub"></div>
           </div>
-          <div class="gap-card">
+          <div class="surface-card">
+            <div class="text-xs tracking-widest uppercase text-[#9D9F9E] mb-3">Orders / Day Needed</div>
+            <div class="text-3xl font-extralight mono text-[#F6AD55]" id="g-opd">—</div>
+            <div class="text-xs text-[#9D9F9E] mt-2" id="g-opd-sub"></div>
+          </div>
+          <div class="surface-card">
             <div class="text-xs tracking-widest uppercase text-[#9D9F9E] mb-3">Hours Remaining</div>
             <div class="text-3xl font-extralight mono text-[#F6AD55]" id="g-hours">—</div>
-            <div class="text-xs text-[#9D9F9E] mt-2" id="g-hours-sub">to hit weekly target</div>
+            <div class="text-xs text-[#9D9F9E] mt-2" id="g-hours-sub"></div>
           </div>
-          <div class="gap-card">
-            <div class="text-xs tracking-widest uppercase text-[#9D9F9E] mb-3">Spend Budget Left</div>
+          <div class="surface-card">
+            <div class="text-xs tracking-widest uppercase text-[#9D9F9E] mb-3">Budget Left</div>
             <div class="text-3xl font-extralight mono text-[#F6AD55]" id="g-spend">—</div>
-            <div class="text-xs text-[#9D9F9E] mt-2" id="g-spend-sub">remaining this week</div>
-          </div>
-          <div class="gap-card">
-            <div class="text-xs tracking-widest uppercase text-[#9D9F9E] mb-3">Max Daily Spend</div>
-            <div class="text-3xl font-extralight mono text-[#F6AD55]" id="g-daily">—</div>
-            <div class="text-xs text-[#9D9F9E] mt-2" id="g-daily-sub">to stay at 12% labor</div>
+            <div class="text-xs text-[#9D9F9E] mt-2" id="g-spend-sub"></div>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- HISTORY -->
+    <!-- ══════════════════════ HISTORY ══════════════════════ -->
     <div id="panel-history" style="display:none;">
       <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div class="text-[#A3F3C5] text-xs font-bold tracking-widest uppercase opacity-60">All Logged Days</div>
@@ -322,9 +333,7 @@
       </div>
       <div id="hist-empty" class="text-center py-16 text-[#9D9F9E] mono text-sm">No history yet.</div>
       <div id="hist-content" style="display:none;">
-        <div class="glass rounded-3xl p-4 mb-6" style="position:relative;height:200px;">
-          <canvas id="hist-chart"></canvas>
-        </div>
+        <div class="glass rounded-3xl p-4 mb-6" style="position:relative;height:200px;"><canvas id="hist-chart"></canvas></div>
         <div class="overflow-x-auto">
           <table class="w-full mono text-xs">
             <thead>
@@ -346,11 +355,10 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- NEW WEEK MODAL -->
+<!-- Modal -->
 <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;align-items:center;justify-content:center;">
   <div class="glass rounded-3xl p-8 max-w-sm w-full mx-4">
     <h3 class="text-2xl font-extralight text-white mb-3">Start New Week</h3>
@@ -361,68 +369,76 @@
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 const KEY = 'atx_labor_v3';
 let histChart = null;
-
-function load() {
-  try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : def(); } catch { return def(); }
-}
-function def() { return { week: 1, weekStart: new Date().toISOString().split('T')[0], targets: {}, days: [] }; }
+function load() { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : def(); } catch { return def(); } }
+function def() { return { week:1, weekStart: new Date().toISOString().split('T')[0], targets:{}, days:[] }; }
 function save() { localStorage.setItem(KEY, JSON.stringify(S)); }
 let S = load();
 
+const fmt$  = v => '$' + Math.round(v).toLocaleString();
+const fmtD$ = v => '$' + v.toFixed(2);
+const gar      = (v,g) => v <= g ? '#A3F3C5' : v <= g*1.25 ? '#F6AD55' : '#F55F5F';
+const garClass = (v,g) => v <= g ? 'good' : v <= g*1.25 ? 'warn' : 'bad';
+const dot = c => `<span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;"></span>`;
+
 function showTab(id) {
   ['daily','results','history'].forEach(t => {
-    document.getElementById('panel-' + t).style.display = t === id ? '' : 'none';
-    document.getElementById('tab-' + t).className = 'tab-btn' + (t === id ? ' active' : '');
+    document.getElementById('panel-'+t).style.display = t===id ? '' : 'none';
+    document.getElementById('tab-'+t).className = 'tab-btn'+(t===id?' active':'');
   });
-  if (id === 'results') renderResults();
-  if (id === 'history') renderHistory();
-  if (id === 'daily') renderDailyUI();
+  if (id==='results') renderResults();
+  if (id==='history') renderHistory();
+  if (id==='daily')   renderDailyUI();
 }
 
 function renderDailyUI() {
-  document.getElementById('week-label').textContent = 'WEEK ' + S.week;
+  document.getElementById('week-label').textContent = 'WEEK '+S.week;
   const days = weekDays();
   if (S.weekStart) {
-    const d = new Date(S.weekStart + 'T00:00:00');
-    document.getElementById('week-range-display').textContent = 'Started ' + d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' + days.length + ' day(s)';
+    const d = new Date(S.weekStart+'T00:00:00');
+    document.getElementById('week-range-display').textContent = 'Started '+d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+days.length+' day(s)';
   }
-  document.getElementById('day-count-label').textContent = days.length + ' day(s) logged this week';
+  document.getElementById('day-count-label').textContent = days.length+' day(s) logged this week';
   const t = S.targets;
-  if (t.revenue) document.getElementById('inp-rev').value = t.revenue;
-  if (t.weeklySpend) document.getElementById('inp-weekly-spend').value = t.weeklySpend;
+  if (t.revenue)      document.getElementById('inp-rev').value           = t.revenue;
+  if (t.workdays)     document.getElementById('inp-workdays').value      = t.workdays;
   if (t.weeklyOrders) document.getElementById('inp-weekly-orders').value = t.weeklyOrders;
-  if (t.weeklyHours) document.getElementById('inp-weekly-hours').value = t.weeklyHours;
+  if (t.weeklyHours)  document.getElementById('inp-weekly-hours').value  = t.weeklyHours;
 }
 
 function weekDays() { return S.days.filter(d => d.week === S.week); }
 
 function saveDay() {
-  const hours = parseFloat(document.getElementById('inp-hours').value);
-  const cost = parseFloat(document.getElementById('inp-cost').value);
+  const hours  = parseFloat(document.getElementById('inp-hours').value);
+  const cost   = parseFloat(document.getElementById('inp-cost').value);
   const orders = parseFloat(document.getElementById('inp-orders').value);
-  const units = parseFloat(document.getElementById('inp-units').value);
-  if (!hours || !cost || !orders || !units) { showToast('Fill in all 4 actuals', 'warn'); return; }
-  const rev = parseFloat(document.getElementById('inp-rev').value) || S.targets.revenue || 0;
-  const ws = parseFloat(document.getElementById('inp-weekly-spend').value) || S.targets.weeklySpend || 0;
-  const wo = parseFloat(document.getElementById('inp-weekly-orders').value) || S.targets.weeklyOrders || 0;
-  const wh = parseFloat(document.getElementById('inp-weekly-hours').value) || S.targets.weeklyHours || 0;
-  S.targets = { revenue: rev, weeklySpend: ws, weeklyOrders: wo, weeklyHours: wh };
+  const units  = parseFloat(document.getElementById('inp-units').value);
+  if (!hours||!cost||!orders||!units) { showToast('Fill in all 4 actuals','warn'); return; }
+
+  const rev      = parseFloat(document.getElementById('inp-rev').value)           || S.targets.revenue      || 0;
+  const workdays = parseFloat(document.getElementById('inp-workdays').value)       || S.targets.workdays     || 21;
+  const wo       = parseFloat(document.getElementById('inp-weekly-orders').value)  || S.targets.weeklyOrders || 0;
+  const wh       = parseFloat(document.getElementById('inp-weekly-hours').value)   || S.targets.weeklyHours  || 0;
+
+  const dailyRev    = rev > 0 ? rev / workdays : 0;
+  const weeklyRev   = rev > 0 ? rev / 4.33     : 0;
+  const weeklyBudget = weeklyRev * 0.12;
+
+  S.targets = { revenue:rev, workdays, weeklyOrders:wo, weeklyHours:wh, weeklyBudget, dailyRev, weeklyRev };
   S.days.push({
     date: new Date().toISOString().split('T')[0],
     week: S.week, hours, cost, orders, units,
-    cpo: orders > 0 ? cost/orders : 0,
-    cpu: units > 0 ? cost/units : 0,
-    uph: hours > 0 ? units/hours : 0,
-    laborPct: rev > 0 ? (cost/(rev/4.33))*100 : 0
+    cpo: orders>0 ? cost/orders : 0,
+    cpu: units>0  ? cost/units  : 0,
+    uph: hours>0  ? units/hours : 0,
+    laborPct: dailyRev>0 ? (cost/dailyRev)*100 : 0
   });
   save();
-  ['inp-hours','inp-cost','inp-orders','inp-units'].forEach(id => document.getElementById(id).value = '');
+  ['inp-hours','inp-cost','inp-orders','inp-units'].forEach(id => document.getElementById(id).value='');
   renderDailyUI();
   showToast('Day saved ✓');
   setTimeout(() => showTab('results'), 500);
@@ -431,96 +447,193 @@ function saveDay() {
 function renderResults() {
   const days = weekDays();
   if (!days.length) {
-    document.getElementById('res-empty').style.display = '';
-    document.getElementById('res-content').style.display = 'none';
+    document.getElementById('res-empty').style.display='';
+    document.getElementById('res-content').style.display='none';
     return;
   }
-  document.getElementById('res-empty').style.display = 'none';
-  document.getElementById('res-content').style.display = '';
-  const last = days[days.length - 1];
-  const t = S.targets;
+  document.getElementById('res-empty').style.display='none';
+  document.getElementById('res-content').style.display='';
 
-  const colorClass = (val, goal) => val <= goal ? 'good' : val <= goal * 1.25 ? 'warn' : 'bad';
-  const greenAmberRed = (val, goal) => val <= goal ? '#A3F3C5' : val <= goal * 1.25 ? '#F6AD55' : '#F55F5F';
+  const last = days[days.length-1];
+  const t    = S.targets;
 
-  document.getElementById('val-cpo').textContent = '$' + last.cpo.toFixed(2);
-  document.getElementById('val-cpo').style.color = greenAmberRed(last.cpo, 1.20);
-  document.getElementById('card-cpo').className = 'kpi-card ' + colorClass(last.cpo, 1.20);
+  // Yesterday KPIs
+  document.getElementById('val-cpo').textContent = fmtD$(last.cpo);
+  document.getElementById('val-cpo').style.color = gar(last.cpo,1.20);
+  document.getElementById('card-cpo').className  = 'kpi-card '+garClass(last.cpo,1.20);
+  document.getElementById('val-cpu').textContent = '$'+last.cpu.toFixed(3);
+  document.getElementById('val-lpct').textContent = last.laborPct>0 ? last.laborPct.toFixed(1)+'%' : '—';
+  document.getElementById('val-lpct').style.color  = gar(last.laborPct,12);
+  document.getElementById('card-lpct').className   = 'kpi-card '+garClass(last.laborPct,12);
+  document.getElementById('val-uph').textContent   = last.uph.toFixed(1);
 
-  document.getElementById('val-cpu').textContent = '$' + last.cpu.toFixed(3);
-
-  const lpct = last.laborPct;
-  document.getElementById('val-lpct').textContent = lpct > 0 ? lpct.toFixed(1) + '%' : '—';
-  document.getElementById('val-lpct').style.color = greenAmberRed(lpct, 12);
-  document.getElementById('card-lpct').className = 'kpi-card ' + colorClass(lpct, 12);
-
-  document.getElementById('val-uph').textContent = last.uph.toFixed(1);
-
+  // WTD aggregates
   const wtdO = days.reduce((a,d)=>a+d.orders,0);
   const wtdH = days.reduce((a,d)=>a+d.hours,0);
   const wtdC = days.reduce((a,d)=>a+d.cost,0);
-  const wtdCPO = wtdO > 0 ? wtdC/wtdO : 0;
+  const wtdCPO = wtdO>0 ? wtdC/wtdO : 0;
+  const daysLogged = days.length;
+  const daysLeft   = Math.max(1, 5-daysLogged);
+  const weeklyBudget = t.weeklyBudget || 0;
 
   document.getElementById('wtd-orders').textContent = Math.round(wtdO).toLocaleString();
-  document.getElementById('wtd-hours').textContent = wtdH.toFixed(1);
-  document.getElementById('wtd-spend').textContent = '$' + Math.round(wtdC).toLocaleString();
-  document.getElementById('wtd-cpo').textContent = '$' + wtdCPO.toFixed(2);
-  document.getElementById('wtd-days').textContent = days.length;
+  document.getElementById('wtd-hours').textContent  = wtdH.toFixed(1);
+  document.getElementById('wtd-spend').textContent  = fmt$(wtdC);
+  document.getElementById('wtd-cpo').textContent    = fmtD$(wtdCPO);
+  document.getElementById('wtd-days').textContent   = daysLogged;
 
-  const badge = document.getElementById('wk-badge');
-  const bc = wtdCPO <= 1.20 ? 'good' : wtdCPO <= 1.50 ? 'warn' : 'bad';
-  const bl = wtdCPO <= 1.20 ? 'On Target' : wtdCPO <= 1.50 ? 'Elevated' : 'Over Goal';
-  badge.className = 'badge ' + bc;
-  badge.innerHTML = '<span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;"></span>' + bl;
+  const wkBadge = document.getElementById('wk-badge');
+  wkBadge.className = 'badge '+garClass(wtdCPO,1.20);
+  wkBadge.innerHTML = dot()+( wtdCPO<=1.20?'CPO On Target': wtdCPO<=1.50?'CPO Elevated':'CPO Over Goal');
 
-  const setBar = (pbId, ptId, val, target, fmt, color) => {
-    const p = target > 0 ? Math.min(100,(val/target)*100) : 0;
-    document.getElementById(pbId).style.width = p + '%';
-    document.getElementById(pbId).style.background = color;
-    document.getElementById(ptId).textContent = target > 0 ? fmt(val) + ' / ' + fmt(target) : '—';
+  // Progress bars
+  const setBar = (pb,pt,val,tgt,fmt,col) => {
+    const p = tgt>0 ? Math.min(100,(val/tgt)*100) : 0;
+    document.getElementById(pb).style.width=p+'%';
+    document.getElementById(pb).style.background=col;
+    document.getElementById(pt).textContent = tgt>0 ? fmt(val)+' / '+fmt(tgt) : '—';
   };
   setBar('pb-orders','pt-orders', wtdO, t.weeklyOrders||0, v=>Math.round(v).toLocaleString(), 'rgba(91,156,246,0.7)');
-  setBar('pb-hours','pt-hours', wtdH, t.weeklyHours||0, v=>v.toFixed(1), 'rgba(163,243,197,0.7)');
-  const over = wtdC > (t.weeklySpend||0);
-  setBar('pb-spend','pt-spend', wtdC, t.weeklySpend||0, v=>'$'+Math.round(v).toLocaleString(), over ? 'rgba(245,95,95,0.7)' : 'rgba(246,173,85,0.7)');
+  setBar('pb-hours', 'pt-hours',  wtdH, t.weeklyHours||0,  v=>v.toFixed(1),                  'rgba(163,243,197,0.7)');
+  setBar('pb-spend', 'pt-spend',  wtdC, weeklyBudget,       v=>fmt$(v), wtdC>weeklyBudget ? 'rgba(245,95,95,0.7)' : 'rgba(246,173,85,0.7)');
 
-  const daysLeft = Math.max(1, 5 - days.length);
-  const gO = Math.max(0,(t.weeklyOrders||0)-wtdO);
-  const gH = Math.max(0,(t.weeklyHours||0)-wtdH);
-  const gS = Math.max(0,(t.weeklySpend||0)-wtdC);
-  const wkRev = t.revenue > 0 ? (t.revenue/4.33)*7 : 0;
-  const maxDaily = gS > 0 ? gS/daysLeft : (wkRev*0.12)/5;
+  // ── Revenue % Guide ──
+  const dailyRev    = t.dailyRev    || 0;
+  const weeklyRev   = t.weeklyRev   || 0;
+  const dailyBudget = dailyRev * 0.12;
 
-  const setGap = (vid, sid, val, sub, ok) => {
-    const el = document.getElementById(vid);
-    el.textContent = val;
-    el.style.color = ok ? '#A3F3C5' : '#F6AD55';
-    document.getElementById(sid).textContent = sub;
+  document.getElementById('rg-daily-rev').textContent    = dailyRev>0    ? fmt$(dailyRev)    : '—';
+  document.getElementById('rg-daily-budget').textContent = dailyBudget>0 ? fmt$(dailyBudget) : '—';
+  document.getElementById('rg-weekly-rev').textContent   = weeklyRev>0   ? fmt$(weeklyRev)   : '—';
+  document.getElementById('rg-weekly-budget').textContent= weeklyBudget>0? fmt$(weeklyBudget): '—';
+
+  const diff = last.cost - dailyBudget;
+  document.getElementById('rg-yesterday-spend').textContent = fmt$(last.cost);
+  document.getElementById('rg-yesterday-spend').style.color = dailyBudget>0 ? (diff>0?'#F55F5F':'#A3F3C5') : '#A3F3C5';
+  document.getElementById('rg-yesterday-vs').textContent    = dailyBudget>0
+    ? (diff>0?'+':'')+fmt$(diff)+' vs daily budget'
+    : 'Set revenue target for comparison';
+  document.getElementById('rg-yesterday-vs').style.color = diff>0 ? 'rgba(245,95,95,0.6)' : 'rgba(163,243,197,0.5)';
+
+  // Projected EOW %
+  const avgDaily    = daysLogged>0 ? wtdC/daysLogged : 0;
+  const projTotal   = wtdC + avgDaily*daysLeft;
+  const projPct     = weeklyRev>0 ? (projTotal/weeklyRev)*100 : 0;
+
+  const projEl = document.getElementById('rg-proj-pct');
+  projEl.textContent  = projPct>0 ? projPct.toFixed(1)+'%' : '—';
+  projEl.style.color  = gar(projPct,12);
+
+  const meterW = projPct>0 ? Math.min(100,(projPct/20)*100) : 0;
+  document.getElementById('rg-meter').style.width      = meterW+'%';
+  document.getElementById('rg-meter').style.background = projPct<=12?'#A3F3C5':projPct<=15?'#F6AD55':'#F55F5F';
+
+  const spendLeft = Math.max(0, weeklyBudget-wtdC);
+  const perDay    = daysLeft>0 ? spendLeft/daysLeft : 0;
+  document.getElementById('rg-spend-left').textContent  = weeklyBudget>0 ? fmt$(spendLeft) : '—';
+  document.getElementById('rg-spend-left').style.color  = spendLeft>0 ? '#A3F3C5' : '#F55F5F';
+  document.getElementById('rg-per-day').textContent     = perDay>0 ? fmt$(perDay) : (weeklyBudget>0?'$0':'—');
+  document.getElementById('rg-per-day').style.color     = perDay>0 ? '#A3F3C5' : '#F55F5F';
+  document.getElementById('rg-days-left-label').textContent = daysLeft+' day(s) remaining';
+
+  // ── At Risk ──
+  let riskScore = 0;
+  const signals = [];
+
+  // Signal 1: Spend pace → projected EOW %
+  if (weeklyRev>0 && projPct>0) {
+    const over = projPct>12, crit = projPct>15;
+    riskScore += crit?2:over?1:0;
+    signals.push({
+      level: crit?'bad':over?'warn':'ok',
+      title: 'Labor spend pace',
+      detail: over
+        ? `Projecting ${projPct.toFixed(1)}% labor at EOW — ${(projPct-12).toFixed(1)}pt over goal. To correct: reduce daily spend by ~${fmt$(avgDaily-dailyBudget)}.`
+        : `On pace for ${projPct.toFixed(1)}% — within 12% goal.`
+    });
+  } else {
+    signals.push({ level:'ok', title:'Labor spend pace', detail:'Set monthly revenue to calculate projection.' });
+  }
+
+  // Signal 2: CPO trend
+  const cpoCrit = wtdCPO>1.50, cpoWarn = wtdCPO>1.20;
+  riskScore += cpoCrit?2:cpoWarn?1:0;
+  signals.push({
+    level: cpoCrit?'bad':cpoWarn?'warn':'ok',
+    title: 'CPO trend',
+    detail: cpoWarn
+      ? `WTD CPO ${fmtD$(wtdCPO)} is ${fmtD$(wtdCPO-1.20)} over goal. Estimated weekly overrun: ~${fmt$((wtdCPO-1.20)*(t.weeklyOrders||0))}.`
+      : `WTD CPO ${fmtD$(wtdCPO)} — within $1.20 goal.`
+  });
+
+  // Signal 3: Orders pace — can the week be recovered?
+  const gapO   = Math.max(0,(t.weeklyOrders||0)-wtdO);
+  const opdNeed = daysLeft>0 ? gapO/daysLeft : 0;
+  const opdAvg  = daysLogged>0 ? wtdO/daysLogged : 0;
+  let orderLevel = 'ok', orderDetail = '';
+  if (t.weeklyOrders>0 && gapO>0) {
+    const ratio = opdAvg>0 ? opdNeed/opdAvg : 999;
+    if (ratio>1.6)      { orderLevel='bad';  riskScore+=2; }
+    else if (ratio>1.3) { orderLevel='warn'; riskScore+=1; }
+    orderDetail = ratio>1.3
+      ? `Need ${Math.round(opdNeed).toLocaleString()} orders/day but averaging ${Math.round(opdAvg).toLocaleString()} — requires ${((ratio-1)*100).toFixed(0)}% increase to hit weekly target.`
+      : `Need ${Math.round(opdNeed).toLocaleString()} orders/day (avg ${Math.round(opdAvg).toLocaleString()}) — pace is achievable.`;
+  } else if (gapO===0) {
+    orderDetail = 'Weekly orders target already met.';
+  } else {
+    orderDetail = 'Set weekly orders target to calculate.';
+  }
+  signals.push({ level:orderLevel, title:'Orders pace', detail:orderDetail });
+
+  // Render risk panel
+  const dotCol = { ok:'#A3F3C5', warn:'#F6AD55', bad:'#F55F5F' };
+  let panelClass, badgeClass, badgeText, headlineText;
+  if      (riskScore===0) { panelClass='risk-panel clear';    badgeClass='badge good'; badgeText='All Clear'; headlineText='All signals tracking within target range.'; }
+  else if (riskScore<=2)  { panelClass='risk-panel elevated'; badgeClass='badge warn'; badgeText='Elevated';  headlineText='One or more signals need attention this week.'; }
+  else                    { panelClass='risk-panel critical'; badgeClass='badge bad';  badgeText='At Risk';   headlineText='Multiple signals off track — intervention needed to hit targets.'; }
+
+  document.getElementById('risk-panel').className = panelClass;
+  document.getElementById('risk-headline').textContent = headlineText;
+  const sb = document.getElementById('risk-summary-badge');
+  sb.className = badgeClass;
+  sb.innerHTML = dot()+badgeText;
+  document.getElementById('risk-score-label').textContent = riskScore+' / 6 risk pts';
+
+  document.getElementById('risk-items').innerHTML = signals.map(s=>`
+    <div class="risk-item">
+      <div class="risk-dot ${s.level}"></div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:${dotCol[s.level]};margin-bottom:3px;">${s.title}</div>
+        <div style="font-size:11px;color:rgba(157,159,158,0.8);line-height:1.6;font-family:'IBM Plex Mono',monospace;">${s.detail}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Gap cards
+  const setGap = (vid,sid,val,sub,ok) => {
+    const el=document.getElementById(vid); el.textContent=val; el.style.color=ok?'#A3F3C5':'#F6AD55';
+    document.getElementById(sid).textContent=sub;
   };
-  setGap('g-orders','g-orders-sub', Math.round(gO).toLocaleString(), gO>0?'~'+daysLeft+' day(s) left':'✓ Target met!', gO===0);
-  setGap('g-hours','g-hours-sub', gH.toFixed(1), gH>0?'~'+daysLeft+' day(s) left':'✓ Target met!', gH===0);
-  setGap('g-spend','g-spend-sub', '$'+Math.round(gS).toLocaleString(), gS>0?'$'+(gS/daysLeft).toFixed(0)+'/day avg':'⚠ Over budget', gS>0);
-  setGap('g-daily','g-daily-sub', '$'+Math.round(maxDaily).toLocaleString(), wkRev>0?'based on 12% of weekly rev':'Set revenue target first', false);
+  setGap('g-orders','g-orders-sub', Math.round(gapO).toLocaleString(),  gapO>0?'~'+daysLeft+' day(s) left':'✓ Target met!', gapO===0);
+  setGap('g-opd','g-opd-sub',       opdNeed>0?Math.round(opdNeed).toLocaleString():'✓', opdNeed>0?'vs '+Math.round(opdAvg)+' current avg/day':'Target met', opdNeed===0);
+  const gapH=Math.max(0,(t.weeklyHours||0)-wtdH);
+  setGap('g-hours','g-hours-sub',   gapH.toFixed(1), gapH>0?'~'+daysLeft+' day(s) left':'✓ Target met!', gapH===0);
+  setGap('g-spend','g-spend-sub',   weeklyBudget>0?fmt$(spendLeft):'—', spendLeft>0?fmt$(perDay)+'/day remaining':'⚠ Over budget', spendLeft>0);
 }
 
 function renderHistory() {
   const all = S.days;
-  if (!all.length) {
-    document.getElementById('hist-empty').style.display = '';
-    document.getElementById('hist-content').style.display = 'none';
-    return;
-  }
-  document.getElementById('hist-empty').style.display = 'none';
-  document.getElementById('hist-content').style.display = '';
-
+  if (!all.length) { document.getElementById('hist-empty').style.display=''; document.getElementById('hist-content').style.display='none'; return; }
+  document.getElementById('hist-empty').style.display='none';
+  document.getElementById('hist-content').style.display='';
   const tbody = document.getElementById('hist-body');
-  tbody.innerHTML = '';
-  [...all].reverse().forEach(d => {
-    const cc = d.cpo <= 1.20 ? '#A3F3C5' : d.cpo <= 1.50 ? '#F6AD55' : '#F55F5F';
-    const pc = d.laborPct > 0 && d.laborPct <= 12 ? '#A3F3C5' : d.laborPct > 15 ? '#F55F5F' : '#F6AD55';
-    const tr = document.createElement('tr');
-    tr.className = 'border-b border-[#A3F3C5]/5 hover:bg-white/5 transition-colors';
-    tr.innerHTML = `
+  tbody.innerHTML='';
+  [...all].reverse().forEach(d=>{
+    const cc = d.cpo<=1.20?'#A3F3C5':d.cpo<=1.50?'#F6AD55':'#F55F5F';
+    const pc = d.laborPct>0&&d.laborPct<=12?'#A3F3C5':d.laborPct>15?'#F55F5F':'#F6AD55';
+    const tr=document.createElement('tr');
+    tr.className='border-b border-[#A3F3C5]/5 hover:bg-white/5 transition-colors';
+    tr.innerHTML=`
       <td class="py-3 px-3 text-[#9D9F9E]">${d.date}</td>
       <td class="py-3 px-3"><span class="week-tag">WK${d.week}</span></td>
       <td class="py-3 px-3 text-[#A3F3C5]">${Math.round(d.orders).toLocaleString()}</td>
@@ -530,54 +643,51 @@ function renderHistory() {
       <td class="py-3 px-3 font-medium" style="color:${cc}">$${d.cpo.toFixed(2)}</td>
       <td class="py-3 px-3 text-[#9D9F9E]">$${d.cpu.toFixed(3)}</td>
       <td class="py-3 px-3 font-medium" style="color:${pc}">${d.laborPct>0?d.laborPct.toFixed(1)+'%':'—'}</td>
-      <td class="py-3 px-3 text-[#9D9F9E]">${d.uph.toFixed(1)}</td>
-    `;
+      <td class="py-3 px-3 text-[#9D9F9E]">${d.uph.toFixed(1)}</td>`;
     tbody.appendChild(tr);
   });
-
-  if (histChart) { histChart.destroy(); histChart = null; }
-  histChart = new Chart(document.getElementById('hist-chart'), {
-    type: 'line',
-    data: {
-      labels: all.map(d => d.date.slice(5)),
-      datasets: [
-        { label:'CPO', data: all.map(d=>+d.cpo.toFixed(2)), borderColor:'#A3F3C5', backgroundColor:'rgba(163,243,197,0.05)', tension:0.3, pointRadius:3, pointBackgroundColor:'#A3F3C5', yAxisID:'y' },
-        { label:'Labor%', data: all.map(d=>d.laborPct>0?+d.laborPct.toFixed(1):null), borderColor:'rgba(246,173,85,0.8)', backgroundColor:'rgba(246,173,85,0.04)', tension:0.3, pointRadius:3, pointBackgroundColor:'rgba(246,173,85,0.8)', yAxisID:'y2' }
+  if (histChart) { histChart.destroy(); histChart=null; }
+  histChart = new Chart(document.getElementById('hist-chart'),{
+    type:'line',
+    data:{
+      labels: all.map(d=>d.date.slice(5)),
+      datasets:[
+        {label:'CPO',    data:all.map(d=>+d.cpo.toFixed(2)),                    borderColor:'#A3F3C5',           backgroundColor:'rgba(163,243,197,0.05)', tension:0.3, pointRadius:3, pointBackgroundColor:'#A3F3C5',           yAxisID:'y'},
+        {label:'Labor%', data:all.map(d=>d.laborPct>0?+d.laborPct.toFixed(1):null), borderColor:'rgba(246,173,85,0.8)', backgroundColor:'rgba(246,173,85,0.04)',  tension:0.3, pointRadius:3, pointBackgroundColor:'rgba(246,173,85,0.8)', yAxisID:'y2'}
       ]
     },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks:{color:'rgba(163,243,197,0.35)',font:{size:10},autoSkip:false,maxRotation:45}, grid:{color:'rgba(163,243,197,0.05)'} },
-        y: { position:'left', ticks:{color:'rgba(163,243,197,0.6)',font:{size:10},callback:v=>'$'+v.toFixed(2)}, grid:{color:'rgba(163,243,197,0.06)'} },
-        y2: { position:'right', ticks:{color:'rgba(246,173,85,0.6)',font:{size:10},callback:v=>v+'%'}, grid:{drawOnChartArea:false} }
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x: {ticks:{color:'rgba(163,243,197,0.35)',font:{size:10},autoSkip:false,maxRotation:45},grid:{color:'rgba(163,243,197,0.05)'}},
+        y: {position:'left', ticks:{color:'rgba(163,243,197,0.6)',font:{size:10},callback:v=>'$'+v.toFixed(2)},grid:{color:'rgba(163,243,197,0.06)'}},
+        y2:{position:'right',ticks:{color:'rgba(246,173,85,0.6)',font:{size:10},callback:v=>v+'%'},grid:{drawOnChartArea:false}}
       }
     }
   });
 }
 
-function exportCSV() {
-  const h = ['date','week','orders','units','hours','cost','cpo','cpu','labor_pct','uph'];
-  let csv = h.join(',') + '\n';
-  S.days.forEach(d => { csv += [d.date,d.week,Math.round(d.orders),Math.round(d.units),d.hours.toFixed(1),d.cost.toFixed(2),d.cpo.toFixed(2),d.cpu.toFixed(3),d.laborPct>0?d.laborPct.toFixed(1):'',d.uph.toFixed(1)].join(',') + '\n'; });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download = 'atx_labor.csv';
-  a.click();
+function exportCSV(){
+  const h=['date','week','orders','units','hours','cost','cpo','cpu','labor_pct','uph'];
+  let csv=h.join(',')+'\n';
+  S.days.forEach(d=>{csv+=[d.date,d.week,Math.round(d.orders),Math.round(d.units),d.hours.toFixed(1),d.cost.toFixed(2),d.cpo.toFixed(2),d.cpu.toFixed(3),d.laborPct>0?d.laborPct.toFixed(1):'',d.uph.toFixed(1)].join(',')+'\n';});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='atx_labor.csv'; a.click();
 }
 
-function openModal() { const m = document.getElementById('modal'); m.style.display='flex'; }
-function closeModal() { const m = document.getElementById('modal'); m.style.display='none'; }
-function confirmNewWeek() { S.week++; S.weekStart = new Date().toISOString().split('T')[0]; save(); closeModal(); renderDailyUI(); showToast('Week ' + S.week + ' started'); }
+function openModal()  { document.getElementById('modal').style.display='flex'; }
+function closeModal() { document.getElementById('modal').style.display='none'; }
+function confirmNewWeek() { S.week++; S.weekStart=new Date().toISOString().split('T')[0]; save(); closeModal(); renderDailyUI(); showToast('Week '+S.week+' started'); }
 
-function showToast(msg, type) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.style.borderColor = type === 'warn' ? 'rgba(246,173,85,0.5)' : 'rgba(163,243,197,0.4)';
-  el.style.color = type === 'warn' ? '#F6AD55' : '#A3F3C5';
+function showToast(msg,type){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.borderColor=type==='warn'?'rgba(246,173,85,0.5)':'rgba(163,243,197,0.4)';
+  el.style.color=type==='warn'?'#F6AD55':'#A3F3C5';
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
+  setTimeout(()=>el.classList.remove('show'),2500);
 }
 
 renderDailyUI();
