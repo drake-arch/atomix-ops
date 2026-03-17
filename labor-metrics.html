@@ -348,6 +348,7 @@
                 <th class="text-left py-3 px-3 tracking-widest uppercase font-medium text-[10px]">CPU</th>
                 <th class="text-left py-3 px-3 tracking-widest uppercase font-medium text-[10px]">Labor%</th>
                 <th class="text-left py-3 px-3 tracking-widest uppercase font-medium text-[10px]">UPH</th>
+                <th class="py-3 px-3"></th>
               </tr>
             </thead>
             <tbody id="hist-body"></tbody>
@@ -628,11 +629,12 @@ function renderHistory() {
   document.getElementById('hist-content').style.display='';
   const tbody = document.getElementById('hist-body');
   tbody.innerHTML='';
-  [...all].reverse().forEach(d=>{
+  // iterate with true index so delete targets the right entry
+  [...all].map((d,i)=>({d,i})).reverse().forEach(({d,i})=>{
     const cc = d.cpo<=1.20?'#A3F3C5':d.cpo<=1.50?'#F6AD55':'#F55F5F';
     const pc = d.laborPct>0&&d.laborPct<=12?'#A3F3C5':d.laborPct>15?'#F55F5F':'#F6AD55';
     const tr=document.createElement('tr');
-    tr.className='border-b border-[#A3F3C5]/5 hover:bg-white/5 transition-colors';
+    tr.className='border-b border-[#A3F3C5]/5 hover:bg-white/5 transition-colors group';
     tr.innerHTML=`
       <td class="py-3 px-3 text-[#9D9F9E]">${d.date}</td>
       <td class="py-3 px-3"><span class="week-tag">WK${d.week}</span></td>
@@ -643,7 +645,17 @@ function renderHistory() {
       <td class="py-3 px-3 font-medium" style="color:${cc}">$${d.cpo.toFixed(2)}</td>
       <td class="py-3 px-3 text-[#9D9F9E]">$${d.cpu.toFixed(3)}</td>
       <td class="py-3 px-3 font-medium" style="color:${pc}">${d.laborPct>0?d.laborPct.toFixed(1)+'%':'—'}</td>
-      <td class="py-3 px-3 text-[#9D9F9E]">${d.uph.toFixed(1)}</td>`;
+      <td class="py-3 px-3 text-[#9D9F9E]">${d.uph.toFixed(1)}</td>
+      <td class="py-3 px-3">
+        <button onclick="deleteDay(${i})" title="Delete this entry"
+          style="opacity:0;font-size:14px;color:rgba(245,95,95,0.6);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;transition:all 0.15s;"
+          onmouseover="this.style.opacity='1';this.style.background='rgba(245,95,95,0.12)';"
+          onmouseout="this.style.opacity='0';this.style.background='none';"
+          class="del-btn">✕</button>
+      </td>`;
+    // show delete btn on row hover
+    tr.addEventListener('mouseenter', ()=>{ const b=tr.querySelector('.del-btn'); if(b) b.style.opacity='1'; });
+    tr.addEventListener('mouseleave', ()=>{ const b=tr.querySelector('.del-btn'); if(b) b.style.opacity='0'; });
     tbody.appendChild(tr);
   });
   if (histChart) { histChart.destroy(); histChart=null; }
@@ -666,6 +678,14 @@ function renderHistory() {
       }
     }
   });
+}
+
+function deleteDay(idx) {
+  if (!confirm('Delete this entry? This cannot be undone.')) return;
+  S.days.splice(idx, 1);
+  save();
+  renderHistory();
+  showToast('Entry deleted');
 }
 
 function exportCSV(){
