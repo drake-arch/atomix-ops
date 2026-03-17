@@ -59,7 +59,7 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
 
 .chart-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;}
 .chart-card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;display:flex;align-items:center;justify-content:space-between;}
-.chart-wrap{position:relative;flex:1;min-height:160px;}
+.chart-wrap{position:relative;width:100%;height:200px;}
 
 .dept-bar-list{display:flex;flex-direction:column;gap:10px;}
 .dept-bar-header{display:flex;justify-content:space-between;margin-bottom:4px;}
@@ -207,7 +207,7 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
       </div>
       <div class="chart-card" style="flex:1;">
         <div class="chart-card-title">Hours Accrued — Today <span style="font-size:9px;color:var(--muted);font-weight:400;">updated live</span></div>
-        <div class="chart-wrap" style="min-height:140px;"><canvas id="hoursChart"></canvas></div>
+        <div class="chart-wrap" style="height:140px;"><canvas id="hoursChart"></canvas></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:14px;">
@@ -240,12 +240,12 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
   </div>
   <div class="grid-3">
     <div class="stat-card" style="--accent:var(--amber)"><div class="stat-label">Total Labor Cost</div><div class="stat-val" id="laborTotalCost">—</div><div class="stat-sub">this week</div></div>
-    <div class="stat-card" style="--accent:var(--green)"><div class="stat-label">Cost Per Order (CPO)</div><div class="stat-val" id="laborCPO">—</div><div class="stat-sub">target &lt;$4.00</div></div>
-    <div class="stat-card" style="--accent:var(--blue)"><div class="stat-label">Labor % of Revenue</div><div class="stat-val" id="laborRevPct">—</div><div class="stat-sub">target &lt;30%</div></div>
+    <div class="stat-card" style="--accent:var(--green)"><div class="stat-label">Cost Per Order (CPO)</div><div class="stat-val" id="laborCPO">—</div><div class="stat-sub" id="laborCPOTarget">target &lt;$4.00</div></div>
+    <div class="stat-card" style="--accent:var(--blue)"><div class="stat-label">Labor % of Revenue</div><div class="stat-val" id="laborRevPct">—</div><div class="stat-sub" id="laborPctTarget">target &lt;30%</div></div>
   </div>
   <div class="chart-card">
     <div class="chart-card-title">Stacked Hours by Department</div>
-    <div class="chart-wrap" style="min-height:180px;"><canvas id="laborStackedChart"></canvas></div>
+    <div class="chart-wrap" style="height:220px;"><canvas id="laborStackedChart"></canvas></div>
   </div>
 </div>
 
@@ -406,6 +406,9 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
 // ═══════════════════════════════════════════════
 // CONFIG & STATE
 // ═══════════════════════════════════════════════
+Chart.defaults.animation = false; // prevent sizing race on first render
+Chart.defaults.responsive = true;
+Chart.defaults.maintainAspectRatio = false;
 let CONFIG = {
   scriptUrl:  localStorage.getItem('atomix_script_url') || '',
   hourlyRate: parseFloat(localStorage.getItem('atomix_rate')      || '18.50'),
@@ -444,7 +447,7 @@ function showView(id) {
     if (id === 'employees')    renderEmployeeTable();
     if (id === 'projects')     renderProjectTable();
     if (id === 'history')      renderHistory();
-  }, 50);
+  }, 100);
 }
 
 // ═══════════════════════════════════════════════
@@ -505,7 +508,7 @@ async function doRefresh() {
       if (active === 'employees')    renderEmployeeTable();
       if (active === 'projects')     renderProjectTable();
       if (active === 'history')      renderHistory();
-    }, 50);
+    }, 100);
   }
 }
 
@@ -678,8 +681,10 @@ function renderLaborView() {
   const depts=Object.keys(bydept);
   const total=depts.reduce((s,d)=>s+bydept[d].cost,0);
   document.getElementById('laborTotalCost').textContent='$'+fmt(total);
-  document.getElementById('laborCPO').textContent='$'+(total/Math.max(1,DAILY_DATA.length*500)).toFixed(2);
+  document.getElementById('laborCPO').textContent='$'+CONFIG.cpo.toFixed(2);
+  document.getElementById('laborCPOTarget').textContent='target <$'+CONFIG.cpo.toFixed(2);
   document.getElementById('laborRevPct').textContent='—';
+  document.getElementById('laborPctTarget').textContent='target <'+CONFIG.laborPct+'%';
 
   if (CHARTS.laborPie) { CHARTS.laborPie.destroy(); delete CHARTS.laborPie; }
   CHARTS.laborPie=new Chart(document.getElementById('laborPieChart'),{
