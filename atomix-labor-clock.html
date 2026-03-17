@@ -235,34 +235,61 @@
   }
   .bubble:hover .bubble-context-btn { opacity: 1; }
 
-  /* ── EMPLOYEES INSIDE BUBBLE ── */
+  /* ── EMPLOYEES INSIDE BUBBLE — with always-visible name ── */
   .emp-float {
     position: absolute;
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.3);
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
     cursor: grab;
     transition: transform 0.2s, box-shadow 0.2s;
     z-index: 15;
+    /* No border-radius here — applied to the img wrapper */
   }
   .emp-float:hover {
     transform: scale(1.15);
-    box-shadow: 0 0 12px rgba(163,243,197,0.5);
     z-index: 25;
   }
-  .emp-float img {
-    width: 100%; height: 100%; object-fit: cover;
+  .emp-float-img-wrap {
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.3);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    transition: box-shadow 0.2s;
   }
-  .emp-float .emp-tip {
-    display: none;
-    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px; padding: 2px 6px;
-    font-size: 9px; white-space: nowrap; color: var(--text); z-index: 30;
+  .emp-float:hover .emp-float-img-wrap {
+    box-shadow: 0 0 12px rgba(163,243,197,0.5);
   }
-  .emp-float:hover .emp-tip { display: block; }
+  .emp-float-img-wrap img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  /* Always-visible name tag under avatar */
+  .emp-float-name {
+    font-size: 8px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.92);
+    text-align: center;
+    line-height: 1.1;
+    white-space: nowrap;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(2px);
+    padding: 1px 4px;
+    border-radius: 4px;
+    max-width: 52px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    letter-spacing: 0.01em;
+  }
+  /* Slightly bigger name for child bubble avatars */
+  .child-bubble .emp-float-name {
+    font-size: 7px;
+    max-width: 36px;
+    padding: 1px 3px;
+  }
 
   /* ── BREAK / LUNCH ZONES ── */
   .break-zones {
@@ -547,14 +574,11 @@
     position: absolute;
     width: 3000px; height: 3000px;
     transform-origin: top left;
-    /* no transition — we update on mousemove */
   }
   /* Pan cursor on canvas when not dragging bubble */
   #canvasArea { cursor: grab; }
   #canvasArea.panning { cursor: grabbing; }
   #canvasArea.bubble-dragging { cursor: grabbing; }
-  /* ── PULSE ANIMATION FOR DROP ZONES ── */
-
 
   /* ── EMPLOYEE MODAL ── */
   .emp-modal-overlay {
@@ -990,7 +1014,6 @@
     <canvas id="bgCanvas"></canvas>
     <div id="bubbleLayer"><!-- Bubbles rendered here by JS --></div>
 
-
     <!-- ROSTER TOGGLE BUTTON -->
     <button class="roster-toggle" id="rosterToggle">&#9776; Roster</button>
 
@@ -1080,9 +1103,6 @@ const COLORS = [
   { bg: 'rgba(72,187,120,0.18)',  border: '#48BB78', glow: 'rgba(72,187,120,0.3)' },
 ];
 
-// ═══════════════════════════════════════════════
-// BACKEND CONFIG — paste your Apps Script URL here
-// ═══════════════════════════════════════════════
 const SCRIPT_URL = localStorage.getItem('atomix_script_url') || '';
 const DEVICE_ID  = 'floor-tablet-' + (Math.random().toString(36).slice(2,6));
 
@@ -1131,7 +1151,7 @@ const EMPLOYEES = [
   { id: 'e23', name: 'Michael J.', fullName: 'Michael Jones', dept: null, clockIn: null, totalHrs: 0, color: '#6ec8e8', shiftStart: '06:00', shiftEnd: '14:30', isManager: false },
   { id: 'e24', name: 'Raimundo A.', fullName: 'Raimundo Andueza', dept: null, clockIn: null, totalHrs: 0, color: '#c86ee8', shiftStart: '06:00', shiftEnd: '14:30', isManager: false },
   { id: 'e25', name: 'William L.', fullName: 'William Lopez', dept: null, clockIn: null, totalHrs: 0, color: '#e8e86e', shiftStart: '06:00', shiftEnd: '14:30', isManager: false },
-  { id: 'e26', name: 'Yaniel F.', fullName: 'Yaniel Figueroa', dept: null, clockIn: null, totalHrs: 0, color: '#6ee8e8', shiftStart: '06:00', shiftEnd: '14:30', isManager: false },
+  { id: 'e26', name: 'Yaniel F.2', fullName: 'Yaniel Figueroa 2', dept: null, clockIn: null, totalHrs: 0, color: '#6ee8e8', shiftStart: '06:00', shiftEnd: '14:30', isManager: false },
   { id: 'e27', name: 'Yoryisel F.', fullName: 'Yoryisel Carpio Flores', dept: null, clockIn: null, totalHrs: 0, color: '#e86e6e', shiftStart: '06:00', shiftEnd: '14:30', isManager: false },
   { id: 'e28', name: 'Miriam M.', fullName: 'Miriam Martinez', dept: null, clockIn: null, totalHrs: 0, color: '#88e8a8', shiftStart: '06:00', shiftEnd: '14:30', isManager: false },
   { id: 'e29', name: 'Beatriz P.', fullName: 'Beatriz Nunez Perez', dept: null, clockIn: null, totalHrs: 0, color: '#a888e8', shiftStart: '06:00', shiftEnd: '14:30', isManager: false },
@@ -1177,15 +1197,26 @@ let bubbleIdCounter = 10;
 let selectedColorIdx = 0;
 let logEntries = [];
 let totalWeeklyHrs = 0;
-let dragData = null; // { type: 'emp'|'bubble', empId, bubbleId, originBubble, startX, startY }
+let dragData = null;
 let ctxTarget = null;
 
 // ═══════════════════════════════════════════════
 // AVATAR GENERATOR
 // ═══════════════════════════════════════════════
+const AVATAR_STYLES = [
+  { key: 'personas',    label: 'Persona' },
+  { key: 'avataaars',   label: 'Cartoon' },
+  { key: 'pixel-art',   label: 'Pixel' },
+  { key: 'bottts',      label: 'Robot' },
+  { key: 'fun-emoji',   label: 'Emoji' },
+];
+let activeAvatarStyle = 'personas';
+let selectedAvatarSeed = null;
+
 function avatarUrl(emp) {
-  const seed = encodeURIComponent(emp.name);
-  return `https://api.dicebear.com/7.x/personas/svg?seed=${seed}&backgroundColor=transparent`;
+  const style = emp.avatarStyle || 'personas';
+  const seed  = emp.avatarSeed  || encodeURIComponent(emp.fullName || emp.name);
+  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
 }
 
 // ═══════════════════════════════════════════════
@@ -1208,7 +1239,6 @@ function updateTubes() {
   let dailyHrs = active.reduce((sum, e) => {
     return sum + (e.totalHrs + (nowMs - e.clockIn) / 3600000);
   }, 0);
-  // Add already clocked-out hours
   const clocked = EMPLOYEES.filter(e => e.clockIn === null && e.totalHrs > 0);
   dailyHrs += clocked.reduce((s, e) => s + e.totalHrs, 0);
 
@@ -1221,7 +1251,7 @@ function updateTubes() {
 
   document.getElementById('tubeDayFill').style.height = dayPct + '%';
   document.getElementById('tubeWeekFill').style.height = weekPct + '%';
-  document.getElementById('tubeDayTarget').style.bottom = '70%'; // fixed line at 70%
+  document.getElementById('tubeDayTarget').style.bottom = '70%';
   document.getElementById('tubeWeekTarget').style.bottom = '70%';
   document.getElementById('tubeDayVal').textContent = `${dailyHrs.toFixed(1)}h / ${dayTarget}h`;
   document.getElementById('tubeWeekVal').textContent = `${weekHrs.toFixed(0)}h / ${weekTarget}h`;
@@ -1266,14 +1296,6 @@ function renderLog() {
 // ═══════════════════════════════════════════════
 // BUBBLE RENDERING
 // ═══════════════════════════════════════════════
-function getCanvasDims() {
-  const ca = document.getElementById('canvasArea');
-  return { w: ca.clientWidth, h: ca.clientHeight - 110 };
-}
-
-function getBubbleEl(id) { return document.getElementById('bubble-' + id); }
-
-// Returns total employee count including all children recursively
 function getTotalEmpCount(bubbleId) {
   const b = bubbles.find(x => x.id === bubbleId);
   if (!b) return 0;
@@ -1310,7 +1332,6 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
       z-index: 20;
     `;
   } else {
-    // Use absolute bx/by in virtual canvas space
     if (b.bx === undefined) { b.bx = 400 + Math.random() * 800; b.by = 300 + Math.random() * 500; }
     el.style.cssText = `
       width:${size}px; height:${size}px;
@@ -1341,7 +1362,6 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
     inner.appendChild(countEl);
   }
 
-  // Hours
   const hrs = b.employees.reduce((s, eid) => {
     const emp = EMPLOYEES.find(e => e.id === eid);
     if (!emp) return s;
@@ -1356,7 +1376,7 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
 
   el.appendChild(inner);
 
-  // Headcount badge at bottom
+  // Headcount badge
   const hcBadge = document.createElement('div');
   hcBadge.className = 'bubble-hc';
   const total = getTotalEmpCount(b.id);
@@ -1373,34 +1393,57 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
   ctxBtn.addEventListener('click', e => { e.stopPropagation(); showCtxMenu(e, b.id); });
   el.appendChild(ctxBtn);
 
-  // Floating employee avatars
+  // ─── EMPLOYEE AVATARS WITH ALWAYS-VISIBLE NAMES ───
+  // Avatar size: 34px for top-level, 22px for child bubbles
+  const avatarSize = isChild ? 22 : 34;
+  // Each "slot" = avatar circle + name label below it
+  // Total slot height = avatarSize + ~14px for name
+  const slotH = avatarSize + 14;
+
   b.employees.forEach((eid, idx) => {
     const emp = EMPLOYEES.find(e => e.id === eid);
     if (!emp) return;
-    const angle = (idx / Math.max(b.employees.length, 1)) * Math.PI * 2;
-    const r = size * 0.22;
-    const avatarSize = isChild ? 22 : 34;
-    const ex = size / 2 + Math.cos(angle) * r - avatarSize / 2;
-    const ey = size / 2 + Math.sin(angle) * r - avatarSize / 2;
+
+    // Orbit positioning — spread avatars in a circle
+    const angle = (idx / Math.max(b.employees.length, 1)) * Math.PI * 2 - Math.PI / 2;
+    const r = size * 0.28;
+    // Center of avatar circle in bubble coords
+    const cx = size / 2 + Math.cos(angle) * r;
+    const cy = size / 2 + Math.sin(angle) * r;
 
     const empEl = document.createElement('div');
     empEl.className = 'emp-float';
     empEl.id = 'empfloat-' + eid;
-    empEl.style.cssText = `left:${ex}px; top:${ey}px; width:${avatarSize}px; height:${avatarSize}px;`;
     empEl.setAttribute('data-empid', eid);
     empEl.setAttribute('data-origin-bubble', b.id);
     empEl.draggable = true;
+    // Position: top-left corner of the slot (avatar + name)
+    // We offset so the avatar circle is centered at (cx, cy)
+    empEl.style.cssText = `
+      left:${cx - avatarSize / 2}px;
+      top:${cy - avatarSize / 2}px;
+      width:${avatarSize}px;
+    `;
 
-    const tip = document.createElement('div');
-    tip.className = 'emp-tip';
-    tip.textContent = emp.name;
-    empEl.appendChild(tip);
+    // Avatar image wrapper
+    const imgWrap = document.createElement('div');
+    imgWrap.className = 'emp-float-img-wrap';
+    imgWrap.style.cssText = `width:${avatarSize}px; height:${avatarSize}px;`;
 
     const img = document.createElement('img');
     img.src = avatarUrl(emp);
     img.alt = emp.name;
-    img.style.borderRadius = '50%';
-    empEl.appendChild(img);
+    img.draggable = false;
+    imgWrap.appendChild(img);
+    empEl.appendChild(imgWrap);
+
+    // Always-visible name label
+    const nameTag = document.createElement('div');
+    nameTag.className = 'emp-float-name';
+    // Use short name — trim to keep it readable
+    const displayName = emp.name.length > 10 ? emp.name.slice(0, 9) + '…' : emp.name;
+    nameTag.textContent = displayName;
+    empEl.appendChild(nameTag);
 
     empEl.addEventListener('dragstart', e => onEmpDragStart(e, eid, b.id));
     el.appendChild(empEl);
@@ -1414,7 +1457,6 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
       startBubbleDrag(e, b.id);
     });
   } else {
-    // Child bubble draggable inside parent
     el.addEventListener('mousedown', e => {
       if (e.target.classList.contains('emp-float') || e.target.closest('.emp-float') ||
           e.target.classList.contains('bubble-context-btn')) return;
@@ -1432,18 +1474,13 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
 }
 
 function renderBubbles() {
-  const ca = document.getElementById('canvasArea');
-
-  // Remove old bubble elements
-  const layer = document.getElementById('bubbleLayer') || ca;
+  const layer = document.getElementById('bubbleLayer');
   layer.querySelectorAll('.bubble').forEach(el => el.remove());
 
-  // Render top-level bubbles first
   const topLevel = bubbles.filter(b => !b.parentId);
   topLevel.forEach(b => {
     const { el, size } = makeBubbleElement(b, false, null, null);
 
-    // Render children inside this bubble
     const children = bubbles.filter(c => c.parentId === b.id);
     children.forEach(child => {
       const { el: childEl } = makeBubbleElement(child, true, el, size);
@@ -1455,7 +1492,7 @@ function renderBubbles() {
 }
 
 // ═══════════════════════════════════════════════
-// BUBBLE DRAG (move bubble)
+// BUBBLE DRAG
 // ═══════════════════════════════════════════════
 let bubbleDrag = null;
 function startBubbleDrag(e, bubbleId) {
@@ -1469,7 +1506,7 @@ function startBubbleDrag(e, bubbleId) {
     startBX: b.bx,
     startBY: b.by,
   };
-  const el = getBubbleEl(bubbleId);
+  const el = document.getElementById('bubble-' + bubbleId);
   if (el) { el.style.cursor = 'grabbing'; el.style.zIndex = 100; }
   document.getElementById('canvasArea').classList.add('bubble-dragging');
 }
@@ -1477,12 +1514,10 @@ document.addEventListener('mousemove', e => {
   if (!bubbleDrag) return;
   const b = bubbles.find(x => x.id === bubbleDrag.id);
   if (!b) return;
-  const el = getBubbleEl(bubbleDrag.id);
+  const el = document.getElementById('bubble-' + bubbleDrag.id);
   const size = parseInt(el.style.width);
-  // Convert screen delta to virtual canvas coords (account for zoom)
   const vx = (e.clientX - bubbleDrag.startScreenX) / zoomLevel + bubbleDrag.startBX;
   const vy = (e.clientY - bubbleDrag.startScreenY) / zoomLevel + bubbleDrag.startBY;
-  // Clamp to safe zone so bubbles can't be lost off-canvas
   const canvasEl = document.getElementById('canvasArea');
   const maxX = canvasEl.clientWidth  / zoomLevel - 60;
   const maxY = canvasEl.clientHeight / zoomLevel - 60;
@@ -1493,14 +1528,14 @@ document.addEventListener('mousemove', e => {
 });
 document.addEventListener('mouseup', () => {
   if (!bubbleDrag) return;
-  const el = getBubbleEl(bubbleDrag.id);
+  const el = document.getElementById('bubble-' + bubbleDrag.id);
   if (el) { el.style.cursor = ''; el.style.zIndex = 10; }
   bubbleDrag = null;
   document.getElementById('canvasArea').classList.remove('bubble-dragging');
 });
 
 // ═══════════════════════════════════════════════
-// CHILD BUBBLE DRAG (drag inside parent)
+// CHILD BUBBLE DRAG
 // ═══════════════════════════════════════════════
 let childBubbleDrag = null;
 function startChildBubbleDrag(e, bubbleId) {
@@ -1529,7 +1564,6 @@ document.addEventListener('mousemove', e => {
   const childSize = parseInt(el.style.width);
   let nx = e.clientX - parentRect.left - childBubbleDrag.offX;
   let ny = e.clientY - parentRect.top - childBubbleDrag.offY;
-  // Clamp inside parent
   nx = Math.max(-childSize * 0.3, Math.min(parentSize - childSize * 0.7, nx));
   ny = Math.max(-childSize * 0.3, Math.min(parentSize - childSize * 0.7, ny));
   el.style.left = nx + 'px';
@@ -1545,10 +1579,10 @@ document.addEventListener('mouseup', () => {
 });
 
 // ═══════════════════════════════════════════════
-// EMPLOYEE DRAG (HTML5 drag)
+// EMPLOYEE DRAG
 // ═══════════════════════════════════════════════
 let currentDragEmpId = null;
-let currentDragOrigin = null; // bubble id or 'pool'
+let currentDragOrigin = null;
 
 function onEmpDragStart(e, empId, originBubble) {
   currentDragEmpId = empId;
@@ -1563,19 +1597,16 @@ function handleDropOnBubble(e, targetBubbleId) {
   const emp = EMPLOYEES.find(x => x.id === empId);
   if (!emp) return;
 
-  // Remove from old bubble if any
   if (currentDragOrigin && currentDragOrigin !== 'pool') {
     const oldBubble = bubbles.find(b => b.id === currentDragOrigin);
     if (oldBubble) oldBubble.employees = oldBubble.employees.filter(id => id !== empId);
   }
 
-  // Add to new bubble
   const newBubble = bubbles.find(b => b.id === targetBubbleId);
   if (newBubble && !newBubble.employees.includes(empId)) {
     newBubble.employees.push(empId);
     emp.dept = targetBubbleId;
 
-    // Auto punch in if not already
     if (!emp.clockIn) {
       emp.clockIn = Date.now();
       addLog(`${emp.name} → ${newBubble.name}`, 'in');
@@ -1592,7 +1623,6 @@ function handleDropOnBubble(e, targetBubbleId) {
   renderAll();
 }
 
-
 // ═══════════════════════════════════════════════
 // UNASSIGN / CLOCK OUT
 // ═══════════════════════════════════════════════
@@ -1600,7 +1630,6 @@ function unassignEmployee(empId) {
   const emp = EMPLOYEES.find(e => e.id === empId);
   if (!emp) return;
 
-  // Clear break state if on break
   if (emp.breakStatus) {
     clearTimeout(emp._breakTimer);
     emp.breakStatus = null;
@@ -1609,17 +1638,14 @@ function unassignEmployee(empId) {
     emp._breakTimer = null;
   }
 
-  // Capture dept name before clearing
   const fromBubble = emp.dept ? bubbles.find(x => x.id === emp.dept) : null;
   const fromDeptName = fromBubble ? fromBubble.name : '';
 
-  // Remove from bubble
   if (emp.dept) {
     if (fromBubble) fromBubble.employees = fromBubble.employees.filter(id => id !== emp.id);
     emp.dept = null;
   }
 
-  // Clock out and log hours
   if (emp.clockIn) {
     const hrs = (Date.now() - emp.clockIn) / 3600000;
     emp.totalHrs += hrs;
@@ -1630,31 +1656,23 @@ function unassignEmployee(empId) {
     addLog(`${emp.name} unassigned`, '');
     logEvent('CLOCK_OUT', { empId: emp.id, empName: emp.fullName||emp.name, fromDept: fromDeptName, hoursLogged: '0' });
   }
-  // Pause sync for 10s so this change isn't overwritten immediately
   lastSyncPause = Date.now();
-
   renderAll();
 }
 
 // ═══════════════════════════════════════════════
-// BREAK / LUNCH — state & timers
+// BREAK / LUNCH
 // ═══════════════════════════════════════════════
-// emp.breakStatus: null | 'break' | 'lunch'
-// emp.breakStart: timestamp | null
-// emp.breakReturnBubble: bubbleId to return to
-
-const BREAK_DURATION  = 15 * 60 * 1000; // 15 min
-const LUNCH_DURATION  = 30 * 60 * 1000; // 30 min
+const BREAK_DURATION  = 15 * 60 * 1000;
+const LUNCH_DURATION  = 30 * 60 * 1000;
 
 function handleDropOnBreakZone(empId, zoneType) {
   const emp = EMPLOYEES.find(e => e.id === empId);
   if (!emp) return;
-  if (emp.breakStatus) return; // already on break
+  if (emp.breakStatus) return;
 
-  // Remember which bubble they came from so we can return them
   emp.breakReturnBubble = emp.dept || null;
 
-  // Remove from bubble temporarily
   if (emp.dept) {
     const b = bubbles.find(x => x.id === emp.dept);
     if (b) b.employees = b.employees.filter(id => id !== emp.id);
@@ -1667,10 +1685,7 @@ function handleDropOnBreakZone(empId, zoneType) {
   const duration = zoneType === 'break' ? BREAK_DURATION : LUNCH_DURATION;
   const label    = zoneType === 'break' ? 'Break' : 'Lunch';
   addLog(`${emp.name} on ${label}`, zoneType === 'break' ? 'brk' : 'lunch');
-
-  // Auto-return timer
   emp._breakTimer = setTimeout(() => returnFromBreak(emp.id), duration);
-
   renderAll();
 }
 
@@ -1680,7 +1695,6 @@ function returnFromBreak(empId) {
   clearTimeout(emp._breakTimer);
   const label = emp.breakStatus === 'break' ? 'Break' : 'Lunch';
 
-  // Return to original bubble if it still exists
   if (emp.breakReturnBubble) {
     const b = bubbles.find(x => x.id === emp.breakReturnBubble);
     if (b) {
@@ -1708,7 +1722,6 @@ function renderBreakZones() {
       wrap.className = 'break-avatar';
       wrap.draggable = true;
 
-      // Show countdown
       const elapsed   = Date.now() - (emp.breakStart || Date.now());
       const total     = zone === 'break' ? BREAK_DURATION : LUNCH_DURATION;
       const remaining = Math.max(0, Math.ceil((total - elapsed) / 60000));
@@ -1723,11 +1736,9 @@ function renderBreakZones() {
       img.alt = emp.name;
       wrap.appendChild(img);
 
-      // Drag back to a bubble to return early
       wrap.addEventListener('dragstart', e => {
         currentDragEmpId    = emp.id;
         currentDragOrigin   = 'break';
-        // Also clear break state so drop-on-bubble works cleanly
         clearTimeout(emp._breakTimer);
         emp.breakStatus       = null;
         emp.breakStart        = null;
@@ -1742,9 +1753,6 @@ function renderBreakZones() {
   });
 }
 
-// ═══════════════════════════════════════════════
-// BREAK ZONES — dragover/drop setup
-// ═══════════════════════════════════════════════
 function setupBreakZones() {
   ['breakZone','lunchZone'].forEach(zoneId => {
     const zone = document.getElementById(zoneId);
@@ -1795,7 +1803,6 @@ function setupCreator() {
   const colorRow = document.getElementById('colorRow');
   const nbCreate = document.getElementById('nbCreate');
 
-  // Color dots
   COLORS.forEach((c, i) => {
     const dot = document.createElement('div');
     dot.className = 'color-dot' + (i === 0 ? ' selected' : '');
@@ -1817,22 +1824,19 @@ function setupCreator() {
     const name = document.getElementById('nbName').value.trim();
     if (!name) return;
     const parentId = document.getElementById('nbParent').value || null;
+    const canvasEl = document.getElementById('canvasArea');
     const newBubble = {
       id: 'b' + (++bubbleIdCounter),
       name,
       colorIdx: selectedColorIdx,
-      bx: 200 + Math.random() * 500,
-      by: 150 + Math.random() * 300,
+      bx: (canvasEl.clientWidth  / 2 - panX) / zoomLevel,
+      by: (canvasEl.clientHeight / 2 - panY) / zoomLevel,
       cx: 0.4 + Math.random() * 0.2,
       cy: 0.4 + Math.random() * 0.2,
       size: parentId ? 55 : 90,
       employees: [],
       parentId: parentId || null,
     };
-    // Place bubble exactly at center of current viewport
-    const canvasEl = document.getElementById('canvasArea');
-    newBubble.bx = (canvasEl.clientWidth  / 2 - panX) / zoomLevel;
-    newBubble.by = (canvasEl.clientHeight / 2 - panY) / zoomLevel;
     bubbles.push(newBubble);
     document.getElementById('nbName').value = '';
     document.getElementById('nbParent').value = '';
@@ -1846,7 +1850,6 @@ function refreshParentDropdown() {
   const sel = document.getElementById('nbParent');
   const current = sel.value;
   sel.innerHTML = '<option value="">— Standalone bubble —</option>';
-  // Only top-level bubbles can be parents (no infinite nesting)
   bubbles.filter(b => !b.parentId).forEach(b => {
     const opt = document.createElement('option');
     opt.value = b.id;
@@ -1884,10 +1887,8 @@ document.getElementById('ctxRemoveAll').addEventListener('click', () => {
   if (!ctxTarget) return;
   const b = bubbles.find(x => x.id === ctxTarget);
   if (!b) return;
-  b.employees.slice().forEach(eid => {
-    unassignEmployee(eid);
-  });
-  lastSyncPause = Date.now() + 20000; // pause sync for 30s total after bulk clear
+  b.employees.slice().forEach(eid => { unassignEmployee(eid); });
+  lastSyncPause = Date.now() + 20000;
   renderAll();
 });
 document.getElementById('ctxDelete').addEventListener('click', () => {
@@ -1898,7 +1899,6 @@ document.getElementById('ctxDelete').addEventListener('click', () => {
       const emp = EMPLOYEES.find(e => e.id === eid);
       if (emp) { emp.dept = null; }
     });
-    // Orphan any children — make them standalone
     bubbles.filter(c => c.parentId === ctxTarget).forEach(c => {
       c.parentId = null;
       c.bx = 400 + Math.random() * 600;
@@ -1911,7 +1911,7 @@ document.getElementById('ctxDelete').addEventListener('click', () => {
 });
 
 // ═══════════════════════════════════════════════
-// BG CANVAS (subtle grid + glow)
+// BG CANVAS
 // ═══════════════════════════════════════════════
 function drawBg() {
   const canvas = document.getElementById('bgCanvas');
@@ -1920,8 +1920,6 @@ function drawBg() {
   canvas.height = ca.clientHeight;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Subtle grid
   ctx.strokeStyle = 'rgba(163,243,197,0.03)';
   ctx.lineWidth = 1;
   const grid = 40;
@@ -1940,7 +1938,6 @@ function renderAll() {
   renderBubbles();
   renderPool();
   renderBreakZones();
-  // Only re-render roster if open
   if (document.getElementById('rosterPanel')?.classList.contains('open')) renderRoster();
   updateStats();
   updateTubes();
@@ -1957,12 +1954,10 @@ window.addEventListener('load', () => {
   applyTransform(false);
   updateBackendStatus();
 
-  // Tube inputs
   ['tubeDayInput', 'tubeWeekInput'].forEach(id => {
     document.getElementById(id).addEventListener('change', updateTubes);
   });
 
-  // Wire pool as unassign drop target
   const empPool = document.getElementById('empPool');
   empPool.addEventListener('dragover', e => {
     e.preventDefault();
@@ -1980,15 +1975,12 @@ window.addEventListener('load', () => {
     currentDragEmpId = null;
   });
 
-  // Wire roster
   document.getElementById('rosterToggle').addEventListener('click', toggleRoster);
   document.getElementById('rosterClose').addEventListener('click', toggleRoster);
 
-  // Wire emp modal buttons
   document.getElementById('empModalClose').addEventListener('click', closeEmpModal);
   document.getElementById('empModalCancel').addEventListener('click', closeEmpModal);
   document.getElementById('empModalSave').addEventListener('click', () => {
-    // Save avatar choice before closing
     if (modalEmpId && selectedAvatarSeed) {
       const emp = EMPLOYEES.find(e => e.id === modalEmpId);
       if (emp) { emp.avatarStyle = activeAvatarStyle; emp.avatarSeed = selectedAvatarSeed; }
@@ -1998,7 +1990,6 @@ window.addEventListener('load', () => {
   document.getElementById('empModalOverlay').addEventListener('click', e => {
     if (e.target === document.getElementById('empModalOverlay')) closeEmpModal();
   });
-  // Wire SP modal buttons
   document.getElementById('spModalClose').addEventListener('click', closeSpModal);
   document.getElementById('spModalCancel').addEventListener('click', closeSpModal);
   document.getElementById('spModalSave').addEventListener('click', saveSpModal);
@@ -2009,19 +2000,16 @@ window.addEventListener('load', () => {
     document.getElementById(id).addEventListener('input', updateSpTotal);
   });
 
-  // Handle resize
   window.addEventListener('resize', () => { drawBg(); renderAll(); });
-
   addLog('System started', '');
 });
-
 
 // ═══════════════════════════════════════════════
 // PAN + ZOOM
 // ═══════════════════════════════════════════════
-let zoomLevel = 0.55; // start zoomed out a bit so all bubbles visible
+let zoomLevel = 0.55;
 let panX = 0, panY = 0;
-let lastSyncPause = 0; // timestamp of last local action — suppress sync for 10s after
+let lastSyncPause = 0;
 const ZOOM_MIN = 0.2;
 const ZOOM_MAX = 3.0;
 const ZOOM_STEP = 0.1;
@@ -2037,10 +2025,8 @@ function applyTransform(animate) {
 }
 
 function zoomAroundPoint(cx, cy, newZoom) {
-  // Keep the point (cx,cy) in screen space fixed while zooming
   const oldZoom = zoomLevel;
   zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newZoom));
-  // Adjust pan so the same world point stays under cursor
   const ca = document.getElementById('canvasArea');
   const rect = ca.getBoundingClientRect();
   const mx = cx - rect.left;
@@ -2051,16 +2037,16 @@ function zoomAroundPoint(cx, cy, newZoom) {
   updateBackendStatus();
 }
 
-// FIT ALL — pan+zoom to show all bubbles
 function fitAll() {
   if (!bubbles.length) return;
-  const canvas = document.getElementById('canvasLayer').parentElement;
+  const canvas = document.getElementById('canvasArea');
   const cw = canvas.clientWidth;
   const ch = canvas.clientHeight;
   const pad = 80;
 
-  const xs = bubbles.map(b => b.bx);
-  const ys = bubbles.map(b => b.by);
+  const xs = bubbles.map(b => b.bx).filter(Boolean);
+  const ys = bubbles.map(b => b.by).filter(Boolean);
+  if (!xs.length) return;
   const minX = Math.min(...xs) - 120;
   const minY = Math.min(...ys) - 120;
   const maxX = Math.max(...xs) + 120;
@@ -2090,17 +2076,14 @@ document.getElementById('zoomOut').addEventListener('click', () => {
   zoomAroundPoint(r.left + r.width/2, r.top + r.height/2, zoomLevel - ZOOM_STEP);
 });
 
-// Scroll to zoom (no modifier needed)
 document.getElementById('canvasArea').addEventListener('wheel', e => {
   e.preventDefault();
   const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
   zoomAroundPoint(e.clientX, e.clientY, zoomLevel + delta);
 }, { passive: false });
 
-// Middle-mouse or space+drag to pan
 const ca = document.getElementById('canvasArea');
 ca.addEventListener('mousedown', e => {
-  // Pan on middle mouse, or left mouse when NOT over a bubble
   if (e.button === 1 || (e.button === 0 && !e.target.closest('.bubble'))) {
     isPanning = true;
     panStart = { x: e.clientX - panX, y: e.clientY - panY };
@@ -2119,7 +2102,6 @@ document.addEventListener('mouseup', e => {
   if (isPanning) { isPanning = false; ca.classList.remove('panning'); }
 });
 
-
 // ═══════════════════════════════════════════════
 // EMPLOYEE PROFILE MODAL
 // ═══════════════════════════════════════════════
@@ -2130,12 +2112,9 @@ function openEmpModal(empId) {
   if (!emp) return;
   modalEmpId = empId;
 
-  // Populate header
   document.getElementById('empModalAvatar').src = avatarUrl(emp);
   document.getElementById('empModalName').textContent = emp.fullName || emp.name;
-  document.getElementById('empModalAvatar').title = emp.fullName || emp.name;
 
-  // Status line
   let status = 'Unassigned';
   if (emp.breakStatus === 'break') status = 'On Break';
   else if (emp.breakStatus === 'lunch') status = 'On Lunch';
@@ -2146,7 +2125,6 @@ function openEmpModal(empId) {
   if (emp.clockIn) status += ' · Clocked in ' + new Date(emp.clockIn).toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
   document.getElementById('empModalStatus').textContent = status;
 
-  // Department dropdown — all bubbles
   const deptSel = document.getElementById('empModalDept');
   deptSel.innerHTML = '<option value="">— Unassigned —</option>';
   bubbles.forEach(b => {
@@ -2158,11 +2136,9 @@ function openEmpModal(empId) {
     deptSel.appendChild(opt);
   });
 
-  // Shift times
   document.getElementById('empModalStart').value = emp.shiftStart || '07:00';
   document.getElementById('empModalEnd').value   = emp.shiftEnd   || '15:30';
 
-  // Hours today
   let hrs = emp.totalHrs;
   if (emp.clockIn) hrs += (Date.now() - emp.clockIn) / 3600000;
   document.getElementById('empModalHrs').textContent = hrs.toFixed(2) + 'h';
@@ -2183,13 +2159,10 @@ function saveEmpModal() {
   const newStart    = document.getElementById('empModalStart').value;
   const newEnd      = document.getElementById('empModalEnd').value;
 
-  // Save shift times
   emp.shiftStart = newStart;
   emp.shiftEnd   = newEnd;
 
-  // Handle department change
   if (newDeptId !== emp.dept) {
-    // Remove from old bubble
     if (emp.dept) {
       const oldB = bubbles.find(x => x.id === emp.dept);
       if (oldB) oldB.employees = oldB.employees.filter(id => id !== emp.id);
@@ -2211,35 +2184,15 @@ function saveEmpModal() {
   renderAll();
 }
 
-// Wire up buttons
-// modal buttons wired in window.load below
-
 // ═══════════════════════════════════════════════
 // AVATAR PICKER
 // ═══════════════════════════════════════════════
-const AVATAR_STYLES = [
-  { key: 'personas',    label: 'Persona' },
-  { key: 'avataaars',   label: 'Cartoon' },
-  { key: 'pixel-art',   label: 'Pixel' },
-  { key: 'bottts',      label: 'Robot' },
-  { key: 'fun-emoji',   label: 'Emoji' },
-];
-let activeAvatarStyle = 'personas';
-let selectedAvatarSeed = null;
-
-function avatarUrl(emp) {
-  const style = emp.avatarStyle || 'personas';
-  const seed  = emp.avatarSeed  || encodeURIComponent(emp.fullName || emp.name);
-  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
-}
-
 function buildAvatarTab(empId) {
   const emp = EMPLOYEES.find(e => e.id === empId);
   if (!emp) return;
   activeAvatarStyle = emp.avatarStyle || 'personas';
   selectedAvatarSeed = emp.avatarSeed || null;
 
-  // Style buttons
   const styleRow = document.getElementById('avatarStyleRow');
   styleRow.innerHTML = '';
   AVATAR_STYLES.forEach(s => {
@@ -2254,7 +2207,6 @@ function buildAvatarTab(empId) {
     });
     styleRow.appendChild(btn);
   });
-
   populateAvatarGrid(empId);
 }
 
@@ -2262,14 +2214,12 @@ function populateAvatarGrid(empId) {
   const emp = EMPLOYEES.find(e => e.id === empId);
   const grid = document.getElementById('avatarGrid');
   grid.innerHTML = '';
-  // Generate 15 variants using different seeds
   const seeds = [emp.name, emp.id, ...Array.from({length:13}, (_,i) => emp.name + i)];
   seeds.forEach(seed => {
     const encoded = encodeURIComponent(seed);
     const url = `https://api.dicebear.com/7.x/${activeAvatarStyle}/svg?seed=${encoded}&backgroundColor=transparent`;
     const wrap = document.createElement('div');
     wrap.className = 'avatar-option' + (selectedAvatarSeed === seed ? ' selected' : '');
-    wrap.title = 'Select this avatar';
     const img = document.createElement('img');
     img.src = url; img.alt = '';
     wrap.appendChild(img);
@@ -2277,14 +2227,12 @@ function populateAvatarGrid(empId) {
       selectedAvatarSeed = seed;
       grid.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
       wrap.classList.add('selected');
-      // Live preview in header
-      document.getElementById('empModalAvatar').querySelector('img').src = url;
+      document.getElementById('empModalAvatar').src = url;
     });
     grid.appendChild(wrap);
   });
 }
 
-// Tab switching
 document.addEventListener('click', e => {
   const tab = e.target.closest('.modal-tab');
   if (!tab) return;
@@ -2319,8 +2267,7 @@ function updateSpTotal() {
   const hrs  = parseFloat(document.getElementById('spQuotedHrs').value) || 0;
   const rate = parseFloat(document.getElementById('spBillRate').value)  || 0;
   const sup  = parseFloat(document.getElementById('spSupplyCost').value)|| 0;
-  const total = (hrs * rate) + sup;
-  document.getElementById('spBillingTotal').textContent = '$' + total.toFixed(2);
+  document.getElementById('spBillingTotal').textContent = '$' + ((hrs * rate) + sup).toFixed(2);
 }
 
 function closeSpModal() {
@@ -2347,7 +2294,7 @@ function saveSpModal() {
 // ═══════════════════════════════════════════════
 const DEPT_COLORS_HEX = ['#A3F3C5','#63B3ED','#F6AD55','#9F7AEA','#FC814A','#ED64A6','#48BB78'];
 const BUBBLE_COLORS = DEPT_COLORS_HEX;
-let rosterCollapsed = {}; // deptId -> bool
+let rosterCollapsed = {};
 
 function renderRoster() {
   const body = document.getElementById('rosterBody');
@@ -2358,11 +2305,8 @@ function renderRoster() {
   const activeEmps = EMPLOYEES.filter(e => e.clockIn || e.dept);
   const totalActive = activeEmps.length;
 
-  // Dept sections
   bubbles.filter(b => !b.parentId).forEach(b => {
     const color = DEPT_COLORS_HEX[b.colorIdx % DEPT_COLORS_HEX.length];
-
-    // Gather all members (direct + children)
     const allDeptEmps = getDeptEmps(b.id);
     if (allDeptEmps.length === 0) return;
 
@@ -2387,17 +2331,13 @@ function renderRoster() {
     });
     section.appendChild(hdr);
 
-    // Children sub-sections
     const children = bubbles.filter(c => c.parentId === b.id);
-
     const membersWrap = document.createElement('div');
     membersWrap.className = 'roster-members';
 
-    // Direct members
     const direct = EMPLOYEES.filter(e => e.dept === b.id);
     direct.forEach(emp => membersWrap.appendChild(makeMemberRow(emp, color)));
 
-    // Sub-dept members with a sub-label
     children.forEach(child => {
       const childColor = DEPT_COLORS_HEX[child.colorIdx % DEPT_COLORS_HEX.length];
       const childEmps = EMPLOYEES.filter(e => e.dept === child.id);
@@ -2413,7 +2353,6 @@ function renderRoster() {
     body.appendChild(section);
   });
 
-  // Unassigned section
   const unassigned = EMPLOYEES.filter(e => !e.dept && !e.breakStatus);
   if (unassigned.length > 0) {
     const section = document.createElement('div');
@@ -2441,7 +2380,6 @@ function renderRoster() {
     body.appendChild(section);
   }
 
-  // Footer
   if (footer) {
     const onBreak = EMPLOYEES.filter(e => e.breakStatus === 'break').length;
     const onLunch = EMPLOYEES.filter(e => e.breakStatus === 'lunch').length;
@@ -2485,7 +2423,7 @@ function toggleRoster() {
 }
 
 // ═══════════════════════════════════════════════
-// BACKEND SYNC — load live state from sheet
+// BACKEND SYNC
 // ═══════════════════════════════════════════════
 async function fetchLive() {
   if (!SCRIPT_URL) return null;
@@ -2498,38 +2436,38 @@ async function fetchLive() {
 }
 
 async function syncFromBackend() {
-  if (Date.now() - lastSyncPause < 10000) return; // suppress sync for 10s after local action
+  if (Date.now() - lastSyncPause < 10000) return;
   const live = await fetchLive();
   if (!live || !live.ok) return;
 
-  // Reset all employees to unassigned
   EMPLOYEES.forEach(emp => {
     emp.dept    = null;
     emp.clockIn = null;
     emp.onBreak = false;
     emp.onLunch = false;
   });
-
-  // Reset all bubble employee lists
   bubbles.forEach(b => { b.employees = []; });
 
-  // Re-apply live state from backend
   (live.employees || []).forEach(s => {
     const emp = EMPLOYEES.find(e => e.fullName === s.name || e.name === s.name || e.id === s.empId);
     if (!emp) return;
 
-    // Find or create the bubble for this dept
     let bubble = bubbles.find(b => b.name === s.dept);
     if (!bubble && s.dept) {
       const existingBx = bubbles.length ? bubbles.reduce((s,b)=>s+b.bx,0)/bubbles.length : 500;
       const existingBy = bubbles.length ? bubbles.reduce((s,b)=>s+b.by,0)/bubbles.length : 400;
       const angle = (bubbles.length * 137.5) * Math.PI / 180;
       const radius = 250 + bubbles.length * 30;
-      const rawBx = existingBx + Math.cos(angle)*radius;
-      const rawBy = existingBy + Math.sin(angle)*radius;
       const canvasW = (document.getElementById('canvasArea')?.clientWidth  || 1200) / zoomLevel;
       const canvasH = (document.getElementById('canvasArea')?.clientHeight || 700)  / zoomLevel;
-      bubble = { id: 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2,5), name: s.dept, bx: Math.max(100, Math.min(rawBx, canvasW-100)), by: Math.max(100, Math.min(rawBy, canvasH-100)), colorIdx: bubbles.length % BUBBLE_COLORS.length, size: 90, employees: [], parentId: null };
+      bubble = {
+        id: 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
+        name: s.dept,
+        bx: Math.max(100, Math.min(existingBx + Math.cos(angle)*radius, canvasW-100)),
+        by: Math.max(100, Math.min(existingBy + Math.sin(angle)*radius, canvasH-100)),
+        colorIdx: bubbles.length % BUBBLE_COLORS.length,
+        size: 90, employees: [], parentId: null
+      };
       bubbles.push(bubble);
     }
 
@@ -2538,18 +2476,13 @@ async function syncFromBackend() {
       emp.dept    = bubble.id;
       emp.clockIn = emp.clockIn || Date.now();
     }
-
     emp.onBreak = s.onBreak || false;
     emp.onLunch = s.onLunch || false;
   });
 
   renderAll();
-  console.log('[Atomix] Synced from backend:', (live.employees||[]).length, 'active');
 }
 
-// ═══════════════════════════════════════════════
-// BACKEND STATUS
-// ═══════════════════════════════════════════════
 function promptScriptUrl() {
   const url = prompt('Enter Google Apps Script Web App URL:', SCRIPT_URL || '');
   if (url !== null) {
@@ -2557,20 +2490,17 @@ function promptScriptUrl() {
     location.reload();
   }
 }
+
 function updateBackendStatus() {
   const dot = document.getElementById('backendDot');
   if (!dot) return;
   dot.textContent = SCRIPT_URL ? '🟢' : '⚫';
-  dot.title = SCRIPT_URL ? 'Connected: ' + SCRIPT_URL : 'Click to configure backend URL';
 }
 
-// Refresh display every 30s (hours + break countdowns)
 setInterval(renderAll, 30000);
-// Refresh break countdowns every 60s
 setInterval(renderBreakZones, 60000);
-// Sync state from backend every 20s (keeps multiple tabs in sync)
 if (SCRIPT_URL) {
-  syncFromBackend(); // load on startup
+  syncFromBackend();
   setInterval(syncFromBackend, 20000);
 }
 </script>
@@ -2586,12 +2516,10 @@ if (SCRIPT_URL) {
       </div>
       <button class="emp-modal-close" id="empModalClose">&#10005;</button>
     </div>
-    <!-- TABS -->
     <div class="modal-tabs">
       <div class="modal-tab active" data-tab="profile">Profile</div>
       <div class="modal-tab" data-tab="avatar">Avatar</div>
     </div>
-    <!-- PROFILE TAB -->
     <div class="emp-modal-body">
       <div class="modal-tab-panel active" id="tabProfile">
         <div class="emp-field">
@@ -2615,8 +2543,6 @@ if (SCRIPT_URL) {
           <span class="hrs-val" id="empModalHrs">0.0h</span>
         </div>
       </div>
-
-      <!-- AVATAR TAB -->
       <div class="modal-tab-panel" id="tabAvatar">
         <div class="emp-field">
           <label>Style</label>
