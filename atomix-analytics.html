@@ -156,6 +156,7 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     <div class="live-label">LIVE</div>
     <span class="last-refresh" id="lastRefresh">—</span>
     <button class="script-url-btn" onclick="showConfig()">⚙ Configure</button>
+    <button class="script-url-btn" id="rebuildBtn" onclick="rebuildSummary()" style="display:none;">⟳ Rebuild Summary</button>
     <button class="refresh-btn" onclick="doRefresh()">↻ Refresh</button>
   </div>
 </header>
@@ -959,6 +960,7 @@ function saveConfig() {
     .forEach(([k,v])=>localStorage.setItem(k,v));
   closeModal('configModal');
   toast('Config saved. Connecting…');
+  document.getElementById('rebuildBtn').style.display = CONFIG.scriptUrl ? 'block' : 'none';
   startAutoRefresh();
   doRefresh();
 }
@@ -1003,6 +1005,17 @@ function last7Days(){return Array.from({length:7},(_,i)=>{const d=new Date();d.s
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function startAutoRefresh(){clearInterval(refreshTimer);if(CONFIG.scriptUrl&&CONFIG.refresh>0){refreshTimer=setInterval(doRefresh,CONFIG.refresh*1000);}}
 
+async function rebuildSummary() {
+  const btn = document.getElementById('rebuildBtn');
+  btn.textContent = '⟳ Rebuilding…';
+  btn.style.color = 'var(--amber)';
+  await apiFetch('rebuild_summary');
+  btn.textContent = '⟳ Rebuild Summary';
+  btn.style.color = '';
+  toast('Daily summary rebuilt — refreshing…');
+  await doRefresh();
+}
+
 // ═══════════════════════════════════════════════
 // INIT — render overview only; all other tabs
 // render lazily on first click via showView()
@@ -1017,8 +1030,9 @@ window.addEventListener('load',()=>{
   renderOverview();
   document.getElementById('lastRefresh').textContent='demo data loaded';
 
-  // If a script URL is configured, try to fetch real data on top
+  // Show rebuild button only when connected to backend
   if (CONFIG.scriptUrl) {
+    document.getElementById('rebuildBtn').style.display = 'block';
     doRefresh();
     startAutoRefresh();
   }
