@@ -425,6 +425,7 @@ let DAILY_DATA = [];
 let EMP_DATA   = [];
 let PROJ_DATA  = [];
 let EVENT_DATA = [];
+let ORDERS_TODAY = 0; // live from Metabase card 16930
 let refreshTimer = null;
 const CHARTS = {};
 const DEPT_COLORS = ['#A3F3C5','#63B3ED','#F6AD55','#B794F4','#FC814A','#ED64A6','#68D391'];
@@ -466,26 +467,29 @@ async function apiFetch(action, params={}) {
 async function doRefresh() {
   document.getElementById('lastRefresh').textContent = 'refreshing…';
   try {
-    const [live,daily,emps,projs,events] = await Promise.all([
+    const [live,daily,emps,projs,events,orders] = await Promise.all([
       apiFetch('live'),
       apiFetch('daily',{from:daysAgo(30)}),
       apiFetch('employees'),
       apiFetch('projects'),
       apiFetch('events',{from:daysAgo(7),limit:500}),
+      apiFetch('orders'),
     ]);
 
     // Only replace data if we actually got valid responses back
-    const gotLive  = live  && live.active  !== undefined;
-    const gotDaily = daily && Array.isArray(daily.data) && daily.data.length > 0;
-    const gotEmps  = emps  && Array.isArray(emps.employees) && emps.employees.length > 0;
-    const gotProjs = projs && Array.isArray(projs.projects);
-    const gotEvents= events && Array.isArray(events.events);
+    const gotLive   = live   && live.active  !== undefined;
+    const gotDaily  = daily  && Array.isArray(daily.data) && daily.data.length > 0;
+    const gotEmps   = emps   && Array.isArray(emps.employees) && emps.employees.length > 0;
+    const gotProjs  = projs  && Array.isArray(projs.projects);
+    const gotEvents = events && Array.isArray(events.events);
+    const gotOrders = orders && orders.ok && orders.ordersToday > 0;
 
-    if (gotLive)   LIVE_DATA  = live;
-    if (gotDaily)  DAILY_DATA = daily.data;
-    if (gotEmps)   EMP_DATA   = emps.employees;
-    if (gotProjs)  PROJ_DATA  = projs.projects;
-    if (gotEvents) EVENT_DATA = events.events;
+    if (gotLive)   LIVE_DATA    = live;
+    if (gotDaily)  DAILY_DATA   = daily.data;
+    if (gotEmps)   EMP_DATA     = emps.employees;
+    if (gotProjs)  PROJ_DATA    = projs.projects;
+    if (gotEvents) EVENT_DATA   = events.events;
+    if (gotOrders) ORDERS_TODAY = orders.ordersToday;
 
     // If backend returned nothing useful, fall back to demo data
     if (!gotLive && !gotDaily && !gotEmps) {
@@ -682,8 +686,21 @@ function renderLaborView() {
   const depts=Object.keys(bydept);
   const total=depts.reduce((s,d)=>s+bydept[d].cost,0);
   document.getElementById('laborTotalCost').textContent='$'+fmt(total);
-  document.getElementById('laborCPO').textContent='$'+CONFIG.cpo.toFixed(2);
-  document.getElementById('laborCPOTarget').textContent='target <$'+CONFIG.cpo.toFixed(2);
+
+  // CPO: use live Metabase order count if available, else show target
+  if (ORDERS_TODAY > 0) {
+    const cpo = total / ORDERS_TODAY;
+    const cpoEl = document.getElementById('laborCPO');
+    cpoEl.textContent = '$'+cpo.toFixed(2);
+    // Color red if over target
+    cpoEl.style.color = cpo > CONFIG.cpo ? 'var(--red)' : 'var(--accent, var(--green))';
+    document.getElementById('laborCPOTarget').textContent =
+      ORDERS_TODAY.toLocaleString()+' orders · target <$'+CONFIG.cpo.toFixed(2);
+  } else {
+    document.getElementById('laborCPO').textContent = CONFIG.scriptUrl ? '—' : '$'+CONFIG.cpo.toFixed(2);
+    document.getElementById('laborCPO').style.color = '';
+    document.getElementById('laborCPOTarget').textContent = 'target <$'+CONFIG.cpo.toFixed(2);
+  }
   document.getElementById('laborRevPct').textContent='—';
   document.getElementById('laborPctTarget').textContent='target <'+CONFIG.laborPct+'%';
 
