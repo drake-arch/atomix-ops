@@ -352,7 +352,6 @@ body {
 <script>
 // ── STATE ──────────────────────────────────────────────────────────────────
 const S = { rev:null, tgt:12, avg:null, hist:[] };
-// hist entries: { date, hours, spend, orders }
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => { load(); setYday(); recalc(); });
@@ -404,13 +403,10 @@ function recalc() {
   tv('tDays',   left);
   tv('tDaysEl', elapsed + ' elapsed');
 
-  // MTD totals
   const mtdSpend  = S.hist.reduce((s,r) => s + r.spend,  0);
   const mtdHours  = S.hist.reduce((s,r) => s + r.hours,  0);
   const mtdOrders = S.hist.reduce((s,r) => s + (r.orders||0), 0);
 
-  // Implied revenue MTD
-  // Priority: orders × avg > time-proration
   let implRev = null;
   if(mtdOrders > 0 && S.avg)   implRev = mtdOrders * S.avg;
   else if(S.rev && elapsed > 0) implRev = (S.rev / dim) * elapsed;
@@ -450,7 +446,7 @@ function recalc() {
     tgtEOM    = S.rev * (S.tgt / 100);
     projSpend = mtdSpend + rr * left;
     projPct   = projSpend / S.rev * 100;
-    gap       = tgtEOM - projSpend;           // + = under (good), - = over (bad)
+    gap       = tgtEOM - projSpend;
     budget    = left > 0 ? (tgtEOM - mtdSpend) / left : null;
   }
 
@@ -502,50 +498,12 @@ function banner(pp, gap, budget, left) {
 }
 
 // ── ACTIONS ────────────────────────────────────────────────────────────────
-async function actions(pp, gap, budget, rr, cplh, oph, rph, cpo, left, totalOrders) {
+function actions(pp, gap, budget, rr, cplh, oph, rph, cpo, left, totalOrders) {
   const al = document.getElementById('aList');
-  // Instant local actions
   const loc = localAct(pp, gap, budget, rr, cplh, oph, left);
   al.innerHTML = loc.map((a,i) =>
     `<div class="aitem" style="animation-delay:${i*.07}s"><div class="aico">${a.icon}</div><div class="atxt">${a.text}</div></div>`
   ).join('');
-
-  // AI enhancement
-  try {
-    const ms=S.hist.reduce((s,r)=>s+r.spend,0), mh=S.hist.reduce((s,r)=>s+r.hours,0);
-    const prompt = `You are an ops analyst for Atomix Logistics (3PL warehouse).
-Labor efficiency snapshot:
-- EOM projected labor %: ${pp?.toFixed(1)}% (target: ${S.tgt}%)
-- Gap: ${gap!==null ? (gap>=0 ? '$'+Math.round(gap)+' under (good)' : '$'+Math.round(Math.abs(gap))+' over (bad)') : 'unknown'}
-- Daily budget remaining: $${budget?Math.round(budget):'?'}/day
-- Daily spend run rate: $${Math.round(rr)}/day
-- CPLH: ${cplh?'$'+cplh.toFixed(2):'unknown'}
-- Orders per hour: ${oph||'unknown'}
-- Revenue per hour: ${rph?'$'+rph.toFixed(2):'unknown'}
-- Cost per order: ${cpo?'$'+cpo.toFixed(2):'unknown'}
-- Total orders shipped MTD: ${totalOrders||'unknown'}
-- Days remaining in month: ${left}
-- MTD spend: $${Math.round(ms)} across ${Math.round(mh)} hours
-
-Give Drake (ops leader, MKE warehouse) exactly 3 sharp, specific recommendations with real numbers.
-Reference temp labor cuts, daily hour caps, CPLH targets, or throughput improvements.
-Respond ONLY as JSON array: [{"icon":"emoji","text":"action with <strong>key numbers</strong> bolded"}]
-No markdown. No preamble.`;
-
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
-    });
-    const d = await r.json();
-    const txt = d.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
-    const items = JSON.parse(txt);
-    if(Array.isArray(items) && items.length) {
-      al.innerHTML = items.map((a,i) =>
-        `<div class="aitem" style="animation-delay:${i*.07}s"><div class="aico">${a.icon||'→'}</div><div class="atxt">${a.text}</div></div>`
-      ).join('');
-    }
-  } catch(e) { /* keep local actions */ }
 }
 
 function localAct(pp, gap, budget, rr, cplh, oph, left) {
