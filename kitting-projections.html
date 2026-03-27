@@ -1,985 +1,1493 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kitting Projections - Atomix OPS</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Labor Projection — Atomix OPS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#091e38;
+  --bg2:#0c2440;
+  --card:rgba(255,255,255,0.032);
+  --card2:rgba(255,255,255,0.055);
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --green:#A3F3C5;
+  --green-dim:rgba(163,243,197,0.12);
+  --green-border:rgba(163,243,197,0.22);
+  --amber:#FFB547;
+  --amber-dim:rgba(255,181,71,0.12);
+  --amber-border:rgba(255,181,71,0.24);
+  --red:#FF6B6B;
+  --red-dim:rgba(255,107,107,0.12);
+  --red-border:rgba(255,107,107,0.24);
+  --blue:#60A5FA;
+  --blue-dim:rgba(96,165,250,0.1);
+  --blue-border:rgba(96,165,250,0.2);
+  --slate:#8B9BAA;
+  --white:#DDE8F2;
+  --ui:'Syne',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--mono);
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(163,243,197,0.055) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 70% at 100% 100%, rgba(13,45,83,0.8) 0%, transparent 60%);
+  min-height:100vh;
+  color:var(--white);
+  overflow-x:hidden;
+}
 
-  <style>
-    @keyframes gradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+/* TOPBAR */
+.topbar{
+  position:sticky;top:0;z-index:300;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:52px;
+  background:rgba(9,30,56,0.92);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.tl{display:flex;align-items:center;gap:10px}
+.logo{
+  width:26px;height:26px;border-radius:6px;
+  background:linear-gradient(135deg,var(--green),#3dc47a);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--ui);font-weight:800;font-size:12px;color:#091e38;
+}
+.brand{font-family:var(--ui);font-weight:700;font-size:13px;letter-spacing:.07em}
+.sep{width:1px;height:14px;background:var(--border)}
+.ptitle{font-family:var(--ui);font-weight:600;font-size:12px;color:var(--amber);letter-spacing:.04em}
+.tabs{display:flex;gap:2px}
+.tab{
+  padding:6px 14px;border-radius:6px;cursor:pointer;
+  font-family:var(--ui);font-weight:600;font-size:11px;letter-spacing:.06em;
+  color:var(--slate);background:none;border:none;transition:all .2s;text-transform:uppercase;
+}
+.tab:hover{color:var(--white)}
+.tab.active{background:var(--card2);color:var(--green);border:1px solid var(--green-border)}
 
-    .gradient-bg {
-      background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
-      background-size: 400% 400%;
-      animation: gradient 15s ease infinite;
-    }
-    .grid-bg {
-      background-image:
-        linear-gradient(rgba(163, 243, 197, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(163, 243, 197, 0.03) 1px, transparent 1px);
-      background-size: 50px 50px;
-    }
-    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
-    .glass {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.3); }
-  </style>
+/* PAGES */
+.page{display:none;padding:20px 24px 60px;max-width:1400px;margin:0 auto}
+.page.active{display:block}
+
+/* SECTION HEADER */
+.sh{
+  font-family:var(--ui);font-weight:800;font-size:18px;
+  letter-spacing:.01em;margin-bottom:4px;
+}
+.sd{font-size:11px;color:var(--slate);margin-bottom:20px;letter-spacing:.03em}
+
+/* CARD */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:18px 20px;
+  transition:border-color .2s;
+}
+.card:hover{border-color:var(--border2)}
+.card-hd{
+  font-family:var(--ui);font-weight:700;font-size:10px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--slate);
+  margin-bottom:14px;display:flex;align-items:center;gap:6px;
+}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dg{background:var(--green)}.da{background:var(--amber)}.db{background:var(--blue)}.dr{background:var(--red)}
+
+/* GRID LAYOUTS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.lp{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
+
+/* FORM */
+.fld{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.fld:last-child{margin-bottom:0}
+.fl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--slate)}
+.fi{
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  border-radius:7px;padding:9px 12px;color:var(--white);
+  font-family:var(--mono);font-size:13px;width:100%;
+  outline:none;transition:border-color .2s,background .2s;
+}
+.fi:focus{border-color:var(--green-border);background:rgba(163,243,197,0.04)}
+.fi::placeholder{color:rgba(139,155,170,0.35)}
+.fh{font-size:10px;color:rgba(139,155,170,0.6)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.btn{
+  width:100%;padding:10px;border-radius:8px;cursor:pointer;
+  font-family:var(--ui);font-weight:700;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;
+  transition:all .2s;border:1px solid;
+}
+.btn-g{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+.btn-g:hover{background:rgba(163,243,197,.2);box-shadow:0 0 20px rgba(163,243,197,.08)}
+.btn-a{background:var(--amber-dim);border-color:var(--amber-border);color:var(--amber)}
+.btn-a:hover{background:rgba(255,181,71,.2)}
+.btn-b{background:var(--blue-dim);border-color:var(--blue-border);color:var(--blue)}
+.btn-b:hover{background:rgba(96,165,250,.2)}
+.btn:active{transform:scale(.98)}
+
+/* METRIC TILE */
+.tile{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:14px 15px;
+  position:relative;overflow:hidden;transition:all .2s;
+}
+.tile::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--green-border),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.tile.ta::before{background:linear-gradient(90deg,transparent,var(--amber-border),transparent)}
+.tile.tb::before{background:linear-gradient(90deg,transparent,var(--blue-border),transparent)}
+.tile.tr::before{background:linear-gradient(90deg,transparent,var(--red-border),transparent)}
+.tile:hover::before{opacity:1}
+.tile:hover{border-color:rgba(255,255,255,.1)}
+.t-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-bottom:7px}
+.t-val{
+  font-family:var(--ui);font-weight:800;font-size:22px;
+  color:var(--white);line-height:1;letter-spacing:-.01em;
+}
+.t-val.g{color:var(--green)}.t-val.a{color:var(--amber)}
+.t-val.r{color:var(--red)}.t-val.b{color:var(--blue)}.t-val.s{color:var(--slate)}
+.t-sub{font-size:10px;color:var(--slate);margin-top:5px;line-height:1.4}
+.t-delta{
+  font-size:9px;padding:2px 6px;border-radius:4px;
+  margin-top:5px;display:inline-block;font-family:var(--ui);font-weight:600;
+}
+.t-delta.up{background:rgba(163,243,197,.12);color:var(--green)}
+.t-delta.dn{background:rgba(255,107,107,.12);color:var(--red)}
+.t-delta.nt{background:rgba(139,155,170,.1);color:var(--slate)}
+
+/* SLIDER */
+.slider-wrap{margin:10px 0 4px}
+.slider{
+  width:100%;-webkit-appearance:none;appearance:none;
+  height:4px;border-radius:2px;background:rgba(255,255,255,.08);outline:none;cursor:pointer;
+}
+.slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--green);cursor:pointer;border:2px solid #091e38;
+  box-shadow:0 0 8px rgba(163,243,197,.4);transition:transform .15s;
+}
+.slider::-webkit-slider-thumb:hover{transform:scale(1.2)}
+.slider-row{display:flex;justify-content:space-between;font-size:10px;color:var(--slate);margin-top:4px}
+
+/* PROJECTION RESULT ROWS */
+.pr-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);
+}
+.pr-row:last-child{border-bottom:none}
+.pr-k{font-size:11px;color:var(--slate)}
+.pr-v{font-family:var(--ui);font-weight:700;font-size:13px;color:var(--white)}
+.pr-v.g{color:var(--green)}.pr-v.a{color:var(--amber)}.pr-v.r{color:var(--red)}.pr-v.b{color:var(--blue)}
+
+/* HISTORY TABLE */
+.htbl{width:100%;border-collapse:collapse;font-size:11px}
+.htbl th{
+  font-size:9px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--slate);text-align:left;padding:0 10px 10px 0;
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.htbl td{
+  padding:8px 10px 8px 0;border-bottom:1px solid rgba(255,255,255,.025);
+  color:var(--white);vertical-align:middle;white-space:nowrap;
+}
+.htbl tr:last-child td{border-bottom:none}
+.htbl tr:hover td{background:rgba(255,255,255,.015)}
+.htbl td.m{color:var(--slate)}.htbl td.g{color:var(--green)}
+.htbl td.a{color:var(--amber)}.htbl td.r{color:var(--red)}.htbl td.b{color:var(--blue)}
+.badge{
+  padding:2px 7px;border-radius:4px;font-size:9px;font-weight:600;
+  font-family:var(--ui);letter-spacing:.06em;display:inline-block;
+}
+.badge-g{background:rgba(163,243,197,.12);color:var(--green)}
+.badge-a{background:rgba(255,181,71,.12);color:var(--amber)}
+.badge-r{background:rgba(255,107,107,.12);color:var(--red)}
+.badge-s{background:rgba(139,155,170,.1);color:var(--slate)}
+
+/* CHART BARS */
+.bar-wrap{display:flex;align-items:flex-end;gap:3px;height:80px;margin:14px 0 6px}
+.bar{
+  flex:1;border-radius:3px 3px 0 0;
+  transition:height .5s cubic-bezier(.4,0,.2,1),opacity .2s;
+  cursor:pointer;position:relative;
+}
+.bar:hover{opacity:.8}
+.bar-lbl{font-size:8px;color:var(--slate);text-align:center;margin-top:4px;letter-spacing:.04em}
+.bar-axis{display:flex;justify-content:space-between;font-size:9px;color:rgba(139,155,170,.5)}
+
+/* TREND LINE SVG */
+.sparkline{width:100%;height:60px}
+
+/* STAT BANNER */
+.statbanner{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--green-dim);border:1px solid var(--green-border);
+  border-radius:12px;padding:16px 22px;margin-bottom:18px;
+  transition:all .4s;
+}
+.statbanner.warn{background:var(--amber-dim);border-color:var(--amber-border)}
+.statbanner.over{background:var(--red-dim);border-color:var(--red-border)}
+.statbanner.neutral{background:var(--card);border-color:var(--border)}
+.sb-l{display:flex;align-items:center;gap:12px}
+.sb-dot{width:10px;height:10px;border-radius:50%;animation:pulse 2s infinite}
+.statbanner .sb-dot{background:var(--green)}
+.statbanner.warn .sb-dot{background:var(--amber)}
+.statbanner.over .sb-dot{background:var(--red)}
+.statbanner.neutral .sb-dot{background:var(--slate);animation:none}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.2)}}
+.sb-title{font-family:var(--ui);font-weight:800;font-size:16px;color:var(--green)}
+.statbanner.warn .sb-title{color:var(--amber)}
+.statbanner.over .sb-title{color:var(--red)}
+.statbanner.neutral .sb-title{color:var(--slate)}
+.sb-sub{font-size:10px;color:var(--slate);margin-top:2px}
+.sb-big{font-family:var(--ui);font-weight:800;font-size:32px;color:var(--green);line-height:1}
+.statbanner.warn .sb-big{color:var(--amber)}
+.statbanner.over .sb-big{color:var(--red)}
+.statbanner.neutral .sb-big{color:var(--slate)}
+.sb-big-lbl{font-size:9px;color:var(--slate);text-align:right;letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+
+/* GAP */
+.gap{height:18px}
+.gap-sm{height:10px}
+
+/* NO DATA */
+.no-data{font-size:11px;color:rgba(139,155,170,.4);text-align:center;padding:20px}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:20px;right:20px;z-index:999;
+  background:rgba(9,30,56,.96);border:1px solid var(--green-border);
+  color:var(--green);font-size:11px;padding:8px 15px;border-radius:7px;
+  backdrop-filter:blur(12px);transform:translateY(50px);opacity:0;
+  transition:all .25s;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{border-color:var(--red-border);color:var(--red)}
+
+/* DBTN */
+.dbtn{background:none;border:none;color:rgba(139,155,170,.25);cursor:pointer;font-size:11px;transition:color .2s;padding:2px 4px}
+.dbtn:hover{color:var(--red)}
+
+/* HISTORY FILTER PILLS */
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.pill{
+  padding:4px 10px;border-radius:20px;cursor:pointer;
+  font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.06em;
+  background:var(--card);border:1px solid var(--border);color:var(--slate);
+  transition:all .15s;
+}
+.pill:hover{border-color:var(--border2);color:var(--white)}
+.pill.active{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+
+/* DEPT ROWS */
+.dept-row{
+  padding:10px 14px;border-radius:9px;
+  background:rgba(255,255,255,.02);border:1px solid var(--border);
+  transition:border-color .2s;
+}
+.dept-row:hover{border-color:rgba(255,255,255,.1)}
+
+@media(max-width:800px){
+  .dept-row > div{grid-template-columns:110px 70px 1fr 80px 80px!important}
+  .dept-cplh{display:none}
+}
+@media(max-width:1000px){.lp{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}.g5{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:680px){.g2,.g3{grid-template-columns:1fr}.g5{grid-template-columns:repeat(2,1fr)}}
+</style>
 </head>
+<body>
 
-<body class="bg-[#101314] text-[#EDEFED]">
-  <div class="min-h-screen gradient-bg grid-bg">
-    <div class="relative z-10 px-6 py-12">
-      <!-- Header -->
-      <div class="max-w-7xl mx-auto mb-12">
-        <button onclick="window.location.href='./index.html'" class="text-[#A3F3C5] hover:text-white transition-colors mb-6 flex items-center gap-2">
-          <span>←</span> Back to Home
-        </button>
-        
-        <div class="fade-in-up">
-          <div class="inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-sm font-medium tracking-widest uppercase mb-4 glow">
-            Labor Planning
-          </div>
-          <h1 class="text-6xl font-extralight mb-4 bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent">
-            Kitting Analysis
-          </h1>
-          <p class="text-xl text-[#9D9F9E] font-light">Project staffing and track actual performance</p>
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tl">
+    <div class="logo">A</div>
+    <span class="brand">ATX OPS</span>
+    <div class="sep"></div>
+    <span class="ptitle">Labor Projection</span>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('analyzer')">Analyzer</button>
+    <button class="tab" onclick="setTab('projector')">Projector</button>
+    <button class="tab" onclick="setTab('history')">History</button>
+  </div>
+</header>
+
+<!-- ═══════════════════ PAGE: ANALYZER ═══════════════════ -->
+<div class="page active" id="page-analyzer">
+  <div class="sh">Labor Analyzer</div>
+  <div class="sd">Enter a week's actuals. All metrics compute automatically from spend, hours, and orders.</div>
+
+  <div class="lp">
+    <!-- LEFT: Input Panel -->
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-hd"><span class="dot da"></span>Week Inputs</div>
+
+        <div class="fld">
+          <div class="fl">Week of</div>
+          <input class="fi" id="aDate" type="date">
         </div>
 
-        <!-- Mode Toggle -->
-        <div class="mt-8 flex justify-center">
-          <div class="glass rounded-full p-2 inline-flex gap-2">
-            <button id="projectionBtn" onclick="switchMode('projection')" class="px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]">
-              Projections
-            </button>
-            <button id="completionBtn" onclick="switchMode('completion')" class="px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white">
-              Completion
-            </button>
-            <button id="historyBtn" onclick="switchMode('history')" class="px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white">
-              History
-            </button>
+        <div class="frow">
+          <div class="fld">
+            <div class="fl">Total Labor Spend ($)</div>
+            <input class="fi" id="aSpend" type="number" placeholder="e.g. 45000" oninput="analyzeCalc()">
           </div>
+          <div class="fld">
+            <div class="fl">Total Labor Hours</div>
+            <input class="fi" id="aHours" type="number" placeholder="e.g. 2800" oninput="analyzeCalc()">
+          </div>
+        </div>
+
+        <div class="frow">
+          <div class="fld">
+            <div class="fl">Orders Shipped</div>
+            <input class="fi" id="aOrders" type="number" placeholder="e.g. 18000" oninput="analyzeCalc()">
+          </div>
+          <div class="fld">
+            <div class="fl">Headcount (Bodies)</div>
+            <input class="fi" id="aHeads" type="number" placeholder="e.g. 40" oninput="analyzeCalc()">
+          </div>
+        </div>
+
+        <div class="fld">
+          <div class="fl">Weekly Revenue ($) <span style="color:rgba(139,155,170,.5)">optional</span></div>
+          <input class="fi" id="aRev" type="number" placeholder="e.g. 380000" oninput="analyzeCalc()">
+          <div class="fh">Used to calculate labor % of revenue.</div>
+        </div>
+
+        <button class="btn btn-g" style="margin-top:4px" onclick="saveWeek()">+ Save to History</button>
+      </div>
+
+      <!-- COMP vs HISTORICAL -->
+      <div class="card">
+        <div class="card-hd"><span class="dot db"></span>vs. Historical Avg</div>
+        <div class="pr-row"><span class="pr-k">Your CPO</span><span class="pr-v" id="aCpoComp">—</span></div>
+        <div class="pr-row"><span class="pr-k">52-Wk Avg CPO</span><span class="pr-v b" id="aHistCpo">—</span></div>
+        <div class="pr-row"><span class="pr-k">Best Week CPO</span><span class="pr-v g" id="aHistBest">—</span></div>
+        <div class="pr-row"><span class="pr-k">Worst Week CPO</span><span class="pr-v r" id="aHistWorst">—</span></div>
+        <div class="pr-row"><span class="pr-k">Your CPLH</span><span class="pr-v" id="aCplhComp">—</span></div>
+        <div class="pr-row"><span class="pr-k">52-Wk Avg CPLH</span><span class="pr-v b" id="aHistCplh">—</span></div>
+        <div class="pr-row"><span class="pr-k">Your OPH</span><span class="pr-v" id="aOphComp">—</span></div>
+        <div class="pr-row"><span class="pr-k">Avg OPH (logged wks)</span><span class="pr-v b" id="aHistOph">—</span></div>
+        <div class="pr-row"><span class="pr-k">Best OPH (logged wks)</span><span class="pr-v g" id="aHistOphBest">—</span></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Metrics -->
+    <div>
+      <!-- STATUS BANNER -->
+      <div class="statbanner neutral" id="aBanner">
+        <div class="sb-l">
+          <div class="sb-dot"></div>
+          <div>
+            <div class="sb-title" id="aBannerTitle">Enter Data</div>
+            <div class="sb-sub" id="aBannerSub">Input spend, hours, and orders to analyze your week.</div>
+          </div>
+        </div>
+        <div>
+          <div class="sb-big" id="aBannerBig">—</div>
+          <div class="sb-big-lbl">Cost Per Order</div>
         </div>
       </div>
 
-      <!-- Main Content -->
-      <div class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          <!-- Input Form - Projections Mode -->
-          <div id="projectionsForm" class="glass rounded-3xl p-8 fade-in-up">
-            <h2 class="text-3xl font-light mb-8 text-[#A3F3C5]">Project Details</h2>
-            
-            <div class="space-y-6">
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Project Name</label>
-                <input type="text" id="projectName" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="Enter project name">
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Kit Name/Type</label>
-                <input type="text" id="kitName" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="Enter kit type">
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Total Kits to Create</label>
-                <input type="number" id="totalKits" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="0" min="1">
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Expected Kits Per Hour (per person)</label>
-                <input type="number" id="kitsPerHour" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="0" min="1" step="0.1">
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Number of Days Available</label>
-                <input type="number" id="numDays" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="0" min="1">
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Hours Per Day</label>
-                <input type="number" id="hoursPerDay" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="8" min="1" max="24" value="8">
-              </div>
-
-              <button onclick="calculateProjections()" 
-                class="w-full bg-[#A3F3C5] hover:bg-[#8cd9ad] text-[#0D2D53] font-medium py-4 rounded-xl transition-all transform hover:scale-[1.02] glow">
-                Calculate Projections
-              </button>
-            </div>
-          </div>
-
-          <!-- Input Form - Completion Mode -->
-          <div id="completionForm" class="glass rounded-3xl p-8 fade-in-up hidden">
-            <h2 class="text-3xl font-light mb-8 text-[#A3F3C5]">Job Completion</h2>
-            
-            <div class="space-y-6">
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Job Name</label>
-                <input type="text" id="jobName" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="Enter job name">
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Kit Name/Type</label>
-                <input type="text" id="compKitName" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="Enter kit type">
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Total Kits Completed</label>
-                <input type="number" id="kitsCompleted" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="0" min="1">
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Number of Bodies Used</label>
-                <input type="number" id="bodiesUsed" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="0" min="1">
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-[#9D9F9E] mb-2">Total Hours Spent</label>
-                <input type="number" id="hoursSpent" 
-                  class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                  placeholder="0" min="0.1" step="0.1">
-              </div>
-
-              <button onclick="calculateCompletion()" 
-                class="w-full bg-[#A3F3C5] hover:bg-[#8cd9ad] text-[#0D2D53] font-medium py-4 rounded-xl transition-all transform hover:scale-[1.02] glow">
-                Calculate Performance
-              </button>
-            </div>
-          </div>
-
-          <!-- History View -->
-          <div id="historyView" class="glass rounded-3xl p-8 fade-in-up hidden">
-            <div class="flex justify-between items-center mb-6">
-              <h2 class="text-3xl font-light text-[#A3F3C5]">History</h2>
-              <div class="flex gap-3">
-                <button onclick="filterHistory('all')" id="filterAll" class="px-4 py-2 rounded-lg bg-[#A3F3C5] text-[#0D2D53] text-sm font-medium">
-                  All
-                </button>
-                <button onclick="filterHistory('Projection')" id="filterProjection" class="px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]">
-                  Projections
-                </button>
-                <button onclick="filterHistory('Completion')" id="filterCompletion" class="px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]">
-                  Completions
-                </button>
-              </div>
-            </div>
-
-            <div class="mb-6">
-              <input type="text" id="searchHistory" 
-                onkeyup="searchHistory()"
-                class="w-full bg-[#1e2223] border border-[#2a2e2f] rounded-xl px-4 py-3 text-white focus:border-[#A3F3C5] focus:outline-none transition-colors"
-                placeholder="Search by job/project name...">
-            </div>
-
-            <div id="historyLoading" class="text-center py-12 text-[#9D9F9E]">
-              Loading history...
-            </div>
-
-            <div id="historyResults" class="space-y-4 hidden">
-              <!-- History items will be inserted here -->
-            </div>
-
-            <div id="historyEmpty" class="text-center py-12 text-[#9D9F9E] hidden">
-              <div class="text-5xl mb-4">📋</div>
-              <p>No history found. Start by creating projections or logging completions.</p>
-            </div>
-          </div>
-
-          <!-- Results Panel -->
-          <div class="space-y-6">
-            <!-- Summary Cards - Projections -->
-            <div id="resultsPanel" class="hidden space-y-6 fade-in-up">
-              
-              <!-- Key Metrics -->
-              <div class="glass rounded-3xl p-8">
-                <h2 class="text-3xl font-light mb-6 text-[#A3F3C5]">Labor Requirements</h2>
-                
-                <div class="grid grid-cols-2 gap-6">
-                  <div class="bg-[#1e2223] rounded-xl p-6">
-                    <div class="text-[#9D9F9E] text-sm mb-2">Bodies Needed</div>
-                    <div class="text-4xl font-light text-white" id="bodiesNeeded">0</div>
-                  </div>
-                  
-                  <div class="bg-[#1e2223] rounded-xl p-6">
-                    <div class="text-[#9D9F9E] text-sm mb-2">Total Hours</div>
-                    <div class="text-4xl font-light text-white" id="totalHours">0</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Financial Summary -->
-              <div class="glass rounded-3xl p-8">
-                <h2 class="text-3xl font-light mb-6 text-[#A3F3C5]">Financial Summary</h2>
-                
-                <div class="space-y-4">
-                  <div class="flex justify-between items-center py-3 border-b border-[#2a2e2f]">
-                    <span class="text-[#9D9F9E]">Labor Cost</span>
-                    <span class="text-2xl font-light text-white" id="laborCost">$0.00</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center py-3 border-b border-[#2a2e2f]">
-                    <span class="text-[#9D9F9E]">Revenue (@ $0.50/kit)</span>
-                    <span class="text-2xl font-light text-white" id="revenue">$0.00</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center py-4 mt-4">
-                    <span class="text-xl font-medium">Net Profit/Loss</span>
-                    <span class="text-3xl font-light" id="netProfit">$0.00</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Profitability Chart -->
-              <div class="glass rounded-3xl p-8">
-                <h2 class="text-2xl font-light mb-6 text-[#A3F3C5]">Profitability Analysis</h2>
-                <canvas id="profitChart" class="w-full" height="200"></canvas>
-              </div>
-
-              <!-- Additional Metrics -->
-              <div class="glass rounded-3xl p-8">
-                <h2 class="text-2xl font-light mb-6 text-[#A3F3C5]">Project Details</h2>
-                
-                <div class="space-y-4">
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Cost per Kit</span>
-                    <span class="text-lg text-white" id="costPerKit">$0.00</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Profit per Kit</span>
-                    <span class="text-lg text-white" id="profitPerKit">$0.00</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Profit Margin</span>
-                    <span class="text-lg text-white" id="profitMargin">0%</span>
-                  </div>
-
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Kits per Day (per person)</span>
-                    <span class="text-lg text-white" id="kitsPerDay">0</span>
-                  </div>
-
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Total Kits per Day (all staff)</span>
-                    <span class="text-lg text-white" id="totalKitsPerDay">0</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Summary Cards - Completion -->
-            <div id="completionResults" class="hidden space-y-6 fade-in-up">
-              
-              <!-- Performance Metrics -->
-              <div class="glass rounded-3xl p-8">
-                <h2 class="text-3xl font-light mb-6 text-[#A3F3C5]">Performance Metrics</h2>
-                
-                <div class="grid grid-cols-2 gap-6">
-                  <div class="bg-[#1e2223] rounded-xl p-6">
-                    <div class="text-[#9D9F9E] text-sm mb-2">Kits per Body per Hour</div>
-                    <div class="text-4xl font-light text-white" id="kitsPerBodyPerHour">0</div>
-                  </div>
-                  
-                  <div class="bg-[#1e2223] rounded-xl p-6">
-                    <div class="text-[#9D9F9E] text-sm mb-2">Hours per Kit</div>
-                    <div class="text-4xl font-light text-white" id="hoursPerKit">0</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Financial Summary - Completion -->
-              <div class="glass rounded-3xl p-8">
-                <h2 class="text-3xl font-light mb-6 text-[#A3F3C5]">Financial Summary</h2>
-                
-                <div class="space-y-4">
-                  <div class="flex justify-between items-center py-3 border-b border-[#2a2e2f]">
-                    <span class="text-[#9D9F9E]">Actual Labor Cost</span>
-                    <span class="text-2xl font-light text-white" id="compLaborCost">$0.00</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center py-3 border-b border-[#2a2e2f]">
-                    <span class="text-[#9D9F9E]">Revenue (@ $0.50/kit)</span>
-                    <span class="text-2xl font-light text-white" id="compRevenue">$0.00</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center py-4 mt-4">
-                    <span class="text-xl font-medium">Net Profit/Loss</span>
-                    <span class="text-3xl font-light" id="compNetProfit">$0.00</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Profitability Chart - Completion -->
-              <div class="glass rounded-3xl p-8">
-                <h2 class="text-2xl font-light mb-6 text-[#A3F3C5]">Actual Performance</h2>
-                <canvas id="compProfitChart" class="w-full" height="200"></canvas>
-              </div>
-
-              <!-- Job Details -->
-              <div class="glass rounded-3xl p-8">
-                <h2 class="text-2xl font-light mb-6 text-[#A3F3C5]">Job Details</h2>
-                
-                <div class="space-y-4">
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Cost per Kit</span>
-                    <span class="text-lg text-white" id="compCostPerKit">$0.00</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Profit per Kit</span>
-                    <span class="text-lg text-white" id="compProfitPerKit">$0.00</span>
-                  </div>
-                  
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Profit Margin</span>
-                    <span class="text-lg text-white" id="compProfitMargin">0%</span>
-                  </div>
-
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Total Kits Completed</span>
-                    <span class="text-lg text-white" id="compTotalKits">0</span>
-                  </div>
-
-                  <div class="flex justify-between items-center">
-                    <span class="text-[#9D9F9E]">Average Hours per Body</span>
-                    <span class="text-lg text-white" id="avgHoursPerBody">0</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Initial State Message -->
-            <div id="initialMessage" class="glass rounded-3xl p-12 text-center">
-              <div class="text-6xl mb-6">📊</div>
-              <h3 class="text-2xl font-light text-[#A3F3C5] mb-4">Ready to Calculate</h3>
-              <p class="text-[#9D9F9E]">Enter your project details and click Calculate to see labor requirements and profitability projections.</p>
-            </div>
-          </div>
-
+      <!-- CORE METRICS -->
+      <div class="g5" style="margin-bottom:14px">
+        <div class="tile ta">
+          <div class="t-lbl">Cost Per Order</div>
+          <div class="t-val" id="mCpo">$—</div>
+          <div class="t-sub">Spend ÷ Orders</div>
         </div>
+        <div class="tile">
+          <div class="t-lbl">Orders Per Hour</div>
+          <div class="t-val" id="mOph">—</div>
+          <div class="t-sub">Floor throughput</div>
+        </div>
+        <div class="tile">
+          <div class="t-lbl">Orders Per Body</div>
+          <div class="t-val g" id="mOpb">—</div>
+          <div class="t-sub">Weekly per head</div>
+        </div>
+        <div class="tile">
+          <div class="t-lbl">Cost Per Labor Hr</div>
+          <div class="t-val" id="mCplh">$—</div>
+          <div class="t-sub">Avg loaded rate</div>
+        </div>
+        <div class="tile ta">
+          <div class="t-lbl">Labor % of Rev</div>
+          <div class="t-val" id="mLpct">—</div>
+          <div class="t-sub">Spend ÷ Revenue</div>
+        </div>
+      </div>
+
+      <div class="g4" style="margin-bottom:14px">
+        <div class="tile">
+          <div class="t-lbl">Hours Per Body</div>
+          <div class="t-val b" id="mHpb">—</div>
+          <div class="t-sub">Weekly avg hrs/head</div>
+        </div>
+        <div class="tile">
+          <div class="t-lbl">Spend Per Body</div>
+          <div class="t-val" id="mSpb">$—</div>
+          <div class="t-sub">Weekly cost/head</div>
+        </div>
+        <div class="tile">
+          <div class="t-lbl">Rev Per Labor Hr</div>
+          <div class="t-val" id="mRph">$—</div>
+          <div class="t-sub">Revenue leverage</div>
+        </div>
+        <div class="tile">
+          <div class="t-lbl">Avg Order Value</div>
+          <div class="t-val" id="mAov">$—</div>
+          <div class="t-sub">Rev ÷ Orders</div>
+        </div>
+      </div>
+
+      <!-- CPO TREND CHART -->
+      <div class="card">
+        <div class="card-hd"><span class="dot dg"></span>CPO Trend — Historical Weeks</div>
+        <div id="trendChart"><div class="no-data">Loading historical data…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PAGE: PROJECTOR ═══════════════════ -->
+<div class="page" id="page-projector">
+  <div class="sh">Labor Projector</div>
+  <div class="sd">Set your parameters. Dial in OPH to see exactly what happens to your staffing, spend, and CPO.</div>
+
+  <!-- TOP: Parameters row -->
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-hd"><span class="dot da"></span>Week Parameters</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+      <div class="fld" style="margin:0">
+        <div class="fl">Estimated Orders</div>
+        <input class="fi" id="pOrders" type="number" placeholder="e.g. 36000" oninput="projectCalc()">
+      </div>
+      <div class="fld" style="margin:0">
+        <div class="fl">Target CPLH ($)</div>
+        <input class="fi" id="pCplh" type="number" placeholder="e.g. 17.50" oninput="projectCalc()">
+      </div>
+      <div class="fld" style="margin:0">
+        <div class="fl">Revenue ($) <span style="color:rgba(139,155,170,.4)">optional</span></div>
+        <input class="fi" id="pRev" type="number" placeholder="e.g. 380000" oninput="projectCalc()">
       </div>
     </div>
   </div>
 
-  <script>
-    // ===== CONFIGURATION =====
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzpFY7d3ODtxmK0734twn2STo_UBudb_Eg3qZzys_dnqJxzr1aZw7zU0sFSfUgUJErv/exec';
-    
-    const LABOR_COST_PER_HOUR = 18.20;
-    const PROFIT_PER_KIT = 0.50;
-    let profitChart = null;
-    let compProfitChart = null;
-    let currentMode = 'projection';
-    let currentFilter = 'all';
-    let historyData = [];
+  <!-- OPH DIAL — full width, front and center -->
+  <div class="card" style="margin-bottom:18px;padding-top:42px" id="ophDialCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div class="card-hd" style="margin:0 0 3px"><span class="dot dg"></span>Orders Per Hour — Floor Rate Dial</div>
+        <div style="font-size:11px;color:var(--slate)" id="ophDialSub">Enter orders above to see your required OPH, then adjust to model different floor realities.</div>
+      </div>
+      <div style="text-align:right;display:flex;flex-direction:column;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">Required OPH</div>
+          <div style="font-family:var(--ui);font-weight:800;font-size:22px;color:var(--blue)" id="ophRequired">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">Hist. Avg OPH</div>
+          <div style="font-family:var(--ui);font-weight:800;font-size:22px;color:var(--slate)" id="ophHistAvg">—</div>
+        </div>
+      </div>
+    </div>
 
-    function switchMode(mode) {
-      currentMode = mode;
-      
-      // Update button styles
-      const projectionBtn = document.getElementById('projectionBtn');
-      const completionBtn = document.getElementById('completionBtn');
-      const historyBtn = document.getElementById('historyBtn');
-      
-      // Reset all buttons
-      projectionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
-      completionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
-      historyBtn.className = 'px-8 py-3 rounded-full font-medium transition-all text-[#9D9F9E] hover:text-white';
-      
-      // Hide all views
-      document.getElementById('projectionsForm').classList.add('hidden');
-      document.getElementById('completionForm').classList.add('hidden');
-      document.getElementById('historyView').classList.add('hidden');
-      document.getElementById('resultsPanel').classList.add('hidden');
-      document.getElementById('completionResults').classList.add('hidden');
-      document.getElementById('initialMessage').classList.add('hidden');
-      
-      if (mode === 'projection') {
-        projectionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]';
-        document.getElementById('projectionsForm').classList.remove('hidden');
-        document.getElementById('initialMessage').classList.remove('hidden');
-      } else if (mode === 'completion') {
-        completionBtn.className = 'px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]';
-        document.getElementById('completionForm').classList.remove('hidden');
-        document.getElementById('initialMessage').classList.remove('hidden');
-      } else if (mode === 'history') {
-        historyBtn.className = 'px-8 py-3 rounded-full font-medium transition-all bg-[#A3F3C5] text-[#0D2D53]';
-        document.getElementById('historyView').classList.remove('hidden');
-        loadHistory();
-      }
-    }
-
-    function calculateProjections() {
-      // Get input values
-      const projectName = document.getElementById('projectName').value;
-      const kitName = document.getElementById('kitName').value;
-      const totalKits = parseFloat(document.getElementById('totalKits').value);
-      const kitsPerHour = parseFloat(document.getElementById('kitsPerHour').value);
-      const numDays = parseFloat(document.getElementById('numDays').value);
-      const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value);
-
-      // Validate inputs
-      if (!projectName || !kitName || !totalKits || !kitsPerHour || !numDays || !hoursPerDay) {
-        alert('Please fill in all fields');
-        return;
-      }
-
-      if (totalKits <= 0 || kitsPerHour <= 0 || numDays <= 0 || hoursPerDay <= 0) {
-        alert('All numeric values must be greater than 0');
-        return;
-      }
-
-      // Calculate total available hours per person
-      const totalHoursAvailable = numDays * hoursPerDay;
-      
-      // Calculate kits one person can make in available time
-      const kitsPerPerson = kitsPerHour * totalHoursAvailable;
-      
-      // Calculate number of bodies needed (round up)
-      const bodiesNeeded = Math.ceil(totalKits / kitsPerPerson);
-      
-      // Calculate total hours needed
-      const totalHours = bodiesNeeded * totalHoursAvailable;
-      
-      // Calculate labor cost
-      const laborCost = totalHours * LABOR_COST_PER_HOUR;
-      
-      // Calculate revenue
-      const revenue = totalKits * PROFIT_PER_KIT;
-      
-      // Calculate net profit/loss
-      const netProfit = revenue - laborCost;
-      
-      // Calculate per-kit metrics
-      const costPerKit = laborCost / totalKits;
-      const profitPerKit = (revenue - laborCost) / totalKits;
-      const profitMargin = (profitPerKit / PROFIT_PER_KIT) * 100;
-      
-      // Calculate daily metrics
-      const kitsPerDayPerPerson = kitsPerHour * hoursPerDay;
-      const totalKitsPerDay = kitsPerDayPerPerson * bodiesNeeded;
-
-      // Update UI
-      document.getElementById('bodiesNeeded').textContent = bodiesNeeded;
-      document.getElementById('totalHours').textContent = totalHours.toFixed(1);
-      document.getElementById('laborCost').textContent = `$${laborCost.toFixed(2)}`;
-      document.getElementById('revenue').textContent = `$${revenue.toFixed(2)}`;
-      
-      // Update net profit with color
-      const netProfitElement = document.getElementById('netProfit');
-      netProfitElement.textContent = `$${netProfit.toFixed(2)}`;
-      if (netProfit >= 0) {
-        netProfitElement.className = 'text-3xl font-light text-[#A3F3C5]';
-      } else {
-        netProfitElement.className = 'text-3xl font-light text-red-400';
-      }
-      
-      document.getElementById('costPerKit').textContent = `$${costPerKit.toFixed(2)}`;
-      document.getElementById('profitPerKit').textContent = `$${profitPerKit.toFixed(2)}`;
-      document.getElementById('profitMargin').textContent = `${profitMargin.toFixed(1)}%`;
-      document.getElementById('kitsPerDay').textContent = kitsPerDayPerPerson.toFixed(0);
-      document.getElementById('totalKitsPerDay').textContent = totalKitsPerDay.toFixed(0);
-
-      // Show results panel
-      document.getElementById('initialMessage').classList.add('hidden');
-      document.getElementById('resultsPanel').classList.remove('hidden');
-
-      // Create/update chart
-      createProfitChart(laborCost, revenue, netProfit);
-
-      // Save projection data
-      saveProjectionData({
-        projectName,
-        kitName,
-        totalKits,
-        bodiesNeeded,
-        totalHours,
-        kitsPerHour,
-        laborCost,
-        revenue,
-        netProfit,
-        costPerKit,
-        profitPerKit,
-        profitMargin,
-        numDays,
-        hoursPerDay
-      });
-    }
-
-    function calculateCompletion() {
-      // Get input values
-      const jobName = document.getElementById('jobName').value;
-      const compKitName = document.getElementById('compKitName').value;
-      const kitsCompleted = parseFloat(document.getElementById('kitsCompleted').value);
-      const bodiesUsed = parseFloat(document.getElementById('bodiesUsed').value);
-      const hoursSpent = parseFloat(document.getElementById('hoursSpent').value);
-
-      // Validate inputs
-      if (!jobName || !compKitName || !kitsCompleted || !bodiesUsed || !hoursSpent) {
-        alert('Please fill in all fields');
-        return;
-      }
-
-      if (kitsCompleted <= 0 || bodiesUsed <= 0 || hoursSpent <= 0) {
-        alert('All numeric values must be greater than 0');
-        return;
-      }
-
-      // Calculate performance metrics
-      const kitsPerBodyPerHour = kitsCompleted / (bodiesUsed * hoursSpent);
-      const hoursPerKit = hoursSpent / kitsCompleted;
-      
-      // Calculate labor cost
-      const laborCost = hoursSpent * LABOR_COST_PER_HOUR;
-      
-      // Calculate revenue
-      const revenue = kitsCompleted * PROFIT_PER_KIT;
-      
-      // Calculate net profit/loss
-      const netProfit = revenue - laborCost;
-      
-      // Calculate per-kit metrics
-      const costPerKit = laborCost / kitsCompleted;
-      const profitPerKit = (revenue - laborCost) / kitsCompleted;
-      const profitMargin = (profitPerKit / PROFIT_PER_KIT) * 100;
-      
-      // Calculate average hours per body
-      const avgHoursPerBody = hoursSpent / bodiesUsed;
-
-      // Update UI
-      document.getElementById('kitsPerBodyPerHour').textContent = kitsPerBodyPerHour.toFixed(2);
-      document.getElementById('hoursPerKit').textContent = hoursPerKit.toFixed(2);
-      document.getElementById('compLaborCost').textContent = `$${laborCost.toFixed(2)}`;
-      document.getElementById('compRevenue').textContent = `$${revenue.toFixed(2)}`;
-      
-      // Update net profit with color
-      const netProfitElement = document.getElementById('compNetProfit');
-      netProfitElement.textContent = `$${netProfit.toFixed(2)}`;
-      if (netProfit >= 0) {
-        netProfitElement.className = 'text-3xl font-light text-[#A3F3C5]';
-      } else {
-        netProfitElement.className = 'text-3xl font-light text-red-400';
-      }
-      
-      document.getElementById('compCostPerKit').textContent = `$${costPerKit.toFixed(2)}`;
-      document.getElementById('compProfitPerKit').textContent = `$${profitPerKit.toFixed(2)}`;
-      document.getElementById('compProfitMargin').textContent = `${profitMargin.toFixed(1)}%`;
-      document.getElementById('compTotalKits').textContent = kitsCompleted.toFixed(0);
-      document.getElementById('avgHoursPerBody').textContent = avgHoursPerBody.toFixed(1);
-
-      // Show results panel
-      document.getElementById('initialMessage').classList.add('hidden');
-      document.getElementById('completionResults').classList.remove('hidden');
-
-      // Create/update chart
-      createCompletionChart(laborCost, revenue, netProfit);
-
-      // Save completion data
-      saveCompletionData({
-        jobName,
-        kitName: compKitName,
-        kitsCompleted,
-        bodiesUsed,
-        hoursSpent,
-        kitsPerBodyPerHour,
-        hoursPerKit,
-        laborCost,
-        revenue,
-        netProfit,
-        costPerKit,
-        profitPerKit,
-        profitMargin
-      });
-    }
-
-    function createProfitChart(laborCost, revenue, netProfit) {
-      const ctx = document.getElementById('profitChart').getContext('2d');
-      
-      // Destroy existing chart if it exists
-      if (profitChart) {
-        profitChart.destroy();
-      }
-
-      const isProfitable = netProfit >= 0;
-      
-      profitChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Labor Cost', 'Revenue', 'Net Profit/Loss'],
-          datasets: [{
-            label: 'Amount ($)',
-            data: [laborCost, revenue, Math.abs(netProfit)],
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.7)',
-              'rgba(163, 243, 197, 0.7)',
-              isProfitable ? 'rgba(163, 243, 197, 0.9)' : 'rgba(255, 99, 132, 0.9)'
-            ],
-            borderColor: [
-              'rgba(255, 99, 132, 1)',
-              'rgba(163, 243, 197, 1)',
-              isProfitable ? 'rgba(163, 243, 197, 1)' : 'rgba(255, 99, 132, 1)'
-            ],
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: {
-              display: false
-            },
-            title: {
-              display: true,
-              text: isProfitable ? '✓ PROJECT IS PROFITABLE' : '✗ PROJECT WILL LOSE MONEY',
-              color: isProfitable ? '#A3F3C5' : '#ff6384',
-              font: {
-                size: 16,
-                weight: 'bold'
-              },
-              padding: {
-                bottom: 20
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return '$' + context.parsed.y.toFixed(2);
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                color: '#9D9F9E',
-                callback: function(value) {
-                  return '$' + value.toFixed(0);
-                }
-              },
-              grid: {
-                color: 'rgba(163, 243, 197, 0.1)'
-              }
-            },
-            x: {
-              ticks: {
-                color: '#9D9F9E'
-              },
-              grid: {
-                display: false
-              }
-            }
-          }
-        }
-      });
-    }
-
-    function createCompletionChart(laborCost, revenue, netProfit) {
-      const ctx = document.getElementById('compProfitChart').getContext('2d');
-      
-      // Destroy existing chart if it exists
-      if (compProfitChart) {
-        compProfitChart.destroy();
-      }
-
-      const isProfitable = netProfit >= 0;
-      
-      compProfitChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Actual Labor Cost', 'Revenue', 'Net Profit/Loss'],
-          datasets: [{
-            label: 'Amount ($)',
-            data: [laborCost, revenue, Math.abs(netProfit)],
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.7)',
-              'rgba(163, 243, 197, 0.7)',
-              isProfitable ? 'rgba(163, 243, 197, 0.9)' : 'rgba(255, 99, 132, 0.9)'
-            ],
-            borderColor: [
-              'rgba(255, 99, 132, 1)',
-              'rgba(163, 243, 197, 1)',
-              isProfitable ? 'rgba(163, 243, 197, 1)' : 'rgba(255, 99, 132, 1)'
-            ],
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: {
-              display: false
-            },
-            title: {
-              display: true,
-              text: isProfitable ? '✓ JOB WAS PROFITABLE' : '✗ JOB LOST MONEY',
-              color: isProfitable ? '#A3F3C5' : '#ff6384',
-              font: {
-                size: 16,
-                weight: 'bold'
-              },
-              padding: {
-                bottom: 20
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return '$' + context.parsed.y.toFixed(2);
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                color: '#9D9F9E',
-                callback: function(value) {
-                  return '$' + value.toFixed(0);
-                }
-              },
-              grid: {
-                color: 'rgba(163, 243, 197, 0.1)'
-              }
-            },
-            x: {
-              ticks: {
-                color: '#9D9F9E'
-              },
-              grid: {
-                display: false
-              }
-            }
-          }
-        }
-      });
-    }
-
-    // ===== DATA PERSISTENCE FUNCTIONS =====
-
-    async function saveProjectionData(data) {
-      if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
-        console.warn('API URL not configured. Data not saved.');
-        return;
-      }
-
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            action: 'saveProjection',
-            ...data
-          })
-        });
-        
-        console.log('Projection saved successfully');
-      } catch (error) {
-        console.error('Error saving projection:', error);
-      }
-    }
-
-    async function saveCompletionData(data) {
-      if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
-        console.warn('API URL not configured. Data not saved.');
-        return;
-      }
-
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            action: 'saveCompletion',
-            ...data
-          })
-        });
-        
-        console.log('Completion saved successfully');
-      } catch (error) {
-        console.error('Error saving completion:', error);
-      }
-    }
-
-    async function loadHistory() {
-      if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
-        document.getElementById('historyLoading').classList.add('hidden');
-        document.getElementById('historyEmpty').classList.remove('hidden');
-        document.getElementById('historyEmpty').innerHTML = `
-          <div class="text-5xl mb-4">⚙️</div>
-          <p class="text-xl mb-2">API Not Configured</p>
-          <p class="text-sm">Please set your Google Apps Script URL in the code to enable history.</p>
-        `;
-        return;
-      }
-
-      document.getElementById('historyLoading').classList.remove('hidden');
-      document.getElementById('historyResults').classList.add('hidden');
-      document.getElementById('historyEmpty').classList.add('hidden');
-
-      try {
-        const response = await fetch(`${API_URL}?action=getHistory&type=${currentFilter}&limit=50`);
-        const result = await response.json();
-
-        if (result.status === 'success' && result.data && result.data.length > 0) {
-          historyData = result.data;
-          renderHistory(historyData);
-        } else {
-          document.getElementById('historyLoading').classList.add('hidden');
-          document.getElementById('historyEmpty').classList.remove('hidden');
-        }
-      } catch (error) {
-        console.error('Error loading history:', error);
-        document.getElementById('historyLoading').classList.add('hidden');
-        document.getElementById('historyEmpty').classList.remove('hidden');
-        document.getElementById('historyEmpty').innerHTML = `
-          <div class="text-5xl mb-4">⚠️</div>
-          <p class="text-xl mb-2">Error Loading History</p>
-          <p class="text-sm">Please check your API configuration and try again.</p>
-        `;
-      }
-    }
-
-    function renderHistory(data) {
-      document.getElementById('historyLoading').classList.add('hidden');
-      document.getElementById('historyEmpty').classList.add('hidden');
-      document.getElementById('historyResults').classList.remove('hidden');
-
-      const container = document.getElementById('historyResults');
-      container.innerHTML = '';
-
-      if (data.length === 0) {
-        document.getElementById('historyResults').classList.add('hidden');
-        document.getElementById('historyEmpty').classList.remove('hidden');
-        return;
-      }
-
-      data.forEach(item => {
-        const date = new Date(item.Timestamp);
-        const isProfitable = parseFloat(item['Net Profit']) >= 0;
-        const profitClass = isProfitable ? 'text-[#A3F3C5]' : 'text-red-400';
-        const typeColor = item.Type === 'Projection' ? 'bg-blue-500' : 'bg-[#A3F3C5]';
-
-        const card = document.createElement('div');
-        card.className = 'bg-[#1e2223] rounded-xl p-6 hover:border hover:border-[#A3F3C5] transition-all cursor-pointer';
-        card.onclick = () => viewHistoryDetail(item);
-
-        card.innerHTML = `
-          <div class="flex justify-between items-start mb-4">
+    <!-- BIG OPH DISPLAY -->
+    <div style="display:flex;align-items:center;gap:24px;margin-bottom:16px">
+      <div style="flex:1">
+        <!-- Ghost avg above, live number below -->
+        <div style="position:relative;margin-bottom:8px">
+          <!-- Ghost: sits above, slightly offset so it reads as "behind/above" reference -->
+          <div style="position:absolute;top:-28px;left:0;z-index:0;pointer-events:none;user-select:none">
+            <span id="ophGhostAvg" style="
+              font-family:var(--ui);font-weight:800;font-size:52px;line-height:1;
+              color:rgba(163,243,197,0.15);letter-spacing:-.01em;
+            ">12.6</span>
+          </div>
+          <!-- Live value -->
+          <div style="display:flex;align-items:baseline;gap:10px;position:relative;z-index:1">
+            <span style="font-family:var(--ui);font-weight:800;font-size:52px;line-height:1;color:var(--green);transition:color .3s" id="ophDialVal">—</span>
             <div>
-              <div class="flex items-center gap-3 mb-2">
-                <span class="${typeColor} text-[#0D2D53] text-xs font-bold px-3 py-1 rounded-full">${item.Type}</span>
-                <span class="text-[#9D9F9E] text-sm">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</span>
-              </div>
-              <h3 class="text-xl font-light text-white">${item['Project/Job Name']}</h3>
-              <p class="text-[#9D9F9E]">${item['Kit Name']}</p>
-            </div>
-            <div class="text-right">
-              <div class="text-2xl font-light ${profitClass}">${isProfitable ? '+' : ''}$${parseFloat(item['Net Profit']).toFixed(2)}</div>
-              <div class="text-sm text-[#9D9F9E]">${parseFloat(item['Profit Margin %']).toFixed(1)}% margin</div>
+              <div style="font-size:12px;color:var(--slate)">orders / hour</div>
+              <div style="font-size:10px;color:rgba(163,243,197,0.4);margin-top:3px;letter-spacing:.04em" id="ophGhostLbl">avg 12.6</div>
+              <div id="ophDeltaBadge" style="margin-top:4px"></div>
             </div>
           </div>
+        </div>
+        <!-- Slider -->
+        <input type="range" class="slider" id="pOphSlider" min="2" max="30" step="0.5" value="10"
+               oninput="ophSlide(this.value)" style="width:100%">
+        <div class="slider-row" style="margin-top:6px"><span>2 (very slow)</span><span>10</span><span>20</span><span>30 (max)</span></div>
+      </div>
 
-          <div class="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <span class="text-[#9D9F9E]">Kits:</span>
-              <span class="text-white font-medium ml-2">${parseFloat(item['Total Kits']).toFixed(0)}</span>
-            </div>
-            <div>
-              <span class="text-[#9D9F9E]">Bodies:</span>
-              <span class="text-white font-medium ml-2">${parseFloat(item['Bodies Used/Needed']).toFixed(0)}</span>
-            </div>
-            <div>
-              <span class="text-[#9D9F9E]">Hours:</span>
-              <span class="text-white font-medium ml-2">${parseFloat(item['Total Hours']).toFixed(1)}</span>
-            </div>
+      <!-- OPH presets -->
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">Presets</div>
+        <button class="pill" onclick="setOph(5)">Slow 5</button>
+        <button class="pill" onclick="setOph(8)">Normal 8</button>
+        <button class="pill" onclick="setOph(10)">Good 10</button>
+        <button class="pill" onclick="setOph(13)">Fast 13</button>
+        <button class="pill" onclick="setOph(18)">Elite 18</button>
+      </div>
+    </div>
+
+    <!-- OPH IMPACT STRIP — shows repercussions live -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--border)" id="ophImpactStrip">
+      <div style="text-align:center">
+        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Hours Needed</div>
+        <div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riHours">—</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Bodies Needed</div>
+        <div style="font-family:var(--ui);font-weight:800;font-size:18px;color:var(--amber)" id="riBodies">—</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Labor Spend</div>
+        <div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riSpend">$—</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">CPO</div>
+        <div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riCpo">$—</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Labor %</div>
+        <div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riLpct">—</div>
+      </div>
+    </div>
+
+    <!-- VERDICT BAR -->
+    <div id="ophVerdict" style="margin-top:12px;padding:12px 16px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);font-size:11px;color:var(--slate);line-height:1.6">
+      Set orders and CPLH to generate your required OPH, then use the slider to see the impact.
+    </div>
+  </div>
+
+  <!-- BOTTOM: Full metrics + scenario table -->
+  <div class="g2" style="margin-bottom:16px">
+
+    <!-- Left: output tiles -->
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-hd"><span class="dot dg"></span>Staffing Plan</div>
+        <div class="g2">
+          <div class="tile ta">
+            <div class="t-lbl">Bodies Needed</div>
+            <div class="t-val a" id="rBodies">—</div>
+            <div class="t-sub" id="rBodiesSub">Hours ÷ 40hr week</div>
           </div>
-        `;
+          <div class="tile">
+            <div class="t-lbl">Hours Needed</div>
+            <div class="t-val" id="rHours">—</div>
+            <div class="t-sub" id="rHoursSub">Orders ÷ OPH</div>
+          </div>
+          <div class="tile ta">
+            <div class="t-lbl">Proj. Labor Spend</div>
+            <div class="t-val" id="rSpend">$—</div>
+            <div class="t-sub" id="rSpendSub">Hours × CPLH</div>
+          </div>
+          <div class="tile">
+            <div class="t-lbl">Proj. CPO</div>
+            <div class="t-val" id="rCpo">$—</div>
+            <div class="t-sub">Spend ÷ Orders</div>
+          </div>
+          <div class="tile">
+            <div class="t-lbl">Labor % of Rev</div>
+            <div class="t-val" id="rLpct">—</div>
+            <div class="t-sub">Proj. labor rate</div>
+          </div>
+        </div>
+      </div>
 
-        container.appendChild(card);
-      });
+      <!-- Recs -->
+      <div class="card" id="recBox">
+        <div class="card-hd"><span class="dot dg"></span>Recommendations</div>
+        <div id="recList"><div class="no-data">Configure inputs to generate recommendations.</div></div>
+      </div>
+    </div>
+
+    <!-- Right: OPH sensitivity table -->
+    <div class="card">
+      <div class="card-hd"><span class="dot db"></span>OPH Sensitivity — What Changes at Each Rate</div>
+      <table class="htbl">
+        <thead>
+          <tr>
+            <th>OPH</th>
+            <th>Hours</th>
+            <th>Bodies</th>
+            <th>Spend</th>
+            <th>CPO</th>
+            <th>vs Required</th>
+          </tr>
+        </thead>
+        <tbody id="ophSensBody">
+          <tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- DEPARTMENT LABOR BREAKDOWN -->
+  <div class="card" style="margin-top:18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="card-hd" style="margin:0"><span class="dot db"></span>Department Labor Breakdown</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:10px;color:var(--slate)">Total allocated:</span>
+        <span style="font-family:var(--ui);font-weight:700;font-size:13px" id="deptTotalPct">0%</span>
+        <span id="deptAllocBar" style="font-size:10px;padding:2px 8px;border-radius:4px;background:var(--green-dim);color:var(--green);font-family:var(--ui);font-weight:600">0 hrs · $0</span>
+      </div>
+    </div>
+
+    <!-- DEPT ROWS -->
+    <div id="deptRows" style="display:flex;flex-direction:column;gap:10px">
+
+      <!-- Outbound -->
+      <div class="dept-row" data-dept="outbound">
+        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Outbound</span>
+          </div>
+          <div>
+            <input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="outbound" oninput="deptCalc()">
+          </div>
+          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+            <div class="dept-bar" data-dept="outbound" style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:width .4s"></div>
+          </div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="outbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="outbound" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="outbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="outbound" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
+        </div>
+      </div>
+
+      <!-- Inbound -->
+      <div class="dept-row" data-dept="inbound">
+        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0"></div>
+            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Inbound</span>
+          </div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inbound" oninput="deptCalc()"></div>
+          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+            <div class="dept-bar" data-dept="inbound" style="height:100%;width:0%;background:var(--blue);border-radius:3px;transition:width .4s"></div>
+          </div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="inbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="inbound" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="inbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="inbound" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
+        </div>
+      </div>
+
+      <!-- Special Projects -->
+      <div class="dept-row" data-dept="special">
+        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>
+            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Special Projects</span>
+          </div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="special" oninput="deptCalc()"></div>
+          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+            <div class="dept-bar" data-dept="special" style="height:100%;width:0%;background:var(--amber);border-radius:3px;transition:width .4s"></div>
+          </div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="special" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="special" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="special" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="special" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
+        </div>
+      </div>
+
+      <!-- Kitting -->
+      <div class="dept-row" data-dept="kitting">
+        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;border-radius:50%;background:#c084fc;flex-shrink:0"></div>
+            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Kitting</span>
+          </div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="kitting" oninput="deptCalc()"></div>
+          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+            <div class="dept-bar" data-dept="kitting" style="height:100%;width:0%;background:#c084fc;border-radius:3px;transition:width .4s"></div>
+          </div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="kitting" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="kitting" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="kitting" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="kitting" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
+        </div>
+      </div>
+
+      <!-- Inventory -->
+      <div class="dept-row" data-dept="inventory">
+        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;border-radius:50%;background:#34d399;flex-shrink:0"></div>
+            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Inventory</span>
+          </div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inventory" oninput="deptCalc()"></div>
+          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+            <div class="dept-bar" data-dept="inventory" style="height:100%;width:0%;background:#34d399;border-radius:3px;transition:width .4s"></div>
+          </div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="inventory" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="inventory" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="inventory" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="inventory" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
+        </div>
+      </div>
+
+      <!-- Returns -->
+      <div class="dept-row" data-dept="returns">
+        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
+            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Returns</span>
+          </div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="returns" oninput="deptCalc()"></div>
+          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+            <div class="dept-bar" data-dept="returns" style="height:100%;width:0%;background:var(--red);border-radius:3px;transition:width .4s"></div>
+          </div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="returns" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="returns" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="returns" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
+          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="returns" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
+        </div>
+      </div>
+
+    </div><!-- /deptRows -->
+
+    <!-- ALLOCATION STATUS BAR -->
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:10px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase">Allocation</span>
+        <span style="font-size:10px;color:var(--slate)" id="deptUnallocLbl">Enter % per department (must total 100%)</span>
+      </div>
+      <!-- stacked bar -->
+      <div style="height:8px;border-radius:4px;background:rgba(255,255,255,.05);overflow:hidden;display:flex" id="deptStackBar">
+        <div style="height:100%;width:0%;background:var(--green);transition:width .4s"    id="dsb-outbound"></div>
+        <div style="height:100%;width:0%;background:var(--blue);transition:width .4s"     id="dsb-inbound"></div>
+        <div style="height:100%;width:0%;background:var(--amber);transition:width .4s"    id="dsb-special"></div>
+        <div style="height:100%;width:0%;background:#c084fc;transition:width .4s"         id="dsb-kitting"></div>
+        <div style="height:100%;width:0%;background:#34d399;transition:width .4s"         id="dsb-inventory"></div>
+        <div style="height:100%;width:0%;background:var(--red);transition:width .4s"      id="dsb-returns"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--slate-dim);margin-top:4px">
+        <span>0%</span><span id="deptTotalLbl" style="font-family:var(--ui);font-weight:700">0% allocated</span><span>100%</span>
+      </div>
+    </div>
+
+    <div style="margin-top:10px;font-size:10px;color:var(--slate);line-height:1.6" id="deptHint">
+      Enter % of total hours allocated to each department. Hours, bodies (hrs ÷ 40), and spend calculate automatically from your OPH projection above.
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════ PAGE: HISTORY ═══════════════════ -->
+<div class="page" id="page-history">
+  <div class="sh">Weekly History</div>
+  <div class="sd">All logged weeks. Loaded from your CPO Master file + any manually saved weeks.</div>
+
+  <!-- SUMMARY STATS -->
+  <div class="g4" style="margin-bottom:18px">
+    <div class="tile">
+      <div class="t-lbl">Total Weeks</div>
+      <div class="t-val b" id="hWks">—</div>
+    </div>
+    <div class="tile">
+      <div class="t-lbl">Avg CPO (All)</div>
+      <div class="t-val" id="hAvgCpo">$—</div>
+    </div>
+    <div class="tile ta">
+      <div class="t-lbl">Avg CPO (Last 8 Wks)</div>
+      <div class="t-val" id="hAvgCpo8">$—</div>
+    </div>
+    <div class="tile">
+      <div class="t-lbl">Avg Orders/Wk</div>
+      <div class="t-val g" id="hAvgOrd">—</div>
+    </div>
+  </div>
+
+  <!-- FILTER PILLS -->
+  <div class="pills" id="filterPills">
+    <div class="pill active" onclick="filterHist('all',this)">All Time</div>
+    <div class="pill" onclick="filterHist('8wk',this)">Last 8 Weeks</div>
+    <div class="pill" onclick="filterHist('2025',this)">2025</div>
+    <div class="pill" onclick="filterHist('2026',this)">2026</div>
+  </div>
+
+  <div class="card">
+    <div id="histTableWrap"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// HISTORICAL DATA — from CPO_MASTER.xlsx (CPO sheet)
+// ══════════════════════════════════════════════════════════════
+const HIST_DATA = [
+  {week:"2025-01-05",spend:18953,temp:0,mke_orders:21457,slc_orders:0},
+  {week:"2025-01-12",spend:16416,temp:0,mke_orders:19304,slc_orders:0},
+  {week:"2025-01-19",spend:21258,temp:0,mke_orders:18369,slc_orders:0},
+  {week:"2025-01-26",spend:28851,temp:0,mke_orders:16249,slc_orders:0},
+  {week:"2025-02-02",spend:25929,temp:0,mke_orders:15384,slc_orders:0},
+  {week:"2025-02-09",spend:18383,temp:0,mke_orders:15009,slc_orders:0},
+  {week:"2025-02-16",spend:17303,temp:0,mke_orders:17973,slc_orders:0},
+  {week:"2025-02-23",spend:20127,temp:0,mke_orders:17608,slc_orders:0},
+  {week:"2025-03-03",spend:18984,temp:0,mke_orders:18513,slc_orders:0},
+  {week:"2025-03-18",spend:17479,temp:0,mke_orders:18624,slc_orders:0},
+  {week:"2025-03-24",spend:16233.55,temp:0,mke_orders:17852,slc_orders:0},
+  {week:"2025-03-31",spend:17043,temp:0,mke_orders:17301,slc_orders:0},
+  {week:"2025-04-07",spend:19723,temp:0,mke_orders:22044,slc_orders:0},
+  {week:"2025-04-12",spend:20117,temp:0,mke_orders:21756,slc_orders:0},
+  {week:"2025-04-19",spend:20291.2,temp:0,mke_orders:22204,slc_orders:849},
+  {week:"2025-04-26",spend:21231,temp:0,mke_orders:21848,slc_orders:828},
+  {week:"2025-05-05",spend:17822,temp:0,mke_orders:11295,slc_orders:758},
+  {week:"2025-05-12",spend:16642.93,temp:0,mke_orders:11679,slc_orders:752},
+  {week:"2025-05-19",spend:17147,temp:0,mke_orders:10939,slc_orders:683},
+  {week:"2025-05-27",spend:15737.9,temp:0,mke_orders:10309,slc_orders:773},
+  {week:"2025-06-02",spend:25697.99,temp:0,mke_orders:17613,slc_orders:1059},
+  {week:"2025-06-09",spend:22533.91,temp:0,mke_orders:16977,slc_orders:2303},
+  {week:"2025-06-15",spend:20534.55,temp:0,mke_orders:13408,slc_orders:1553},
+  {week:"2025-06-22",spend:19987.66,temp:0,mke_orders:15951,slc_orders:1019},
+  {week:"2025-06-29",spend:17850,temp:0,mke_orders:14852,slc_orders:765},
+  {week:"2025-07-06",spend:31257,temp:10142,mke_orders:16964,slc_orders:1137},
+  {week:"2025-07-13",spend:28625,temp:11821,mke_orders:15695,slc_orders:1329},
+  {week:"2025-07-20",spend:29299,temp:11826,mke_orders:17821,slc_orders:1119},
+  {week:"2025-07-27",spend:35523,temp:15926,mke_orders:19057,slc_orders:1023},
+  {week:"2025-07-03",spend:36902,temp:18999,mke_orders:23031,slc_orders:1489},
+  {week:"2025-08-11",spend:31278,temp:14929,mke_orders:16620,slc_orders:1022},
+  {week:"2025-08-18",spend:33407,temp:18333,mke_orders:20270,slc_orders:1554},
+  {week:"2025-08-25",spend:29787,temp:16776,mke_orders:19428,slc_orders:1671},
+  {week:"2025-09-01",spend:39333,temp:26862,mke_orders:21889,slc_orders:1746},
+  {week:"2025-09-08",spend:41661.4,temp:21786,mke_orders:23803,slc_orders:1349},
+  {week:"2025-09-15",spend:60521.79,temp:33600,mke_orders:24694,slc_orders:2118},
+  {week:"2025-09-21",spend:51357,temp:27014,mke_orders:24561,slc_orders:2600},
+  {week:"2025-09-28",spend:40004.52,temp:17328,mke_orders:22079,slc_orders:2526},
+  {week:"2025-10-05",spend:39334,temp:15966,mke_orders:24162,slc_orders:1546},
+  {week:"2025-10-12",spend:54465,temp:29830,mke_orders:23102,slc_orders:1223},
+  {week:"2025-10-19",spend:47699,temp:23712,mke_orders:22003,slc_orders:1199},
+  {week:"2025-10-26",spend:66219,temp:46276,mke_orders:20593,slc_orders:1273},
+  {week:"2025-11-02",spend:66089,temp:44449,mke_orders:25003,slc_orders:2827},
+  {week:"2025-11-09",spend:68260,temp:46276,mke_orders:25906,slc_orders:2975},
+  {week:"2025-11-16",spend:75143,temp:49287,mke_orders:29658,slc_orders:4191},
+  {week:"2025-11-23",spend:77486,temp:54719,mke_orders:35557,slc_orders:5334},
+  {week:"2025-12-07",spend:77137,temp:52968,mke_orders:32926,slc_orders:4690},
+  {week:"2025-12-14",spend:59974,temp:33600,mke_orders:33637,slc_orders:5066},
+  {week:"2025-12-21",spend:54736,temp:41364,mke_orders:17557,slc_orders:4283},
+  {week:"2025-12-28",spend:41826,temp:17032,mke_orders:33059,slc_orders:6176},
+  {week:"2026-01-04",spend:59485,temp:33600,mke_orders:28816,slc_orders:6328},
+  {week:"2026-01-11",spend:67407,temp:41367,mke_orders:30726,slc_orders:7032},
+  {week:"2026-01-18",spend:60037,temp:36047,mke_orders:29336,slc_orders:7010},
+  {week:"2026-01-25",spend:53023,temp:22213,mke_orders:28473,slc_orders:6712},
+  {week:"2026-02-01",spend:61758,temp:22424,mke_orders:30061,slc_orders:6639},
+  {week:"2026-02-08",spend:55318,temp:15878,mke_orders:26946,slc_orders:4309},
+  {week:"2026-02-15",spend:48584,temp:9660,mke_orders:32716,slc_orders:9742},
+  {week:"2026-02-22",spend:48507,temp:4728,mke_orders:26536,slc_orders:4248},
+  {week:"2026-03-01",spend:45790,temp:0,mke_orders:35079,slc_orders:3679},
+].map(r=>{
+  const orders = r.mke_orders + r.slc_orders;
+  const cpo    = orders > 0 ? r.spend / orders : null;
+  const oph    = orders > 0 ? orders / (r.spend / 17.5) : null;
+  return { ...r, orders, cpo, oph };
+}).sort((a,b)=>a.week.localeCompare(b.week));
+
+// ── Derived historical stats ──
+const hist_cpos   = HIST_DATA.filter(r=>r.cpo != null).map(r=>r.cpo);
+const hist_cplhs  = [];
+const H_AVG_CPO   = hist_cpos.length ? hist_cpos.reduce((s,v)=>s+v,0)/hist_cpos.length : 0;
+const H_BEST_CPO  = hist_cpos.length ? Math.min(...hist_cpos) : 0;
+const H_WORST_CPO = hist_cpos.length ? Math.max(...hist_cpos) : 0;
+const LAST8       = HIST_DATA.filter(r=>r.cpo != null).slice(-8);
+const H_LAST8_CPO = LAST8.length ? LAST8.reduce((s,r)=>s+r.cpo,0)/LAST8.length : 0;
+
+// Historical averages for ghost placeholders
+const H_AVG_ORDERS = Math.round(HIST_DATA.map(r=>r.orders).reduce((s,v)=>s+v,0)/HIST_DATA.length);
+const H_AVG_SPEND  = Math.round(HIST_DATA.map(r=>r.spend).reduce((s,v)=>s+v,0)/HIST_DATA.length);
+const LAST8_ORDERS = Math.round(LAST8.reduce((s,r)=>s+r.orders,0)/LAST8.length);
+const LAST8_SPEND  = Math.round(LAST8.reduce((s,r)=>s+r.spend,0)/LAST8.length);
+
+// ══════════════════════════════════════════════════════════════
+// USER DATA (session + localStorage)
+// ══════════════════════════════════════════════════════════════
+let userWeeks = [];
+try { userWeeks = JSON.parse(localStorage.getItem('atx_proj_weeks')||'[]'); } catch(e){}
+
+function allWeeks() {
+  const ids = new Set(HIST_DATA.map(r=>r.week));
+  const extra = userWeeks.filter(r=>!ids.has(r.week));
+  return [...HIST_DATA, ...extra].sort((a,b)=>a.week.localeCompare(b.week));
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB ROUTING
+// ══════════════════════════════════════════════════════════════
+function setTab(t) {
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelector(`.tab[onclick*="${t}"]`).classList.add('active');
+  document.getElementById(`page-${t}`).classList.add('active');
+  if(t==='history') renderHistory();
+}
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const fv = id => parseFloat($(id).value)||null;
+const fmt = n => n==null?'—':Math.round(n).toLocaleString();
+const fmtd = (n,d=2) => n==null?'—':n.toFixed(d);
+const fmtc = n => n==null?'$—':'$'+n.toFixed(2);
+const fmtk = n => n==null?'$—':'$'+Math.round(n).toLocaleString();
+const fmtp = n => n==null?'—':n.toFixed(1)+'%';
+
+function tv(id,v){const e=$(id);if(e)e.textContent=v}
+function tcv(id,v,cls){const e=$(id);if(!e)return;e.textContent=v;e.className='t-val'+(cls?' '+cls:'')}
+function prv(id,v,cls){const e=$(id);if(!e)return;e.textContent=v;e.className='pr-v'+(cls?' '+cls:'')}
+
+function toast(msg,err){
+  const t=$('toast');t.textContent=msg;
+  t.className='toast'+(err?' err':'');t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+function cpoBadge(cpo){
+  if(cpo==null) return '<span class="badge badge-s">—</span>';
+  if(cpo<1.2)   return `<span class="badge badge-g">$${cpo.toFixed(2)}</span>`;
+  if(cpo<1.7)   return `<span class="badge badge-a">$${cpo.toFixed(2)}</span>`;
+  return `<span class="badge badge-r">$${cpo.toFixed(2)}</span>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ANALYZER
+// ══════════════════════════════════════════════════════════════
+function analyzeCalc() {
+  const spend  = fv('aSpend');
+  const hours  = fv('aHours');
+  const orders = fv('aOrders');
+  const heads  = fv('aHeads');
+  const rev    = fv('aRev');
+
+  const cpo  = (spend && orders) ? spend/orders : null;
+  const oph  = (orders && hours) ? orders/hours : null;
+  const opb  = (orders && heads) ? orders/heads : null;
+  const cplh = (spend && hours)  ? spend/hours  : null;
+  const hpb  = (hours && heads)  ? hours/heads  : null;
+  const spb  = (spend && heads)  ? spend/heads  : null;
+  const lpct = (spend && rev)    ? spend/rev*100 : null;
+  const rph  = (rev && hours)    ? rev/hours    : null;
+  const aov  = (rev && orders)   ? rev/orders   : null;
+
+  // Tiles
+  tcv('mCpo',  cpo  ? '$'+cpo.toFixed(2)     : '$—', cpoColor(cpo));
+  tcv('mOph',  oph  ? oph.toFixed(2)          : '—',  '');
+  tcv('mOpb',  opb  ? fmt(opb)                : '—',  'g');
+  tcv('mCplh', cplh ? '$'+cplh.toFixed(2)    : '$—', '');
+  tcv('mLpct', lpct ? lpct.toFixed(1)+'%'    : '—',  lpct ? (lpct<=12?'g':lpct<=15?'a':'r') : '');
+  tcv('mHpb',  hpb  ? hpb.toFixed(1)          : '—',  'b');
+  tcv('mSpb',  spb  ? '$'+fmt(spb)            : '$—', '');
+  tcv('mRph',  rph  ? '$'+rph.toFixed(2)      : '$—', '');
+  tcv('mAov',  aov  ? '$'+aov.toFixed(2)      : '$—', '');
+
+  // Banner
+  const bn=$('aBanner'), bt=$('aBannerTitle'), bs=$('aBannerSub'), bb=$('aBannerBig');
+  if(!cpo){ bn.className='statbanner neutral'; bt.textContent='Enter Data'; bs.textContent='Input spend, hours, and orders.'; bb.textContent='—'; return; }
+  bb.textContent='$'+cpo.toFixed(2);
+  if(cpo < H_LAST8_CPO * 0.95){
+    bn.className='statbanner'; bt.textContent='🟢 Strong Week'; bs.textContent=`CPO beating recent avg by $${(H_LAST8_CPO-cpo).toFixed(2)}/order.`;
+  } else if(cpo < H_LAST8_CPO * 1.1){
+    bn.className='statbanner warn'; bt.textContent='🟡 In Range'; bs.textContent=`CPO within 10% of recent average ($${H_LAST8_CPO.toFixed(2)}).`;
+  } else {
+    bn.className='statbanner over'; bt.textContent='🔴 High CPO'; bs.textContent=`CPO $${(cpo-H_LAST8_CPO).toFixed(2)} above recent avg — review labor mix.`;
+  }
+
+  // Historical comp
+  prv('aCpoComp',  cpo  ? '$'+cpo.toFixed(2)  : '—', cpoColor(cpo));
+  prv('aHistCpo',  '$'+H_AVG_CPO.toFixed(2),          'b');
+  prv('aHistBest', '$'+H_BEST_CPO.toFixed(2),          'g');
+  prv('aHistWorst','$'+H_WORST_CPO.toFixed(2),         'r');
+  prv('aCplhComp', cplh ? '$'+cplh.toFixed(2) : '—', '');
+  prv('aHistCplh', 'N/A (no hrs data)', 's');
+
+  // Historical OPH — from manually logged weeks with hours
+  const ophWeeks = allWeeks().filter(r=>r.hours && r.orders);
+  const ophVals  = ophWeeks.map(r=>r.orders/r.hours);
+  const histOphAvg  = ophVals.length ? ophVals.reduce((s,v)=>s+v,0)/ophVals.length : null;
+  const histOphBest = ophVals.length ? Math.max(...ophVals) : null;
+  prv('aOphComp',    oph  ? oph.toFixed(2)                          : '—', '');
+  prv('aHistOph',    histOphAvg  ? histOphAvg.toFixed(2)            : 'No hrs logged', histOphAvg?'b':'s');
+  prv('aHistOphBest',histOphBest ? histOphBest.toFixed(2)           : '—',             histOphBest?'g':'s');
+
+  // Push hist avg OPH to projector dial
+  const dialHistEl = $('ophHistAvg');
+  if(dialHistEl) {
+    dialHistEl.textContent = histOphAvg ? histOphAvg.toFixed(1) : '—';
+    dialHistEl.style.color = histOphAvg ? 'var(--blue)' : 'var(--slate)';
+  }
+}
+
+function cpoColor(cpo){
+  if(!cpo) return '';
+  if(cpo < 1.2) return 'g';
+  if(cpo < 1.7) return 'a';
+  return 'r';
+}
+
+function saveWeek() {
+  const spend  = fv('aSpend');
+  const hours  = fv('aHours');
+  const orders = fv('aOrders');
+  const heads  = fv('aHeads');
+  const rev    = fv('aRev');
+  const date   = $('aDate').value;
+  if(!spend || !orders || !date){ toast('Need spend, orders + date.',true); return; }
+  const wk = {
+    week:date, spend, hours:hours||null, orders,
+    heads:heads||null, rev:rev||null, cpo:spend/orders,
+    mke_orders:orders, slc_orders:0, temp:0, source:'manual'
+  };
+  userWeeks = userWeeks.filter(r=>r.week!==date);
+  userWeeks.push(wk);
+  try{ localStorage.setItem('atx_proj_weeks', JSON.stringify(userWeeks)); }catch(e){}
+  toast('Week saved ✓');
+}
+
+// ══════════════════════════════════════════════════════════════
+// PROJECTOR — OPH as primary dial
+// ══════════════════════════════════════════════════════════════
+let currentOph = 10;
+let requiredOph = null;
+
+function ophSlide(v){
+  currentOph = parseFloat(v);
+  $('ophDialVal').textContent = parseFloat(v).toFixed(1);
+  projectCalc();
+}
+function setOph(v){
+  currentOph = v;
+  $('pOphSlider').value = v;
+  $('ophDialVal').textContent = v.toFixed(1);
+  projectCalc();
+}
+
+function projectCalc(){
+  const orders  = fv('pOrders');
+  const cplh    = fv('pCplh');
+  const oph     = currentOph;
+  const rev     = fv('pRev');
+
+  if(!orders){ clearProjection(); return; }
+
+  requiredOph = null;
+
+  const hrsNeeded = orders / oph;
+  const bodies    = Math.ceil(hrsNeeded / 40);
+  const projSpend = cplh ? hrsNeeded * cplh : null;
+  const projCpo   = (projSpend && orders)  ? projSpend / orders     : null;
+  const projLpct  = (projSpend && rev)     ? projSpend / rev * 100  : null;
+  const delta     = null;
+
+  // ── OPH dial ──
+  $('ophDialVal').textContent = oph.toFixed(1);
+  $('ophRequired').textContent = requiredOph ? requiredOph.toFixed(1) : '—';
+  const ophEl = $('ophDialVal');
+  if(requiredOph) ophEl.style.color = oph >= requiredOph ? 'var(--green)' : oph >= requiredOph*0.85 ? 'var(--amber)' : 'var(--red)';
+  else ophEl.style.color = 'var(--green)';
+
+  // Hist avg OPH on dial — back-calculated from historical spend ÷ 17.5 CPLH
+  const ophWeeks2 = allWeeks().filter(r=>r.hours && r.orders);
+  let ophAvg2 = ophWeeks2.length ? ophWeeks2.reduce((s,r)=>s+(r.orders/r.hours),0)/ophWeeks2.length : null;
+  // Fallback: back-calculated from CPO sheet (spend ÷ $17.5 CPLH → hours → OPH)
+  const HIST_IMPLIED_OPH = 12.6; // derived: avg across 59 weeks at $17.50 CPLH
+  const ghostVal  = ophAvg2 || HIST_IMPLIED_OPH;
+  const ghostLabel = ophAvg2 ? `avg ${ophAvg2.toFixed(1)} (logged)` : `avg ${ghostVal.toFixed(1)} (implied)`;
+
+  const dialH = $('ophHistAvg');
+  if(dialH){ dialH.textContent = ghostVal.toFixed(1); dialH.style.color = 'var(--blue)'; }
+  const ghost = $('ophGhostAvg'), ghostLbl = $('ophGhostLbl');
+  if(ghost){ ghost.textContent = ghostVal.toFixed(1); }
+  if(ghostLbl){ ghostLbl.textContent = ghostLabel; }
+
+  // Delta badge
+  const badge = $('ophDeltaBadge');
+  if(delta !== null){
+    const sign = delta >= 0 ? '+' : '';
+    badge.innerHTML = `<span class="t-delta ${delta>=0?'up':'dn'}">${sign}${delta.toFixed(1)} vs required</span>`;
+  } else { badge.innerHTML = ''; }
+
+  $('ophDialSub').textContent = requiredOph
+    ? `Required OPH: ${requiredOph.toFixed(1)}. You're dialed to ${oph.toFixed(1)}. Move the slider to see the impact.`
+    : `Enter CPLH to unlock spend projections.`;
+
+  // ── Impact strip ──
+  const strip = {riHours:fmt(hrsNeeded), riBodies:bodies, riSpend:projSpend?fmtk(projSpend):'—', riCpo:projCpo?'$'+projCpo.toFixed(2):'—', riLpct:projLpct?projLpct.toFixed(1)+'%':'—'};
+  Object.entries(strip).forEach(([id,v])=>{ const e=$(id); if(e)e.textContent=v; });
+  if($('riSpend')) $('riSpend').style.color = 'var(--white)';
+  if($('riCpo'))   $('riCpo').style.color   = projCpo ? projCpo<1.2?'var(--green)':projCpo<1.7?'var(--amber)':'var(--red)' : 'var(--white)';
+  if($('riLpct'))  $('riLpct').style.color  = projLpct ? projLpct<=12?'var(--green)':projLpct<=15?'var(--amber)':'var(--red)' : 'var(--white)';
+
+  // ── Verdict ──
+  let verdict = '';
+  if(orders && projSpend){
+    const cpoStr = projCpo ? ` · <b>$${projCpo.toFixed(2)} CPO</b>` : '';
+    const lpctStr = projLpct ? ` · <b>${projLpct.toFixed(1)}% labor</b>` : '';
+    verdict = `At <b style="color:var(--green)">${oph.toFixed(1)} OPH</b>: <b>${fmt(hrsNeeded)} hrs needed</b> · <b>${fmtk(projSpend)} proj spend</b>${cpoStr}${lpctStr}`;
+  } else if(orders){
+    verdict = `Set <b>CPLH</b> to unlock spend and CPO projections.`;
+  } else {
+    verdict = `Enter orders and CPLH, then use the slider to model different floor scenarios.`;
+  }
+  $('ophVerdict').innerHTML = verdict;
+
+  // ── Tiles ──
+  tcv('rBodies',   bodies,                                   'a');
+  tv('rBodiesSub', `${fmt(hrsNeeded)} hrs ÷ 40`);
+  tcv('rHours',    fmt(hrsNeeded),                           '');
+  tv('rHoursSub',  `Orders ÷ ${oph.toFixed(1)} OPH`);
+  tcv('rSpend',    projSpend?fmtk(projSpend):'$—',           '');
+  tv('rSpendSub',  cplh?`@ $${cplh}/hr CPLH`:'Set CPLH');
+  tcv('rCpo',      projCpo?'$'+projCpo.toFixed(2):'$—',     cpoColor(projCpo));
+  tcv('rLpct',     projLpct?projLpct.toFixed(1)+'%':'—',    projLpct?projLpct<=12?'g':projLpct<=15?'a':'r':'');
+
+  renderOphSensitivity(orders, cplh, rev);
+  renderRecs(orders, bodies, hrsNeeded, projSpend, projCpo, projLpct, requiredOph, oph, delta);
+  deptCalc();
+}
+
+function clearProjection(){
+  requiredOph = null;
+  $('ophRequired').textContent = '—';
+  $('ophDialVal').textContent  = currentOph.toFixed(1);
+  $('ophDialVal').style.color  = 'var(--green)';
+  $('ophDeltaBadge').innerHTML = '';
+  $('ophDialSub').textContent  = 'Enter orders above to see your required OPH, then adjust to model different floor realities.';
+  $('ophVerdict').textContent  = 'Set orders and CPLH to generate your required OPH, then use the slider to see the impact.';
+  ['riHours','riBodies','riSpend','riCpo','riLpct'].forEach(id=>{ const e=$(id); if(e){e.textContent='—';e.style.color='var(--white)';} });
+  ['rBodies','rHours','rSpend','rCpo','rLpct'].forEach(id=>tv(id,'—'));
+  $('ophSensBody').innerHTML='<tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr>';
+  $('recList').innerHTML='<div class="no-data">Configure inputs to generate recommendations.</div>';
+}
+
+function renderOphSensitivity(orders, cplh, rev){
+  if(!orders || !cplh){ $('ophSensBody').innerHTML='<tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr>'; return; }
+  const ref = requiredOph || currentOph;
+  const candidates = new Set([
+    2,4,5,6,7,8,9,10,11,12,13,15,18,20,25,
+    Math.round(ref*0.7), Math.round(ref*0.85), Math.round(ref), Math.round(ref*1.15), Math.round(ref*1.3),
+    Math.round(currentOph*10)/10
+  ].filter(v=>v>=2&&v<=30).map(v=>Math.round(v*2)/2));
+  const rows = [...candidates].sort((a,b)=>a-b).map(o=>{
+    const hrs    = orders/o;
+    const bodies = Math.ceil(hrs/40);
+    const spend  = hrs*cplh;
+    const cpo    = spend/orders;
+    const lpct   = rev?spend/rev*100:null;
+    const isCur  = Math.abs(o-currentOph)<0.3;
+    const isReq  = requiredOph&&Math.abs(o-requiredOph)<0.3;
+    const style  = isCur?'background:rgba(163,243,197,.04);':isReq?'background:rgba(255,181,71,.04);':'';
+    const vsReq  = requiredOph?o-requiredOph:null;
+    let vsLabel  = '';
+    if(isReq)      vsLabel='<span class="badge badge-a">⟵ Required</span>';
+    else if(isCur) vsLabel='<span class="badge badge-g">● You</span>';
+    else if(vsReq!=null) vsLabel=vsReq>0?`<span class="badge badge-g">+${vsReq.toFixed(1)}</span>`:`<span class="badge badge-r">${vsReq.toFixed(1)}</span>`;
+    return `<tr style="${style}">
+      <td class="${isCur?'g':isReq?'a':''}" style="font-weight:${isCur||isReq?700:400}">${o}</td>
+      <td class="m">${fmt(hrs)}</td>
+      <td class="${isCur?'a':''}">${bodies}</td>
+      <td>${fmtk(spend)}</td>
+      <td class="${cpo<1.2?'g':cpo<1.7?'a':'r'}">${'$'+cpo.toFixed(2)}</td>
+      <td class="${lpct?lpct<=12?'g':lpct<=15?'a':'r':''}">${lpct?lpct.toFixed(1)+'%':'—'}</td>
+      <td>${vsLabel}</td>
+    </tr>`;
+  }).join('');
+  $('ophSensBody').innerHTML = rows;
+}
+
+function renderRecs(orders, bodies, hrs, spend, cpo, lpct, reqOph, oph, delta){
+  const items = [];
+  if(cpo!=null){
+    if(cpo<1.2)      items.push({icon:'✅',txt:`CPO <b>$${cpo.toFixed(2)}</b> — solid. Hold pace.`});
+    else if(cpo<1.7) items.push({icon:'⚠️',txt:`CPO <b>$${cpo.toFixed(2)}</b> — watch overtime creep.`});
+    else             items.push({icon:'🔴',txt:`CPO <b>$${cpo.toFixed(2)}</b> — push OPH up or reduce headcount.`});
+  } else items.push({icon:'💡',txt:`Set <b>CPLH</b> to unlock spend and CPO projections.`});
+  if(delta!=null){
+    if(delta<0) items.push({icon:'⏱️',txt:`Floor is <b>${Math.abs(delta).toFixed(1)} OPH below required rate</b>. At current pace: ${spend?fmtk(spend):''} projected spend.`});
+    else        items.push({icon:'📈',txt:`Running ${delta.toFixed(1)} OPH above required — floor is ahead of pace.`});
+  }
+  if(bodies>60) items.push({icon:'📋',txt:`${bodies} bodies is a large crew — stagger start times to reduce congestion.`});
+  if(cpo!=null&&H_LAST8_CPO&&cpo<H_LAST8_CPO) items.push({icon:'🏆',txt:`Projecting <b>$${(H_LAST8_CPO-cpo).toFixed(2)}/order better</b> than recent avg ($${H_LAST8_CPO.toFixed(2)}).`});
+  $('recList').innerHTML=items.length
+    ?items.map((r,i)=>`<div style="display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:8px;animation:rise .3s ${i*.06}s both"><span style="font-size:13px;flex-shrink:0;margin-top:1px">${r.icon}</span><span style="font-size:11px;line-height:1.55;color:var(--white)">${r.txt}</span></div>`).join('')
+    :'<div class="no-data">No alerts.</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════════════
+let histFilter = 'all';
+
+function filterHist(f, el){
+  histFilter = f;
+  document.querySelectorAll('#filterPills .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderHistory();
+}
+
+function renderHistory(){
+  const all = allWeeks();
+  const now = new Date();
+
+  let data = [...all];
+  if(histFilter==='8wk') data = all.slice(-8);
+  else if(histFilter==='2025') data = all.filter(r=>r.week.startsWith('2025'));
+  else if(histFilter==='2026') data = all.filter(r=>r.week.startsWith('2026'));
+  data = [...data].reverse();
+
+  // Summary tiles
+  tv('hWks', all.length);
+  const cpov = all.filter(r=>r.cpo).map(r=>r.cpo);
+  tv('hAvgCpo', '$'+(cpov.reduce((s,v)=>s+v,0)/cpov.length).toFixed(2));
+  tv('hAvgCpo8', '$'+H_LAST8_CPO.toFixed(2));
+  const ord = all.map(r=>r.orders).filter(Boolean);
+  tv('hAvgOrd', Math.round(ord.reduce((s,v)=>s+v,0)/ord.length).toLocaleString());
+
+  if(!data.length){ $('histTableWrap').innerHTML='<div class="no-data">No data for filter.</div>'; return; }
+
+  // Use implied OPH (spend÷17.5) as fallback for all historical weeks
+  const allWithOph = allWeeks().map(r=>({
+    ...r,
+    oph: r.oph || (r.hours && r.orders ? r.orders/r.hours : (r.spend ? r.orders/(r.spend/17.5) : null))
+  }));
+  const ophVals = allWithOph.filter(r=>r.oph).map(r=>r.oph);
+  const avgOph  = ophVals.length ? ophVals.reduce((s,v)=>s+v,0)/ophVals.length : 12.6;
+
+  // Re-map data with oph enriched
+  const dataWithOph = data.map(r=>({
+    ...r,
+    oph: r.oph || (r.hours && r.orders ? r.orders/r.hours : (r.spend ? r.orders/(r.spend/17.5) : null))
+  }));
+
+  const rows = dataWithOph.map(r=>{
+    const isManual = r.source==='manual';
+    const temp_pct = r.temp && r.spend ? (r.temp/r.spend*100).toFixed(0)+'%' : '—';
+    const ophVal   = r.oph;
+    const ophStr   = ophVal ? ophVal.toFixed(1) : '—';
+    const ophCls   = ophVal ? (ophVal >= 10 ? 'g' : ophVal >= 7 ? '' : 's') : 'm';
+    const implied  = ophVal && !r.hours; // flag implied vs logged
+
+    // Mini OPH bar with avg tick
+    let ophCell = `<span class="${ophCls}">${ophStr}</span>`;
+    if(ophVal){
+      const maxBar  = Math.max(20, ophVal * 1.2, avgOph * 1.2);
+      const fillPct = Math.min(ophVal / maxBar * 100, 100).toFixed(1);
+      const avgPct  = Math.min(avgOph  / maxBar * 100, 100).toFixed(1);
+      const barCol  = ophVal >= avgOph ? 'var(--green)' : 'var(--amber)';
+      ophCell = `
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="${ophCls}" style="width:32px;flex-shrink:0;font-size:10px">${ophStr}${implied?'<span style="color:rgba(139,155,170,.4);font-size:8px">~</span>':''}</span>
+          <div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;position:relative;min-width:60px">
+            <div style="height:100%;width:${fillPct}%;background:${barCol};border-radius:2px;transition:width .3s"></div>
+            <div style="position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.3);border-radius:1px;left:${avgPct}%" title="avg ${avgOph.toFixed(1)}"></div>
+          </div>
+        </div>`;
     }
 
-    function viewHistoryDetail(item) {
-      // Create modal or detail view
-      alert(`Full details for: ${item['Project/Job Name']}\n\nType: ${item.Type}\nKits: ${item['Total Kits']}\nLabor Cost: $${parseFloat(item['Labor Cost']).toFixed(2)}\nRevenue: $${parseFloat(item['Revenue']).toFixed(2)}\nNet Profit: $${parseFloat(item['Net Profit']).toFixed(2)}`);
-    }
+    const dbtn = isManual ? `<button class="dbtn" onclick="deleteWeek('${r.week}')">✕</button>` : '';
+    return `<tr>
+      <td class="m">${r.week}${isManual?'<span class="badge badge-s" style="margin-left:6px">manual</span>':''}</td>
+      <td>${r.orders.toLocaleString()}</td>
+      <td class="a">$${r.spend.toLocaleString()}</td>
+      <td class="m">${temp_pct}</td>
+      <td>${cpoBadge(r.cpo)}</td>
+      <td style="min-width:120px">${ophCell}</td>
+      <td class="${r.orders>25000?'g':r.orders>15000?'':'s'}">${r.mke_orders.toLocaleString()}</td>
+      <td class="m">${r.slc_orders.toLocaleString()}</td>
+      <td>${dbtn}</td>
+    </tr>`;
+  }).join('');
 
-    function filterHistory(type) {
-      currentFilter = type;
+  $('histTableWrap').innerHTML = `<table class="htbl">
+    <thead>
+      <tr>
+        <th>Week</th><th>Total Orders</th><th>Labor Spend</th>
+        <th>Temp %</th><th>CPO</th>
+        <th>OPH <span style="color:rgba(139,155,170,.4);font-weight:400">│ avg ${avgOph.toFixed(1)} ~</span></th>
+        <th>MKE Orders</th><th>SLC Orders</th><th></th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
 
-      // Update button styles
-      document.getElementById('filterAll').className = type === 'all' 
-        ? 'px-4 py-2 rounded-lg bg-[#A3F3C5] text-[#0D2D53] text-sm font-medium'
-        : 'px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]';
-      document.getElementById('filterProjection').className = type === 'Projection'
-        ? 'px-4 py-2 rounded-lg bg-[#A3F3C5] text-[#0D2D53] text-sm font-medium'
-        : 'px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]';
-      document.getElementById('filterCompletion').className = type === 'Completion'
-        ? 'px-4 py-2 rounded-lg bg-[#A3F3C5] text-[#0D2D53] text-sm font-medium'
-        : 'px-4 py-2 rounded-lg bg-[#1e2223] text-[#9D9F9E] text-sm font-medium hover:bg-[#2a2e2f]';
+function deleteWeek(wk){
+  userWeeks = userWeeks.filter(r=>r.week!==wk);
+  try{ localStorage.setItem('atx_proj_weeks', JSON.stringify(userWeeks)); }catch(e){}
+  renderHistory();
+  toast('Week removed.');
+}
 
-      loadHistory();
-    }
+// ══════════════════════════════════════════════════════════════
+// TREND CHART
+// ══════════════════════════════════════════════════════════════
+function renderTrendChart(){
+  const data = allWeeks().filter(r=>r.cpo).slice(-20);
+  if(!data.length){ $('trendChart').innerHTML='<div class="no-data">No historical data.</div>'; return; }
 
-    function searchHistory() {
-      const searchTerm = document.getElementById('searchHistory').value.toLowerCase();
-      
-      if (searchTerm === '') {
-        renderHistory(historyData);
-        return;
-      }
+  const cpos = data.map(r=>r.cpo);
+  const max  = Math.max(...cpos);
+  const min  = Math.min(...cpos);
+  const range= max - min || 1;
 
-      const filtered = historyData.filter(item => {
-        const name = (item['Project/Job Name'] || '').toLowerCase();
-        const kit = (item['Kit Name'] || '').toLowerCase();
-        return name.includes(searchTerm) || kit.includes(searchTerm);
-      });
+  const bars = data.map((r,i)=>{
+    const pct = ((r.cpo - min) / range * 70 + 10).toFixed(1);
+    const col = r.cpo<1.2?'var(--green)':r.cpo<1.7?'var(--amber)':'var(--red)';
+    const lbl = r.week.slice(5); // MM-DD
+    return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;cursor:default" title="${r.week}: $${r.cpo.toFixed(2)}/order">
+      <div style="flex:1;display:flex;align-items:flex-end;width:100%;justify-content:center">
+        <div style="width:80%;height:${pct}%;background:${col};opacity:0.85;border-radius:3px 3px 0 0;min-height:4px;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.85"></div>
+      </div>
+      <div style="font-size:8px;color:var(--slate);margin-top:4px;text-align:center;letter-spacing:.02em">${lbl}</div>
+    </div>`;
+  }).join('');
 
-      renderHistory(filtered);
-    }
-  </script>
+  $('trendChart').innerHTML = `
+    <div style="display:flex;align-items:stretch;height:80px;gap:2px">${bars}</div>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(139,155,170,.4);margin-top:2px">
+      <span>$${min.toFixed(2)} min</span>
+      <span>Last 20 weeks · hover for details</span>
+      <span>$${max.toFixed(2)} max</span>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// DEPARTMENT BREAKDOWN
+// ══════════════════════════════════════════════════════════════
+const DEPTS = ['outbound','inbound','special','kitting','inventory','returns'];
+
+function deptCalc(){
+  // Pull total hrs + spend from projector state
+  const orders  = fv('pOrders');
+  const cplh    = fv('pCplh');
+  const oph     = currentOph;
+  const totalHrs   = orders ? orders / oph : null;
+  const totalSpend = (totalHrs && cplh) ? totalHrs * cplh : null;
+
+  // Read each dept %
+  const pcts = {};
+  let totalPct = 0;
+  DEPTS.forEach(d => {
+    const el = document.querySelector(`.dept-pct[data-dept="${d}"]`);
+    const v  = el ? (parseFloat(el.value) || 0) : 0;
+    pcts[d]  = v;
+    totalPct += v;
+  });
+
+  // Update header totals
+  const totalPctEl = $('deptTotalPct');
+  if(totalPctEl) {
+    totalPctEl.textContent = totalPct.toFixed(0) + '%';
+    totalPctEl.style.color = totalPct > 100 ? 'var(--red)' : totalPct === 100 ? 'var(--green)' : 'var(--amber)';
+  }
+
+  // Stacked bar + per-dept metrics
+  DEPTS.forEach(d => {
+    const pct  = pcts[d];
+    const hrs  = totalHrs  ? totalHrs  * (pct/100) : null;
+    const spd  = totalSpend ? totalSpend * (pct/100) : null;
+    const bods = hrs ? Math.ceil(hrs/40) : null;
+    const dCplh= (spd && hrs) ? spd/hrs : null;
+
+    // Bar width
+    const bar = document.querySelector(`.dept-bar[data-dept="${d}"]`);
+    if(bar) bar.style.width = Math.min(pct, 100) + '%';
+
+    // Stacked bar segment
+    const sb = $('dsb-'+d);
+    if(sb) sb.style.width = Math.min(pct, 100) + '%';
+
+    // Metrics
+    const hEl = document.querySelector(`.dept-hrs[data-dept="${d}"]`);
+    const bEl = document.querySelector(`.dept-bodies[data-dept="${d}"]`);
+    const sEl = document.querySelector(`.dept-spend[data-dept="${d}"]`);
+    const cEl = document.querySelector(`.dept-cplh[data-dept="${d}"]`);
+
+    if(hEl) hEl.textContent = hrs  ? Math.round(hrs).toLocaleString()  : pct > 0 ? 'Set OPH' : '—';
+    if(bEl) bEl.textContent = bods ? bods                              : pct > 0 ? '—'       : '—';
+    if(sEl) sEl.textContent = spd  ? '$'+Math.round(spd).toLocaleString() : pct > 0 ? 'Set CPLH' : '—';
+    if(cEl) cEl.textContent = dCplh ? '$'+dCplh.toFixed(2)             : '—';
+  });
+
+  // Total allocated bar label
+  const lbl = $('deptTotalLbl');
+  if(lbl) {
+    if(totalPct === 100)      { lbl.textContent = '✓ 100% allocated'; lbl.style.color = 'var(--green)'; }
+    else if(totalPct > 100)   { lbl.textContent = `⚠ ${totalPct.toFixed(0)}% — over by ${(totalPct-100).toFixed(0)}%`; lbl.style.color = 'var(--red)'; }
+    else                      { lbl.textContent = `${totalPct.toFixed(0)}% allocated · ${(100-totalPct).toFixed(0)}% unallocated`; lbl.style.color = 'var(--slate)'; }
+  }
+
+  // Alloc badge
+  const badge = $('deptAllocBar');
+  if(badge && totalHrs && totalSpend) {
+    const allocHrs = totalHrs * (totalPct/100);
+    const allocSpd = totalSpend * (totalPct/100);
+    badge.textContent = `${Math.round(allocHrs).toLocaleString()} hrs · $${Math.round(allocSpd).toLocaleString()}`;
+    badge.style.background = totalPct === 100 ? 'var(--green-dim)' : 'var(--amber-dim)';
+    badge.style.color      = totalPct === 100 ? 'var(--green)'     : 'var(--amber)';
+  } else if(badge) {
+    badge.textContent = '0 hrs · $0';
+  }
+
+  // Hint
+  const hint = $('deptHint');
+  if(hint){
+    if(!totalHrs)     hint.textContent = 'Set Orders + OPH in the projector above to populate department hours.';
+    else if(!totalSpend) hint.textContent = 'Set CPLH above to unlock department spend.';
+    else if(totalPct===100) hint.textContent = `Total: ${Math.round(totalHrs).toLocaleString()} hrs · $${Math.round(totalSpend).toLocaleString()} fully allocated across departments.`;
+    else hint.textContent = 'Enter % of total hours allocated to each department. Must total 100%.';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('load', ()=>{
+  const d = new Date(); d.setDate(d.getDate()-7);
+  $('aDate').value = d.toISOString().slice(0,10);
+
+  // Ghost placeholders — show historical avg as dimmed hint
+  $('aSpend').placeholder  = `avg $${H_AVG_SPEND.toLocaleString()}`;
+  $('aOrders').placeholder = `avg ${H_AVG_ORDERS.toLocaleString()}`;
+  $('aHours').placeholder  = 'e.g. 2800';
+  $('pOrders').placeholder = `avg ${LAST8_ORDERS.toLocaleString()} (L8)`;
+  $('pCplh').placeholder   = 'e.g. 17.50';
+
+  renderTrendChart();
+  renderHistory();
+
+  // Set ghost avg OPH on dial at load
+  const ophW = allWeeks().filter(r=>r.hours && r.orders);
+  const ophA = ophW.length ? ophW.reduce((s,r)=>s+(r.orders/r.hours),0)/ophW.length : null;
+  const gVal = ophA || 12.6;
+  const g = $('ophGhostAvg'), gl = $('ophGhostLbl');
+  if(g)  g.textContent  = gVal.toFixed(1);
+  if(gl) gl.textContent = ophA ? `avg ${ophA.toFixed(1)} (logged)` : `avg ${gVal.toFixed(1)} (implied)`;
+});
+
+// CSS animation keyframe
+const styleEl = document.createElement('style');
+styleEl.textContent = '@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}';
+document.head.appendChild(styleEl);
+</script>
 </body>
 </html>
