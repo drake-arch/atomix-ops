@@ -896,20 +896,21 @@ const HIST_DATA = [
   {week:"2026-02-15",spend:48584,temp:9660,mke_orders:32716,slc_orders:9742},
   {week:"2026-02-22",spend:48507,temp:4728,mke_orders:26536,slc_orders:4248},
   {week:"2026-03-01",spend:45790,temp:0,mke_orders:35079,slc_orders:3679},
-].map(r=>({
-  ...r,
-  orders: r.mke_orders + r.slc_orders,
-  cpo: r.orders > 0 ? r.spend / r.orders : null
-})).sort((a,b)=>a.week.localeCompare(b.week));
+].map(r=>{
+  const orders = r.mke_orders + r.slc_orders;
+  const cpo    = orders > 0 ? r.spend / orders : null;
+  const oph    = orders > 0 ? orders / (r.spend / 17.5) : null;
+  return { ...r, orders, cpo, oph };
+}).sort((a,b)=>a.week.localeCompare(b.week));
 
 // ── Derived historical stats ──
-const hist_cpos   = HIST_DATA.filter(r=>r.cpo).map(r=>r.cpo);
+const hist_cpos   = HIST_DATA.filter(r=>r.cpo != null).map(r=>r.cpo);
 const hist_cplhs  = [];
-const H_AVG_CPO   = hist_cpos.reduce((s,v)=>s+v,0)/hist_cpos.length;
-const H_BEST_CPO  = Math.min(...hist_cpos);
-const H_WORST_CPO = Math.max(...hist_cpos);
-const LAST8       = HIST_DATA.filter(r=>r.cpo).slice(-8);
-const H_LAST8_CPO = LAST8.reduce((s,r)=>s+r.cpo,0)/LAST8.length;
+const H_AVG_CPO   = hist_cpos.length ? hist_cpos.reduce((s,v)=>s+v,0)/hist_cpos.length : 0;
+const H_BEST_CPO  = hist_cpos.length ? Math.min(...hist_cpos) : 0;
+const H_WORST_CPO = hist_cpos.length ? Math.max(...hist_cpos) : 0;
+const LAST8       = HIST_DATA.filter(r=>r.cpo != null).slice(-8);
+const H_LAST8_CPO = LAST8.length ? LAST8.reduce((s,r)=>s+r.cpo,0)/LAST8.length : 0;
 
 // Historical averages for ghost placeholders
 const H_AVG_ORDERS = Math.round(HIST_DATA.map(r=>r.orders).reduce((s,v)=>s+v,0)/HIST_DATA.length);
@@ -1263,29 +1264,38 @@ function renderHistory(){
 
   if(!data.length){ $('histTableWrap').innerHTML='<div class="no-data">No data for filter.</div>'; return; }
 
-  // Compute hist OPH avg from manually logged weeks for bar reference
-  const loggedOphWeeks = allWeeks().filter(r=>r.hours && r.orders);
-  const avgOph = loggedOphWeeks.length
-    ? loggedOphWeeks.reduce((s,r)=>s+(r.orders/r.hours),0)/loggedOphWeeks.length
-    : null;
+  // Use implied OPH (spend÷17.5) as fallback for all historical weeks
+  const allWithOph = allWeeks().map(r=>({
+    ...r,
+    oph: r.oph || (r.hours && r.orders ? r.orders/r.hours : (r.spend ? r.orders/(r.spend/17.5) : null))
+  }));
+  const ophVals = allWithOph.filter(r=>r.oph).map(r=>r.oph);
+  const avgOph  = ophVals.length ? ophVals.reduce((s,v)=>s+v,0)/ophVals.length : 12.6;
 
-  const rows = data.map(r=>{
+  // Re-map data with oph enriched
+  const dataWithOph = data.map(r=>({
+    ...r,
+    oph: r.oph || (r.hours && r.orders ? r.orders/r.hours : (r.spend ? r.orders/(r.spend/17.5) : null))
+  }));
+
+  const rows = dataWithOph.map(r=>{
     const isManual = r.source==='manual';
     const temp_pct = r.temp && r.spend ? (r.temp/r.spend*100).toFixed(0)+'%' : '—';
-    const ophVal   = (r.hours && r.orders) ? r.orders/r.hours : null;
+    const ophVal   = r.oph;
     const ophStr   = ophVal ? ophVal.toFixed(1) : '—';
     const ophCls   = ophVal ? (ophVal >= 10 ? 'g' : ophVal >= 7 ? '' : 's') : 'm';
+    const implied  = ophVal && !r.hours; // flag implied vs logged
 
-    // Mini OPH bar: fill = ophVal / max(20, ophVal*1.2), mark avg
+    // Mini OPH bar with avg tick
     let ophCell = `<span class="${ophCls}">${ophStr}</span>`;
-    if(ophVal && avgOph){
+    if(ophVal){
       const maxBar  = Math.max(20, ophVal * 1.2, avgOph * 1.2);
       const fillPct = Math.min(ophVal / maxBar * 100, 100).toFixed(1);
       const avgPct  = Math.min(avgOph  / maxBar * 100, 100).toFixed(1);
       const barCol  = ophVal >= avgOph ? 'var(--green)' : 'var(--amber)';
       ophCell = `
         <div style="display:flex;align-items:center;gap:6px">
-          <span class="${ophCls}" style="width:28px;flex-shrink:0">${ophStr}</span>
+          <span class="${ophCls}" style="width:32px;flex-shrink:0;font-size:10px">${ophStr}${implied?'<span style="color:rgba(139,155,170,.4);font-size:8px">~</span>':''}</span>
           <div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;position:relative;min-width:60px">
             <div style="height:100%;width:${fillPct}%;background:${barCol};border-radius:2px;transition:width .3s"></div>
             <div style="position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.3);border-radius:1px;left:${avgPct}%" title="avg ${avgOph.toFixed(1)}"></div>
@@ -1300,7 +1310,7 @@ function renderHistory(){
       <td class="a">$${r.spend.toLocaleString()}</td>
       <td class="m">${temp_pct}</td>
       <td>${cpoBadge(r.cpo)}</td>
-      <td style="min-width:110px">${ophCell}</td>
+      <td style="min-width:120px">${ophCell}</td>
       <td class="${r.orders>25000?'g':r.orders>15000?'':'s'}">${r.mke_orders.toLocaleString()}</td>
       <td class="m">${r.slc_orders.toLocaleString()}</td>
       <td>${dbtn}</td>
@@ -1312,7 +1322,7 @@ function renderHistory(){
       <tr>
         <th>Week</th><th>Total Orders</th><th>Labor Spend</th>
         <th>Temp %</th><th>CPO</th>
-        <th>OPH ${avgOph ? '<span style="color:rgba(139,155,170,.4);font-weight:400">│ avg '+avgOph.toFixed(1)+'</span>' : ''}</th>
+        <th>OPH <span style="color:rgba(139,155,170,.4);font-weight:400">│ avg ${avgOph.toFixed(1)} ~</span></th>
         <th>MKE Orders</th><th>SLC Orders</th><th></th>
       </tr>
     </thead>
