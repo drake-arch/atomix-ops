@@ -547,15 +547,15 @@ body{
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
       <div class="fld" style="margin:0">
         <div class="fl">Estimated Orders</div>
-        <input class="fi" id="pOrders" type="number" placeholder="e.g. 36000" oninput="projectCalc()">
+        <input class="fi" id="pOrders" type="number" placeholder="e.g. 36000" oninput="saveProjectorState();projectCalc()">
       </div>
       <div class="fld" style="margin:0">
         <div class="fl">Target CPLH ($)</div>
-        <input class="fi" id="pCplh" type="number" placeholder="e.g. 17.50" oninput="projectCalc()">
+        <input class="fi" id="pCplh" type="number" placeholder="e.g. 17.50" oninput="saveProjectorState();projectCalc()">
       </div>
       <div class="fld" style="margin:0">
         <div class="fl">Revenue ($) <span style="color:rgba(139,155,170,.4)">optional</span></div>
-        <input class="fi" id="pRev" type="number" placeholder="e.g. 380000" oninput="projectCalc()">
+        <input class="fi" id="pRev" type="number" placeholder="e.g. 380000" oninput="saveProjectorState();projectCalc()">
       </div>
     </div>
   </div>
@@ -1314,12 +1314,14 @@ let requiredOph = null;
 function ophSlide(v){
   currentOph = parseFloat(v);
   $('ophDialVal').textContent = parseFloat(v).toFixed(1);
+  saveProjectorState();
   projectCalc();
 }
 function setOph(v){
   currentOph = v;
   $('pOphSlider').value = v;
   $('ophDialVal').textContent = v.toFixed(1);
+  saveProjectorState();
   projectCalc();
 }
 
@@ -2320,6 +2322,31 @@ function closeModal(e){
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') { $('chartModal').style.display='none'; } });
 
 // ══════════════════════════════════════════════════════════════
+// PROJECTOR STATE — persist inputs across sessions
+// ══════════════════════════════════════════════════════════════
+const PROJ_FIELDS = ['pOrders','pCplh','pRev'];
+
+function saveProjectorState(){
+  const state = {
+    oph: currentOph,
+    fields: Object.fromEntries(PROJ_FIELDS.map(id=>[ id, $(id)?.value||'' ]))
+  };
+  try{ localStorage.setItem('atx_proj_state', JSON.stringify(state)); }catch(e){}
+}
+
+function loadProjectorState(){
+  try{
+    const s = JSON.parse(localStorage.getItem('atx_proj_state')||'{}');
+    if(s.fields) PROJ_FIELDS.forEach(id=>{ if($(id) && s.fields[id]) $(id).value = s.fields[id]; });
+    if(s.oph && s.oph >= 2 && s.oph <= 30){
+      currentOph = s.oph;
+      $('pOphSlider').value = s.oph;
+      $('ophDialVal').textContent = s.oph.toFixed(1);
+    }
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════════════════
 // BOOT
 // ══════════════════════════════════════════════════════════════
 window.addEventListener('load', ()=>{
@@ -2335,6 +2362,10 @@ window.addEventListener('load', ()=>{
 
   renderTrendChart();
   renderHistory();
+
+  // Restore projector state
+  loadProjectorState();
+  projectCalc();
 
   // Redraw charts on resize
   window.addEventListener('resize', ()=>{
