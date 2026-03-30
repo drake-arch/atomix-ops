@@ -337,35 +337,110 @@ body{
           <input class="fi" id="aDate" type="date">
         </div>
 
-        <div class="frow">
-          <div class="fld">
-            <div class="fl">Total Labor Spend ($)</div>
-            <input class="fi" id="aSpend" type="number" placeholder="e.g. 45000" oninput="analyzeCalc()">
+        <!-- SITE TABS -->
+        <div style="display:flex;gap:6px;margin-bottom:14px">
+          <button id="siteTabCombined" onclick="setSiteTab('combined')"
+            style="flex:1;padding:7px;border-radius:7px;font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;background:var(--green-dim);border:1px solid var(--green-border);color:var(--green)">
+            Combined
+          </button>
+          <button id="siteTabSplit" onclick="setSiteTab('split')"
+            style="flex:1;padding:7px;border-radius:7px;font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;background:var(--card);border:1px solid var(--border);color:var(--slate)">
+            MKE / SLC Split
+          </button>
+        </div>
+
+        <!-- COMBINED MODE -->
+        <div id="modeCombined">
+          <div class="frow">
+            <div class="fld">
+              <div class="fl">Total Labor Spend ($)</div>
+              <input class="fi" id="aSpend" type="number" placeholder="e.g. 45000" oninput="analyzeCalc()">
+            </div>
+            <div class="fld">
+              <div class="fl">Total Labor Hours</div>
+              <input class="fi" id="aHours" type="number" placeholder="e.g. 2800" oninput="analyzeCalc()">
+            </div>
           </div>
-          <div class="fld">
-            <div class="fl">Total Labor Hours</div>
-            <input class="fi" id="aHours" type="number" placeholder="e.g. 2800" oninput="analyzeCalc()">
+          <div class="frow">
+            <div class="fld">
+              <div class="fl">Orders Shipped</div>
+              <input class="fi" id="aOrders" type="number" placeholder="e.g. 18000" oninput="analyzeCalc()">
+            </div>
+            <div class="fld">
+              <div class="fl">Headcount (Bodies)</div>
+              <input class="fi" id="aHeads" type="number" placeholder="e.g. 40" oninput="analyzeCalc()">
+            </div>
           </div>
         </div>
 
-        <div class="frow">
-          <div class="fld">
-            <div class="fl">Orders Shipped</div>
-            <input class="fi" id="aOrders" type="number" placeholder="e.g. 18000" oninput="analyzeCalc()">
+        <!-- SPLIT MODE -->
+        <div id="modeSplit" style="display:none">
+          <!-- MKE -->
+          <div style="background:rgba(163,243,197,.04);border:1px solid var(--green-border);border-radius:9px;padding:12px;margin-bottom:10px">
+            <div style="font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:10px">MKE — Milwaukee</div>
+            <div class="frow">
+              <div class="fld" style="margin-bottom:8px">
+                <div class="fl">Labor Spend ($)</div>
+                <input class="fi" id="aMkeSpend" type="number" placeholder="e.g. 38000" oninput="splitCalc()">
+              </div>
+              <div class="fld" style="margin-bottom:8px">
+                <div class="fl">Labor Hours</div>
+                <input class="fi" id="aMkeHours" type="number" placeholder="e.g. 2200" oninput="splitCalc()">
+              </div>
+            </div>
+            <div class="frow">
+              <div class="fld" style="margin-bottom:0">
+                <div class="fl">Orders Shipped</div>
+                <input class="fi" id="aMkeOrders" type="number" placeholder="e.g. 28000" oninput="splitCalc()">
+              </div>
+              <div class="fld" style="margin-bottom:0">
+                <div class="fl">Headcount</div>
+                <input class="fi" id="aMkeHeads" type="number" placeholder="e.g. 32" oninput="splitCalc()">
+              </div>
+            </div>
           </div>
-          <div class="fld">
-            <div class="fl">Headcount (Bodies)</div>
-            <input class="fi" id="aHeads" type="number" placeholder="e.g. 40" oninput="analyzeCalc()">
+          <!-- SLC -->
+          <div style="background:rgba(96,165,250,.04);border:1px solid var(--blue-border);border-radius:9px;padding:12px;margin-bottom:10px">
+            <div style="font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:10px">SLC — Salt Lake City</div>
+            <div class="frow">
+              <div class="fld" style="margin-bottom:8px">
+                <div class="fl">Labor Spend ($)</div>
+                <input class="fi" id="aSlcSpend" type="number" placeholder="e.g. 7000" oninput="splitCalc()">
+              </div>
+              <div class="fld" style="margin-bottom:8px">
+                <div class="fl">Labor Hours</div>
+                <input class="fi" id="aSlcHours" type="number" placeholder="e.g. 400" oninput="splitCalc()">
+              </div>
+            </div>
+            <div class="frow">
+              <div class="fld" style="margin-bottom:0">
+                <div class="fl">Orders Shipped</div>
+                <input class="fi" id="aSlcOrders" type="number" placeholder="e.g. 7000" oninput="splitCalc()">
+              </div>
+              <div class="fld" style="margin-bottom:0">
+                <div class="fl">Headcount</div>
+                <input class="fi" id="aSlcHeads" type="number" placeholder="e.g. 8" oninput="splitCalc()">
+              </div>
+            </div>
+          </div>
+          <!-- Split totals preview -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:10px;color:var(--slate);text-align:center;padding:8px 0">
+            <div>Total Spend<br><span style="font-family:var(--ui);font-weight:700;font-size:13px;color:var(--white)" id="splitTotalSpend">—</span></div>
+            <div>Total Orders<br><span style="font-family:var(--ui);font-weight:700;font-size:13px;color:var(--white)" id="splitTotalOrders">—</span></div>
+            <div>Total Hours<br><span style="font-family:var(--ui);font-weight:700;font-size:13px;color:var(--white)" id="splitTotalHours">—</span></div>
           </div>
         </div>
 
-        <div class="fld">
+        <div class="fld" style="margin-top:10px">
           <div class="fl">Weekly Revenue ($) <span style="color:rgba(139,155,170,.5)">optional</span></div>
           <input class="fi" id="aRev" type="number" placeholder="e.g. 380000" oninput="analyzeCalc()">
           <div class="fh">Used to calculate labor % of revenue.</div>
         </div>
 
-        <button class="btn btn-g" style="margin-top:4px" onclick="saveWeek()">+ Save to History</button>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-g" style="flex:1" onclick="saveWeek()">+ Save to History</button>
+          <button class="btn btn-b" style="width:44px;padding:0;font-size:14px" onclick="exportCSV()" title="Export history to CSV">↓</button>
+        </div>
       </div>
 
       <!-- COMP vs HISTORICAL -->
@@ -797,23 +872,105 @@ body{
   <div class="sd">All logged weeks. Loaded from your CPO Master file + any manually saved weeks.</div>
 
   <!-- SUMMARY STATS -->
-  <div class="g4" style="margin-bottom:18px">
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px">
     <div class="tile">
       <div class="t-lbl">Total Weeks</div>
       <div class="t-val b" id="hWks">—</div>
     </div>
     <div class="tile">
-      <div class="t-lbl">Avg CPO (All)</div>
+      <div class="t-lbl">Avg CPO Raw</div>
       <div class="t-val" id="hAvgCpo">$—</div>
+      <div class="t-sub">All time</div>
     </div>
     <div class="tile ta">
-      <div class="t-lbl">Avg CPO (Last 8 Wks)</div>
+      <div class="t-lbl">Avg CPO Raw (L8)</div>
       <div class="t-val" id="hAvgCpo8">$—</div>
+      <div class="t-sub">Last 8 weeks</div>
+    </div>
+    <div class="tile ta">
+      <div class="t-lbl">Avg CPO +12%</div>
+      <div class="t-val" id="hAvgCpo12">$—</div>
+      <div class="t-sub">All time loaded</div>
+    </div>
+    <div class="tile ta">
+      <div class="t-lbl">Avg CPO +12% (L8)</div>
+      <div class="t-val" id="hAvgCpo12L8">$—</div>
+      <div class="t-sub">Last 8 loaded</div>
     </div>
     <div class="tile">
       <div class="t-lbl">Avg Orders/Wk</div>
       <div class="t-val g" id="hAvgOrd">—</div>
     </div>
+  </div>
+
+  <!-- CHARTS SECTION -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" id="chartsGrid">
+
+    <!-- Spend vs Orders -->
+    <div class="card chart-card" onclick="expandChart('chartSpendOrders')" style="cursor:pointer">
+      <div class="card-hd" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px"><span class="dot da"></span>Labor Spend vs Order Volume</div>
+        <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
+      </div>
+      <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--amber);display:inline-block;border-radius:1px"></span>Spend</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>Orders</span>
+      </div>
+      <canvas id="chartSpendOrders" style="width:100%;height:160px;display:block"></canvas>
+    </div>
+
+    <!-- CPO Raw vs CPO +12% -->
+    <div class="card chart-card" onclick="expandChart('chartCpo')" style="cursor:pointer">
+      <div class="card-hd" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px"><span class="dot dg"></span>CPO — Raw vs Loaded +12%</div>
+        <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
+      </div>
+      <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>CPO Raw</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--amber);display:inline-block;border-radius:1px"></span>CPO +12%</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:22px;height:1px;background:rgba(255,255,255,.2);display:inline-block;border-top:1px dashed rgba(255,255,255,.3)"></span>Avg</span>
+      </div>
+      <canvas id="chartCpo" style="width:100%;height:160px;display:block"></canvas>
+    </div>
+
+    <!-- MKE vs SLC Orders -->
+    <div class="card chart-card" onclick="expandChart('chartSites')" style="cursor:pointer">
+      <div class="card-hd" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px"><span class="dot db"></span>MKE vs SLC — Order Volume</div>
+        <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
+      </div>
+      <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>MKE</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--blue);display:inline-block;border-radius:1px"></span>SLC</span>
+      </div>
+      <canvas id="chartSites" style="width:100%;height:160px;display:block"></canvas>
+    </div>
+
+    <!-- OPH Trend -->
+    <div class="card chart-card" onclick="expandChart('chartOph')" style="cursor:pointer">
+      <div class="card-hd" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px"><span class="dot dg"></span>OPH Trend (Implied @ $17.50)</div>
+        <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
+      </div>
+      <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>OPH</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:1px;background:rgba(255,255,255,.25);display:inline-block;border-top:1px dashed rgba(255,255,255,.3)"></span>Avg</span>
+      </div>
+      <canvas id="chartOph" style="width:100%;height:160px;display:block"></canvas>
+    </div>
+
+  </div>
+
+  <!-- Temp Labor % chart — full width -->
+  <div class="card chart-card" style="margin-bottom:16px;cursor:pointer" onclick="expandChart('chartTemp')">
+    <div class="card-hd" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:6px"><span class="dot dr"></span>Temp Labor % of Total Spend</div>
+      <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
+    </div>
+    <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:8px;background:var(--red-dim);border:1px solid var(--red-border);display:inline-block;border-radius:2px"></span>Temp %</span>
+    </div>
+    <canvas id="chartTemp" style="width:100%;height:100px;display:block"></canvas>
   </div>
 
   <!-- FILTER PILLS -->
@@ -829,6 +986,56 @@ body{
   </div>
 </div>
 
+<!-- CHART MODAL -->
+<div id="chartModal" style="
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(9,30,56,0.92);backdrop-filter:blur(20px);
+  padding:24px;box-sizing:border-box;
+  animation:fadeIn .18s ease;
+" onclick="closeModal(event)">
+  <div style="
+    width:100%;height:100%;
+    background:rgba(13,36,64,0.98);border:1px solid rgba(255,255,255,.1);
+    border-radius:16px;display:flex;flex-direction:column;
+    box-shadow:0 32px 80px rgba(0,0,0,.5);
+    overflow:hidden;position:relative;
+  " onclick="event.stopPropagation()">
+    <!-- Modal header -->
+    <div style="
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;
+    ">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="modalTitle" style="font-family:var(--ui);font-weight:700;font-size:15px;color:var(--white)"></span>
+        <span id="modalLegend" style="display:flex;gap:14px;font-size:10px;color:var(--slate);margin-left:8px"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span id="modalTooltip" style="font-family:var(--mono);font-size:11px;color:var(--white);min-width:280px;text-align:right"></span>
+        <button onclick="closeModal()" style="
+          background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+          color:var(--slate);border-radius:7px;padding:6px 12px;cursor:pointer;
+          font-family:var(--ui);font-weight:600;font-size:11px;transition:all .15s;
+        " onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--slate)'">✕ Close</button>
+      </div>
+    </div>
+    <!-- Canvas wrapper -->
+    <div style="flex:1;padding:20px;position:relative;min-height:0">
+      <canvas id="modalCanvas" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas>
+      <!-- Crosshair line -->
+      <div id="modalCrosshair" style="
+        display:none;position:absolute;top:20px;bottom:20px;
+        width:1px;background:rgba(255,255,255,.2);pointer-events:none;
+      "></div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.chart-card:hover{border-color:rgba(255,255,255,.14)!important}
+.chart-card:hover canvas{opacity:.85}
+</style>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -837,70 +1044,74 @@ body{
 // HISTORICAL DATA — from CPO_MASTER.xlsx (CPO sheet)
 // ══════════════════════════════════════════════════════════════
 const HIST_DATA = [
-  {week:"2025-01-05",spend:18953,temp:0,mke_orders:21457,slc_orders:0},
-  {week:"2025-01-12",spend:16416,temp:0,mke_orders:19304,slc_orders:0},
-  {week:"2025-01-19",spend:21258,temp:0,mke_orders:18369,slc_orders:0},
-  {week:"2025-01-26",spend:28851,temp:0,mke_orders:16249,slc_orders:0},
-  {week:"2025-02-02",spend:25929,temp:0,mke_orders:15384,slc_orders:0},
-  {week:"2025-02-09",spend:18383,temp:0,mke_orders:15009,slc_orders:0},
-  {week:"2025-02-16",spend:17303,temp:0,mke_orders:17973,slc_orders:0},
-  {week:"2025-02-23",spend:20127,temp:0,mke_orders:17608,slc_orders:0},
-  {week:"2025-03-03",spend:18984,temp:0,mke_orders:18513,slc_orders:0},
-  {week:"2025-03-18",spend:17479,temp:0,mke_orders:18624,slc_orders:0},
-  {week:"2025-03-24",spend:16233.55,temp:0,mke_orders:17852,slc_orders:0},
-  {week:"2025-03-31",spend:17043,temp:0,mke_orders:17301,slc_orders:0},
-  {week:"2025-04-07",spend:19723,temp:0,mke_orders:22044,slc_orders:0},
-  {week:"2025-04-12",spend:20117,temp:0,mke_orders:21756,slc_orders:0},
-  {week:"2025-04-19",spend:20291.2,temp:0,mke_orders:22204,slc_orders:849},
-  {week:"2025-04-26",spend:21231,temp:0,mke_orders:21848,slc_orders:828},
-  {week:"2025-05-05",spend:17822,temp:0,mke_orders:11295,slc_orders:758},
-  {week:"2025-05-12",spend:16642.93,temp:0,mke_orders:11679,slc_orders:752},
-  {week:"2025-05-19",spend:17147,temp:0,mke_orders:10939,slc_orders:683},
-  {week:"2025-05-27",spend:15737.9,temp:0,mke_orders:10309,slc_orders:773},
-  {week:"2025-06-02",spend:25697.99,temp:0,mke_orders:17613,slc_orders:1059},
-  {week:"2025-06-09",spend:22533.91,temp:0,mke_orders:16977,slc_orders:2303},
-  {week:"2025-06-15",spend:20534.55,temp:0,mke_orders:13408,slc_orders:1553},
-  {week:"2025-06-22",spend:19987.66,temp:0,mke_orders:15951,slc_orders:1019},
-  {week:"2025-06-29",spend:17850,temp:0,mke_orders:14852,slc_orders:765},
-  {week:"2025-07-06",spend:31257,temp:10142,mke_orders:16964,slc_orders:1137},
-  {week:"2025-07-13",spend:28625,temp:11821,mke_orders:15695,slc_orders:1329},
-  {week:"2025-07-20",spend:29299,temp:11826,mke_orders:17821,slc_orders:1119},
-  {week:"2025-07-27",spend:35523,temp:15926,mke_orders:19057,slc_orders:1023},
-  {week:"2025-07-03",spend:36902,temp:18999,mke_orders:23031,slc_orders:1489},
-  {week:"2025-08-11",spend:31278,temp:14929,mke_orders:16620,slc_orders:1022},
-  {week:"2025-08-18",spend:33407,temp:18333,mke_orders:20270,slc_orders:1554},
-  {week:"2025-08-25",spend:29787,temp:16776,mke_orders:19428,slc_orders:1671},
-  {week:"2025-09-01",spend:39333,temp:26862,mke_orders:21889,slc_orders:1746},
-  {week:"2025-09-08",spend:41661.4,temp:21786,mke_orders:23803,slc_orders:1349},
-  {week:"2025-09-15",spend:60521.79,temp:33600,mke_orders:24694,slc_orders:2118},
-  {week:"2025-09-21",spend:51357,temp:27014,mke_orders:24561,slc_orders:2600},
-  {week:"2025-09-28",spend:40004.52,temp:17328,mke_orders:22079,slc_orders:2526},
-  {week:"2025-10-05",spend:39334,temp:15966,mke_orders:24162,slc_orders:1546},
-  {week:"2025-10-12",spend:54465,temp:29830,mke_orders:23102,slc_orders:1223},
-  {week:"2025-10-19",spend:47699,temp:23712,mke_orders:22003,slc_orders:1199},
-  {week:"2025-10-26",spend:66219,temp:46276,mke_orders:20593,slc_orders:1273},
-  {week:"2025-11-02",spend:66089,temp:44449,mke_orders:25003,slc_orders:2827},
-  {week:"2025-11-09",spend:68260,temp:46276,mke_orders:25906,slc_orders:2975},
-  {week:"2025-11-16",spend:75143,temp:49287,mke_orders:29658,slc_orders:4191},
-  {week:"2025-11-23",spend:77486,temp:54719,mke_orders:35557,slc_orders:5334},
-  {week:"2025-12-07",spend:77137,temp:52968,mke_orders:32926,slc_orders:4690},
-  {week:"2025-12-14",spend:59974,temp:33600,mke_orders:33637,slc_orders:5066},
-  {week:"2025-12-21",spend:54736,temp:41364,mke_orders:17557,slc_orders:4283},
-  {week:"2025-12-28",spend:41826,temp:17032,mke_orders:33059,slc_orders:6176},
-  {week:"2026-01-04",spend:59485,temp:33600,mke_orders:28816,slc_orders:6328},
-  {week:"2026-01-11",spend:67407,temp:41367,mke_orders:30726,slc_orders:7032},
-  {week:"2026-01-18",spend:60037,temp:36047,mke_orders:29336,slc_orders:7010},
-  {week:"2026-01-25",spend:53023,temp:22213,mke_orders:28473,slc_orders:6712},
-  {week:"2026-02-01",spend:61758,temp:22424,mke_orders:30061,slc_orders:6639},
-  {week:"2026-02-08",spend:55318,temp:15878,mke_orders:26946,slc_orders:4309},
-  {week:"2026-02-15",spend:48584,temp:9660,mke_orders:32716,slc_orders:9742},
-  {week:"2026-02-22",spend:48507,temp:4728,mke_orders:26536,slc_orders:4248},
-  {week:"2026-03-01",spend:45790,temp:0,mke_orders:35079,slc_orders:3679},
+  {week:"2025-01-05",spend:18953,slc_spend:0,temp:0,mke_orders:21457,slc_orders:0,spend_12:21227.36,cpo_12:0.9893},
+  {week:"2025-01-12",spend:16416,slc_spend:0,temp:0,mke_orders:19304,slc_orders:0,spend_12:18385.92,cpo_12:0.9524},
+  {week:"2025-01-19",spend:21258,slc_spend:0,temp:0,mke_orders:18369,slc_orders:0,spend_12:23808.96,cpo_12:1.2961},
+  {week:"2025-01-26",spend:28851,slc_spend:0,temp:0,mke_orders:16249,slc_orders:0,spend_12:32313.12,cpo_12:1.9886},
+  {week:"2025-02-02",spend:25929,slc_spend:0,temp:0,mke_orders:15384,slc_orders:0,spend_12:29040.48,cpo_12:1.8877},
+  {week:"2025-02-09",spend:18383,slc_spend:0,temp:0,mke_orders:15009,slc_orders:0,spend_12:20588.96,cpo_12:1.3718},
+  {week:"2025-02-16",spend:17303,slc_spend:0,temp:0,mke_orders:17973,slc_orders:0,spend_12:19379.36,cpo_12:1.0782},
+  {week:"2025-02-23",spend:20127,slc_spend:0,temp:0,mke_orders:17608,slc_orders:0,spend_12:22542.24,cpo_12:1.2802},
+  {week:"2025-03-03",spend:18984,slc_spend:0,temp:0,mke_orders:18513,slc_orders:0,spend_12:21262.08,cpo_12:1.1485},
+  {week:"2025-03-18",spend:17479,slc_spend:0,temp:0,mke_orders:18624,slc_orders:0,spend_12:19576.48,cpo_12:1.0511},
+  {week:"2025-03-24",spend:16233.55,slc_spend:0,temp:0,mke_orders:17852,slc_orders:0,spend_12:18181.58,cpo_12:1.0185},
+  {week:"2025-03-31",spend:17043,slc_spend:0,temp:0,mke_orders:17301,slc_orders:0,spend_12:19088.16,cpo_12:1.1033},
+  {week:"2025-04-07",spend:19723,slc_spend:0,temp:0,mke_orders:22044,slc_orders:0,spend_12:22089.76,cpo_12:1.0021},
+  {week:"2025-04-12",spend:20117,slc_spend:0,temp:0,mke_orders:21756,slc_orders:0,spend_12:22531.04,cpo_12:1.0356},
+  {week:"2025-04-19",spend:18891.2,slc_spend:1400,temp:0,mke_orders:22204,slc_orders:849,spend_12:22726.14,cpo_12:0.9858},
+  {week:"2025-04-26",spend:19791,slc_spend:1440,temp:0,mke_orders:21848,slc_orders:828,spend_12:23778.72,cpo_12:1.0486},
+  {week:"2025-05-05",spend:16452,slc_spend:1370,temp:0,mke_orders:11295,slc_orders:758,spend_12:19960.64,cpo_12:1.6561},
+  {week:"2025-05-12",spend:15391.93,slc_spend:1251,temp:0,mke_orders:11679,slc_orders:752,spend_12:18640.08,cpo_12:1.4995},
+  {week:"2025-05-19",spend:16011,slc_spend:1136,temp:0,mke_orders:10939,slc_orders:683,spend_12:19204.64,cpo_12:1.6524},
+  {week:"2025-05-27",spend:14454,slc_spend:1283.9,temp:0,mke_orders:10309,slc_orders:773,spend_12:17626.45,cpo_12:1.5905},
+  {week:"2025-06-02",spend:23914.82,slc_spend:1783.17,temp:0,mke_orders:17613,slc_orders:1059,spend_12:28781.75,cpo_12:1.5414},
+  {week:"2025-06-09",spend:20889,slc_spend:1644.91,temp:0,mke_orders:16977,slc_orders:2303,spend_12:25237.98,cpo_12:1.309},
+  {week:"2025-06-15",spend:18902,slc_spend:1632.55,temp:0,mke_orders:13408,slc_orders:1553,spend_12:22998.7,cpo_12:1.5372},
+  {week:"2025-06-22",spend:18094,slc_spend:1893.66,temp:0,mke_orders:15951,slc_orders:1019,spend_12:22386.18,cpo_12:1.3192},
+  {week:"2025-06-29",spend:16250,slc_spend:1600,temp:0,mke_orders:14852,slc_orders:765,spend_12:19992.0,cpo_12:1.2801},
+  {week:"2025-07-06",spend:29659,slc_spend:1598,temp:10142,mke_orders:16964,slc_orders:1137,spend_12:35007.84,cpo_12:1.934},
+  {week:"2025-07-13",spend:26926,slc_spend:1699,temp:11821,mke_orders:15695,slc_orders:1329,spend_12:32060.0,cpo_12:1.8832},
+  {week:"2025-07-20",spend:27620,slc_spend:1679,temp:11826,mke_orders:17821,slc_orders:1119,spend_12:32814.88,cpo_12:1.7326},
+  {week:"2025-07-27",spend:33956,slc_spend:1567,temp:15926,mke_orders:19057,slc_orders:1023,spend_12:39785.76,cpo_12:1.9814},
+  {week:"2025-07-03",spend:35711,slc_spend:1191,temp:18999,mke_orders:23031,slc_orders:1489,spend_12:41330.24,cpo_12:1.6856},
+  {week:"2025-08-11",spend:29878,slc_spend:1400,temp:14929,mke_orders:16620,slc_orders:1022,spend_12:35031.36,cpo_12:1.9857},
+  {week:"2025-08-18",spend:32158,slc_spend:1249,temp:18333,mke_orders:20270,slc_orders:1554,spend_12:37415.84,cpo_12:1.7144},
+  {week:"2025-08-25",spend:28321,slc_spend:1466,temp:16776,mke_orders:19428,slc_orders:1671,spend_12:33361.44,cpo_12:1.5812},
+  {week:"2025-09-01",spend:37996,slc_spend:1337,temp:26862,mke_orders:21889,slc_orders:1746,spend_12:44052.96,cpo_12:1.8639},
+  {week:"2025-09-08",spend:40275.16,slc_spend:1386.24,temp:21786,mke_orders:23803,slc_orders:1349,spend_12:46660.77,cpo_12:1.8552},
+  {week:"2025-09-15",spend:59122.58,slc_spend:1399.21,temp:33600,mke_orders:24694,slc_orders:2118,spend_12:67784.4,cpo_12:2.5281},
+  {week:"2025-09-21",spend:49648,slc_spend:1709,temp:27014,mke_orders:24561,slc_orders:2600,spend_12:57519.84,cpo_12:2.1177},
+  {week:"2025-09-28",spend:39373,slc_spend:631.52,temp:17328,mke_orders:22079,slc_orders:2526,spend_12:44805.06,cpo_12:1.821},
+  {week:"2025-10-05",spend:38093,slc_spend:1241,temp:15966,mke_orders:24162,slc_orders:1546,spend_12:44054.08,cpo_12:1.7136},
+  {week:"2025-10-12",spend:53183,slc_spend:1282,temp:29830,mke_orders:23102,slc_orders:1223,spend_12:61000.8,cpo_12:2.5077},
+  {week:"2025-10-19",spend:46280,slc_spend:1419,temp:23712,mke_orders:22003,slc_orders:1199,spend_12:53422.88,cpo_12:2.3025},
+  {week:"2025-10-26",spend:65668,slc_spend:551,temp:46276,mke_orders:20593,slc_orders:1273,spend_12:74165.28,cpo_12:3.3918},
+  {week:"2025-11-02",spend:65154,slc_spend:935,temp:44449,mke_orders:25003,slc_orders:2827,spend_12:74019.68,cpo_12:2.6597},
+  {week:"2025-11-09",spend:67125,slc_spend:1135,temp:46276,mke_orders:25906,slc_orders:2975,spend_12:76451.2,cpo_12:2.6471},
+  {week:"2025-11-16",spend:73832,slc_spend:1311,temp:49287,mke_orders:29658,slc_orders:4191,spend_12:84160.16,cpo_12:2.4863},
+  {week:"2025-11-23",spend:75041,slc_spend:2445,temp:54719,mke_orders:35557,slc_orders:5334,spend_12:86784.32,cpo_12:2.1223},
+  {week:"2025-12-07",spend:74802,slc_spend:2335,temp:52968,mke_orders:32926,slc_orders:4690,spend_12:86393.44,cpo_12:2.2967},
+  {week:"2025-12-14",spend:57245,slc_spend:2729,temp:33600,mke_orders:33637,slc_orders:5066,spend_12:67170.88,cpo_12:1.7355},
+  {week:"2025-12-21",spend:53106,slc_spend:1630,temp:41364,mke_orders:17557,slc_orders:4283,spend_12:61304.32,cpo_12:2.807},
+  {week:"2025-12-28",spend:39469,slc_spend:2357,temp:17032,mke_orders:33059,slc_orders:6176,spend_12:46845.12,cpo_12:1.194},
+  {week:"2026-01-04",spend:56859,slc_spend:2626,temp:33600,mke_orders:28816,slc_orders:6328,spend_12:66623.2,cpo_12:1.8957},
+  {week:"2026-01-11",spend:64934,slc_spend:2473,temp:41367,mke_orders:30726,slc_orders:7032,spend_12:75495.84,cpo_12:1.9995},
+  {week:"2026-01-18",spend:57541,slc_spend:2496,temp:36047,mke_orders:29336,slc_orders:7010,spend_12:67241.44,cpo_12:1.85},
+  {week:"2026-01-25",spend:49365,slc_spend:3658,temp:22213,mke_orders:28473,slc_orders:6712,spend_12:59385.76,cpo_12:1.6878},
+  {week:"2026-02-01",spend:59783,slc_spend:1975,temp:22424,mke_orders:30061,slc_orders:6639,spend_12:69168.96,cpo_12:1.8847},
+  {week:"2026-02-08",spend:54402,slc_spend:916,temp:15878,mke_orders:26946,slc_orders:4309,spend_12:61956.16,cpo_12:1.9823},
+  {week:"2026-02-15",spend:47435,slc_spend:1149,temp:9660,mke_orders:32716,slc_orders:9742,spend_12:54414.08,cpo_12:1.2816},
+  {week:"2026-02-22",spend:47640,slc_spend:867,temp:4728,mke_orders:26536,slc_orders:4248,spend_12:54327.84,cpo_12:1.7648},
+  {week:"2026-03-01",spend:44664,slc_spend:1126,temp:0,mke_orders:35079,slc_orders:3679,spend_12:51284.8,cpo_12:1.3232},
 ].map(r=>{
-  const orders = r.mke_orders + r.slc_orders;
-  const cpo    = orders > 0 ? r.spend / orders : null;
-  const oph    = orders > 0 ? orders / (r.spend / 17.5) : null;
-  return { ...r, orders, cpo, oph };
+  const orders     = r.mke_orders + r.slc_orders;
+  const mke_spend  = r.spend;                        // MKE only (as stored)
+  const total_spend= r.spend + (r.slc_spend||0);     // MKE + SLC combined
+  const spend_12   = r.spend_12 || total_spend * 1.12;
+  const cpo        = orders > 0 ? total_spend / orders : null;
+  const cpo_12     = orders > 0 ? spend_12 / orders : null;
+  const oph        = orders > 0 ? orders / (total_spend / 17.5) : null;
+  return { ...r, spend: total_spend, mke_spend, orders, cpo, cpo_12, spend_12, oph };
 }).sort((a,b)=>a.week.localeCompare(b.week));
 
 // ── Derived historical stats ──
@@ -940,7 +1151,6 @@ function setTab(t) {
   document.getElementById(`page-${t}`).classList.add('active');
   if(t==='history') renderHistory();
 }
-
 // ══════════════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════════════
@@ -1052,15 +1262,34 @@ function saveWeek() {
   const rev    = fv('aRev');
   const date   = $('aDate').value;
   if(!spend || !orders || !date){ toast('Need spend, orders + date.',true); return; }
+
+  // Site split data
+  const mkeOrders = siteMode==='split' ? (parseFloat($('aMkeOrders').value)||orders) : orders;
+  const slcOrders = siteMode==='split' ? (parseFloat($('aSlcOrders').value)||0)      : 0;
+  const mkeSpend  = siteMode==='split' ? (parseFloat($('aMkeSpend').value)||spend)   : spend;
+  const slcSpend  = siteMode==='split' ? (parseFloat($('aSlcSpend').value)||0)       : 0;
+  const mkeHours  = siteMode==='split' ? (parseFloat($('aMkeHours').value)||null)    : null;
+  const slcHours  = siteMode==='split' ? (parseFloat($('aSlcHours').value)||null)    : null;
+  const mkeHeads  = siteMode==='split' ? (parseFloat($('aMkeHeads').value)||null)    : null;
+  const slcHeads  = siteMode==='split' ? (parseFloat($('aSlcHeads').value)||null)    : null;
+
   const wk = {
     week:date, spend, hours:hours||null, orders,
-    heads:heads||null, rev:rev||null, cpo:spend/orders,
-    mke_orders:orders, slc_orders:0, temp:0, source:'manual'
+    mke_orders:mkeOrders, slc_orders:slcOrders,
+    mke_spend:mkeSpend,   slc_spend:slcSpend,
+    mke_hours:mkeHours,   slc_hours:slcHours,
+    mke_heads:mkeHeads,   slc_heads:slcHeads,
+    heads:heads||null, rev:rev||null,
+    temp:0,
+    cpo: spend/orders,
+    oph: hours ? orders/hours : orders/(spend/17.5),
+    source:'manual'
   };
   userWeeks = userWeeks.filter(r=>r.week!==date);
   userWeeks.push(wk);
   try{ localStorage.setItem('atx_proj_weeks', JSON.stringify(userWeeks)); }catch(e){}
   toast('Week saved ✓');
+  renderHistory();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1256,9 +1485,12 @@ function renderHistory(){
 
   // Summary tiles
   tv('hWks', all.length);
-  const cpov = all.filter(r=>r.cpo).map(r=>r.cpo);
-  tv('hAvgCpo', '$'+(cpov.reduce((s,v)=>s+v,0)/cpov.length).toFixed(2));
+  const cpov = all.filter(r=>r.cpo != null).map(r=>r.cpo);
+  const avgCpoRaw = cpov.length ? cpov.reduce((s,v)=>s+v,0)/cpov.length : 0;
+  tv('hAvgCpo',  '$'+avgCpoRaw.toFixed(2));
   tv('hAvgCpo8', '$'+H_LAST8_CPO.toFixed(2));
+  tv('hAvgCpo12',   '$'+(avgCpoRaw * 1.12).toFixed(2));
+  tv('hAvgCpo12L8', '$'+(H_LAST8_CPO * 1.12).toFixed(2));
   const ord = all.map(r=>r.orders).filter(Boolean);
   tv('hAvgOrd', Math.round(ord.reduce((s,v)=>s+v,0)/ord.length).toLocaleString());
 
@@ -1303,16 +1535,25 @@ function renderHistory(){
         </div>`;
     }
 
-    const dbtn = isManual ? `<button class="dbtn" onclick="deleteWeek('${r.week}')">✕</button>` : '';
+    const dbtn    = isManual ? `<button class="dbtn" onclick="deleteWeek('${r.week}')">✕</button>` : '';
+    const spend12 = r.spend_12 || r.spend * 1.12;
+    const cpo12   = r.cpo_12   || (r.cpo ? r.cpo * 1.12 : null);
+    const delta12 = `<span style="font-size:9px;color:rgba(255,181,71,.5)">+${Math.round(spend12-r.spend).toLocaleString()}</span>`;
+    const siteDetail = (r.slc_orders > 0)
+      ? `<div style="font-size:9px;margin-top:2px;display:flex;gap:6px">
+           <span style="color:var(--green)">MKE ${r.mke_orders.toLocaleString()}</span>
+           <span style="color:var(--blue)">SLC ${r.slc_orders.toLocaleString()}</span>
+         </div>` : '';
     return `<tr>
       <td class="m">${r.week}${isManual?'<span class="badge badge-s" style="margin-left:6px">manual</span>':''}</td>
       <td>${r.orders.toLocaleString()}</td>
-      <td class="a">$${r.spend.toLocaleString()}</td>
-      <td class="m">${temp_pct}</td>
+      <td class="a">$${Math.round(r.spend).toLocaleString()}</td>
+      <td style="color:var(--amber)">$${Math.round(spend12).toLocaleString()} ${delta12}</td>
       <td>${cpoBadge(r.cpo)}</td>
+      <td class="${cpo12?cpo12<1.5?'g':cpo12<2.2?'a':'r':''}" style="font-family:var(--ui);font-weight:700">${cpo12?'$'+cpo12.toFixed(2):'—'}</td>
       <td style="min-width:120px">${ophCell}</td>
-      <td class="${r.orders>25000?'g':r.orders>15000?'':'s'}">${r.mke_orders.toLocaleString()}</td>
-      <td class="m">${r.slc_orders.toLocaleString()}</td>
+      <td class="m" style="font-size:10px">${r.mke_orders>0?`<span style="color:var(--green)">${r.mke_orders.toLocaleString()}</span>`:'—'}${r.slc_orders>0?` / <span style="color:var(--blue)">${r.slc_orders.toLocaleString()}</span>`:''}</td>
+      <td class="m">${temp_pct}</td>
       <td>${dbtn}</td>
     </tr>`;
   }).join('');
@@ -1320,14 +1561,22 @@ function renderHistory(){
   $('histTableWrap').innerHTML = `<table class="htbl">
     <thead>
       <tr>
-        <th>Week</th><th>Total Orders</th><th>Labor Spend</th>
-        <th>Temp %</th><th>CPO</th>
-        <th>OPH <span style="color:rgba(139,155,170,.4);font-weight:400">│ avg ${avgOph.toFixed(1)} ~</span></th>
-        <th>MKE Orders</th><th>SLC Orders</th><th></th>
+        <th>Week</th>
+        <th>Total Orders</th>
+        <th>Raw Spend</th>
+        <th style="color:rgba(255,181,71,.8)">Loaded +12%</th>
+        <th>CPO Raw</th>
+        <th style="color:rgba(255,181,71,.8)">CPO +12%</th>
+        <th>OPH <span style="color:rgba(139,155,170,.4);font-weight:400">│ avg ${avgOph.toFixed(1)}~</span></th>
+        <th>MKE / SLC</th><th>Temp %</th><th></th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>`;
+
+  // Draw charts with filtered data (sorted asc for charts)
+  const chartData = [...dataWithOph].sort((a,b)=>a.week.localeCompare(b.week));
+  requestAnimationFrame(()=>drawCharts(chartData));
 }
 
 function deleteWeek(wk){
@@ -1459,6 +1708,605 @@ function deptCalc(){
 }
 
 // ══════════════════════════════════════════════════════════════
+// SITE TAB + SPLIT MODE
+// ══════════════════════════════════════════════════════════════
+let siteMode = 'combined';
+
+function setSiteTab(mode){
+  siteMode = mode;
+  const isSplit = mode === 'split';
+  $('modeCombined').style.display = isSplit ? 'none' : '';
+  $('modeSplit').style.display    = isSplit ? '' : 'none';
+
+  const btnCombined = $('siteTabCombined');
+  const btnSplit    = $('siteTabSplit');
+  const base = 'flex:1;padding:7px;border-radius:7px;font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;';
+  const on   = base + 'background:var(--green-dim);border:1px solid var(--green-border);color:var(--green)';
+  const off  = base + 'background:var(--card);border:1px solid var(--border);color:var(--slate)';
+  btnCombined.setAttribute('style', isSplit ? off : on);
+  btnSplit.setAttribute('style',    isSplit ? on  : off);
+
+  if(isSplit) splitCalc(); else analyzeCalc();
+}
+
+function splitCalc(){
+  const mkeS = parseFloat($('aMkeSpend').value)||0;
+  const mkeH = parseFloat($('aMkeHours').value)||0;
+  const mkeO = parseFloat($('aMkeOrders').value)||0;
+  const slcS = parseFloat($('aSlcSpend').value)||0;
+  const slcH = parseFloat($('aSlcHours').value)||0;
+  const slcO = parseFloat($('aSlcOrders').value)||0;
+
+  const totSpend  = mkeS + slcS;
+  const totHours  = mkeH + slcH;
+  const totOrders = mkeO + slcO;
+
+  tv('splitTotalSpend',  totSpend  ? '$'+Math.round(totSpend).toLocaleString()  : '—');
+  tv('splitTotalOrders', totOrders ? totOrders.toLocaleString()                 : '—');
+  tv('splitTotalHours',  totHours  ? Math.round(totHours).toLocaleString()      : '—');
+
+  // Push totals into combined fields for analyzeCalc to use
+  if(totSpend)  $('aSpend').value  = totSpend;
+  if(totHours)  $('aHours').value  = totHours;
+  if(totOrders) $('aOrders').value = totOrders;
+  analyzeCalc();
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════════════════════════════
+function exportCSV(){
+  const weeks = allWeeks();
+  const headers = ['week','mke_orders','slc_orders','total_orders','spend','temp','cpo','oph_implied','source'];
+  const rows = weeks.map(r=>[
+    r.week,
+    r.mke_orders,
+    r.slc_orders,
+    r.orders,
+    r.spend,
+    r.temp||0,
+    r.cpo ? r.cpo.toFixed(4) : '',
+    r.spend ? (r.orders/(r.spend/17.5)).toFixed(2) : '',
+    r.source||'historical'
+  ].join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `atomix-labor-history-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('CSV exported ✓');
+}
+
+// ══════════════════════════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════════════════════════
+
+function drawCharts(data){
+  if(!data || !data.length) return;
+  const d = [...data].sort((a,b)=>a.week.localeCompare(b.week));
+
+  // Colors
+  const GREEN  = '#A3F3C5', AMBER = '#FFB547', BLUE = '#60A5FA',
+        RED    = '#FF6B6B', SLATE = 'rgba(139,155,170,.4)',
+        GRID   = 'rgba(255,255,255,.05)', WHITE = '#DDE8F2';
+
+  // ── Generic line chart ──────────────────────────────────────
+  function lineChart(canvasId, series, opts={}){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width  || canvas.parentElement.clientWidth || 400;
+    const H = rect.height || 160;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const PAD = {top:16, right:16, bottom:28, left:opts.leftPad||52};
+    const cW = W - PAD.left - PAD.right;
+    const cH = H - PAD.top  - PAD.bottom;
+
+    ctx.clearRect(0,0,W,H);
+
+    // Compute ranges
+    const allVals = series.flatMap(s=>s.values.filter(v=>v!=null));
+    if(!allVals.length) return;
+    let yMin = opts.yMin!=null ? opts.yMin : Math.min(...allVals);
+    let yMax = opts.yMax!=null ? opts.yMax : Math.max(...allVals);
+    if(yMin===yMax){ yMin*=0.9; yMax*=1.1; }
+    const yRange = yMax - yMin;
+    const n = d.length;
+
+    const xPos = i => PAD.left + (i/(n-1||1)) * cW;
+    const yPos = v => PAD.top + cH - ((v-yMin)/yRange)*cH;
+
+    // Grid lines
+    const ticks = 4;
+    for(let t=0; t<=ticks; t++){
+      const yv = yMin + (yRange/ticks)*t;
+      const yp = yPos(yv);
+      ctx.strokeStyle = GRID;
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(PAD.left,yp); ctx.lineTo(PAD.left+cW,yp); ctx.stroke();
+      ctx.fillStyle = SLATE;
+      ctx.font = `${9*dpr/dpr}px IBM Plex Mono, monospace`;
+      ctx.textAlign = 'right';
+      const lbl = opts.yFmt ? opts.yFmt(yv) : yv.toFixed(opts.decimals!=null?opts.decimals:0);
+      ctx.fillText(lbl, PAD.left-5, yp+3);
+    }
+
+    // X labels — show ~6 evenly spaced
+    const step = Math.max(1, Math.floor(n/6));
+    ctx.fillStyle = SLATE;
+    ctx.font = `9px IBM Plex Mono, monospace`;
+    ctx.textAlign = 'center';
+    for(let i=0; i<n; i+=step){
+      ctx.fillText(d[i].week.slice(5), xPos(i), H-PAD.bottom+14);
+    }
+
+    // Reference lines
+    if(opts.refLines){
+      opts.refLines.forEach(({value, color, dash})=>{
+        ctx.strokeStyle = color||SLATE;
+        ctx.lineWidth = 1;
+        ctx.setLineDash(dash||[4,4]);
+        const yp = yPos(value);
+        ctx.beginPath(); ctx.moveTo(PAD.left,yp); ctx.lineTo(PAD.left+cW,yp); ctx.stroke();
+        ctx.setLineDash([]);
+      });
+    }
+
+    // Draw each series
+    series.forEach(s=>{
+      if(s.type==='bar'){
+        const bw = Math.max(2, (cW/n)*0.6);
+        s.values.forEach((v,i)=>{
+          if(v==null) return;
+          const x = xPos(i) - bw/2;
+          const yp = yPos(v), ybase = yPos(yMin>0?yMin:0);
+          const barH = Math.abs(ybase-yp);
+          ctx.fillStyle = s.color;
+          ctx.globalAlpha = 0.65;
+          ctx.fillRect(x, Math.min(yp,ybase), bw, barH);
+          ctx.globalAlpha = 1;
+        });
+        return;
+      }
+
+      // Line + area fill
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth   = s.width||2;
+      ctx.lineJoin    = 'round';
+      ctx.lineCap     = 'round';
+      ctx.setLineDash(s.dash||[]);
+
+      if(s.fill){
+        ctx.save();
+        ctx.beginPath();
+        let firstFill=true;
+        s.values.forEach((v,i)=>{ if(v==null)return; if(firstFill){ctx.moveTo(xPos(i),yPos(v));firstFill=false;}else ctx.lineTo(xPos(i),yPos(v)); });
+        const lastFillIdx = s.values.reduce((li,v,i)=>v!=null?i:li,-1);
+        const firstFillIdx = s.values.findIndex(v=>v!=null);
+        ctx.lineTo(xPos(lastFillIdx), yPos(yMin>0?yMin:0));
+        ctx.lineTo(xPos(firstFillIdx), yPos(yMin>0?yMin:0));
+        ctx.closePath();
+        const fg = ctx.createLinearGradient(0, PAD.top, 0, PAD.top+cH);
+        fg.addColorStop(0, hexA(s.color, 0.18));
+        fg.addColorStop(1, hexA(s.color, 0.01));
+        ctx.fillStyle = fg;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.beginPath();
+      let first=true;
+      s.values.forEach((v,i)=>{
+        if(v==null) return;
+        if(first){ctx.moveTo(xPos(i),yPos(v));first=false;}
+        else ctx.lineTo(xPos(i),yPos(v));
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Dots on last point
+      const lastIdx = s.values.reduce((li,v,i)=>v!=null?i:li,-1);
+      if(lastIdx>=0){
+        const lv = s.values[lastIdx];
+        ctx.beginPath();
+        ctx.arc(xPos(lastIdx),yPos(lv),3.5,0,Math.PI*2);
+        ctx.fillStyle = s.color; ctx.fill();
+      }
+    });
+
+    // Axis lines
+    ctx.strokeStyle = 'rgba(255,255,255,.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+cH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top+cH); ctx.lineTo(PAD.left+cW,PAD.top+cH); ctx.stroke();
+  }
+
+  function hexA(hex, a){
+    hex = hex.replace('#','');
+    if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+    const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  // ── 1. Spend vs Orders ──────────────────────────────────────
+  // Dual axis: normalise both to 0-1 range for visual comparison
+  const spends  = d.map(r=>r.spend||null);
+  const orders  = d.map(r=>r.orders||null);
+  const maxS = Math.max(...spends.filter(Boolean)), minS = Math.min(...spends.filter(Boolean));
+  const maxO = Math.max(...orders.filter(Boolean)), minO = Math.min(...orders.filter(Boolean));
+  const normS = spends.map(v=>v!=null?(v-minS)/(maxS-minS||1):null);
+  const normO = orders.map(v=>v!=null?(v-minO)/(maxO-minO||1):null);
+
+  lineChart('chartSpendOrders', [
+    {values:normS, color:AMBER, width:2, fill:true},
+    {values:normO, color:GREEN, width:2},
+  ], {
+    yMin:0, yMax:1, decimals:1,
+    leftPad:40,
+    yFmt: v => v===0?'Low':v===1?'High':''
+  });
+
+  // Annotate spend/orders chart with peak values
+  const soCanvas = document.getElementById('chartSpendOrders');
+  if(soCanvas){
+    const ctx2 = soCanvas.getContext('2d');
+    const dpr2 = window.devicePixelRatio||1;
+    ctx2.save();
+    ctx2.scale(1,1); // already scaled
+    ctx2.fillStyle = AMBER;
+    ctx2.font = '9px IBM Plex Mono, monospace';
+    ctx2.textAlign = 'right';
+    ctx2.fillText(`$${Math.round(maxS/1000)}k peak spend`, soCanvas.getBoundingClientRect().width - 8, 28);
+    ctx2.fillStyle = GREEN;
+    ctx2.fillText(`${Math.round(maxO/1000)}k orders peak`, soCanvas.getBoundingClientRect().width - 8, 40);
+    ctx2.restore();
+  }
+
+  // ── 2. CPO Raw vs CPO +12% ──────────────────────────────────
+  const cpoRaw = d.map(r=>r.cpo||null);
+  const cpo12  = d.map(r=>r.cpo_12||null);
+  const avgCpoVal = cpoRaw.filter(Boolean).reduce((s,v)=>s+v,0)/(cpoRaw.filter(Boolean).length||1);
+
+  lineChart('chartCpo', [
+    {values:cpoRaw, color:GREEN, width:2, fill:true},
+    {values:cpo12,  color:AMBER, width:1.5, dash:[3,3]},
+  ], {
+    yFmt: v=>'$'+v.toFixed(2), leftPad:46, decimals:2,
+    refLines:[{value:avgCpoVal, color:'rgba(255,255,255,.2)', dash:[4,4]}]
+  });
+
+  // ── 3. MKE vs SLC Orders ────────────────────────────────────
+  lineChart('chartSites', [
+    {values:d.map(r=>r.mke_orders||null), color:GREEN, width:2, fill:true},
+    {values:d.map(r=>r.slc_orders>0?r.slc_orders:null), color:BLUE, width:2},
+  ], {
+    yFmt: v=>v>=1000?Math.round(v/1000)+'k':v.toFixed(0), leftPad:44,
+    decimals:0
+  });
+
+  // ── 4. OPH Trend ────────────────────────────────────────────
+  const ophVals = d.map(r=>r.oph||null);
+  const avgOphV = ophVals.filter(Boolean).reduce((s,v)=>s+v,0)/(ophVals.filter(Boolean).length||1);
+
+  lineChart('chartOph', [
+    {values:ophVals, color:GREEN, width:2, fill:true},
+  ], {
+    yFmt: v=>v.toFixed(1), leftPad:38, decimals:1,
+    refLines:[{value:avgOphV, color:'rgba(255,255,255,.22)', dash:[4,4]}]
+  });
+
+  // ── 5. Temp % bar chart ─────────────────────────────────────
+  lineChart('chartTemp', [
+    {values:d.map(r=>r.temp&&r.spend?(r.temp/r.spend*100):0), color:RED, type:'bar'},
+  ], {
+    yFmt: v=>v.toFixed(0)+'%', leftPad:42, decimals:0, yMin:0
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// CHART MODAL — expand + interactive crosshair
+// ══════════════════════════════════════════════════════════════
+let _modalChartId = null;
+let _modalChartData = null;
+
+const CHART_META = {
+  chartSpendOrders: {
+    title: 'Labor Spend vs Order Volume',
+    legend: [
+      {label:'Spend', color:'#FFB547'},
+      {label:'Orders', color:'#A3F3C5'},
+    ],
+    build: (d) => ({
+      series: [
+        {label:'Spend',  values:d.map(r=>r.spend||null),  color:'#FFB547', width:2.5, fill:true},
+        {label:'Orders', values:d.map(r=>r.orders||null), color:'#A3F3C5', width:2.5},
+      ],
+      opts: { yFmt: v=>'$'+Math.round(v/1000)+'k', leftPad:56, decimals:0 }
+    })
+  },
+  chartCpo: {
+    title: 'CPO — Raw vs Loaded +12%',
+    legend: [
+      {label:'CPO Raw',  color:'#A3F3C5'},
+      {label:'CPO +12%', color:'#FFB547', dash:true},
+    ],
+    build: (d) => {
+      const avg = d.filter(r=>r.cpo).reduce((s,r)=>s+r.cpo,0)/(d.filter(r=>r.cpo).length||1);
+      return {
+        series: [
+          {label:'CPO Raw',  values:d.map(r=>r.cpo||null),    color:'#A3F3C5', width:2.5, fill:true},
+          {label:'CPO +12%', values:d.map(r=>r.cpo_12||null), color:'#FFB547', width:2, dash:[5,4]},
+        ],
+        opts: { yFmt:v=>'$'+v.toFixed(2), leftPad:52, decimals:2,
+                refLines:[{value:avg, color:'rgba(255,255,255,.2)', dash:[4,4]}] }
+      };
+    }
+  },
+  chartSites: {
+    title: 'MKE vs SLC — Order Volume',
+    legend: [
+      {label:'MKE', color:'#A3F3C5'},
+      {label:'SLC', color:'#60A5FA'},
+    ],
+    build: (d) => ({
+      series: [
+        {label:'MKE', values:d.map(r=>r.mke_orders||null),              color:'#A3F3C5', width:2.5, fill:true},
+        {label:'SLC', values:d.map(r=>r.slc_orders>0?r.slc_orders:null), color:'#60A5FA', width:2.5},
+      ],
+      opts: { yFmt:v=>v>=1000?Math.round(v/1000)+'k':v.toFixed(0), leftPad:48, decimals:0 }
+    })
+  },
+  chartOph: {
+    title: 'OPH Trend (Implied @ $17.50)',
+    legend: [{label:'OPH', color:'#A3F3C5'}],
+    build: (d) => {
+      const avg = d.filter(r=>r.oph).reduce((s,r)=>s+r.oph,0)/(d.filter(r=>r.oph).length||1);
+      return {
+        series: [{label:'OPH', values:d.map(r=>r.oph||null), color:'#A3F3C5', width:2.5, fill:true}],
+        opts: { yFmt:v=>v.toFixed(1), leftPad:44, decimals:1,
+                refLines:[{value:avg, color:'rgba(255,255,255,.22)', dash:[4,4]}] }
+      };
+    }
+  },
+  chartTemp: {
+    title: 'Temp Labor % of Total Spend',
+    legend: [{label:'Temp %', color:'#FF6B6B'}],
+    build: (d) => ({
+      series: [{label:'Temp %', values:d.map(r=>r.temp&&r.spend?(r.temp/r.spend*100):0), color:'#FF6B6B', type:'bar'}],
+      opts: { yFmt:v=>v.toFixed(0)+'%', leftPad:46, decimals:1, yMin:0 }
+    })
+  }
+};
+
+function expandChart(id){
+  const meta = CHART_META[id];
+  if(!meta) return;
+  _modalChartId = id;
+
+  // Get current filtered data from the last renderHistory call
+  const all = allWeeks().map(r=>({
+    ...r,
+    oph: r.oph || (r.spend ? r.orders/(r.spend/17.5) : null)
+  }));
+  let data = [...all];
+  if(histFilter==='8wk')  data = all.slice(-8);
+  else if(histFilter==='2025') data = all.filter(r=>r.week.startsWith('2025'));
+  else if(histFilter==='2026') data = all.filter(r=>r.week.startsWith('2026'));
+  data.sort((a,b)=>a.week.localeCompare(b.week));
+  _modalChartData = data;
+
+  // Build
+  const {series, opts} = meta.build(data);
+
+  // Show modal
+  const modal = $('chartModal');
+  modal.style.display = 'block';
+  $('modalTitle').textContent = meta.title;
+
+  // Legend
+  $('modalLegend').innerHTML = meta.legend.map(l=>
+    `<span style="display:flex;align-items:center;gap:5px">
+      <span style="width:12px;height:2px;background:${l.color};display:inline-block;border-radius:1px${l.dash?';border-top:2px dashed '+l.color+';background:none':''}"></span>
+      ${l.label}
+    </span>`
+  ).join('');
+
+  // Draw on modal canvas after layout
+  requestAnimationFrame(()=>{
+    const canvas = $('modalCanvas');
+    if(!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width, H = rect.height;
+
+    // Store chart geometry for tooltip
+    canvas._chartSeries = series;
+    canvas._chartOpts   = opts;
+    canvas._chartData   = data;
+
+    drawModalChart(canvas, series, opts, data);
+    setupModalInteraction(canvas, series, opts, data);
+  });
+}
+
+function drawModalChart(canvas, series, opts, data, hoverIdx=null){
+  const dpr = window.devicePixelRatio||1;
+  const rect = canvas.getBoundingClientRect();
+  const W = rect.width, H = rect.height;
+  canvas.width  = W*dpr; canvas.height = H*dpr;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const PAD = {top:20, right:24, bottom:36, left:opts.leftPad||52};
+  const cW = W-PAD.left-PAD.right, cH = H-PAD.top-PAD.bottom;
+  const GREEN='#A3F3C5',AMBER='#FFB547',SLATE='rgba(139,155,170,.4)',GRID='rgba(255,255,255,.05)';
+  const n = data.length;
+
+  const allVals = series.flatMap(s=>s.values.filter(v=>v!=null));
+  if(!allVals.length) return;
+  let yMin = opts.yMin!=null?opts.yMin:Math.min(...allVals)*0.97;
+  let yMax = Math.max(...allVals)*1.03;
+  if(yMin===yMax){yMin*=0.9;yMax*=1.1;}
+  const yRange = yMax-yMin;
+
+  const xPos = i => PAD.left+(i/(n-1||1))*cW;
+  const yPos = v => PAD.top+cH-((v-yMin)/yRange)*cH;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Grid
+  for(let t=0;t<=5;t++){
+    const yv = yMin+(yRange/5)*t, yp = yPos(yv);
+    ctx.strokeStyle=GRID; ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();
+    ctx.fillStyle=SLATE; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='right';
+    ctx.fillText(opts.yFmt?opts.yFmt(yv):yv.toFixed(opts.decimals||0), PAD.left-7, yp+4);
+  }
+
+  // X labels
+  const step=Math.max(1,Math.floor(n/10));
+  ctx.fillStyle=SLATE; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  for(let i=0;i<n;i+=step) ctx.fillText(data[i].week.slice(5), xPos(i), H-PAD.bottom+18);
+
+  // Ref lines
+  if(opts.refLines) opts.refLines.forEach(({value,color,dash})=>{
+    ctx.strokeStyle=color||SLATE; ctx.lineWidth=1; ctx.setLineDash(dash||[4,4]);
+    const yp=yPos(value);
+    ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=color||SLATE; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='left';
+    ctx.fillText(opts.yFmt?opts.yFmt(value):value.toFixed(opts.decimals||0), PAD.left+4, yp-4);
+  });
+
+  // Hover vertical line
+  if(hoverIdx!=null){
+    const xp = xPos(hoverIdx);
+    ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(xp,PAD.top);ctx.lineTo(xp,PAD.top+cH);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Series
+  series.forEach(s=>{
+    if(s.type==='bar'){
+      const bw=Math.max(3,(cW/n)*0.65);
+      s.values.forEach((v,i)=>{
+        if(v==null)return;
+        const x=xPos(i)-bw/2, yp=yPos(v), ybase=yPos(yMin>0?yMin:0), bh=Math.abs(ybase-yp);
+        const isHover=hoverIdx===i;
+        ctx.fillStyle=s.color; ctx.globalAlpha=isHover?0.95:0.6;
+        ctx.fillRect(x,Math.min(yp,ybase),bw,bh);
+        ctx.globalAlpha=1;
+        if(isHover){
+          ctx.strokeStyle=s.color; ctx.lineWidth=1.5;
+          ctx.strokeRect(x,Math.min(yp,ybase),bw,bh);
+        }
+      });
+      return;
+    }
+
+    // Fill
+    const firstIdx=s.values.findIndex(v=>v!=null);
+    const lastIdx=s.values.reduce((li,v,i)=>v!=null?i:li,-1);
+    if(s.fill && firstIdx>=0){
+      ctx.save();ctx.beginPath();
+      let ff=true;
+      s.values.forEach((v,i)=>{if(v==null)return;if(ff){ctx.moveTo(xPos(i),yPos(v));ff=false;}else ctx.lineTo(xPos(i),yPos(v));});
+      ctx.lineTo(xPos(lastIdx),yPos(yMin>0?yMin:0));
+      ctx.lineTo(xPos(firstIdx),yPos(yMin>0?yMin:0));
+      ctx.closePath();
+      const fg=ctx.createLinearGradient(0,PAD.top,0,PAD.top+cH);
+      const r=parseInt(s.color.slice(1,3),16),g=parseInt(s.color.slice(3,5),16),b=parseInt(s.color.slice(5,7),16);
+      fg.addColorStop(0,`rgba(${r},${g},${b},0.2)`);fg.addColorStop(1,`rgba(${r},${g},${b},0.01)`);
+      ctx.fillStyle=fg;ctx.fill();ctx.restore();
+    }
+
+    // Line
+    ctx.strokeStyle=s.color; ctx.lineWidth=s.width||2.5; ctx.lineJoin='round'; ctx.lineCap='round';
+    ctx.setLineDash(s.dash||[]);
+    ctx.beginPath();let fl=true;
+    s.values.forEach((v,i)=>{if(v==null)return;if(fl){ctx.moveTo(xPos(i),yPos(v));fl=false;}else ctx.lineTo(xPos(i),yPos(v));});
+    ctx.stroke();ctx.setLineDash([]);
+
+    // Dots at all points (small), bigger on hover
+    s.values.forEach((v,i)=>{
+      if(v==null)return;
+      const isHov=hoverIdx===i;
+      ctx.beginPath();
+      ctx.arc(xPos(i),yPos(v),isHov?5.5:2.5,0,Math.PI*2);
+      ctx.fillStyle=isHov?s.color:'rgba(9,30,56,0.9)';
+      ctx.strokeStyle=s.color; ctx.lineWidth=isHov?2:1.5;
+      ctx.fill();ctx.stroke();
+    });
+  });
+
+  // Axes
+  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+cH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+cH);ctx.lineTo(PAD.left+cW,PAD.top+cH);ctx.stroke();
+}
+
+function setupModalInteraction(canvas, series, opts, data){
+  const n = data.length;
+  const PAD = {top:20, right:24, bottom:36, left:opts.leftPad||52};
+
+  function getHoverIdx(e){
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX-rect.left;
+    const cW = rect.width-PAD.left-PAD.right;
+    const fi = Math.round(((mx-PAD.left)/cW)*(n-1));
+    return Math.max(0,Math.min(n-1,fi));
+  }
+
+  canvas.onmousemove = (e)=>{
+    const idx = getHoverIdx(e);
+    drawModalChart(canvas, series, opts, data, idx);
+
+    // Build tooltip
+    const week = data[idx]?.week||'';
+    const parts = series.map(s=>{
+      const v = s.values[idx];
+      if(v==null) return null;
+      const fv = opts.yFmt ? opts.yFmt(v) : v.toFixed(opts.decimals||2);
+      return `<span style="color:${s.color};margin-right:14px"><b>${s.label}:</b> ${fv}</span>`;
+    }).filter(Boolean);
+    $('modalTooltip').innerHTML = `<span style="color:rgba(139,155,170,.6);margin-right:12px">${week}</span>${parts.join('')}`;
+
+    // Crosshair position
+    const rect = canvas.getBoundingClientRect();
+    const cW = rect.width-PAD.left-PAD.right;
+    const xp = PAD.left+(idx/(n-1||1))*cW;
+    const ch = $('modalCrosshair');
+    ch.style.display='block';
+    ch.style.left=(rect.left - canvas.parentElement.getBoundingClientRect().left + xp)+'px';
+  };
+
+  canvas.onmouseleave = ()=>{
+    drawModalChart(canvas, series, opts, data, null);
+    $('modalTooltip').innerHTML='';
+    $('modalCrosshair').style.display='none';
+  };
+}
+
+function closeModal(e){
+  if(e && e.target !== $('chartModal')) return;
+  $('chartModal').style.display='none';
+  _modalChartId=null;
+  const canvas=$('modalCanvas');
+  if(canvas){canvas.onmousemove=null;canvas.onmouseleave=null;}
+}
+
+// Close on Escape
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') { $('chartModal').style.display='none'; } });
+
+// ══════════════════════════════════════════════════════════════
 // BOOT
 // ══════════════════════════════════════════════════════════════
 window.addEventListener('load', ()=>{
@@ -1474,6 +2322,11 @@ window.addEventListener('load', ()=>{
 
   renderTrendChart();
   renderHistory();
+
+  // Redraw charts on resize
+  window.addEventListener('resize', ()=>{
+    if(document.getElementById('page-history').classList.contains('active')) renderHistory();
+  });
 
   // Set ghost avg OPH on dial at load
   const ophW = allWeeks().filter(r=>r.hours && r.orders);
