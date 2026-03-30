@@ -961,18 +961,6 @@ body{
 
   </div>
 
-  <!-- Temp Labor % chart — full width -->
-  <div class="card chart-card" style="margin-bottom:16px;cursor:pointer" onclick="expandChart('chartTemp')">
-    <div class="card-hd" style="justify-content:space-between">
-      <div style="display:flex;align-items:center;gap:6px"><span class="dot dr"></span>Temp Labor % of Total Spend</div>
-      <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
-    </div>
-    <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:8px;background:var(--red-dim);border:1px solid var(--red-border);display:inline-block;border-radius:2px"></span>Temp %</span>
-    </div>
-    <canvas id="chartTemp" style="width:100%;height:100px;display:block"></canvas>
-  </div>
-
   <!-- FILTER PILLS -->
   <div class="pills" id="filterPills">
     <div class="pill active" onclick="filterHist('all',this)">All Time</div>
@@ -1103,6 +1091,9 @@ const HIST_DATA = [
   {week:"2026-02-15",spend:47435,slc_spend:1149,temp:9660,mke_orders:32716,slc_orders:9742,spend_12:54414.08,cpo_12:1.2816},
   {week:"2026-02-22",spend:47640,slc_spend:867,temp:4728,mke_orders:26536,slc_orders:4248,spend_12:54327.84,cpo_12:1.7648},
   {week:"2026-03-01",spend:44664,slc_spend:1126,temp:0,mke_orders:35079,slc_orders:3679,spend_12:51284.8,cpo_12:1.3232},
+  {week:"2026-03-08",spend:41749,slc_spend:0,temp:0,mke_orders:24457,slc_orders:7590,spend_12:46759.88,cpo_12:1.4593},
+  {week:"2026-03-15",spend:43527,slc_spend:0,temp:0,mke_orders:22013,slc_orders:8743,spend_12:48750.24,cpo_12:1.5851},
+  {week:"2026-03-22",spend:43291,slc_spend:0,temp:0,mke_orders:28270,slc_orders:7214,spend_12:48485.92,cpo_12:1.3665},
 ].map(r=>{
   const orders     = r.mke_orders + r.slc_orders;
   const mke_spend  = r.spend;                        // MKE only (as stored)
@@ -1137,7 +1128,29 @@ try { userWeeks = JSON.parse(localStorage.getItem('atx_proj_weeks')||'[]'); } ca
 
 function allWeeks() {
   const ids = new Set(HIST_DATA.map(r=>r.week));
-  const extra = userWeeks.filter(r=>!ids.has(r.week));
+  const extra = userWeeks
+    .filter(r=>!ids.has(r.week))
+    .map(r=>{
+      const mke_orders = r.mke_orders || r.orders || 0;
+      const slc_orders = r.slc_orders || 0;
+      const orders     = r.orders || (mke_orders + slc_orders);
+      const spend      = r.spend || 0;
+      const slc_spend  = r.slc_spend || 0;
+      const total_spend= spend + slc_spend;
+      const spend_12   = r.spend_12 || total_spend * 1.12;
+      const cpo        = orders > 0 ? total_spend / orders : null;
+      const cpo_12     = orders > 0 ? spend_12 / orders : null;
+      const oph        = r.hours && orders ? orders / r.hours
+                       : total_spend > 0   ? orders / (total_spend / 17.5) : null;
+      return {
+        ...r,
+        mke_orders, slc_orders, orders,
+        spend: total_spend,
+        mke_spend: spend,
+        spend_12, cpo, cpo_12, oph,
+        temp: r.temp || 0,
+      };
+    });
   return [...HIST_DATA, ...extra].sort((a,b)=>a.week.localeCompare(b.week));
 }
 
