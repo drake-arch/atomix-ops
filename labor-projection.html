@@ -582,16 +582,13 @@ body{
     <!-- BIG OPH DISPLAY -->
     <div style="display:flex;align-items:center;gap:24px;margin-bottom:16px">
       <div style="flex:1">
-        <!-- Ghost avg above, live number below -->
         <div style="position:relative;margin-bottom:8px">
-          <!-- Ghost: sits above, slightly offset so it reads as "behind/above" reference -->
           <div style="position:absolute;top:-28px;left:0;z-index:0;pointer-events:none;user-select:none">
             <span id="ophGhostAvg" style="
               font-family:var(--ui);font-weight:800;font-size:52px;line-height:1;
               color:rgba(163,243,197,0.15);letter-spacing:-.01em;
             ">12.6</span>
           </div>
-          <!-- Live value -->
           <div style="display:flex;align-items:baseline;gap:10px;position:relative;z-index:1">
             <span style="font-family:var(--ui);font-weight:800;font-size:52px;line-height:1;color:var(--green);transition:color .3s" id="ophDialVal">—</span>
             <div>
@@ -601,7 +598,6 @@ body{
             </div>
           </div>
         </div>
-        <!-- Slider -->
         <input type="range" class="slider" id="pOphSlider" min="2" max="30" step="0.5" value="10"
                oninput="ophSlide(this.value)" style="width:100%">
         <div class="slider-row" style="margin-top:6px"><span>2 (very slow)</span><span>10</span><span>20</span><span>30 (max)</span></div>
@@ -618,7 +614,7 @@ body{
       </div>
     </div>
 
-    <!-- OPH IMPACT STRIP — shows repercussions live -->
+    <!-- OPH IMPACT STRIP -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--border)" id="ophImpactStrip">
       <div style="text-align:center">
         <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Hours Needed</div>
@@ -735,7 +731,7 @@ body{
             <span style="font-family:var(--ui);font-weight:700;font-size:12px">Outbound</span>
           </div>
           <div>
-            <input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="outbound" oninput="deptCalc()">
+            <input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="outbound" oninput="deptCalc();saveProjectorState()">
           </div>
           <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
             <div class="dept-bar" data-dept="outbound" style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:width .4s"></div>
@@ -754,7 +750,7 @@ body{
             <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0"></div>
             <span style="font-family:var(--ui);font-weight:700;font-size:12px">Inbound</span>
           </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inbound" oninput="deptCalc()"></div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inbound" oninput="deptCalc();saveProjectorState()"></div>
           <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
             <div class="dept-bar" data-dept="inbound" style="height:100%;width:0%;background:var(--blue);border-radius:3px;transition:width .4s"></div>
           </div>
@@ -772,7 +768,7 @@ body{
             <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>
             <span style="font-family:var(--ui);font-weight:700;font-size:12px">Special Projects</span>
           </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="special" oninput="deptCalc()"></div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="special" oninput="deptCalc();saveProjectorState()"></div>
           <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
             <div class="dept-bar" data-dept="special" style="height:100%;width:0%;background:var(--amber);border-radius:3px;transition:width .4s"></div>
           </div>
@@ -790,7 +786,7 @@ body{
             <div style="width:8px;height:8px;border-radius:50%;background:#c084fc;flex-shrink:0"></div>
             <span style="font-family:var(--ui);font-weight:700;font-size:12px">Kitting</span>
           </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="kitting" oninput="deptCalc()"></div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="kitting" oninput="deptCalc();saveProjectorState()"></div>
           <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
             <div class="dept-bar" data-dept="kitting" style="height:100%;width:0%;background:#c084fc;border-radius:3px;transition:width .4s"></div>
           </div>
@@ -808,7 +804,7 @@ body{
             <div style="width:8px;height:8px;border-radius:50%;background:#34d399;flex-shrink:0"></div>
             <span style="font-family:var(--ui);font-weight:700;font-size:12px">Inventory</span>
           </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inventory" oninput="deptCalc()"></div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inventory" oninput="deptCalc();saveProjectorState()"></div>
           <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
             <div class="dept-bar" data-dept="inventory" style="height:100%;width:0%;background:#34d399;border-radius:3px;transition:width .4s"></div>
           </div>
@@ -826,7 +822,7 @@ body{
             <div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
             <span style="font-family:var(--ui);font-weight:700;font-size:12px">Returns</span>
           </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="returns" oninput="deptCalc()"></div>
+          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="returns" oninput="deptCalc();saveProjectorState()"></div>
           <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
             <div class="dept-bar" data-dept="returns" style="height:100%;width:0%;background:var(--red);border-radius:3px;transition:width .4s"></div>
           </div>
@@ -906,7 +902,6 @@ body{
   <!-- CHARTS SECTION -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" id="chartsGrid">
 
-    <!-- Spend vs Orders -->
     <div class="card chart-card" onclick="expandChart('chartSpendOrders')" style="cursor:pointer">
       <div class="card-hd" style="justify-content:space-between">
         <div style="display:flex;align-items:center;gap:6px"><span class="dot da"></span>Labor Spend vs Order Volume</div>
@@ -919,7 +914,6 @@ body{
       <canvas id="chartSpendOrders" style="width:100%;height:160px;display:block"></canvas>
     </div>
 
-    <!-- CPO Raw vs CPO +12% -->
     <div class="card chart-card" onclick="expandChart('chartCpo')" style="cursor:pointer">
       <div class="card-hd" style="justify-content:space-between">
         <div style="display:flex;align-items:center;gap:6px"><span class="dot dg"></span>CPO — Raw vs Loaded +12%</div>
@@ -928,12 +922,10 @@ body{
       <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
         <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>CPO Raw</span>
         <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--amber);display:inline-block;border-radius:1px"></span>CPO +12%</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:22px;height:1px;background:rgba(255,255,255,.2);display:inline-block;border-top:1px dashed rgba(255,255,255,.3)"></span>Avg</span>
       </div>
       <canvas id="chartCpo" style="width:100%;height:160px;display:block"></canvas>
     </div>
 
-    <!-- MKE vs SLC Orders -->
     <div class="card chart-card" onclick="expandChart('chartSites')" style="cursor:pointer">
       <div class="card-hd" style="justify-content:space-between">
         <div style="display:flex;align-items:center;gap:6px"><span class="dot db"></span>MKE vs SLC — Order Volume</div>
@@ -946,7 +938,6 @@ body{
       <canvas id="chartSites" style="width:100%;height:160px;display:block"></canvas>
     </div>
 
-    <!-- OPH Trend -->
     <div class="card chart-card" onclick="expandChart('chartOph')" style="cursor:pointer">
       <div class="card-hd" style="justify-content:space-between">
         <div style="display:flex;align-items:center;gap:6px"><span class="dot dg"></span>OPH Trend (Implied @ $17.50)</div>
@@ -954,7 +945,6 @@ body{
       </div>
       <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
         <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>OPH</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:1px;background:rgba(255,255,255,.25);display:inline-block;border-top:1px dashed rgba(255,255,255,.3)"></span>Avg</span>
       </div>
       <canvas id="chartOph" style="width:100%;height:160px;display:block"></canvas>
     </div>
@@ -988,7 +978,6 @@ body{
     box-shadow:0 32px 80px rgba(0,0,0,.5);
     overflow:hidden;position:relative;
   " onclick="event.stopPropagation()">
-    <!-- Modal header -->
     <div style="
       display:flex;align-items:center;justify-content:space-between;
       padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;
@@ -1006,10 +995,8 @@ body{
         " onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--slate)'">✕ Close</button>
       </div>
     </div>
-    <!-- Canvas wrapper -->
     <div style="flex:1;padding:20px;position:relative;min-height:0">
       <canvas id="modalCanvas" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas>
-      <!-- Crosshair line -->
       <div id="modalCrosshair" style="
         display:none;position:absolute;top:20px;bottom:20px;
         width:1px;background:rgba(255,255,255,.2);pointer-events:none;
@@ -1029,7 +1016,7 @@ body{
 
 <script>
 // ══════════════════════════════════════════════════════════════
-// HISTORICAL DATA — from CPO_MASTER.xlsx (CPO sheet)
+// HISTORICAL DATA
 // ══════════════════════════════════════════════════════════════
 const HIST_DATA = [
   {week:"2025-01-05",spend:18953,slc_spend:0,temp:0,mke_orders:21457,slc_orders:0,spend_12:21227.36,cpo_12:0.9893},
@@ -1096,8 +1083,8 @@ const HIST_DATA = [
   {week:"2026-03-22",spend:43291,slc_spend:0,temp:0,mke_orders:28270,slc_orders:7214,spend_12:48485.92,cpo_12:1.3665},
 ].map(r=>{
   const orders     = r.mke_orders + r.slc_orders;
-  const mke_spend  = r.spend;                        // MKE only (as stored)
-  const total_spend= r.spend + (r.slc_spend||0);     // MKE + SLC combined
+  const mke_spend  = r.spend;
+  const total_spend= r.spend + (r.slc_spend||0);
   const spend_12   = r.spend_12 || total_spend * 1.12;
   const cpo        = orders > 0 ? total_spend / orders : null;
   const cpo_12     = orders > 0 ? spend_12 / orders : null;
@@ -1105,24 +1092,17 @@ const HIST_DATA = [
   return { ...r, spend: total_spend, mke_spend, orders, cpo, cpo_12, spend_12, oph };
 }).sort((a,b)=>a.week.localeCompare(b.week));
 
-// ── Derived historical stats ──
 const hist_cpos   = HIST_DATA.filter(r=>r.cpo != null).map(r=>r.cpo);
-const hist_cplhs  = [];
 const H_AVG_CPO   = hist_cpos.length ? hist_cpos.reduce((s,v)=>s+v,0)/hist_cpos.length : 0;
 const H_BEST_CPO  = hist_cpos.length ? Math.min(...hist_cpos) : 0;
 const H_WORST_CPO = hist_cpos.length ? Math.max(...hist_cpos) : 0;
 const LAST8       = HIST_DATA.filter(r=>r.cpo != null).slice(-8);
 const H_LAST8_CPO = LAST8.length ? LAST8.reduce((s,r)=>s+r.cpo,0)/LAST8.length : 0;
-
-// Historical averages for ghost placeholders
 const H_AVG_ORDERS = Math.round(HIST_DATA.map(r=>r.orders).reduce((s,v)=>s+v,0)/HIST_DATA.length);
 const H_AVG_SPEND  = Math.round(HIST_DATA.map(r=>r.spend).reduce((s,v)=>s+v,0)/HIST_DATA.length);
 const LAST8_ORDERS = Math.round(LAST8.reduce((s,r)=>s+r.orders,0)/LAST8.length);
 const LAST8_SPEND  = Math.round(LAST8.reduce((s,r)=>s+r.spend,0)/LAST8.length);
 
-// ══════════════════════════════════════════════════════════════
-// USER DATA (session + localStorage)
-// ══════════════════════════════════════════════════════════════
 let userWeeks = [];
 try { userWeeks = JSON.parse(localStorage.getItem('atx_proj_weeks')||'[]'); } catch(e){}
 
@@ -1142,14 +1122,7 @@ function allWeeks() {
       const cpo_12     = orders > 0 ? spend_12 / orders : null;
       const oph        = r.hours && orders ? orders / r.hours
                        : total_spend > 0   ? orders / (total_spend / 17.5) : null;
-      return {
-        ...r,
-        mke_orders, slc_orders, orders,
-        spend: total_spend,
-        mke_spend: spend,
-        spend_12, cpo, cpo_12, oph,
-        temp: r.temp || 0,
-      };
+      return { ...r, mke_orders, slc_orders, orders, spend: total_spend, mke_spend: spend, spend_12, cpo, cpo_12, oph, temp: r.temp || 0 };
     });
   return [...HIST_DATA, ...extra].sort((a,b)=>a.week.localeCompare(b.week));
 }
@@ -1164,6 +1137,7 @@ function setTab(t) {
   document.getElementById(`page-${t}`).classList.add('active');
   if(t==='history') renderHistory();
 }
+
 // ══════════════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════════════
@@ -1212,7 +1186,6 @@ function analyzeCalc() {
   const rph  = (rev && hours)    ? rev/hours    : null;
   const aov  = (rev && orders)   ? rev/orders   : null;
 
-  // Tiles
   tcv('mCpo',  cpo  ? '$'+cpo.toFixed(2)     : '$—', cpoColor(cpo));
   tcv('mOph',  oph  ? oph.toFixed(2)          : '—',  '');
   tcv('mOpb',  opb  ? fmt(opb)                : '—',  'g');
@@ -1223,7 +1196,6 @@ function analyzeCalc() {
   tcv('mRph',  rph  ? '$'+rph.toFixed(2)      : '$—', '');
   tcv('mAov',  aov  ? '$'+aov.toFixed(2)      : '$—', '');
 
-  // Banner
   const bn=$('aBanner'), bt=$('aBannerTitle'), bs=$('aBannerSub'), bb=$('aBannerBig');
   if(!cpo){ bn.className='statbanner neutral'; bt.textContent='Enter Data'; bs.textContent='Input spend, hours, and orders.'; bb.textContent='—'; return; }
   bb.textContent='$'+cpo.toFixed(2);
@@ -1235,7 +1207,6 @@ function analyzeCalc() {
     bn.className='statbanner over'; bt.textContent='🔴 High CPO'; bs.textContent=`CPO $${(cpo-H_LAST8_CPO).toFixed(2)} above recent avg — review labor mix.`;
   }
 
-  // Historical comp
   prv('aCpoComp',  cpo  ? '$'+cpo.toFixed(2)  : '—', cpoColor(cpo));
   prv('aHistCpo',  '$'+H_AVG_CPO.toFixed(2),          'b');
   prv('aHistBest', '$'+H_BEST_CPO.toFixed(2),          'g');
@@ -1243,7 +1214,6 @@ function analyzeCalc() {
   prv('aCplhComp', cplh ? '$'+cplh.toFixed(2) : '—', '');
   prv('aHistCplh', 'N/A (no hrs data)', 's');
 
-  // Historical OPH — from manually logged weeks with hours
   const ophWeeks = allWeeks().filter(r=>r.hours && r.orders);
   const ophVals  = ophWeeks.map(r=>r.orders/r.hours);
   const histOphAvg  = ophVals.length ? ophVals.reduce((s,v)=>s+v,0)/ophVals.length : null;
@@ -1252,7 +1222,6 @@ function analyzeCalc() {
   prv('aHistOph',    histOphAvg  ? histOphAvg.toFixed(2)            : 'No hrs logged', histOphAvg?'b':'s');
   prv('aHistOphBest',histOphBest ? histOphBest.toFixed(2)           : '—',             histOphBest?'g':'s');
 
-  // Push hist avg OPH to projector dial
   const dialHistEl = $('ophHistAvg');
   if(dialHistEl) {
     dialHistEl.textContent = histOphAvg ? histOphAvg.toFixed(1) : '—';
@@ -1276,7 +1245,6 @@ function saveWeek() {
   const date   = $('aDate').value;
   if(!spend || !orders || !date){ toast('Need spend, orders + date.',true); return; }
 
-  // Site split data
   const mkeOrders = siteMode==='split' ? (parseFloat($('aMkeOrders').value)||orders) : orders;
   const slcOrders = siteMode==='split' ? (parseFloat($('aSlcOrders').value)||0)      : 0;
   const mkeSpend  = siteMode==='split' ? (parseFloat($('aMkeSpend').value)||spend)   : spend;
@@ -1292,8 +1260,7 @@ function saveWeek() {
     mke_spend:mkeSpend,   slc_spend:slcSpend,
     mke_hours:mkeHours,   slc_hours:slcHours,
     mke_heads:mkeHeads,   slc_heads:slcHeads,
-    heads:heads||null, rev:rev||null,
-    temp:0,
+    heads:heads||null, rev:rev||null, temp:0,
     cpo: spend/orders,
     oph: hours ? orders/hours : orders/(spend/17.5),
     source:'manual'
@@ -1306,7 +1273,7 @@ function saveWeek() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// PROJECTOR — OPH as primary dial
+// PROJECTOR
 // ══════════════════════════════════════════════════════════════
 let currentOph = 10;
 let requiredOph = null;
@@ -1342,18 +1309,15 @@ function projectCalc(){
   const projLpct  = (projSpend && rev)     ? projSpend / rev * 100  : null;
   const delta     = null;
 
-  // ── OPH dial ──
   $('ophDialVal').textContent = oph.toFixed(1);
   $('ophRequired').textContent = requiredOph ? requiredOph.toFixed(1) : '—';
   const ophEl = $('ophDialVal');
   if(requiredOph) ophEl.style.color = oph >= requiredOph ? 'var(--green)' : oph >= requiredOph*0.85 ? 'var(--amber)' : 'var(--red)';
   else ophEl.style.color = 'var(--green)';
 
-  // Hist avg OPH on dial — back-calculated from historical spend ÷ 17.5 CPLH
   const ophWeeks2 = allWeeks().filter(r=>r.hours && r.orders);
   let ophAvg2 = ophWeeks2.length ? ophWeeks2.reduce((s,r)=>s+(r.orders/r.hours),0)/ophWeeks2.length : null;
-  // Fallback: back-calculated from CPO sheet (spend ÷ $17.5 CPLH → hours → OPH)
-  const HIST_IMPLIED_OPH = 12.6; // derived: avg across 59 weeks at $17.50 CPLH
+  const HIST_IMPLIED_OPH = 12.6;
   const ghostVal  = ophAvg2 || HIST_IMPLIED_OPH;
   const ghostLabel = ophAvg2 ? `avg ${ophAvg2.toFixed(1)} (logged)` : `avg ${ghostVal.toFixed(1)} (implied)`;
 
@@ -1363,7 +1327,6 @@ function projectCalc(){
   if(ghost){ ghost.textContent = ghostVal.toFixed(1); }
   if(ghostLbl){ ghostLbl.textContent = ghostLabel; }
 
-  // Delta badge
   const badge = $('ophDeltaBadge');
   if(delta !== null){
     const sign = delta >= 0 ? '+' : '';
@@ -1371,17 +1334,15 @@ function projectCalc(){
   } else { badge.innerHTML = ''; }
 
   $('ophDialSub').textContent = requiredOph
-    ? `Required OPH: ${requiredOph.toFixed(1)}. You're dialed to ${oph.toFixed(1)}. Move the slider to see the impact.`
+    ? `Required OPH: ${requiredOph.toFixed(1)}. You're dialed to ${oph.toFixed(1)}.`
     : `Enter CPLH to unlock spend projections.`;
 
-  // ── Impact strip ──
   const strip = {riHours:fmt(hrsNeeded), riBodies:bodies, riSpend:projSpend?fmtk(projSpend):'—', riCpo:projCpo?'$'+projCpo.toFixed(2):'—', riLpct:projLpct?projLpct.toFixed(1)+'%':'—'};
   Object.entries(strip).forEach(([id,v])=>{ const e=$(id); if(e)e.textContent=v; });
   if($('riSpend')) $('riSpend').style.color = 'var(--white)';
   if($('riCpo'))   $('riCpo').style.color   = projCpo ? projCpo<1.2?'var(--green)':projCpo<1.7?'var(--amber)':'var(--red)' : 'var(--white)';
   if($('riLpct'))  $('riLpct').style.color  = projLpct ? projLpct<=12?'var(--green)':projLpct<=15?'var(--amber)':'var(--red)' : 'var(--white)';
 
-  // ── Verdict ──
   let verdict = '';
   if(orders && projSpend){
     const cpoStr = projCpo ? ` · <b>$${projCpo.toFixed(2)} CPO</b>` : '';
@@ -1394,7 +1355,6 @@ function projectCalc(){
   }
   $('ophVerdict').innerHTML = verdict;
 
-  // ── Tiles ──
   tcv('rBodies',   bodies,                                   'a');
   tv('rBodiesSub', `${fmt(hrsNeeded)} hrs ÷ 40`);
   tcv('rHours',    fmt(hrsNeeded),                           '');
@@ -1415,12 +1375,14 @@ function clearProjection(){
   $('ophDialVal').textContent  = currentOph.toFixed(1);
   $('ophDialVal').style.color  = 'var(--green)';
   $('ophDeltaBadge').innerHTML = '';
-  $('ophDialSub').textContent  = 'Enter orders above to see your required OPH, then adjust to model different floor realities.';
+  $('ophDialSub').textContent  = 'Enter orders above to see your required OPH.';
   $('ophVerdict').textContent  = 'Set orders and CPLH to generate your required OPH, then use the slider to see the impact.';
   ['riHours','riBodies','riSpend','riCpo','riLpct'].forEach(id=>{ const e=$(id); if(e){e.textContent='—';e.style.color='var(--white)';} });
   ['rBodies','rHours','rSpend','rCpo','rLpct'].forEach(id=>tv(id,'—'));
   $('ophSensBody').innerHTML='<tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr>';
   $('recList').innerHTML='<div class="no-data">Configure inputs to generate recommendations.</div>';
+  // NOTE: dept breakdown is intentionally NOT cleared — it persists independently
+  deptCalc();
 }
 
 function renderOphSensitivity(orders, cplh, rev){
@@ -1466,10 +1428,10 @@ function renderRecs(orders, bodies, hrs, spend, cpo, lpct, reqOph, oph, delta){
     else             items.push({icon:'🔴',txt:`CPO <b>$${cpo.toFixed(2)}</b> — push OPH up or reduce headcount.`});
   } else items.push({icon:'💡',txt:`Set <b>CPLH</b> to unlock spend and CPO projections.`});
   if(delta!=null){
-    if(delta<0) items.push({icon:'⏱️',txt:`Floor is <b>${Math.abs(delta).toFixed(1)} OPH below required rate</b>. At current pace: ${spend?fmtk(spend):''} projected spend.`});
+    if(delta<0) items.push({icon:'⏱️',txt:`Floor is <b>${Math.abs(delta).toFixed(1)} OPH below required rate</b>.`});
     else        items.push({icon:'📈',txt:`Running ${delta.toFixed(1)} OPH above required — floor is ahead of pace.`});
   }
-  if(bodies>60) items.push({icon:'📋',txt:`${bodies} bodies is a large crew — stagger start times to reduce congestion.`});
+  if(bodies>60) items.push({icon:'📋',txt:`${bodies} bodies is a large crew — stagger start times.`});
   if(cpo!=null&&H_LAST8_CPO&&cpo<H_LAST8_CPO) items.push({icon:'🏆',txt:`Projecting <b>$${(H_LAST8_CPO-cpo).toFixed(2)}/order better</b> than recent avg ($${H_LAST8_CPO.toFixed(2)}).`});
   $('recList').innerHTML=items.length
     ?items.map((r,i)=>`<div style="display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:8px;animation:rise .3s ${i*.06}s both"><span style="font-size:13px;flex-shrink:0;margin-top:1px">${r.icon}</span><span style="font-size:11px;line-height:1.55;color:var(--white)">${r.txt}</span></div>`).join('')
@@ -1490,15 +1452,12 @@ function filterHist(f, el){
 
 function renderHistory(){
   const all = allWeeks();
-  const now = new Date();
-
   let data = [...all];
   if(histFilter==='8wk') data = all.slice(-8);
   else if(histFilter==='2025') data = all.filter(r=>r.week.startsWith('2025'));
   else if(histFilter==='2026') data = all.filter(r=>r.week.startsWith('2026'));
   data = [...data].reverse();
 
-  // Summary tiles
   tv('hWks', all.length);
   const cpov = all.filter(r=>r.cpo != null).map(r=>r.cpo);
   const avgCpoRaw = cpov.length ? cpov.reduce((s,v)=>s+v,0)/cpov.length : 0;
@@ -1511,7 +1470,6 @@ function renderHistory(){
 
   if(!data.length){ $('histTableWrap').innerHTML='<div class="no-data">No data for filter.</div>'; return; }
 
-  // Use implied OPH (spend÷17.5) as fallback for all historical weeks
   const allWithOph = allWeeks().map(r=>({
     ...r,
     oph: r.oph || (r.hours && r.orders ? r.orders/r.hours : (r.spend ? r.orders/(r.spend/17.5) : null))
@@ -1519,7 +1477,6 @@ function renderHistory(){
   const ophVals = allWithOph.filter(r=>r.oph).map(r=>r.oph);
   const avgOph  = ophVals.length ? ophVals.reduce((s,v)=>s+v,0)/ophVals.length : 12.6;
 
-  // Re-map data with oph enriched
   const dataWithOph = data.map(r=>({
     ...r,
     oph: r.oph || (r.hours && r.orders ? r.orders/r.hours : (r.spend ? r.orders/(r.spend/17.5) : null))
@@ -1531,9 +1488,8 @@ function renderHistory(){
     const ophVal   = r.oph;
     const ophStr   = ophVal ? ophVal.toFixed(1) : '—';
     const ophCls   = ophVal ? (ophVal >= 10 ? 'g' : ophVal >= 7 ? '' : 's') : 'm';
-    const implied  = ophVal && !r.hours; // flag implied vs logged
+    const implied  = ophVal && !r.hours;
 
-    // Mini OPH bar with avg tick
     let ophCell = `<span class="${ophCls}">${ophStr}</span>`;
     if(ophVal){
       const maxBar  = Math.max(20, ophVal * 1.2, avgOph * 1.2);
@@ -1554,11 +1510,6 @@ function renderHistory(){
     const spend12 = r.spend_12 || r.spend * 1.12;
     const cpo12   = r.cpo_12   || (r.cpo ? r.cpo * 1.12 : null);
     const delta12 = `<span style="font-size:9px;color:rgba(255,181,71,.5)">+${Math.round(spend12-r.spend).toLocaleString()}</span>`;
-    const siteDetail = (r.slc_orders > 0)
-      ? `<div style="font-size:9px;margin-top:2px;display:flex;gap:6px">
-           <span style="color:var(--green)">MKE ${r.mke_orders.toLocaleString()}</span>
-           <span style="color:var(--blue)">SLC ${r.slc_orders.toLocaleString()}</span>
-         </div>` : '';
     return `<tr>
       <td class="m">${r.week}${isManual?'<span class="badge badge-s" style="margin-left:6px">manual</span>':''}</td>
       <td>${r.orders.toLocaleString()}</td>
@@ -1576,12 +1527,9 @@ function renderHistory(){
   $('histTableWrap').innerHTML = `<table class="htbl">
     <thead>
       <tr>
-        <th>Week</th>
-        <th>Total Orders</th>
-        <th>Raw Spend</th>
+        <th>Week</th><th>Total Orders</th><th>Raw Spend</th>
         <th style="color:rgba(255,181,71,.8)">Loaded +12%</th>
-        <th>CPO Raw</th>
-        <th style="color:rgba(255,181,71,.8)">CPO +12%</th>
+        <th>CPO Raw</th><th style="color:rgba(255,181,71,.8)">CPO +12%</th>
         <th>OPH <span style="color:rgba(139,155,170,.4);font-weight:400">│ avg ${avgOph.toFixed(1)}~</span></th>
         <th>MKE / SLC</th><th>Temp %</th><th></th>
       </tr>
@@ -1589,7 +1537,6 @@ function renderHistory(){
     <tbody>${rows}</tbody>
   </table>`;
 
-  // Draw charts with filtered data (sorted asc for charts)
   const chartData = [...dataWithOph].sort((a,b)=>a.week.localeCompare(b.week));
   requestAnimationFrame(()=>drawCharts(chartData));
 }
@@ -1616,7 +1563,7 @@ function renderTrendChart(){
   const bars = data.map((r,i)=>{
     const pct = ((r.cpo - min) / range * 70 + 10).toFixed(1);
     const col = r.cpo<1.2?'var(--green)':r.cpo<1.7?'var(--amber)':'var(--red)';
-    const lbl = r.week.slice(5); // MM-DD
+    const lbl = r.week.slice(5);
     return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;cursor:default" title="${r.week}: $${r.cpo.toFixed(2)}/order">
       <div style="flex:1;display:flex;align-items:flex-end;width:100%;justify-content:center">
         <div style="width:80%;height:${pct}%;background:${col};opacity:0.85;border-radius:3px 3px 0 0;min-height:4px;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.85"></div>
@@ -1640,14 +1587,12 @@ function renderTrendChart(){
 const DEPTS = ['outbound','inbound','special','kitting','inventory','returns'];
 
 function deptCalc(){
-  // Pull total hrs + spend from projector state
   const orders  = fv('pOrders');
   const cplh    = fv('pCplh');
   const oph     = currentOph;
   const totalHrs   = orders ? orders / oph : null;
   const totalSpend = (totalHrs && cplh) ? totalHrs * cplh : null;
 
-  // Read each dept %
   const pcts = {};
   let totalPct = 0;
   DEPTS.forEach(d => {
@@ -1657,14 +1602,12 @@ function deptCalc(){
     totalPct += v;
   });
 
-  // Update header totals
   const totalPctEl = $('deptTotalPct');
   if(totalPctEl) {
     totalPctEl.textContent = totalPct.toFixed(0) + '%';
     totalPctEl.style.color = totalPct > 100 ? 'var(--red)' : totalPct === 100 ? 'var(--green)' : 'var(--amber)';
   }
 
-  // Stacked bar + per-dept metrics
   DEPTS.forEach(d => {
     const pct  = pcts[d];
     const hrs  = totalHrs  ? totalHrs  * (pct/100) : null;
@@ -1672,15 +1615,12 @@ function deptCalc(){
     const bods = hrs ? Math.ceil(hrs/40) : null;
     const dCplh= (spd && hrs) ? spd/hrs : null;
 
-    // Bar width
     const bar = document.querySelector(`.dept-bar[data-dept="${d}"]`);
     if(bar) bar.style.width = Math.min(pct, 100) + '%';
 
-    // Stacked bar segment
     const sb = $('dsb-'+d);
     if(sb) sb.style.width = Math.min(pct, 100) + '%';
 
-    // Metrics
     const hEl = document.querySelector(`.dept-hrs[data-dept="${d}"]`);
     const bEl = document.querySelector(`.dept-bodies[data-dept="${d}"]`);
     const sEl = document.querySelector(`.dept-spend[data-dept="${d}"]`);
@@ -1692,7 +1632,6 @@ function deptCalc(){
     if(cEl) cEl.textContent = dCplh ? '$'+dCplh.toFixed(2)             : '—';
   });
 
-  // Total allocated bar label
   const lbl = $('deptTotalLbl');
   if(lbl) {
     if(totalPct === 100)      { lbl.textContent = '✓ 100% allocated'; lbl.style.color = 'var(--green)'; }
@@ -1700,7 +1639,6 @@ function deptCalc(){
     else                      { lbl.textContent = `${totalPct.toFixed(0)}% allocated · ${(100-totalPct).toFixed(0)}% unallocated`; lbl.style.color = 'var(--slate)'; }
   }
 
-  // Alloc badge
   const badge = $('deptAllocBar');
   if(badge && totalHrs && totalSpend) {
     const allocHrs = totalHrs * (totalPct/100);
@@ -1712,7 +1650,6 @@ function deptCalc(){
     badge.textContent = '0 hrs · $0';
   }
 
-  // Hint
   const hint = $('deptHint');
   if(hint){
     if(!totalHrs)     hint.textContent = 'Set Orders + OPH in the projector above to populate department hours.';
@@ -1760,7 +1697,6 @@ function splitCalc(){
   tv('splitTotalOrders', totOrders ? totOrders.toLocaleString()                 : '—');
   tv('splitTotalHours',  totHours  ? Math.round(totHours).toLocaleString()      : '—');
 
-  // Push totals into combined fields for analyzeCalc to use
   if(totSpend)  $('aSpend').value  = totSpend;
   if(totHours)  $('aHours').value  = totHours;
   if(totOrders) $('aOrders').value = totOrders;
@@ -1774,12 +1710,7 @@ function exportCSV(){
   const weeks = allWeeks();
   const headers = ['week','mke_orders','slc_orders','total_orders','spend','temp','cpo','oph_implied','source'];
   const rows = weeks.map(r=>[
-    r.week,
-    r.mke_orders,
-    r.slc_orders,
-    r.orders,
-    r.spend,
-    r.temp||0,
+    r.week, r.mke_orders, r.slc_orders, r.orders, r.spend, r.temp||0,
     r.cpo ? r.cpo.toFixed(4) : '',
     r.spend ? (r.orders/(r.spend/17.5)).toFixed(2) : '',
     r.source||'historical'
@@ -1796,540 +1727,285 @@ function exportCSV(){
 // ══════════════════════════════════════════════════════════════
 // CHARTS
 // ══════════════════════════════════════════════════════════════
-
 function drawCharts(data){
   if(!data || !data.length) return;
   const d = [...data].sort((a,b)=>a.week.localeCompare(b.week));
+  const GREEN='#A3F3C5', AMBER='#FFB547', BLUE='#60A5FA', RED='#FF6B6B', SLATE='rgba(139,155,170,.4)', GRID='rgba(255,255,255,.05)';
 
-  // Colors
-  const GREEN  = '#A3F3C5', AMBER = '#FFB547', BLUE = '#60A5FA',
-        RED    = '#FF6B6B', SLATE = 'rgba(139,155,170,.4)',
-        GRID   = 'rgba(255,255,255,.05)', WHITE = '#DDE8F2';
-
-  // ── Generic line chart ──────────────────────────────────────
   function lineChart(canvasId, series, opts={}){
     const canvas = document.getElementById(canvasId);
     if(!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const W = rect.width  || canvas.parentElement.clientWidth || 400;
+    const W = rect.width || canvas.parentElement.clientWidth || 400;
     const H = rect.height || 160;
     const dpr = window.devicePixelRatio || 1;
-    canvas.width  = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
+    canvas.width  = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W+'px'; canvas.style.height = H+'px';
     const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
+    ctx.scale(dpr,dpr);
     const PAD = {top:16, right:16, bottom:28, left:opts.leftPad||52};
-    const cW = W - PAD.left - PAD.right;
-    const cH = H - PAD.top  - PAD.bottom;
-
+    const cW = W-PAD.left-PAD.right, cH = H-PAD.top-PAD.bottom;
     ctx.clearRect(0,0,W,H);
 
-    // Compute ranges
     const allVals = series.flatMap(s=>s.values.filter(v=>v!=null));
     if(!allVals.length) return;
     let yMin = opts.yMin!=null ? opts.yMin : Math.min(...allVals);
     let yMax = opts.yMax!=null ? opts.yMax : Math.max(...allVals);
     if(yMin===yMax){ yMin*=0.9; yMax*=1.1; }
-    const yRange = yMax - yMin;
+    const yRange = yMax-yMin;
     const n = d.length;
 
-    const xPos = i => PAD.left + (i/(n-1||1)) * cW;
-    const yPos = v => PAD.top + cH - ((v-yMin)/yRange)*cH;
+    const xPos = i => PAD.left+(i/(n-1||1))*cW;
+    const yPos = v => PAD.top+cH-((v-yMin)/yRange)*cH;
 
-    // Grid lines
-    const ticks = 4;
-    for(let t=0; t<=ticks; t++){
-      const yv = yMin + (yRange/ticks)*t;
-      const yp = yPos(yv);
-      ctx.strokeStyle = GRID;
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(PAD.left,yp); ctx.lineTo(PAD.left+cW,yp); ctx.stroke();
-      ctx.fillStyle = SLATE;
-      ctx.font = `${9*dpr/dpr}px IBM Plex Mono, monospace`;
-      ctx.textAlign = 'right';
-      const lbl = opts.yFmt ? opts.yFmt(yv) : yv.toFixed(opts.decimals!=null?opts.decimals:0);
-      ctx.fillText(lbl, PAD.left-5, yp+3);
+    for(let t=0;t<=4;t++){
+      const yv=yMin+(yRange/4)*t, yp=yPos(yv);
+      ctx.strokeStyle=GRID; ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();
+      ctx.fillStyle=SLATE; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='right';
+      const lbl=opts.yFmt?opts.yFmt(yv):yv.toFixed(opts.decimals!=null?opts.decimals:0);
+      ctx.fillText(lbl,PAD.left-5,yp+3);
     }
 
-    // X labels — show ~6 evenly spaced
-    const step = Math.max(1, Math.floor(n/6));
-    ctx.fillStyle = SLATE;
-    ctx.font = `9px IBM Plex Mono, monospace`;
-    ctx.textAlign = 'center';
-    for(let i=0; i<n; i+=step){
-      ctx.fillText(d[i].week.slice(5), xPos(i), H-PAD.bottom+14);
-    }
+    const step=Math.max(1,Math.floor(n/6));
+    ctx.fillStyle=SLATE; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='center';
+    for(let i=0;i<n;i+=step) ctx.fillText(d[i].week.slice(5),xPos(i),H-PAD.bottom+14);
 
-    // Reference lines
-    if(opts.refLines){
-      opts.refLines.forEach(({value, color, dash})=>{
-        ctx.strokeStyle = color||SLATE;
-        ctx.lineWidth = 1;
-        ctx.setLineDash(dash||[4,4]);
-        const yp = yPos(value);
-        ctx.beginPath(); ctx.moveTo(PAD.left,yp); ctx.lineTo(PAD.left+cW,yp); ctx.stroke();
-        ctx.setLineDash([]);
-      });
-    }
+    if(opts.refLines) opts.refLines.forEach(({value,color,dash})=>{
+      ctx.strokeStyle=color||SLATE; ctx.lineWidth=1; ctx.setLineDash(dash||[4,4]);
+      const yp=yPos(value);
+      ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();
+      ctx.setLineDash([]);
+    });
 
-    // Draw each series
     series.forEach(s=>{
       if(s.type==='bar'){
-        const bw = Math.max(2, (cW/n)*0.6);
+        const bw=Math.max(2,(cW/n)*0.6);
         s.values.forEach((v,i)=>{
-          if(v==null) return;
-          const x = xPos(i) - bw/2;
-          const yp = yPos(v), ybase = yPos(yMin>0?yMin:0);
-          const barH = Math.abs(ybase-yp);
-          ctx.fillStyle = s.color;
-          ctx.globalAlpha = 0.65;
-          ctx.fillRect(x, Math.min(yp,ybase), bw, barH);
-          ctx.globalAlpha = 1;
+          if(v==null)return;
+          const x=xPos(i)-bw/2, yp=yPos(v), ybase=yPos(yMin>0?yMin:0), barH=Math.abs(ybase-yp);
+          ctx.fillStyle=s.color; ctx.globalAlpha=0.65;
+          ctx.fillRect(x,Math.min(yp,ybase),bw,barH); ctx.globalAlpha=1;
         });
         return;
       }
 
-      // Line + area fill
-      ctx.strokeStyle = s.color;
-      ctx.lineWidth   = s.width||2;
-      ctx.lineJoin    = 'round';
-      ctx.lineCap     = 'round';
+      ctx.strokeStyle=s.color; ctx.lineWidth=s.width||2; ctx.lineJoin='round'; ctx.lineCap='round';
       ctx.setLineDash(s.dash||[]);
 
       if(s.fill){
-        ctx.save();
-        ctx.beginPath();
-        let firstFill=true;
-        s.values.forEach((v,i)=>{ if(v==null)return; if(firstFill){ctx.moveTo(xPos(i),yPos(v));firstFill=false;}else ctx.lineTo(xPos(i),yPos(v)); });
-        const lastFillIdx = s.values.reduce((li,v,i)=>v!=null?i:li,-1);
-        const firstFillIdx = s.values.findIndex(v=>v!=null);
-        ctx.lineTo(xPos(lastFillIdx), yPos(yMin>0?yMin:0));
-        ctx.lineTo(xPos(firstFillIdx), yPos(yMin>0?yMin:0));
+        ctx.save(); ctx.beginPath();
+        let ff=true;
+        s.values.forEach((v,i)=>{if(v==null)return;if(ff){ctx.moveTo(xPos(i),yPos(v));ff=false;}else ctx.lineTo(xPos(i),yPos(v));});
+        const lfi=s.values.reduce((li,v,i)=>v!=null?i:li,-1);
+        const ffi=s.values.findIndex(v=>v!=null);
+        ctx.lineTo(xPos(lfi),yPos(yMin>0?yMin:0));
+        ctx.lineTo(xPos(ffi),yPos(yMin>0?yMin:0));
         ctx.closePath();
-        const fg = ctx.createLinearGradient(0, PAD.top, 0, PAD.top+cH);
-        fg.addColorStop(0, hexA(s.color, 0.18));
-        fg.addColorStop(1, hexA(s.color, 0.01));
-        ctx.fillStyle = fg;
-        ctx.fill();
-        ctx.restore();
+        const fg=ctx.createLinearGradient(0,PAD.top,0,PAD.top+cH);
+        const r=parseInt(s.color.slice(1,3),16),g=parseInt(s.color.slice(3,5),16),b=parseInt(s.color.slice(5,7),16);
+        fg.addColorStop(0,`rgba(${r},${g},${b},0.18)`);fg.addColorStop(1,`rgba(${r},${g},${b},0.01)`);
+        ctx.fillStyle=fg;ctx.fill();ctx.restore();
       }
 
-      ctx.beginPath();
-      let first=true;
-      s.values.forEach((v,i)=>{
-        if(v==null) return;
-        if(first){ctx.moveTo(xPos(i),yPos(v));first=false;}
-        else ctx.lineTo(xPos(i),yPos(v));
-      });
-      ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.beginPath();let fl=true;
+      s.values.forEach((v,i)=>{if(v==null)return;if(fl){ctx.moveTo(xPos(i),yPos(v));fl=false;}else ctx.lineTo(xPos(i),yPos(v));});
+      ctx.stroke();ctx.setLineDash([]);
 
-      // Dots on last point
-      const lastIdx = s.values.reduce((li,v,i)=>v!=null?i:li,-1);
-      if(lastIdx>=0){
-        const lv = s.values[lastIdx];
-        ctx.beginPath();
-        ctx.arc(xPos(lastIdx),yPos(lv),3.5,0,Math.PI*2);
-        ctx.fillStyle = s.color; ctx.fill();
+      const li=s.values.reduce((li,v,i)=>v!=null?i:li,-1);
+      if(li>=0){
+        ctx.beginPath();ctx.arc(xPos(li),yPos(s.values[li]),3.5,0,Math.PI*2);
+        ctx.fillStyle=s.color;ctx.fill();
       }
     });
 
-    // Axis lines
-    ctx.strokeStyle = 'rgba(255,255,255,.08)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+cH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top+cH); ctx.lineTo(PAD.left+cW,PAD.top+cH); ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+cH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+cH);ctx.lineTo(PAD.left+cW,PAD.top+cH);ctx.stroke();
   }
 
-  function hexA(hex, a){
-    hex = hex.replace('#','');
-    if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
-    const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
-    return `rgba(${r},${g},${b},${a})`;
-  }
+  const spends=d.map(r=>r.spend||null), orders=d.map(r=>r.orders||null);
+  const maxS=Math.max(...spends.filter(Boolean)),minS=Math.min(...spends.filter(Boolean));
+  const maxO=Math.max(...orders.filter(Boolean)),minO=Math.min(...orders.filter(Boolean));
+  const normS=spends.map(v=>v!=null?(v-minS)/(maxS-minS||1):null);
+  const normO=orders.map(v=>v!=null?(v-minO)/(maxO-minO||1):null);
+  lineChart('chartSpendOrders',[{values:normS,color:AMBER,width:2,fill:true},{values:normO,color:GREEN,width:2}],{yMin:0,yMax:1,decimals:1,leftPad:40,yFmt:v=>v===0?'Low':v===1?'High':''});
 
-  // ── 1. Spend vs Orders ──────────────────────────────────────
-  // Dual axis: normalise both to 0-1 range for visual comparison
-  const spends  = d.map(r=>r.spend||null);
-  const orders  = d.map(r=>r.orders||null);
-  const maxS = Math.max(...spends.filter(Boolean)), minS = Math.min(...spends.filter(Boolean));
-  const maxO = Math.max(...orders.filter(Boolean)), minO = Math.min(...orders.filter(Boolean));
-  const normS = spends.map(v=>v!=null?(v-minS)/(maxS-minS||1):null);
-  const normO = orders.map(v=>v!=null?(v-minO)/(maxO-minO||1):null);
+  const cpoRaw=d.map(r=>r.cpo||null),cpo12=d.map(r=>r.cpo_12||null);
+  const avgCpoVal=cpoRaw.filter(Boolean).reduce((s,v)=>s+v,0)/(cpoRaw.filter(Boolean).length||1);
+  lineChart('chartCpo',[{values:cpoRaw,color:GREEN,width:2,fill:true},{values:cpo12,color:AMBER,width:1.5,dash:[3,3]}],{yFmt:v=>'$'+v.toFixed(2),leftPad:46,decimals:2,refLines:[{value:avgCpoVal,color:'rgba(255,255,255,.2)',dash:[4,4]}]});
 
-  lineChart('chartSpendOrders', [
-    {values:normS, color:AMBER, width:2, fill:true},
-    {values:normO, color:GREEN, width:2},
-  ], {
-    yMin:0, yMax:1, decimals:1,
-    leftPad:40,
-    yFmt: v => v===0?'Low':v===1?'High':''
-  });
+  lineChart('chartSites',[{values:d.map(r=>r.mke_orders||null),color:GREEN,width:2,fill:true},{values:d.map(r=>r.slc_orders>0?r.slc_orders:null),color:BLUE,width:2}],{yFmt:v=>v>=1000?Math.round(v/1000)+'k':v.toFixed(0),leftPad:44,decimals:0});
 
-  // Annotate spend/orders chart with peak values
-  const soCanvas = document.getElementById('chartSpendOrders');
-  if(soCanvas){
-    const ctx2 = soCanvas.getContext('2d');
-    const dpr2 = window.devicePixelRatio||1;
-    ctx2.save();
-    ctx2.scale(1,1); // already scaled
-    ctx2.fillStyle = AMBER;
-    ctx2.font = '9px IBM Plex Mono, monospace';
-    ctx2.textAlign = 'right';
-    ctx2.fillText(`$${Math.round(maxS/1000)}k peak spend`, soCanvas.getBoundingClientRect().width - 8, 28);
-    ctx2.fillStyle = GREEN;
-    ctx2.fillText(`${Math.round(maxO/1000)}k orders peak`, soCanvas.getBoundingClientRect().width - 8, 40);
-    ctx2.restore();
-  }
-
-  // ── 2. CPO Raw vs CPO +12% ──────────────────────────────────
-  const cpoRaw = d.map(r=>r.cpo||null);
-  const cpo12  = d.map(r=>r.cpo_12||null);
-  const avgCpoVal = cpoRaw.filter(Boolean).reduce((s,v)=>s+v,0)/(cpoRaw.filter(Boolean).length||1);
-
-  lineChart('chartCpo', [
-    {values:cpoRaw, color:GREEN, width:2, fill:true},
-    {values:cpo12,  color:AMBER, width:1.5, dash:[3,3]},
-  ], {
-    yFmt: v=>'$'+v.toFixed(2), leftPad:46, decimals:2,
-    refLines:[{value:avgCpoVal, color:'rgba(255,255,255,.2)', dash:[4,4]}]
-  });
-
-  // ── 3. MKE vs SLC Orders ────────────────────────────────────
-  lineChart('chartSites', [
-    {values:d.map(r=>r.mke_orders||null), color:GREEN, width:2, fill:true},
-    {values:d.map(r=>r.slc_orders>0?r.slc_orders:null), color:BLUE, width:2},
-  ], {
-    yFmt: v=>v>=1000?Math.round(v/1000)+'k':v.toFixed(0), leftPad:44,
-    decimals:0
-  });
-
-  // ── 4. OPH Trend ────────────────────────────────────────────
-  const ophVals = d.map(r=>r.oph||null);
-  const avgOphV = ophVals.filter(Boolean).reduce((s,v)=>s+v,0)/(ophVals.filter(Boolean).length||1);
-
-  lineChart('chartOph', [
-    {values:ophVals, color:GREEN, width:2, fill:true},
-  ], {
-    yFmt: v=>v.toFixed(1), leftPad:38, decimals:1,
-    refLines:[{value:avgOphV, color:'rgba(255,255,255,.22)', dash:[4,4]}]
-  });
-
-  // ── 5. Temp % bar chart ─────────────────────────────────────
-  lineChart('chartTemp', [
-    {values:d.map(r=>r.temp&&r.spend?(r.temp/r.spend*100):0), color:RED, type:'bar'},
-  ], {
-    yFmt: v=>v.toFixed(0)+'%', leftPad:42, decimals:0, yMin:0
-  });
+  const ophVals2=d.map(r=>r.oph||null);
+  const avgOphV2=ophVals2.filter(Boolean).reduce((s,v)=>s+v,0)/(ophVals2.filter(Boolean).length||1);
+  lineChart('chartOph',[{values:ophVals2,color:GREEN,width:2,fill:true}],{yFmt:v=>v.toFixed(1),leftPad:38,decimals:1,refLines:[{value:avgOphV2,color:'rgba(255,255,255,.22)',dash:[4,4]}]});
 }
 
 // ══════════════════════════════════════════════════════════════
-// CHART MODAL — expand + interactive crosshair
+// CHART MODAL
 // ══════════════════════════════════════════════════════════════
-let _modalChartId = null;
-let _modalChartData = null;
+let _modalChartId = null, _modalChartData = null;
 
 const CHART_META = {
-  chartSpendOrders: {
-    title: 'Labor Spend vs Order Volume',
-    legend: [
-      {label:'Spend', color:'#FFB547'},
-      {label:'Orders', color:'#A3F3C5'},
-    ],
-    build: (d) => ({
-      series: [
-        {label:'Spend',  values:d.map(r=>r.spend||null),  color:'#FFB547', width:2.5, fill:true},
-        {label:'Orders', values:d.map(r=>r.orders||null), color:'#A3F3C5', width:2.5},
-      ],
-      opts: { yFmt: v=>'$'+Math.round(v/1000)+'k', leftPad:56, decimals:0 }
-    })
-  },
-  chartCpo: {
-    title: 'CPO — Raw vs Loaded +12%',
-    legend: [
-      {label:'CPO Raw',  color:'#A3F3C5'},
-      {label:'CPO +12%', color:'#FFB547', dash:true},
-    ],
-    build: (d) => {
-      const avg = d.filter(r=>r.cpo).reduce((s,r)=>s+r.cpo,0)/(d.filter(r=>r.cpo).length||1);
-      return {
-        series: [
-          {label:'CPO Raw',  values:d.map(r=>r.cpo||null),    color:'#A3F3C5', width:2.5, fill:true},
-          {label:'CPO +12%', values:d.map(r=>r.cpo_12||null), color:'#FFB547', width:2, dash:[5,4]},
-        ],
-        opts: { yFmt:v=>'$'+v.toFixed(2), leftPad:52, decimals:2,
-                refLines:[{value:avg, color:'rgba(255,255,255,.2)', dash:[4,4]}] }
-      };
-    }
-  },
-  chartSites: {
-    title: 'MKE vs SLC — Order Volume',
-    legend: [
-      {label:'MKE', color:'#A3F3C5'},
-      {label:'SLC', color:'#60A5FA'},
-    ],
-    build: (d) => ({
-      series: [
-        {label:'MKE', values:d.map(r=>r.mke_orders||null),              color:'#A3F3C5', width:2.5, fill:true},
-        {label:'SLC', values:d.map(r=>r.slc_orders>0?r.slc_orders:null), color:'#60A5FA', width:2.5},
-      ],
-      opts: { yFmt:v=>v>=1000?Math.round(v/1000)+'k':v.toFixed(0), leftPad:48, decimals:0 }
-    })
-  },
-  chartOph: {
-    title: 'OPH Trend (Implied @ $17.50)',
-    legend: [{label:'OPH', color:'#A3F3C5'}],
-    build: (d) => {
-      const avg = d.filter(r=>r.oph).reduce((s,r)=>s+r.oph,0)/(d.filter(r=>r.oph).length||1);
-      return {
-        series: [{label:'OPH', values:d.map(r=>r.oph||null), color:'#A3F3C5', width:2.5, fill:true}],
-        opts: { yFmt:v=>v.toFixed(1), leftPad:44, decimals:1,
-                refLines:[{value:avg, color:'rgba(255,255,255,.22)', dash:[4,4]}] }
-      };
-    }
-  },
-  chartTemp: {
-    title: 'Temp Labor % of Total Spend',
-    legend: [{label:'Temp %', color:'#FF6B6B'}],
-    build: (d) => ({
-      series: [{label:'Temp %', values:d.map(r=>r.temp&&r.spend?(r.temp/r.spend*100):0), color:'#FF6B6B', type:'bar'}],
-      opts: { yFmt:v=>v.toFixed(0)+'%', leftPad:46, decimals:1, yMin:0 }
-    })
-  }
+  chartSpendOrders:{title:'Labor Spend vs Order Volume',legend:[{label:'Spend',color:'#FFB547'},{label:'Orders',color:'#A3F3C5'}],build:(d)=>({series:[{label:'Spend',values:d.map(r=>r.spend||null),color:'#FFB547',width:2.5,fill:true},{label:'Orders',values:d.map(r=>r.orders||null),color:'#A3F3C5',width:2.5}],opts:{yFmt:v=>'$'+Math.round(v/1000)+'k',leftPad:56,decimals:0}})},
+  chartCpo:{title:'CPO — Raw vs Loaded +12%',legend:[{label:'CPO Raw',color:'#A3F3C5'},{label:'CPO +12%',color:'#FFB547',dash:true}],build:(d)=>{const avg=d.filter(r=>r.cpo).reduce((s,r)=>s+r.cpo,0)/(d.filter(r=>r.cpo).length||1);return{series:[{label:'CPO Raw',values:d.map(r=>r.cpo||null),color:'#A3F3C5',width:2.5,fill:true},{label:'CPO +12%',values:d.map(r=>r.cpo_12||null),color:'#FFB547',width:2,dash:[5,4]}],opts:{yFmt:v=>'$'+v.toFixed(2),leftPad:52,decimals:2,refLines:[{value:avg,color:'rgba(255,255,255,.2)',dash:[4,4]}]}}}},
+  chartSites:{title:'MKE vs SLC — Order Volume',legend:[{label:'MKE',color:'#A3F3C5'},{label:'SLC',color:'#60A5FA'}],build:(d)=>({series:[{label:'MKE',values:d.map(r=>r.mke_orders||null),color:'#A3F3C5',width:2.5,fill:true},{label:'SLC',values:d.map(r=>r.slc_orders>0?r.slc_orders:null),color:'#60A5FA',width:2.5}],opts:{yFmt:v=>v>=1000?Math.round(v/1000)+'k':v.toFixed(0),leftPad:48,decimals:0}})},
+  chartOph:{title:'OPH Trend (Implied @ $17.50)',legend:[{label:'OPH',color:'#A3F3C5'}],build:(d)=>{const avg=d.filter(r=>r.oph).reduce((s,r)=>s+r.oph,0)/(d.filter(r=>r.oph).length||1);return{series:[{label:'OPH',values:d.map(r=>r.oph||null),color:'#A3F3C5',width:2.5,fill:true}],opts:{yFmt:v=>v.toFixed(1),leftPad:44,decimals:1,refLines:[{value:avg,color:'rgba(255,255,255,.22)',dash:[4,4]}]}}}}
 };
 
 function expandChart(id){
-  const meta = CHART_META[id];
-  if(!meta) return;
-  _modalChartId = id;
-
-  // Get current filtered data from the last renderHistory call
-  const all = allWeeks().map(r=>({
-    ...r,
-    oph: r.oph || (r.spend ? r.orders/(r.spend/17.5) : null)
-  }));
-  let data = [...all];
-  if(histFilter==='8wk')  data = all.slice(-8);
-  else if(histFilter==='2025') data = all.filter(r=>r.week.startsWith('2025'));
-  else if(histFilter==='2026') data = all.filter(r=>r.week.startsWith('2026'));
+  const meta=CHART_META[id];if(!meta)return;
+  _modalChartId=id;
+  const all=allWeeks().map(r=>({...r,oph:r.oph||(r.spend?r.orders/(r.spend/17.5):null)}));
+  let data=[...all];
+  if(histFilter==='8wk') data=all.slice(-8);
+  else if(histFilter==='2025') data=all.filter(r=>r.week.startsWith('2025'));
+  else if(histFilter==='2026') data=all.filter(r=>r.week.startsWith('2026'));
   data.sort((a,b)=>a.week.localeCompare(b.week));
-  _modalChartData = data;
-
-  // Build
-  const {series, opts} = meta.build(data);
-
-  // Show modal
-  const modal = $('chartModal');
-  modal.style.display = 'block';
-  $('modalTitle').textContent = meta.title;
-
-  // Legend
-  $('modalLegend').innerHTML = meta.legend.map(l=>
-    `<span style="display:flex;align-items:center;gap:5px">
-      <span style="width:12px;height:2px;background:${l.color};display:inline-block;border-radius:1px${l.dash?';border-top:2px dashed '+l.color+';background:none':''}"></span>
-      ${l.label}
-    </span>`
-  ).join('');
-
-  // Draw on modal canvas after layout
+  _modalChartData=data;
+  const {series,opts}=meta.build(data);
+  $('chartModal').style.display='block';
+  $('modalTitle').textContent=meta.title;
+  $('modalLegend').innerHTML=meta.legend.map(l=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:2px;background:${l.color};display:inline-block;border-radius:1px${l.dash?';border-top:2px dashed '+l.color+';background:none':''}"></span>${l.label}</span>`).join('');
   requestAnimationFrame(()=>{
-    const canvas = $('modalCanvas');
-    if(!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const W = rect.width, H = rect.height;
-
-    // Store chart geometry for tooltip
-    canvas._chartSeries = series;
-    canvas._chartOpts   = opts;
-    canvas._chartData   = data;
-
-    drawModalChart(canvas, series, opts, data);
-    setupModalInteraction(canvas, series, opts, data);
+    const canvas=$('modalCanvas');if(!canvas)return;
+    drawModalChart(canvas,series,opts,data);
+    setupModalInteraction(canvas,series,opts,data);
   });
 }
 
-function drawModalChart(canvas, series, opts, data, hoverIdx=null){
-  const dpr = window.devicePixelRatio||1;
-  const rect = canvas.getBoundingClientRect();
-  const W = rect.width, H = rect.height;
-  canvas.width  = W*dpr; canvas.height = H*dpr;
-  canvas.style.width = W+'px'; canvas.style.height = H+'px';
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr,dpr);
-
-  const PAD = {top:20, right:24, bottom:36, left:opts.leftPad||52};
-  const cW = W-PAD.left-PAD.right, cH = H-PAD.top-PAD.bottom;
-  const GREEN='#A3F3C5',AMBER='#FFB547',SLATE='rgba(139,155,170,.4)',GRID='rgba(255,255,255,.05)';
-  const n = data.length;
-
-  const allVals = series.flatMap(s=>s.values.filter(v=>v!=null));
-  if(!allVals.length) return;
-  let yMin = opts.yMin!=null?opts.yMin:Math.min(...allVals)*0.97;
-  let yMax = Math.max(...allVals)*1.03;
+function drawModalChart(canvas,series,opts,data,hoverIdx=null){
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  const W=rect.width,H=rect.height;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const PAD={top:20,right:24,bottom:36,left:opts.leftPad||52};
+  const cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
+  const SLATE='rgba(139,155,170,.4)',GRID='rgba(255,255,255,.05)';
+  const n=data.length;
+  const allVals=series.flatMap(s=>s.values.filter(v=>v!=null));
+  if(!allVals.length)return;
+  let yMin=opts.yMin!=null?opts.yMin:Math.min(...allVals)*0.97;
+  let yMax=Math.max(...allVals)*1.03;
   if(yMin===yMax){yMin*=0.9;yMax*=1.1;}
-  const yRange = yMax-yMin;
-
-  const xPos = i => PAD.left+(i/(n-1||1))*cW;
-  const yPos = v => PAD.top+cH-((v-yMin)/yRange)*cH;
-
+  const yRange=yMax-yMin;
+  const xPos=i=>PAD.left+(i/(n-1||1))*cW;
+  const yPos=v=>PAD.top+cH-((v-yMin)/yRange)*cH;
   ctx.clearRect(0,0,W,H);
 
-  // Grid
   for(let t=0;t<=5;t++){
-    const yv = yMin+(yRange/5)*t, yp = yPos(yv);
-    ctx.strokeStyle=GRID; ctx.lineWidth=1;
+    const yv=yMin+(yRange/5)*t,yp=yPos(yv);
+    ctx.strokeStyle=GRID;ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();
-    ctx.fillStyle=SLATE; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='right';
-    ctx.fillText(opts.yFmt?opts.yFmt(yv):yv.toFixed(opts.decimals||0), PAD.left-7, yp+4);
+    ctx.fillStyle=SLATE;ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='right';
+    ctx.fillText(opts.yFmt?opts.yFmt(yv):yv.toFixed(opts.decimals||0),PAD.left-7,yp+4);
   }
-
-  // X labels
   const step=Math.max(1,Math.floor(n/10));
-  ctx.fillStyle=SLATE; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='center';
-  for(let i=0;i<n;i+=step) ctx.fillText(data[i].week.slice(5), xPos(i), H-PAD.bottom+18);
+  ctx.fillStyle=SLATE;ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
+  for(let i=0;i<n;i+=step)ctx.fillText(data[i].week.slice(5),xPos(i),H-PAD.bottom+18);
 
-  // Ref lines
-  if(opts.refLines) opts.refLines.forEach(({value,color,dash})=>{
-    ctx.strokeStyle=color||SLATE; ctx.lineWidth=1; ctx.setLineDash(dash||[4,4]);
-    const yp=yPos(value);
-    ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle=color||SLATE; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='left';
-    ctx.fillText(opts.yFmt?opts.yFmt(value):value.toFixed(opts.decimals||0), PAD.left+4, yp-4);
+  if(opts.refLines)opts.refLines.forEach(({value,color,dash})=>{
+    ctx.strokeStyle=color||SLATE;ctx.lineWidth=1;ctx.setLineDash(dash||[4,4]);
+    const yp=yPos(value);ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();ctx.setLineDash([]);
   });
 
-  // Hover vertical line
   if(hoverIdx!=null){
-    const xp = xPos(hoverIdx);
-    ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
-    ctx.beginPath();ctx.moveTo(xp,PAD.top);ctx.lineTo(xp,PAD.top+cH);ctx.stroke();
-    ctx.setLineDash([]);
+    const xp=xPos(hoverIdx);
+    ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(xp,PAD.top);ctx.lineTo(xp,PAD.top+cH);ctx.stroke();ctx.setLineDash([]);
   }
 
-  // Series
   series.forEach(s=>{
     if(s.type==='bar'){
       const bw=Math.max(3,(cW/n)*0.65);
       s.values.forEach((v,i)=>{
         if(v==null)return;
-        const x=xPos(i)-bw/2, yp=yPos(v), ybase=yPos(yMin>0?yMin:0), bh=Math.abs(ybase-yp);
-        const isHover=hoverIdx===i;
-        ctx.fillStyle=s.color; ctx.globalAlpha=isHover?0.95:0.6;
-        ctx.fillRect(x,Math.min(yp,ybase),bw,bh);
-        ctx.globalAlpha=1;
-        if(isHover){
-          ctx.strokeStyle=s.color; ctx.lineWidth=1.5;
-          ctx.strokeRect(x,Math.min(yp,ybase),bw,bh);
-        }
-      });
-      return;
+        const x=xPos(i)-bw/2,yp=yPos(v),ybase=yPos(yMin>0?yMin:0),bh=Math.abs(ybase-yp);
+        ctx.fillStyle=s.color;ctx.globalAlpha=hoverIdx===i?0.95:0.6;
+        ctx.fillRect(x,Math.min(yp,ybase),bw,bh);ctx.globalAlpha=1;
+      });return;
     }
-
-    // Fill
-    const firstIdx=s.values.findIndex(v=>v!=null);
-    const lastIdx=s.values.reduce((li,v,i)=>v!=null?i:li,-1);
-    if(s.fill && firstIdx>=0){
-      ctx.save();ctx.beginPath();
-      let ff=true;
+    const ffi=s.values.findIndex(v=>v!=null),lfi=s.values.reduce((li,v,i)=>v!=null?i:li,-1);
+    if(s.fill&&ffi>=0){
+      ctx.save();ctx.beginPath();let ff=true;
       s.values.forEach((v,i)=>{if(v==null)return;if(ff){ctx.moveTo(xPos(i),yPos(v));ff=false;}else ctx.lineTo(xPos(i),yPos(v));});
-      ctx.lineTo(xPos(lastIdx),yPos(yMin>0?yMin:0));
-      ctx.lineTo(xPos(firstIdx),yPos(yMin>0?yMin:0));
-      ctx.closePath();
+      ctx.lineTo(xPos(lfi),yPos(yMin>0?yMin:0));ctx.lineTo(xPos(ffi),yPos(yMin>0?yMin:0));ctx.closePath();
       const fg=ctx.createLinearGradient(0,PAD.top,0,PAD.top+cH);
       const r=parseInt(s.color.slice(1,3),16),g=parseInt(s.color.slice(3,5),16),b=parseInt(s.color.slice(5,7),16);
       fg.addColorStop(0,`rgba(${r},${g},${b},0.2)`);fg.addColorStop(1,`rgba(${r},${g},${b},0.01)`);
       ctx.fillStyle=fg;ctx.fill();ctx.restore();
     }
-
-    // Line
-    ctx.strokeStyle=s.color; ctx.lineWidth=s.width||2.5; ctx.lineJoin='round'; ctx.lineCap='round';
-    ctx.setLineDash(s.dash||[]);
+    ctx.strokeStyle=s.color;ctx.lineWidth=s.width||2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.setLineDash(s.dash||[]);
     ctx.beginPath();let fl=true;
     s.values.forEach((v,i)=>{if(v==null)return;if(fl){ctx.moveTo(xPos(i),yPos(v));fl=false;}else ctx.lineTo(xPos(i),yPos(v));});
     ctx.stroke();ctx.setLineDash([]);
-
-    // Dots at all points (small), bigger on hover
     s.values.forEach((v,i)=>{
       if(v==null)return;
       const isHov=hoverIdx===i;
-      ctx.beginPath();
-      ctx.arc(xPos(i),yPos(v),isHov?5.5:2.5,0,Math.PI*2);
-      ctx.fillStyle=isHov?s.color:'rgba(9,30,56,0.9)';
-      ctx.strokeStyle=s.color; ctx.lineWidth=isHov?2:1.5;
+      ctx.beginPath();ctx.arc(xPos(i),yPos(v),isHov?5.5:2.5,0,Math.PI*2);
+      ctx.fillStyle=isHov?s.color:'rgba(9,30,56,0.9)';ctx.strokeStyle=s.color;ctx.lineWidth=isHov?2:1.5;
       ctx.fill();ctx.stroke();
     });
   });
-
-  // Axes
   ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+cH);ctx.stroke();
   ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+cH);ctx.lineTo(PAD.left+cW,PAD.top+cH);ctx.stroke();
 }
 
-function setupModalInteraction(canvas, series, opts, data){
-  const n = data.length;
-  const PAD = {top:20, right:24, bottom:36, left:opts.leftPad||52};
-
+function setupModalInteraction(canvas,series,opts,data){
+  const n=data.length;
+  const PAD={top:20,right:24,bottom:36,left:opts.leftPad||52};
   function getHoverIdx(e){
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX-rect.left;
-    const cW = rect.width-PAD.left-PAD.right;
-    const fi = Math.round(((mx-PAD.left)/cW)*(n-1));
-    return Math.max(0,Math.min(n-1,fi));
+    const rect=canvas.getBoundingClientRect();
+    const mx=e.clientX-rect.left;
+    const cW=rect.width-PAD.left-PAD.right;
+    return Math.max(0,Math.min(n-1,Math.round(((mx-PAD.left)/cW)*(n-1))));
   }
-
-  canvas.onmousemove = (e)=>{
-    const idx = getHoverIdx(e);
-    drawModalChart(canvas, series, opts, data, idx);
-
-    // Build tooltip
-    const week = data[idx]?.week||'';
-    const parts = series.map(s=>{
-      const v = s.values[idx];
-      if(v==null) return null;
-      const fv = opts.yFmt ? opts.yFmt(v) : v.toFixed(opts.decimals||2);
-      return `<span style="color:${s.color};margin-right:14px"><b>${s.label}:</b> ${fv}</span>`;
-    }).filter(Boolean);
-    $('modalTooltip').innerHTML = `<span style="color:rgba(139,155,170,.6);margin-right:12px">${week}</span>${parts.join('')}`;
-
-    // Crosshair position
-    const rect = canvas.getBoundingClientRect();
-    const cW = rect.width-PAD.left-PAD.right;
-    const xp = PAD.left+(idx/(n-1||1))*cW;
-    const ch = $('modalCrosshair');
+  canvas.onmousemove=(e)=>{
+    const idx=getHoverIdx(e);
+    drawModalChart(canvas,series,opts,data,idx);
+    const week=data[idx]?.week||'';
+    const parts=series.map(s=>{const v=s.values[idx];if(v==null)return null;const fv=opts.yFmt?opts.yFmt(v):v.toFixed(opts.decimals||2);return`<span style="color:${s.color};margin-right:14px"><b>${s.label}:</b> ${fv}</span>`;}).filter(Boolean);
+    $('modalTooltip').innerHTML=`<span style="color:rgba(139,155,170,.6);margin-right:12px">${week}</span>${parts.join('')}`;
+    const rect=canvas.getBoundingClientRect();
+    const cW=rect.width-PAD.left-PAD.right;
+    const xp=PAD.left+(idx/(n-1||1))*cW;
+    const ch=$('modalCrosshair');
     ch.style.display='block';
-    ch.style.left=(rect.left - canvas.parentElement.getBoundingClientRect().left + xp)+'px';
+    ch.style.left=(rect.left-canvas.parentElement.getBoundingClientRect().left+xp)+'px';
   };
-
-  canvas.onmouseleave = ()=>{
-    drawModalChart(canvas, series, opts, data, null);
+  canvas.onmouseleave=()=>{
+    drawModalChart(canvas,series,opts,data,null);
     $('modalTooltip').innerHTML='';
     $('modalCrosshair').style.display='none';
   };
 }
 
 function closeModal(e){
-  if(e && e.target !== $('chartModal')) return;
+  if(e&&e.target!==$('chartModal'))return;
   $('chartModal').style.display='none';
-  _modalChartId=null;
   const canvas=$('modalCanvas');
   if(canvas){canvas.onmousemove=null;canvas.onmouseleave=null;}
 }
-
-// Close on Escape
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') { $('chartModal').style.display='none'; } });
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('chartModal').style.display='none';});
 
 // ══════════════════════════════════════════════════════════════
-// PROJECTOR STATE — persist inputs across sessions
+// PROJECTOR STATE PERSISTENCE
 // ══════════════════════════════════════════════════════════════
 const PROJ_FIELDS = ['pOrders','pCplh','pRev'];
 
 function saveProjectorState(){
+  // Save projector fields, OPH slider, AND all dept % values together
   const state = {
     oph: currentOph,
-    fields: Object.fromEntries(PROJ_FIELDS.map(id=>[ id, $(id)?.value||'' ]))
+    fields: Object.fromEntries(PROJ_FIELDS.map(id=>[ id, $(id)?.value||'' ])),
+    depts: Object.fromEntries(DEPTS.map(d=>{
+      const el = document.querySelector(`.dept-pct[data-dept="${d}"]`);
+      return [d, el ? (el.value||'') : ''];
+    }))
   };
   try{ localStorage.setItem('atx_proj_state', JSON.stringify(state)); }catch(e){}
 }
@@ -2337,11 +2013,27 @@ function saveProjectorState(){
 function loadProjectorState(){
   try{
     const s = JSON.parse(localStorage.getItem('atx_proj_state')||'{}');
+
+    // Restore projector top fields
     if(s.fields) PROJ_FIELDS.forEach(id=>{ if($(id) && s.fields[id]) $(id).value = s.fields[id]; });
+
+    // Restore OPH slider
     if(s.oph && s.oph >= 2 && s.oph <= 30){
       currentOph = s.oph;
       $('pOphSlider').value = s.oph;
       $('ophDialVal').textContent = s.oph.toFixed(1);
+    }
+
+    // Restore dept % values — this is the key fix
+    if(s.depts){
+      DEPTS.forEach(d=>{
+        const el = document.querySelector(`.dept-pct[data-dept="${d}"]`);
+        if(el && s.depts[d] !== undefined && s.depts[d] !== ''){
+          el.value = s.depts[d];
+        }
+      });
+      // Recalculate dept breakdown with restored values
+      deptCalc();
     }
   }catch(e){}
 }
@@ -2353,37 +2045,33 @@ window.addEventListener('load', ()=>{
   const d = new Date(); d.setDate(d.getDate()-7);
   $('aDate').value = d.toISOString().slice(0,10);
 
-  // Ghost placeholders — show historical avg as dimmed hint
   $('aSpend').placeholder  = `avg $${H_AVG_SPEND.toLocaleString()}`;
   $('aOrders').placeholder = `avg ${H_AVG_ORDERS.toLocaleString()}`;
-  $('aHours').placeholder  = 'e.g. 2800';
   $('pOrders').placeholder = `avg ${LAST8_ORDERS.toLocaleString()} (L8)`;
   $('pCplh').placeholder   = 'e.g. 17.50';
 
   renderTrendChart();
   renderHistory();
 
-  // Restore projector state
+  // Restore all projector state including dept %s
   loadProjectorState();
+  // Run calc AFTER state is loaded so dept values are hydrated
   projectCalc();
 
-  // Redraw charts on resize
   window.addEventListener('resize', ()=>{
     if(document.getElementById('page-history').classList.contains('active')) renderHistory();
   });
 
-  // Set ghost avg OPH on dial at load
-  const ophW = allWeeks().filter(r=>r.hours && r.orders);
-  const ophA = ophW.length ? ophW.reduce((s,r)=>s+(r.orders/r.hours),0)/ophW.length : null;
-  const gVal = ophA || 12.6;
-  const g = $('ophGhostAvg'), gl = $('ophGhostLbl');
-  if(g)  g.textContent  = gVal.toFixed(1);
-  if(gl) gl.textContent = ophA ? `avg ${ophA.toFixed(1)} (logged)` : `avg ${gVal.toFixed(1)} (implied)`;
+  const ophW=allWeeks().filter(r=>r.hours&&r.orders);
+  const ophA=ophW.length?ophW.reduce((s,r)=>s+(r.orders/r.hours),0)/ophW.length:null;
+  const gVal=ophA||12.6;
+  const g=$('ophGhostAvg'),gl=$('ophGhostLbl');
+  if(g) g.textContent=gVal.toFixed(1);
+  if(gl) gl.textContent=ophA?`avg ${ophA.toFixed(1)} (logged)`:`avg ${gVal.toFixed(1)} (implied)`;
 });
 
-// CSS animation keyframe
-const styleEl = document.createElement('style');
-styleEl.textContent = '@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}';
+const styleEl=document.createElement('style');
+styleEl.textContent='@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}';
 document.head.appendChild(styleEl);
 </script>
 </body>
