@@ -7,114 +7,527 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&display=swap');
+
     * { font-family: 'Inter', sans-serif; }
-    body { background: #0a0c0d; color: #fff; min-height: 100vh; margin: 0; }
-    .grid-bg { background-image: linear-gradient(rgba(163,243,197,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(163,243,197,0.03) 1px, transparent 1px); background-size: 60px 60px; }
-    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
-    .glass-amber { background: rgba(246,173,85,0.07); backdrop-filter: blur(20px); border: 1px solid rgba(246,173,85,0.2); transition: all 0.25s ease; }
-    .glass-amber:hover { background: rgba(246,173,85,0.12); border-color: rgba(246,173,85,0.45); box-shadow: 0 0 60px rgba(246,173,85,0.18); transform: scale(1.02) translateY(-2px); }
-    .glass-amber:active { transform: scale(0.98); }
+
+    body {
+      background: #0a0c0d;
+      color: #fff;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(163,243,197,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(163,243,197,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .glass {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .glass-amber {
+      background: rgba(246,173,85,0.07);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(246,173,85,0.2);
+    }
+
+    .glass-amber:hover {
+      background: rgba(246,173,85,0.12);
+      border-color: rgba(246,173,85,0.45);
+    }
+
+    .glow-amber { box-shadow: 0 0 40px rgba(246,173,85,0.08); }
+    .glow-amber:hover { box-shadow: 0 0 60px rgba(246,173,85,0.18); }
+
     .floating { animation: float 6s ease-in-out infinite; }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
     .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
-    @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .scale-in { animation: scaleIn 0.6s ease-out 0.3s both; }
-    @keyframes scaleIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
     .fire-pulse { animation: firePulse 2s ease-in-out infinite; }
-    @keyframes firePulse { 0%,100%{filter:drop-shadow(0 0 8px rgba(246,173,85,0.6))} 50%{filter:drop-shadow(0 0 20px rgba(246,173,85,1))} }
-    .toast { position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(246,173,85,0.15); backdrop-filter:blur(20px); border:1px solid rgba(246,173,85,0.4); color:#F6AD55; padding:14px 28px; border-radius:50px; font-size:15px; transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease; opacity:0; z-index:100; white-space:nowrap; }
-    .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-    .status-dot { width:8px; height:8px; border-radius:50%; background:#F6AD55; animation:sdpulse 2s ease-in-out infinite; display:inline-block; margin-right:8px; }
-    @keyframes sdpulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+    @keyframes firePulse {
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(246,173,85,0.6)); }
+      50% { filter: drop-shadow(0 0 20px rgba(246,173,85,1)); }
+    }
+
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #F6AD55;
+      animation: pulse 2s ease-in-out infinite;
+      display: inline-block; margin-right: 8px;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .action-card {
+      transition: all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+      cursor: pointer; position: relative; overflow: hidden;
+    }
+    .action-card:hover { transform: scale(1.02) translateY(-2px); }
+    .action-card:active { transform: scale(0.98); }
+    .action-card.running {
+      pointer-events: none;
+      border-color: rgba(246,173,85,0.6) !important;
+      background: rgba(246,173,85,0.14) !important;
+    }
+
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(246,173,85,0.3);
+      border-top-color: #F6AD55;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .issues-tile {
+      background: rgba(246,173,85,0.05);
+      border: 1px solid rgba(246,173,85,0.15);
+      border-radius: 24px; padding: 28px 32px;
+      backdrop-filter: blur(20px);
+    }
+
+    .tab-pill {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 10px 16px;
+      transition: all 0.2s ease;
+    }
+    .tab-pill:hover {
+      background: rgba(246,173,85,0.1);
+      border-color: rgba(246,173,85,0.3);
+    }
+
+    .high-badge {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171; font-size: 10px;
+      padding: 2px 7px; border-radius: 20px;
+    }
+
+    .win-badge {
+      background: rgba(163,243,197,0.12);
+      border: 1px solid rgba(163,243,197,0.25);
+      color: #A3F3C5; font-size: 10px;
+      padding: 2px 7px; border-radius: 20px;
+    }
+
+    .shimmer {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite; border-radius: 8px;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .toast {
+      position: fixed; bottom: 32px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(163,243,197,0.12);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(163,243,197,0.35);
+      color: #A3F3C5; padding: 14px 28px;
+      border-radius: 50px; font-size: 15px;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+      opacity: 0; z-index: 100; white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.error { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.35); color: #f87171; }
   </style>
 </head>
 <body class="grid-bg">
-  <div class="fixed top-20 left-10 w-96 h-96 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.06)"></div>
-  <div class="fixed bottom-20 right-10 w-80 h-80 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.04);animation-delay:-3s"></div>
+
+  <div class="fixed top-20 left-10 w-96 h-96 rounded-full blur-3xl floating pointer-events-none"
+       style="background:rgba(246,173,85,0.06);"></div>
+  <div class="fixed bottom-20 right-10 w-80 h-80 rounded-full blur-3xl floating pointer-events-none"
+       style="background:rgba(246,173,85,0.04); animation-delay:-3s;"></div>
+
   <div class="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-20">
     <div class="max-w-4xl w-full">
+
+      <div class="mb-12 fade-in-up">
+        <a href="./index.html"
+           class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#F6AD55] transition-colors tracking-wider uppercase">
+          <span>←</span><span>Atomix OPS</span>
+        </a>
+      </div>
+
+      <div class="text-center mb-12 fade-in-up">
+        <div class="inline-block px-6 py-2 glass-amber rounded-full text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-6">
+          <span class="status-dot"></span>Cowork Intelligence
+        </div>
+        <div class="text-8xl mb-6 fire-pulse">🔥</div>
+        <h1 class="text-6xl md:text-7xl font-extralight leading-none tracking-tight mb-4"
+            style="background: linear-gradient(135deg, #fff 0%, #F6AD55 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+          Firefighter
+        </h1>
+        <p class="text-lg text-gray-400 max-w-xl mx-auto font-light">
+          Click an action. Cowork handles it automatically.
+        </p>
+      </div>
+
+      <!-- LIVE ISSUES TILE -->
+      <div class="issues-tile mb-10 scale-in" id="issues-tile">
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">📊</span>
+            <span class="text-sm font-medium tracking-widest uppercase text-gray-400">Live Issues</span>
+          </div>
+          <div id="last-updated" class="text-xs text-gray-600 font-light"></div>
+        </div>
+        <div id="summary-row" class="flex items-center gap-4 mb-6">
+          <div class="shimmer h-10 w-32 rounded-xl"></div>
+          <div class="shimmer h-10 w-32 rounded-xl"></div>
+          <div class="shimmer h-10 w-32 rounded-xl"></div>
+        </div>
+        <div id="tab-grid" class="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div class="shimmer h-20 rounded-xl"></div>
+          <div class="shimmer h-20 rounded-xl"></div>
+          <div class="shimmer h-20 rounded-xl"></div>
+          <div class="shimmer h-20 rounded-xl"></div>
+          <div class="shimmer h-20 rounded-xl"></div>
+        </div>
+      </div>
+
+      <!-- Action cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 scale-in">
+
+        <div class="action-card glass-amber glow-amber rounded-3xl p-8 text-left"
+             id="card-add-issues" onclick="runAction('add-issues')">
+          <div class="text-3xl mb-5">🎙️</div>
+          <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 1</div>
+          <div class="text-2xl font-light text-white mb-3">Add Issues</div>
+          <div class="text-gray-400 text-sm font-light leading-relaxed mb-6">
+            Talk it out. Say what's on fire — Cowork captures and drops it into the right tab automatically.
+          </div>
+          <div class="flex items-center justify-between" id="status-add-issues">
+            <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
+            <div class="text-[#F6AD55] text-lg opacity-60">→</div>
+          </div>
+        </div>
+
+        <div class="action-card glass-amber glow-amber rounded-3xl p-8 text-left"
+             id="card-pull" onclick="runAction('pull')">
+          <div class="text-3xl mb-5">📡</div>
+          <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 2</div>
+          <div class="text-2xl font-light text-white mb-3">Pull</div>
+          <div class="text-gray-400 text-sm font-light leading-relaxed mb-6">
+            Scrubs the last 48 hours of Slack + Gmail. Categorizes every issue, win, and action item into the tracker.
+          </div>
+          <div class="flex items-center justify-between" id="status-pull">
+            <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
+            <div class="text-[#F6AD55] text-lg opacity-60">→</div>
+          </div>
+        </div>
+
+        <div class="action-card glass-amber glow-amber rounded-3xl p-8 text-left"
+             id="card-recap" onclick="runAction('recap')">
+          <div class="text-3xl mb-5">📊</div>
+          <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 3</div>
+          <div class="text-2xl font-light text-white mb-3">Weekly Recap</div>
+          <div class="text-gray-400 text-sm font-light leading-relaxed mb-6">
+            Pulls the week together — Slack, Gmail, tracker entries — into a clean status report for the team.
+          </div>
+          <div class="flex items-center justify-between" id="status-recap">
+            <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
+            <div class="text-[#F6AD55] text-lg opacity-60">→</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="mt-10 text-center fade-in-up">
+        <div class="inline-flex items-center gap-3 text-xs text-gray-700">
+          <span class="status-dot" style="width:6px;height:6px;"></span>
+          <span>Auto-pull runs daily at 9:00 AM · Issues tile refreshes every 30 seconds</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const TAB_EMOJI = { CX: '🤝', Operations: '📦', Finance: '💰', Tech: '⚙️', HR: '👥' };
+
+    async function loadIssues() {
+      try {
+        const res = await fetch('https://raw.githubusercontent.com/drake-arch/atomix-ops/main/firefighter-data.json?cb=' + Date.now());
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        renderIssues(data);
+      } catch(e) {
+        document.getElementById('last-updated').textContent = 'Could not load data';
+      }
+    }
+
+    function renderIssues(data) {
+      const t = data.totals;
+      document.getElementById('summary-row').innerHTML =
+        '<div class="flex items-center gap-2 glass rounded-2xl px-5 py-3"><span class="text-2xl font-light text-white">' + t.open + '</span><span class="text-xs text-gray-500 leading-tight">open<br>issues</span></div>' +
+        '<div class="flex items-center gap-2 glass rounded-2xl px-5 py-3"><span class="text-2xl font-light" style="color:#f87171">' + t.high + '</span><span class="text-xs text-gray-500 leading-tight">high<br>priority</span></div>' +
+        '<div class="flex items-center gap-2 glass rounded-2xl px-5 py-3"><span class="text-2xl font-light" style="color:#A3F3C5">' + t.wins + '</span><span class="text-xs text-gray-500 leading-tight">wins<br>today</span></div>';
+      document.getElementById('tab-grid').innerHTML = Object.entries(data.tabs).map(([name, info]) =>
+        '<div class="tab-pill"><div class="text-base mb-1">' + (TAB_EMOJI[name]||'📋') + ' <span class="text-xs text-gray-500">' + name + '</span></div>' +
+        '<div class="flex items-center gap-2 flex-wrap"><span class="text-xl font-light text-white">' + info.total_open + '</span>' +
+        (info.high > 0 ? '<span class="high-badge">' + info.high + ' high</span>' : '') +
+        (info.wins > 0 ? '<span class="win-badge">' + info.wins + 'W</span>' : '') +
+        '</div></div>'
+      ).join('');
+      document.getElementById('last-updated').textContent = 'Updated ' + data.last_updated;
+    }
+
+    loadIssues();
+    setInterval(loadIssues, 30000);
+
+    const ACTIONS = {
+      'add-issues': { cardId:'card-add-issues', statusId:'status-add-issues', coworkPhrase:'add issues', successMsg:'✓  Cowork is ready — tell it what is on fire' },
+      'pull':       { cardId:'card-pull',       statusId:'status-pull',       coworkPhrase:'pull last 48 hours', successMsg:'✓  Pull started — tracker updating now' },
+      'recap':      { cardId:'card-recap',      statusId:'status-recap',      coworkPhrase:'weekly standup',    successMsg:'✓  Recap running — check Cowork for the report' }
+    };
+
+    let activeAction = null;
+
+    function runAction(key) {
+      if (activeAction) return;
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firefighter — Atomix OPS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    body { background: #0a0c0d; color: #fff; min-height: 100vh; margin: 0; }
+    .grid-bg {
+      background-image: linear-gradient(rgba(163,243,197,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(163,243,197,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-amber { background: rgba(246,173,85,0.07); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(246,173,85,0.2); }
+    .glass-amber:hover { background: rgba(246,173,85,0.12); border-color: rgba(246,173,85,0.45); }
+    .glow-amber { box-shadow: 0 0 40px rgba(246,173,85,0.08); }
+    .glow-amber:hover { box-shadow: 0 0 60px rgba(246,173,85,0.18); }
+    .floating { animation: float 6s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .scale-in { animation: scaleIn 0.6s ease-out 0.3s both; }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .fire-pulse { animation: firePulse 2s ease-in-out infinite; }
+    @keyframes firePulse { 0%, 100% { filter: drop-shadow(0 0 8px rgba(246,173,85,0.6)); } 50% { filter: drop-shadow(0 0 20px rgba(246,173,85,1)); } }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #F6AD55; animation: sdpulse 2s ease-in-out infinite; display: inline-block; margin-right: 8px; }
+    @keyframes sdpulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+    .action-card { transition: all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1); cursor: pointer; position: relative; overflow: hidden; }
+    .action-card:hover { transform: scale(1.02) translateY(-2px); }
+    .action-card:active { transform: scale(0.98); }
+    .action-card.running { pointer-events: none; border-color: rgba(246,173,85,0.6) !important; background: rgba(246,173,85,0.14) !important; }
+    .spinner { width: 20px; height: 20px; border: 2px solid rgba(246,173,85,0.3); border-top-color: #F6AD55; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .issues-tile { background: rgba(246,173,85,0.05); border: 1px solid rgba(246,173,85,0.15); border-radius: 24px; padding: 28px 32px; backdrop-filter: blur(20px); }
+    .tab-pill { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 16px; transition: all 0.2s ease; }
+    .tab-pill:hover { background: rgba(246,173,85,0.1); border-color: rgba(246,173,85,0.3); }
+    .high-badge { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; font-size: 10px; padding: 2px 7px; border-radius: 20px; }
+    .win-badge { background: rgba(163,243,197,0.12); border: 1px solid rgba(163,243,197,0.25); color: #A3F3C5; font-size: 10px; padding: 2px 7px; border-radius: 20px; }
+    .shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); background: rgba(163,243,197,0.12); backdrop-filter: blur(20px); border: 1px solid rgba(163,243,197,0.35); color: #A3F3C5; padding: 14px 28px; border-radius: 50px; font-size: 15px; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease; opacity: 0; z-index: 100; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.error { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.35); color: #f87171; }
+  </style>
+</head>
+<body class="grid-bg">
+  <div class="fixed top-20 left-10 w-96 h-96 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.06);"></div>
+  <div class="fixed bottom-20 right-10 w-80 h-80 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.04); animation-delay:-3s;"></div>
+
+  <div class="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-20">
+    <div class="max-w-4xl w-full">
+
       <div class="mb-12 fade-in-up">
         <a href="./index.html" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#F6AD55] transition-colors tracking-wider uppercase">
           <span>←</span><span>Atomix OPS</span>
         </a>
       </div>
-      <div class="text-center mb-16 fade-in-up">
+
+      <div class="text-center mb-12 fade-in-up">
         <div class="inline-block px-6 py-2 glass-amber rounded-full text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-6">
           <span class="status-dot"></span>Cowork Intelligence
         </div>
         <div class="text-8xl mb-6 fire-pulse">🔥</div>
-        <h1 class="text-6xl md:text-7xl font-extralight leading-none tracking-tight mb-6" style="background:linear-gradient(135deg,#fff 0%,#F6AD55 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+        <h1 class="text-6xl md:text-7xl font-extralight leading-none tracking-tight mb-4"
+            style="background: linear-gradient(135deg, #fff 0%, #F6AD55 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
           Firefighter
         </h1>
-        <p class="text-lg text-gray-400 max-w-xl mx-auto font-light leading-relaxed">
-          Click an action. The command copies to your clipboard.<br/>Open Cowork, paste — and it runs.
-        </p>
+        <p class="text-lg text-gray-400 max-w-xl mx-auto font-light">Click an action. Cowork handles it automatically.</p>
       </div>
+
+      <div class="issues-tile mb-10 scale-in" id="issues-tile">
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">📊</span>
+            <span class="text-sm font-medium tracking-widest uppercase text-gray-400">Live Issues</span>
+          </div>
+          <div id="last-updated" class="text-xs text-gray-600 font-light"></div>
+        </div>
+        <div id="summary-row" class="flex items-center gap-4 mb-6">
+          <div class="shimmer h-10 w-32 rounded-xl"></div>
+          <div class="shimmer h-10 w-32 rounded-xl"></div>
+          <div class="shimmer h-10 w-32 rounded-xl"></div>
+        </div>
+        <div id="tab-grid" class="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div>
+          <div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div>
+          <div class="shimmer h-20 rounded-xl"></div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5 scale-in">
-        <div class="glass-amber rounded-3xl p-8 text-left cursor-pointer" style="box-shadow:0 0 40px rgba(246,173,85,0.08)" onclick="triggerAction('add issues')">
+
+        <div class="action-card glass-amber glow-amber rounded-3xl p-8 text-left" id="card-add-issues" onclick="runAction('add-issues')">
           <div class="text-3xl mb-5">🎙️</div>
           <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 1</div>
           <div class="text-2xl font-light text-white mb-3">Add Issues</div>
-          <div class="text-gray-400 text-sm font-light leading-relaxed mb-6">Talk it out. Say what’s on fire — Cowork captures and drops it into the right tab automatically.</div>
-          <div class="flex items-center justify-between">
-            <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">"add issues"</div>
+          <div class="text-gray-400 text-sm font-light leading-relaxed mb-6">Talk it out. Say what's on fire — Cowork captures and drops it into the right tab automatically.</div>
+          <div class="flex items-center justify-between" id="status-add-issues">
+            <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
             <div class="text-[#F6AD55] text-lg opacity-60">→</div>
           </div>
         </div>
-        <div class="glass-amber rounded-3xl p-8 text-left cursor-pointer" style="box-shadow:0 0 40px rgba(246,173,85,0.08)" onclick="triggerAction('pull last 48 hours')">
+
+        <div class="action-card glass-amber glow-amber rounded-3xl p-8 text-left" id="card-pull" onclick="runAction('pull')">
           <div class="text-3xl mb-5">📡</div>
           <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 2</div>
           <div class="text-2xl font-light text-white mb-3">Pull</div>
           <div class="text-gray-400 text-sm font-light leading-relaxed mb-6">Scrubs the last 48 hours of Slack + Gmail. Categorizes every issue, win, and action item into the tracker.</div>
-          <div class="flex items-center justify-between">
-            <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">"pull last 48 hours"</div>
+          <div class="flex items-center justify-between" id="status-pull">
+            <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
             <div class="text-[#F6AD55] text-lg opacity-60">→</div>
           </div>
         </div>
-        <div class="glass-amber rounded-3xl p-8 text-left cursor-pointer" style="box-shadow:0 0 40px rgba(246,173,85,0.08)" onclick="triggerAction('weekly standup')">
+
+        <div class="action-card glass-amber glow-amber rounded-3xl p-8 text-left" id="card-recap" onclick="runAction('recap')">
           <div class="text-3xl mb-5">📊</div>
           <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 3</div>
           <div class="text-2xl font-light text-white mb-3">Weekly Recap</div>
           <div class="text-gray-400 text-sm font-light leading-relaxed mb-6">Pulls the week together — Slack, Gmail, tracker entries — into a clean status report for the team.</div>
-          <div class="flex items-center justify-between">
-            <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">"weekly standup"</div>
+          <div class="flex items-center justify-between" id="status-recap">
+            <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
             <div class="text-[#F6AD55] text-lg opacity-60">→</div>
           </div>
         </div>
+
       </div>
-      <div class="mt-16 text-center fade-in-up">
-        <div class="inline-flex items-center gap-8 glass rounded-2xl px-10 py-5">
-          <div class="flex items-center gap-2 text-sm text-gray-500"><span class="text-[#F6AD55]">1</span><span>Click action</span></div>
-          <div class="text-gray-700">·</div>
-          <div class="flex items-center gap-2 text-sm text-gray-500"><span class="text-[#F6AD55]">2</span><span>Command copies to clipboard</span></div>
-          <div class="text-gray-700">·</div>
-          <div class="flex items-center gap-2 text-sm text-gray-500"><span class="text-[#F6AD55]">3</span><span>Paste in Cowork &amp; go</span></div>
+
+      <div class="mt-10 text-center fade-in-up">
+        <div class="inline-flex items-center gap-3 text-xs text-gray-700">
+          <span class="status-dot" style="width:6px;height:6px;"></span>
+          <span>Auto-pull runs daily at 9:00 AM · Issues tile refreshes every 30 seconds</span>
         </div>
       </div>
-      <div class="mt-8 text-center">
-        <p class="text-xs text-gray-700 font-light tracking-wide">
-          <span class="status-dot" style="width:6px;height:6px"></span>Auto-pull runs daily at 9:00 AM — tracker stays current without lifting a finger
-        </p>
-      </div>
+
     </div>
   </div>
-  <div class="toast" id="toast">✓ Copied — open Cowork and paste</div>
+
+  <div class="toast" id="toast"></div>
+
   <script>
-    function triggerAction(phrase) {
-      navigator.clipboard.writeText(phrase).then(() => {
-        showToast('✓  Copied — open Cowork and paste: "' + phrase + '"');
-      }).catch(() => {
-        const el = document.createElement('textarea');
-        el.value = phrase; el.style.position='fixed'; el.style.opacity='0';
-        document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-        showToast('✓  Copied — open Cowork and paste: "' + phrase + '"');
-      });
+    const TAB_EMOJI = { CX:'🤝', Operations:'📦', Finance:'💰', Tech:'⚙️', HR:'👥' };
+
+    async function loadIssues() {
+      try {
+        const res = await fetch('https://raw.githubusercontent.com/drake-arch/atomix-ops/main/firefighter-data.json?cb=' + Date.now());
+        if (!res.ok) throw new Error('');
+        const data = await res.json();
+        renderIssues(data);
+      } catch(e) {
+        document.getElementById('last-updated').textContent = 'Could not load data';
+      }
     }
-    function showToast(msg) {
+
+    function renderIssues(data) {
+      const t = data.totals;
+      document.getElementById('summary-row').innerHTML =
+        '<div class="flex items-center gap-2 glass rounded-2xl px-5 py-3"><span class="text-2xl font-light text-white">'+t.open+'</span><span class="text-xs text-gray-500 leading-tight">open<br>issues</span></div>'+
+        '<div class="flex items-center gap-2 glass rounded-2xl px-5 py-3"><span class="text-2xl font-light" style="color:#f87171">'+t.high+'</span><span class="text-xs text-gray-500 leading-tight">high<br>priority</span></div>'+
+        '<div class="flex items-center gap-2 glass rounded-2xl px-5 py-3"><span class="text-2xl font-light" style="color:#A3F3C5">'+t.wins+'</span><span class="text-xs text-gray-500 leading-tight">wins<br>today</span></div>';
+      document.getElementById('tab-grid').innerHTML = Object.entries(data.tabs).map(([name,info])=>
+        '<div class="tab-pill"><div class="text-base mb-1">'+(TAB_EMOJI[name]||'📋')+' <span class="text-xs text-gray-500">'+name+'</span></div>'+
+        '<div class="flex items-center gap-2 flex-wrap"><span class="text-xl font-light text-white">'+info.total_open+'</span>'+
+        (info.high>0?'<span class="high-badge">'+info.high+' high</span>':'')+
+        (info.wins>0?'<span class="win-badge">'+info.wins+'W</span>':'')+
+        '</div></div>'
+      ).join('');
+      document.getElementById('last-updated').textContent = 'Updated ' + data.last_updated;
+    }
+
+    loadIssues();
+    setInterval(loadIssues, 30000);
+
+    const ACTIONS = {
+      'add-issues':{ cardId:'card-add-issues', statusId:'status-add-issues', coworkPhrase:'add issues',         successMsg:'Cowork is listening — tell it what is on fire' },
+      'pull':      { cardId:'card-pull',       statusId:'status-pull',       coworkPhrase:'pull last 48 hours', successMsg:'Pull started — tracker updating now' },
+      'recap':     { cardId:'card-recap',      statusId:'status-recap',      coworkPhrase:'weekly standup',     successMsg:'Recap running — check Cowork for the report' }
+    };
+
+    let activeAction = null;
+
+    function runAction(key) {
+      if (activeAction) return;
+      const a = ACTIONS[key];
+      const card = document.getElementById(a.cardId);
+      const status = document.getElementById(a.statusId);
+      activeAction = key;
+      card.classList.add('running');
+      status.innerHTML = '<div class="flex items-center gap-2 text-[#F6AD55] text-xs"><span class="spinner"></span><span>Starting…</span></div>';
+      navigator.clipboard.writeText(a.coworkPhrase).catch(()=>{});
+      window.__firefighterAction = { key, phrase: a.coworkPhrase, timestamp: Date.now() };
+      window.dispatchEvent(new CustomEvent('firefighter-action',{ detail:{ action:key, phrase:a.coworkPhrase } }));
+      sessionStorage.setItem('firefighter-pending-action', JSON.stringify({ action:key, phrase:a.coworkPhrase, triggered:new Date().toISOString() }));
+      setTimeout(()=>{ status.innerHTML='<div class="flex items-center gap-2 text-[#F6AD55] text-xs"><span class="spinner"></span><span>Running in Cowork…</span></div>'; }, 800);
+      setTimeout(()=>{
+        card.classList.remove('running');
+        status.innerHTML='<div class="flex items-center gap-2"><div class="text-xs text-[#A3F3C5] font-mono bg-black/30 px-3 py-1.5 rounded-lg">✓ Done</div><div class="text-[#F6AD55] text-lg opacity-60">→</div></div>';
+        showToast('✓  '+a.successMsg);
+        activeAction = null;
+        setTimeout(loadIssues, 2000);
+        setTimeout(()=>{ status.innerHTML='<div class="flex items-center justify-between w-full"><div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div><div class="text-[#F6AD55] text-lg opacity-60">→</div></div>'; }, 5000);
+      }, 4000);
+    }
+
+    function showToast(msg, err) {
       const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3500);
+      t.textContent = msg;
+      t.className = 'toast'+(err?' error':'');
+      t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'), 4000);
     }
   </script>
 </body>
-  </html>
+</html>
