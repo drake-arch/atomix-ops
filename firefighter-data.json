@@ -1,0 +1,12 @@
+{
+  "last_updated": "Apr 07, 2026 at 11:19 AM",
+  "date": "2026-04-06",
+  "tabs": {
+    "CX": {"total_open": 7, "high": 5, "medium": 2, "wins": 7, "recent": ["No response after failed delivery attempt", "Complaint escalation not resolved in 24h", "SLA breach on 3PL transfer — no resolution update"]},
+    "Operations": {"total_open": 9, "high": 3, "medium": 6, "wins": 0, "recent": ["B2B shipment delayed due to label mismatch", "Carrier late pickup — no alternate arranged", "Inbound receiving backed up 2 days"]},
+    "Finance": {"total_open": 3, "high": 1, "medium": 2, "wins": 0, "recent": ["Vendor invoice dispute unresolved", "Billing discrepancy on last month statement"]},
+    "Tech": {"total_open": 2, "high": 1, "medium": 1, "wins": 0, "recent": ["Metabase dashboard not loading for ops team", "Script failure on nightly batch job"]},
+    "HR": {"total_open": 1, "high": 0, "medium": 1, "wins": 0, "recent": ["New hire onboarding doc not sent"]}
+  },
+  "totals": {"open": 22, "high": 10, "wins": 7}
+}
