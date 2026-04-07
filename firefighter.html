@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Firefighter — Atomix OPS</title>
+  <title>Firefighter &mdash; Atomix OPS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&display=swap');
@@ -36,7 +36,7 @@
     .tab-pill:hover { background:rgba(246,173,85,0.1);border-color:rgba(246,173,85,0.3); }
     .tab-pill.expanded { background:rgba(246,173,85,0.1);border-color:rgba(246,173,85,0.4); }
     .tab-pill-header { display:flex;align-items:center;justify-content:space-between; }
-    .tab-pill-chevron { font-size:10px;color:#6b7280;transition:transform 0.25s ease; }
+    .tab-pill-chevron { font-size:10px;color:#6b7280;transition:transform 0.25s ease;line-height:1; }
     .tab-pill.expanded .tab-pill-chevron { transform:rotate(180deg);color:#F6AD55; }
     .tab-pill-body { max-height:0;overflow:hidden;transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1),opacity 0.25s ease;opacity:0; }
     .tab-pill.expanded .tab-pill-body { max-height:300px;opacity:1; }
@@ -62,16 +62,13 @@
 <body class="grid-bg">
   <div class="fixed top-20 left-10 w-96 h-96 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.06);"></div>
   <div class="fixed bottom-20 right-10 w-80 h-80 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.04);animation-delay:-3s;"></div>
-
   <div class="relative z-10 min-h-screen flex flex-col items-center justify-start px-6 py-20">
     <div class="w-full" style="max-width:1200px;">
-
       <div class="mb-12 fade-in-up">
         <a href="./index.html" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#F6AD55] transition-colors tracking-wider uppercase">
-          <span>&#8592;</span><span>Atomix OPS</span>
+          <span>&larr;</span><span>Atomix OPS</span>
         </a>
       </div>
-
       <div class="text-center mb-12 fade-in-up">
         <div class="inline-block px-6 py-2 glass-amber rounded-full text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-6">
           <span class="status-dot"></span>Cowork Intelligence
@@ -80,40 +77,28 @@
         <h1 class="text-6xl md:text-7xl font-extralight leading-none tracking-tight mb-4" style="background:linear-gradient(135deg,#fff 0%,#F6AD55 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Firefighter</h1>
         <p class="text-lg text-gray-400 max-w-xl mx-auto font-light">Click an action. Cowork handles it automatically.</p>
       </div>
-
       <div class="flex flex-col lg:flex-row gap-6 scale-in">
-
         <div class="flex-1 min-w-0">
-
           <div class="issues-tile mb-6" id="issues-tile">
             <div class="flex items-center justify-between mb-5">
-              <div class="flex items-center gap-3">
-                <span class="text-xl">&#128202;</span>
-                <span class="text-sm font-medium tracking-widest uppercase text-gray-400">Live Issues</span>
-              </div>
+              <div class="flex items-center gap-3"><span class="text-xl">&#128202;</span><span class="text-sm font-medium tracking-widest uppercase text-gray-400">Live Issues</span></div>
               <div id="last-updated" class="text-xs text-gray-600 font-light"></div>
             </div>
             <div id="summary-row" class="flex items-center gap-3 mb-5 flex-wrap">
-              <div class="shimmer h-12 w-28 rounded-xl"></div>
-              <div class="shimmer h-12 w-28 rounded-xl"></div>
-              <div class="shimmer h-12 w-28 rounded-xl"></div>
+              <div class="shimmer h-12 w-28 rounded-xl"></div><div class="shimmer h-12 w-28 rounded-xl"></div><div class="shimmer h-12 w-28 rounded-xl"></div>
             </div>
             <div id="tab-grid" class="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div>
-              <div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div>
-              <div class="shimmer h-20 rounded-xl"></div>
+              <div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div>
             </div>
           </div>
-
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-add-issues" onclick="runAction('add-issues')">
               <div class="text-3xl mb-4">&#127897;&#65039;</div>
               <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 1</div>
               <div class="text-xl font-light text-white mb-3">Add Issues</div>
-              <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Talk it out — Cowork captures and drops it into the right tab automatically.</div>
+              <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Talk it out &mdash; Cowork captures and drops it into the right tab automatically.</div>
               <div class="flex items-center justify-between" id="status-add-issues">
-                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
-                <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
+                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div><div class="text-[#F6AD55] text-lg opacity-60">&rarr;</div>
               </div>
             </div>
             <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-pull" onclick="runAction('pull')">
@@ -122,8 +107,7 @@
               <div class="text-xl font-light text-white mb-3">Pull</div>
               <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Scrubs the last 48 hours of Slack + Gmail and logs everything to the tracker.</div>
               <div class="flex items-center justify-between" id="status-pull">
-                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
-                <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
+                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div><div class="text-[#F6AD55] text-lg opacity-60">&rarr;</div>
               </div>
             </div>
             <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-recap" onclick="runAction('recap')">
@@ -132,157 +116,136 @@
               <div class="text-xl font-light text-white mb-3">Weekly Recap</div>
               <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Slack + Gmail + tracker entries into a clean status report for the team.</div>
               <div class="flex items-center justify-between" id="status-recap">
-                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
-                <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
+                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div><div class="text-[#F6AD55] text-lg opacity-60">&rarr;</div>
               </div>
             </div>
           </div>
         </div>
-
         <div class="lg:w-72 flex-shrink-0">
           <div class="sidebar sticky top-8">
-            <div class="flex items-center gap-2 mb-5">
-              <span class="text-base">&#127919;</span>
-              <span class="text-sm font-medium tracking-widest uppercase text-gray-400">Top 3 This Week</span>
-            </div>
+            <div class="flex items-center gap-2 mb-5"><span class="text-base">&#127919;</span><span class="text-sm font-medium tracking-widest uppercase text-gray-400">Top 3 This Week</span></div>
             <div id="priorities-list">
-              <div class="shimmer h-16 rounded-xl mb-3"></div>
-              <div class="shimmer h-16 rounded-xl mb-3"></div>
-              <div class="shimmer h-16 rounded-xl"></div>
+              <div class="shimmer h-16 rounded-xl mb-3"></div><div class="shimmer h-16 rounded-xl mb-3"></div><div class="shimmer h-16 rounded-xl"></div>
             </div>
             <div class="mt-5 pt-4" style="border-top:1px solid rgba(255,255,255,0.06);">
               <div class="text-xs text-gray-700 text-center">Based on open high-priority items</div>
             </div>
           </div>
         </div>
-
       </div>
-
       <div class="mt-8 text-center fade-in-up">
         <div class="inline-flex items-center gap-3 text-xs text-gray-700">
           <span class="status-dot" style="width:6px;height:6px;"></span>
-          <span>Auto-pull runs daily at 9:00 AM &#183; Refreshes every 30s &#183; Click any tab to expand</span>
+          <span>Auto-pull runs daily at 9:00 AM &middot; Refreshes every 30s &middot; Click any tab to expand</span>
         </div>
       </div>
-
     </div>
   </div>
-
   <div class="toast" id="toast"></div>
-
   <script>
-    const TAB_EMOJI = { CX:'&#129309;', Operations:'&#128230;', Finance:'&#128176;', Tech:'&#9881;&#65039;', HR:'&#128101;' };
-    const TAB_LABELS = { CX:'CX', Operations:'Ops', Finance:'Finance', Tech:'Tech', HR:'HR' };
-    const expandedTabs = new Set();
-
+    var TAB_CFG = {
+      CX:         { emoji: '🤝', label: 'CX'     },
+      Operations: { emoji: '📦', label: 'Ops'    },
+      Finance:    { emoji: '💰', label: 'Finance' },
+      Tech:       { emoji: '⚙️', label: 'Tech' },
+      HR:         { emoji: '👥', label: 'HR'     }
+    };
+    var expandedTabs = {};
     async function loadIssues() {
       try {
-        const res = await fetch('https://raw.githubusercontent.com/drake-arch/atomix-ops/main/firefighter-data.json?cb='+Date.now());
-        if (!res.ok) throw new Error('');
-        const data = await res.json();
+        var res = await fetch('https://raw.githubusercontent.com/drake-arch/atomix-ops/main/firefighter-data.json?cb=' + Date.now());
+        if (!res.ok) throw new Error('bad');
+        var data = await res.json();
         renderIssues(data);
       } catch(e) { document.getElementById('last-updated').textContent = 'Could not load data'; }
     }
-
-    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function renderIssues(data) {
-      const t = data.totals;
+      var t = data.totals;
       document.getElementById('summary-row').innerHTML =
         '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light text-white">'+t.open+'</span><span class="text-xs text-gray-500 leading-tight">open<br>issues</span></div>'+
         '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light" style="color:#f87171">'+t.high+'</span><span class="text-xs text-gray-500 leading-tight">high<br>priority</span></div>'+
         '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light" style="color:#A3F3C5">'+t.wins+'</span><span class="text-xs text-gray-500 leading-tight">wins<br>today</span></div>';
-
-      document.getElementById('tab-grid').innerHTML = Object.entries(data.tabs).map(([name,info])=>{
-        const isExp = expandedTabs.has(name);
-        const emoji = {CX:'&#129309;',Operations:'&#128230;',Finance:'&#128176;',Tech:'&#9881;&#65039;',HR:'&#128101;'}[name]||'&#128203;';
-        const label = {CX:'CX',Operations:'Ops',Finance:'Finance',Tech:'Tech',HR:'HR'}[name]||name;
-        const items = (info.recent||[]).map(r=>'<div class="tab-pill-item">&#8226; '+esc(r)+'</div>').join('');
-        return '<div class="tab-pill'+(isExp?' expanded':'')+'" onclick="toggleTab(''+name+'',this)">'+
-          '<div class="tab-pill-header">'+
-            '<div>'+
-              '<div class="text-sm mb-1">'+emoji+' <span class="text-xs text-gray-500">'+label+'</span></div>'+
-              '<div class="flex items-center gap-1.5 flex-wrap">'+
-                '<span class="text-lg font-light text-white">'+info.total_open+'</span>'+
-                (info.high>0?'<span class="high-badge">'+info.high+' high</span>':'')+
-                (info.wins>0?'<span class="win-badge">'+info.wins+'W</span>':'')+
-              '</div>'+
-            '</div>'+
-            '<span class="tab-pill-chevron">&#9660;</span>'+
-          '</div>'+
-          '<div class="tab-pill-body"><div class="pt-3">'+(items||'<div class="tab-pill-item" style="color:#4b5563;">No recent items</div>')+'</div></div>'+
-        '</div>';
-      }).join('');
-
+      var names = ['CX','Operations','Finance','Tech','HR'];
+      var html = '';
+      names.forEach(function(name) {
+        var info = data.tabs[name]; if (!info) return;
+        var cfg = TAB_CFG[name] || { emoji:'', label:name };
+        var isExp = !!expandedTabs[name];
+        var items = '';
+        (info.recent||[]).forEach(function(r){ items += '<div class="tab-pill-item">&bull; '+esc(r)+'</div>'; });
+        if (!items) items = '<div class="tab-pill-item" style="color:#4b5563;">No recent items</div>';
+        html += '<div class="tab-pill'+(isExp?' expanded':'')+'" onclick="toggleTab(''+name+'',this)">'+
+          '<div class="tab-pill-header"><div>'+
+          '<div class="text-sm mb-1">'+cfg.emoji+' <span class="text-xs text-gray-500">'+cfg.label+'</span></div>'+
+          '<div class="flex items-center gap-1 flex-wrap"><span class="text-lg font-light text-white">'+info.total_open+'</span>'+
+          (info.high>0?'<span class="high-badge">'+info.high+' high</span>':'')+
+          (info.wins>0?'<span class="win-badge">'+info.wins+'W</span>':'')+
+          '</div></div><span class="tab-pill-chevron">&#9660;</span></div>'+
+          '<div class="tab-pill-body"><div class="pt-3">'+items+'</div></div></div>';
+      });
+      document.getElementById('tab-grid').innerHTML = html;
       document.getElementById('last-updated').textContent = 'Updated '+data.last_updated;
       renderPriorities(data);
     }
-
     function toggleTab(name, el) {
-      expandedTabs.has(name) ? (expandedTabs.delete(name), el.classList.remove('expanded')) : (expandedTabs.add(name), el.classList.add('expanded'));
+      if (expandedTabs[name]) { delete expandedTabs[name]; el.classList.remove('expanded'); }
+      else { expandedTabs[name]=true; el.classList.add('expanded'); }
     }
-
     function renderPriorities(data) {
-      const order = ['CX','Operations','Finance','Tech','HR'];
-      const candidates = [];
-      order.forEach(name=>{
-        const info = data.tabs[name];
-        if (!info) return;
-        if (info.high>0 && info.recent && info.recent.length>0) info.recent.slice(0,info.high).forEach(item=>candidates.push({tab:name,text:item}));
+      var order = ['CX','Operations','Finance','Tech','HR'], candidates = [];
+      order.forEach(function(name) {
+        var info = data.tabs[name]; if (!info) return;
+        if (info.high>0 && info.recent && info.recent.length)
+          info.recent.slice(0,info.high).forEach(function(item){ candidates.push({tab:name,text:item}); });
       });
-      if (candidates.length<3) {
-        order.forEach(name=>{
-          const info = data.tabs[name];
-          if (!info || info.high>0) return;
-          if (info.total_open>0 && info.recent && info.recent.length>0) candidates.push({tab:name,text:info.recent[0]});
-        });
-      }
-      const top3 = candidates.slice(0,3);
-      const emojiMap = {CX:'&#129309;',Operations:'&#128230;',Finance:'&#128176;',Tech:'&#9881;&#65039;',HR:'&#128101;'};
-      const rankCls = ['r1','r2','r3'];
-      if (!top3.length) { document.getElementById('priorities-list').innerHTML='<div class="text-xs text-gray-600 text-center py-4">No open issues right now &#127881;</div>'; return; }
-      document.getElementById('priorities-list').innerHTML = top3.map((item,i)=>
-        '<div class="priority-item"><div class="flex items-start gap-3">'+
-        '<div class="priority-rank '+rankCls[i]+'">'+(i+1)+'</div>'+
-        '<div class="flex-1 min-w-0"><div class="text-xs text-gray-400 mb-1">'+(emojiMap[item.tab]||'&#128203;')+' '+item.tab+'</div>'+
-        '<div class="text-sm text-white font-light leading-snug" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+esc(item.text)+'</div>'+
-        '</div></div></div>'
-      ).join('');
+      if (candidates.length<3) order.forEach(function(name) {
+        var info = data.tabs[name]; if (!info||info.high>0) return;
+        if (info.total_open>0&&info.recent&&info.recent.length) candidates.push({tab:name,text:info.recent[0]});
+      });
+      var top3 = candidates.slice(0,3);
+      if (!top3.length) { document.getElementById('priorities-list').innerHTML='<div class="text-xs text-gray-600 text-center py-4">No open issues right now!</div>'; return; }
+      var rc=['r1','r2','r3'], html='';
+      top3.forEach(function(item,i) {
+        var cfg = TAB_CFG[item.tab]||{emoji:'',label:item.tab};
+        html+='<div class="priority-item"><div class="flex items-start gap-3">'+
+          '<div class="priority-rank '+rc[i]+'">'+(i+1)+'</div>'+
+          '<div class="flex-1 min-w-0"><div class="text-xs text-gray-400 mb-1">'+cfg.emoji+' '+item.tab+'</div>'+
+          '<div class="text-sm text-white font-light leading-snug" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+esc(item.text)+'</div>'+
+          '</div></div></div>';
+      });
+      document.getElementById('priorities-list').innerHTML = html;
     }
-
     loadIssues();
-    setInterval(loadIssues, 30000);
-
-    const ACTIONS = {
+    setInterval(loadIssues,30000);
+    var ACTIONS = {
       'add-issues':{ cardId:'card-add-issues',statusId:'status-add-issues',coworkPhrase:'add issues',successMsg:'Cowork is listening — tell it what is on fire' },
-      'pull':      { cardId:'card-pull',      statusId:'status-pull',      coworkPhrase:'pull last 48 hours',successMsg:'Pull started — tracker updating now' },
-      'recap':     { cardId:'card-recap',     statusId:'status-recap',     coworkPhrase:'weekly standup',successMsg:'Recap running — check Cowork for the report' }
+      'pull':      { cardId:'card-pull',statusId:'status-pull',coworkPhrase:'pull last 48 hours',successMsg:'Pull started — tracker updating now' },
+      'recap':     { cardId:'card-recap',statusId:'status-recap',coworkPhrase:'weekly standup',successMsg:'Recap running — check Cowork for the report' }
     };
-    let activeAction = null;
-
+    var activeAction = null;
     function runAction(key) {
       if (activeAction) return;
-      const a = ACTIONS[key], card = document.getElementById(a.cardId), status = document.getElementById(a.statusId);
-      activeAction = key; card.classList.add('running');
-      status.innerHTML = '<div class="flex items-center gap-2 text-[#F6AD55] text-xs"><span class="spinner"></span><span>Starting&#8230;</span></div>';
-      navigator.clipboard.writeText(a.coworkPhrase).catch(()=>{});
-      window.__firefighterAction = {key,phrase:a.coworkPhrase,timestamp:Date.now()};
+      var a=ACTIONS[key], card=document.getElementById(a.cardId), status=document.getElementById(a.statusId);
+      activeAction=key; card.classList.add('running');
+      status.innerHTML='<div class="flex items-center gap-2 text-[#F6AD55] text-xs"><span class="spinner"></span><span>Starting…</span></div>';
+      navigator.clipboard.writeText(a.coworkPhrase).catch(function(){});
+      window.__firefighterAction={key:key,phrase:a.coworkPhrase,timestamp:Date.now()};
       window.dispatchEvent(new CustomEvent('firefighter-action',{detail:{action:key,phrase:a.coworkPhrase}}));
       sessionStorage.setItem('firefighter-pending-action',JSON.stringify({action:key,phrase:a.coworkPhrase,triggered:new Date().toISOString()}));
-      setTimeout(()=>{ status.innerHTML='<div class="flex items-center gap-2 text-[#F6AD55] text-xs"><span class="spinner"></span><span>Running in Cowork&#8230;</span></div>'; },800);
-      setTimeout(()=>{
+      setTimeout(function(){ status.innerHTML='<div class="flex items-center gap-2 text-[#F6AD55] text-xs"><span class="spinner"></span><span>Running in Cowork…</span></div>'; },800);
+      setTimeout(function(){
         card.classList.remove('running');
-        status.innerHTML='<div class="flex items-center gap-2"><div class="text-xs text-[#A3F3C5] font-mono bg-black/30 px-3 py-1.5 rounded-lg">&#10003; Done</div><div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div></div>';
-        showToast('&#10003;  '+a.successMsg); activeAction=null;
+        status.innerHTML='<div class="flex items-center gap-2"><div class="text-xs text-[#A3F3C5] font-mono bg-black/30 px-3 py-1.5 rounded-lg">✓ Done</div><div class="text-[#F6AD55] text-lg opacity-60">&rarr;</div></div>';
+        showToast('✓ '+a.successMsg); activeAction=null;
         setTimeout(loadIssues,2000);
-        setTimeout(()=>{ status.innerHTML='<div class="flex items-center justify-between w-full"><div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div><div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div></div>'; },5000);
+        setTimeout(function(){ status.innerHTML='<div class="flex items-center justify-between w-full"><div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div><div class="text-[#F6AD55] text-lg opacity-60">&rarr;</div></div>'; },5000);
       },4000);
     }
-
     function showToast(msg,err) {
-      const t=document.getElementById('toast'); t.innerHTML=msg; t.className='toast'+(err?' error':''); t.classList.add('show');
-      setTimeout(()=>t.classList.remove('show'),4000);
+      var t=document.getElementById('toast'); t.textContent=msg; t.className='toast'+(err?' error':''); t.classList.add('show');
+      setTimeout(function(){ t.classList.remove('show'); },4000);
     }
   </script>
 </body>
-  </html>
+</html>
