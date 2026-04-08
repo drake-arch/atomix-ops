@@ -1,12 +1,64 @@
 {
-  "last_updated": "Apr 07, 2026 at 11:19 AM",
-  "date": "2026-04-06",
+  "last_updated": "Apr 08, 2026 at 09:06 AM",
+  "date": "2026-04-07",
   "tabs": {
-    "CX": {"total_open": 7, "high": 5, "medium": 2, "wins": 7, "recent": ["No response after failed delivery attempt", "Complaint escalation not resolved in 24h", "SLA breach on 3PL transfer — no resolution update"]},
-    "Operations": {"total_open": 9, "high": 3, "medium": 6, "wins": 0, "recent": ["B2B shipment delayed due to label mismatch", "Carrier late pickup — no alternate arranged", "Inbound receiving backed up 2 days"]},
-    "Finance": {"total_open": 3, "high": 1, "medium": 2, "wins": 0, "recent": ["Vendor invoice dispute unresolved", "Billing discrepancy on last month statement"]},
-    "Tech": {"total_open": 2, "high": 1, "medium": 1, "wins": 0, "recent": ["Metabase dashboard not loading for ops team", "Script failure on nightly batch job"]},
-    "HR": {"total_open": 1, "high": 0, "medium": 1, "wins": 0, "recent": ["New hire onboarding doc not sent"]}
+    "CX": {
+      "total_open": 5,
+      "high": 3,
+      "medium": 2,
+      "wins": 5,
+      "recent": [
+        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
+        "Nooci - SP/B2B offboarding order with inventory discrepancies; planning fulfillm",
+        "Score Promotions - frustrated that orders are not shipping when expected; escala"
+      ]
+    },
+    "Operations": {
+      "total_open": 7,
+      "high": 3,
+      "medium": 4,
+      "wins": 1,
+      "recent": [
+        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
+        "Blumaan - 3 EPLs could not ship (1 old, 2 from today); Shipium errors; John (SLC",
+        "SLA 4/7 - 1+ day old outbound SLAs present in Ops OB; must be at 0; flagged by H"
+      ]
+    },
+    "Finance": {
+      "total_open": 2,
+      "high": 0,
+      "medium": 1,
+      "wins": 0,
+      "recent": [
+        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
+        "Ops/Finance Monthly Expense Review canceled by Mitchell Harris (was scheduled Tu"
+      ]
+    },
+    "Tech": {
+      "total_open": 2,
+      "high": 1,
+      "medium": 1,
+      "wins": 0,
+      "recent": [
+        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
+        "Metabase account - 8+ new device login alerts throughout the day from unknown de"
+      ]
+    },
+    "HR": {
+      "total_open": 4,
+      "high": 0,
+      "medium": 3,
+      "wins": 0,
+      "recent": [
+        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
+        "Jarel Thomas projected to exceed weekly hours threshold - OT risk flagged by Hom",
+        "Laura Perez submitted 3 time off requests (Apr 22, 23, 28); one previously delet"
+      ]
+    }
   },
-  "totals": {"open": 22, "high": 10, "wins": 7}
+  "totals": {
+    "open": 20,
+    "high": 7,
+    "wins": 6
+  }
 }
