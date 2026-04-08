@@ -59,205 +59,328 @@
   </style>
 </head>
 <body class="grid-bg">
+
+  <!-- Tab config: emojis live here in HTML, JS reads via data attrs -->
   <div id="tab-config" style="display:none">
     <span data-tab="CX"         data-emoji="&#129309;" data-label="CX"></span>
     <span data-tab="Operations" data-emoji="&#128230;" data-label="Ops"></span>
     <span data-tab="Finance"    data-emoji="&#128176;" data-label="Finance"></span>
-    <span data-tab="Tech"       data-emoji="&#9881;&#65039;" data-label="Tech"></span>
+    <span data-tab="Tech"       data-emoji="&#9881;&#65039;"  data-label="Tech"></span>
     <span data-tab="HR"         data-emoji="&#128101;" data-label="HR"></span>
   </div>
+
   <div class="fixed top-20 left-10 w-96 h-96 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.06);"></div>
   <div class="fixed bottom-20 right-10 w-80 h-80 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.04);animation-delay:-3s;"></div>
+
   <div class="relative z-10 min-h-screen flex flex-col items-center justify-start px-6 py-20">
     <div class="w-full" style="max-width:1200px;">
+
       <div class="mb-12 fade-in-up">
         <a href="./index.html" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#F6AD55] transition-colors tracking-wider uppercase">
-          <span>&#8592;</span><span>Atomix OPS</span>
+          <span>&#85927;</span><span>Atomix OPS</span>
         </a>
       </div>
+
       <div class="text-center mb-12 fade-in-up">
         <div class="inline-block px-6 py-2 glass-amber rounded-full text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-6">
           <span class="status-dot"></span>Cowork Intelligence
         </div>
         <div class="text-8xl mb-6 fire-pulse">&#128293;</div>
-        <h1 class="text-6xl md:text-7xl font-extralight leading-none tracking-tight mb-4" style="background:linear-gradient(135deg,#fff 0%,#F6AD55 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Firefighter</h1>
+        <h1 class="text-6xl md:text-7xl font-extralight leading-none tracking-tight mb-4"
+            style="background:linear-gradient(135deg,#fff 0%,#F6AD55 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+          Firefighter
+        </h1>
         <p class="text-lg text-gray-400 max-w-xl mx-auto font-light">Click an action. Cowork handles it automatically.</p>
       </div>
+
       <div class="flex flex-col lg:flex-row gap-6 scale-in">
+
+        <!-- LEFT COLUMN -->
         <div class="flex-1 min-w-0">
+
           <div class="issues-tile mb-6">
             <div class="flex items-center justify-between mb-5">
-              <div class="flex items-center gap-3"><span class="text-xl">&#128202;</span><span class="text-sm font-medium tracking-widest uppercase text-gray-400">Live Issues</span></div>
+              <div class="flex items-center gap-3">
+                <span class="text-xl">&#128202;</span>
+                <span class="text-sm font-medium tracking-widest uppercase text-gray-400">Live Issues</span>
+              </div>
               <div id="last-updated" class="text-xs text-gray-600 font-light"></div>
             </div>
             <div id="summary-row" class="flex items-center gap-3 mb-5 flex-wrap">
-              <div class="shimmer h-12 w-28 rounded-xl"></div><div class="shimmer h-12 w-28 rounded-xl"></div><div class="shimmer h-12 w-28 rounded-xl"></div>
+              <div class="shimmer h-12 w-28 rounded-xl"></div>
+              <div class="shimmer h-12 w-28 rounded-xl"></div>
+              <div class="shimmer h-12 w-28 rounded-xl"></div>
             </div>
             <div id="tab-grid" class="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div><div class="shimmer h-20 rounded-xl"></div>
+              <div class="shimmer h-20 rounded-xl"></div>
+              <div class="shimmer h-20 rounded-xl"></div>
+              <div class="shimmer h-20 rounded-xl"></div>
+              <div class="shimmer h-20 rounded-xl"></div>
+              <div class="shimmer h-20 rounded-xl"></div>
             </div>
           </div>
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
             <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-add" onclick="runAction('add')">
               <div class="text-3xl mb-4">&#127897;&#65039;</div>
               <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 1</div>
               <div class="text-xl font-light text-white mb-3">Add Issues</div>
               <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Talk it out &#8212; Cowork captures and drops it into the right tab automatically.</div>
               <div class="flex items-center justify-between" id="status-add">
-                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div><div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
+                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
+                <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
               </div>
             </div>
+
             <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-pull" onclick="runAction('pull')">
               <div class="text-3xl mb-4">&#128225;</div>
               <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 2</div>
               <div class="text-xl font-light text-white mb-3">Pull</div>
               <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Scrubs the last 48 hours of Slack + Gmail and logs everything to the tracker.</div>
               <div class="flex items-center justify-between" id="status-pull">
-                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div><div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
+                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
+                <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
               </div>
             </div>
+
             <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-recap" onclick="runAction('recap')">
               <div class="text-3xl mb-4">&#128202;</div>
               <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 3</div>
               <div class="text-xl font-light text-white mb-3">Weekly Recap</div>
               <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Slack + Gmail + tracker entries into a clean status report for the team.</div>
               <div class="flex items-center justify-between" id="status-recap">
-                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div><div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
+                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
+                <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
               </div>
             </div>
+
           </div>
         </div>
+
+        <!-- SIDEBAR -->
         <div class="lg:w-72 flex-shrink-0">
           <div class="sidebar sticky top-8">
-            <div class="flex items-center gap-2 mb-5"><span class="text-base">&#127919;</span><span class="text-sm font-medium tracking-widest uppercase text-gray-400">Top 3 This Week</span></div>
+            <div class="flex items-center gap-2 mb-5">
+              <span class="text-base">&#127919;</span>
+              <span class="text-sm font-medium tracking-widest uppercase text-gray-400">Top 3 This Week</span>
+            </div>
             <div id="priorities-list">
-              <div class="shimmer h-16 rounded-xl mb-3"></div><div class="shimmer h-16 rounded-xl mb-3"></div><div class="shimmer h-16 rounded-xl"></div>
+              <div class="shimmer h-16 rounded-xl mb-3"></div>
+              <div class="shimmer h-16 rounded-xl mb-3"></div>
+              <div class="shimmer h-16 rounded-xl"></div>
             </div>
             <div class="mt-5 pt-4" style="border-top:1px solid rgba(255,255,255,0.06);">
               <div class="text-xs text-gray-700 text-center">Based on open high-priority items</div>
             </div>
           </div>
         </div>
+
       </div>
+
       <div class="mt-8 text-center fade-in-up">
         <div class="inline-flex items-center gap-3 text-xs text-gray-700">
           <span class="status-dot" style="width:6px;height:6px;"></span>
           <span>Auto-pull at 9:00 AM daily &#183; Refreshes every 30s &#183; Click any tab to expand</span>
         </div>
       </div>
+
     </div>
   </div>
+
   <div class="toast" id="toast"></div>
+
   <script>
+  // ---- Read tab config from HTML (no non-ASCII in this script) ----
   var TAB_CFG = {};
   var cfgNodes = document.querySelectorAll('#tab-config [data-tab]');
   for (var i = 0; i < cfgNodes.length; i++) {
     var n = cfgNodes[i];
-    TAB_CFG[n.getAttribute('data-tab')] = { emoji: n.getAttribute('data-emoji'), label: n.getAttribute('data-label') };
+    TAB_CFG[n.getAttribute('data-tab')] = {
+      emoji: n.getAttribute('data-emoji'),
+      label: n.getAttribute('data-label')
+    };
   }
+
   var expandedTabs = {};
+
+  // ---- Data fetch ----
   function loadIssues() {
     fetch('https://raw.githubusercontent.com/drake-arch/atomix-ops/main/firefighter-data.json?cb=' + Date.now())
       .then(function(r) { return r.json(); })
       .then(function(data) { renderIssues(data); })
       .catch(function() { document.getElementById('last-updated').textContent = 'Could not load data'; });
   }
-  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ---- Render issues tile ----
   function renderIssues(data) {
     var t = data.totals;
+
     document.getElementById('summary-row').innerHTML =
-      '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light text-white">'+t.open+'</span><span class="text-xs text-gray-500 leading-tight">open<br>issues</span></div>'+
-      '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light" style="color:#f87171">'+t.high+'</span><span class="text-xs text-gray-500 leading-tight">high<br>priority</span></div>'+
-      '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light" style="color:#A3F3C5">'+t.wins+'</span><span class="text-xs text-gray-500 leading-tight">wins<br>today</span></div>';
-    var tabOrder = ['CX','Operations','Finance','Tech','HR'];
+      '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light text-white">' + t.open + '</span><span class="text-xs text-gray-500 leading-tight">open<br>issues</span></div>' +
+      '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light" style="color:#f87171">' + t.high + '</span><span class="text-xs text-gray-500 leading-tight">high<br>priority</span></div>' +
+      '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light" style="color:#A3F3C5">' + t.wins + '</span><span class="text-xs text-gray-500 leading-tight">wins<br>today</span></div>';
+
+    var tabOrder = ['CX', 'Operations', 'Finance', 'Tech', 'HR'];
     var html = '';
     for (var i = 0; i < tabOrder.length; i++) {
       var name = tabOrder[i];
       var info = data.tabs[name];
       if (!info) continue;
-      var cfg = TAB_CFG[name] || { emoji:'', label:name };
+      var cfg = TAB_CFG[name] || { emoji: '', label: name };
       var isOpen = !!expandedTabs[name];
+
       var items = '';
       if (info.recent && info.recent.length) {
-        for (var j = 0; j < info.recent.length; j++) { items += '<div class="tab-item">&#8226; '+esc(info.recent[j])+'</div>'; }
-      } else { items = '<div class="tab-item" style="color:#4b5563;">No recent items</div>'; }
+        for (var j = 0; j < info.recent.length; j++) {
+          items += '<div class="tab-item">&#8226; ' + esc(info.recent[j]) + '</div>';
+        }
+      } else {
+        items = '<div class="tab-item" style="color:#4b5563;">No recent items</div>';
+      }
+
       html +=
-        '<div class="tab-pill'+(isOpen?' open':'')+'" onclick="toggleTab(''+name+'',this)">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;">'+
-        '<div><div style="font-size:14px;margin-bottom:4px;">'+cfg.emoji+' <span style="font-size:11px;color:#6b7280;">'+cfg.label+'</span></div>'+
-        '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><span style="font-size:18px;font-weight:300;color:#fff;">'+info.total_open+'</span>'+
-        (info.high>0?'<span class="badge-high">'+info.high+' high</span>':'')+
-        (info.wins>0?'<span class="badge-win">'+info.wins+'W</span>':'')+
-        '</div></div><span class="tab-chevron">&#9660;</span></div>'+
-        '<div class="tab-body"><div style="padding-top:12px;">'+items+'</div></div></div>';
+        '<div class="tab-pill' + (isOpen ? ' open' : '') + '" onclick="toggleTab(\'' + name + '\', this)">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<div>' +
+              '<div style="font-size:14px;margin-bottom:4px;">' + cfg.emoji + ' <span style="font-size:11px;color:#6b7280;">' + cfg.label + '</span></div>' +
+              '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">' +
+                '<span style="font-size:18px;font-weight:300;color:#fff;">' + info.total_open + '</span>' +
+                (info.high > 0 ? '<span class="badge-high">' + info.high + ' high</span>' : '') +
+                (info.wins > 0 ? '<span class="badge-win">' + info.wins + 'W</span>' : '') +
+              '</div>' +
+            '</div>' +
+            '<span class="tab-chevron">&#9660;</span>' +
+          '</div>' +
+          '<div class="tab-body"><div style="padding-top:12px;">' + items + '</div></div>' +
+        '</div>';
     }
+
     document.getElementById('tab-grid').innerHTML = html;
-    document.getElementById('last-updated').textContent = 'Updated '+data.last_updated;
+    document.getElementById('last-updated').textContent = 'Updated ' + data.last_updated;
     renderPriorities(data);
   }
+
   function toggleTab(name, el) {
-    if (expandedTabs[name]) { delete expandedTabs[name]; el.classList.remove('open'); }
-    else { expandedTabs[name]=true; el.classList.add('open'); }
+    if (expandedTabs[name]) {
+      delete expandedTabs[name];
+      el.classList.remove('open');
+    } else {
+      expandedTabs[name] = true;
+      el.classList.add('open');
+    }
   }
+
+  // ---- Priorities sidebar ----
   function renderPriorities(data) {
-    var order = ['CX','Operations','Finance','Tech','HR'], picks = [];
+    var order = ['CX', 'Operations', 'Finance', 'Tech', 'HR'];
+    var picks = [];
+
     for (var i = 0; i < order.length; i++) {
-      var info = data.tabs[order[i]]; if (!info) continue;
+      var info = data.tabs[order[i]];
+      if (!info) continue;
       if (info.high > 0 && info.recent && info.recent.length) {
-        var cnt = Math.min(info.high, info.recent.length);
-        for (var j = 0; j < cnt; j++) picks.push({ tab:order[i], text:info.recent[j] });
+        var count = Math.min(info.high, info.recent.length);
+        for (var j = 0; j < count; j++) {
+          picks.push({ tab: order[i], text: info.recent[j] });
+        }
       }
     }
+
     if (picks.length < 3) {
       for (var i = 0; i < order.length; i++) {
-        var info = data.tabs[order[i]]; if (!info || info.high > 0) continue;
-        if (info.total_open > 0 && info.recent && info.recent.length) picks.push({ tab:order[i], text:info.recent[0] });
+        var info = data.tabs[order[i]];
+        if (!info || info.high > 0) continue;
+        if (info.total_open > 0 && info.recent && info.recent.length) {
+          picks.push({ tab: order[i], text: info.recent[0] });
+        }
       }
     }
-    var top3 = picks.slice(0,3);
-    if (!top3.length) { document.getElementById('priorities-list').innerHTML='<div style="font-size:12px;color:#4b5563;text-align:center;padding:16px;">No open issues right now!</div>'; return; }
-    var rc = ['n1','n2','n3'], html = '';
+
+    var top3 = picks.slice(0, 3);
+    if (!top3.length) {
+      document.getElementById('priorities-list').innerHTML =
+        '<div style="font-size:12px;color:#4b5563;text-align:center;padding:16px;">No open issues right now!</div>';
+      return;
+    }
+
+    var rankCls = ['n1', 'n2', 'n3'];
+    var html = '';
     for (var i = 0; i < top3.length; i++) {
-      var item = top3[i], cfg = TAB_CFG[item.tab]||{emoji:'',label:item.tab};
-      html += '<div class="pri-item"><div style="display:flex;align-items:flex-start;gap:12px;">'+
-        '<div class="pri-rank '+rc[i]+'">'+(i+1)+'</div>'+
-        '<div style="flex:1;min-width:0;"><div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">'+cfg.emoji+' '+item.tab+'</div>'+
-        '<div style="font-size:13px;color:#fff;font-weight:300;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+esc(item.text)+'</div>'+
-        '</div></div></div>';
+      var item = top3[i];
+      var cfg = TAB_CFG[item.tab] || { emoji: '', label: item.tab };
+      html +=
+        '<div class="pri-item">' +
+          '<div style="display:flex;align-items:flex-start;gap:12px;">' +
+            '<div class="pri-rank ' + rankCls[i] + '">' + (i + 1) + '</div>' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">' + cfg.emoji + ' ' + item.tab + '</div>' +
+              '<div style="font-size:13px;color:#fff;font-weight:300;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' +
+                esc(item.text) +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
     }
     document.getElementById('priorities-list').innerHTML = html;
   }
+
   loadIssues();
   setInterval(loadIssues, 30000);
+
+  // ---- Actions ----
   var ACTIONS = {
     add:   { cardId:'card-add',   statusId:'status-add',   phrase:'add issues',         msg:'Cowork is listening - tell it what is on fire' },
     pull:  { cardId:'card-pull',  statusId:'status-pull',  phrase:'pull last 48 hours', msg:'Pull started - tracker updating now' },
     recap: { cardId:'card-recap', statusId:'status-recap', phrase:'weekly standup',      msg:'Recap running - check Cowork for the report' }
   };
+
   var running = null;
+
   function runAction(key) {
     if (running) return;
-    var a = ACTIONS[key]; if (!a) return;
-    var card = document.getElementById(a.cardId), status = document.getElementById(a.statusId);
-    running = key; card.classList.add('running');
+    var a = ACTIONS[key];
+    if (!a) return;
+    var card = document.getElementById(a.cardId);
+    var status = document.getElementById(a.statusId);
+
+    running = key;
+    card.classList.add('running');
     status.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:#F6AD55;font-size:12px;"><span class="spinner"></span><span>Starting...</span></div>';
-    navigator.clipboard.writeText(a.phrase).catch(function(){});
-    window.__firefighterAction = { key:key, phrase:a.phrase, ts:Date.now() };
-    window.dispatchEvent(new CustomEvent('firefighter-action',{detail:{action:key,phrase:a.phrase}}));
-    sessionStorage.setItem('firefighter-pending',JSON.stringify({action:key,phrase:a.phrase,time:new Date().toISOString()}));
-    setTimeout(function(){ status.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:#F6AD55;font-size:12px;"><span class="spinner"></span><span>Running in Cowork...</span></div>'; },800);
-    setTimeout(function(){
+
+    navigator.clipboard.writeText(a.phrase).catch(function() {});
+    window.__firefighterAction = { key: key, phrase: a.phrase, ts: Date.now() };
+    window.dispatchEvent(new CustomEvent('firefighter-action', { detail: { action: key, phrase: a.phrase } }));
+    sessionStorage.setItem('firefighter-pending', JSON.stringify({ action: key, phrase: a.phrase, time: new Date().toISOString() }));
+
+    setTimeout(function() {
+      status.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:#F6AD55;font-size:12px;"><span class="spinner"></span><span>Running in Cowork...</span></div>';
+    }, 800);
+
+    setTimeout(function() {
       card.classList.remove('running');
-      status.innerHTML='<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:#A3F3C5;font-family:monospace;background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;">Done</span></div>';
-      toast('Done - '+a.msg); running=null;
-      setTimeout(loadIssues,2000);
-      setTimeout(function(){ status.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;width:100%;"><span style="font-size:12px;color:#4b5563;font-family:monospace;background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;">Ready</span><span style="color:#F6AD55;opacity:0.6;">&#8594;</span></div>'; },5000);
-    },4000);
+      status.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:#A3F3C5;font-family:monospace;background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;">Done</span></div>';
+      toast('Done - ' + a.msg);
+      running = null;
+      setTimeout(loadIssues, 2000);
+      setTimeout(function() {
+        status.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;"><span style="font-size:12px;color:#4b5563;font-family:monospace;background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;">Ready</span><span style="color:#F6AD55;opacity:0.6;">&#8594;</span></div>';
+      }, 5000);
+    }, 4000);
   }
+
   function toast(msg) {
-    var t=document.getElementById('toast'); t.textContent=msg; t.className='toast'; t.classList.add('show');
-    setTimeout(function(){ t.classList.remove('show'); },4000);
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast';
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 4000);
   }
   </script>
+
 </body>
-                </html>
+</html>
