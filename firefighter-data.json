@@ -1,64 +1,63 @@
 {
-  "last_updated": "Apr 08, 2026 at 09:06 AM",
-  "date": "2026-04-07",
+  "last_updated": "Apr 09, 2026 at 09:05 AM",
+  "date": "2026-04-08",
   "tabs": {
     "CX": {
-      "total_open": 5,
-      "high": 3,
-      "medium": 2,
-      "wins": 5,
+      "total_open": 10,
+      "high": 2,
+      "medium": 5,
+      "wins": 1,
       "recent": [
-        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
-        "Nooci - SP/B2B offboarding order with inventory discrepancies; planning fulfillm",
-        "Score Promotions - frustrated that orders are not shipping when expected; escala"
+        "Blumaan B2B-35 — Client requested hold on special project order; awaiting new parcel labels from customer",
+        "Kris Rohman — Asking about API access to billing; Alejandro unsure how to answer",
+        "IQBAR FIFO/FEFO compliance audit — Alex Kocevski visited Atomix; quarantine items clearly labeled, powder out of quarantine; client very satisfied"
       ]
     },
     "Operations": {
-      "total_open": 7,
-      "high": 3,
-      "medium": 4,
+      "total_open": 12,
+      "high": 0,
+      "medium": 9,
       "wins": 1,
       "recent": [
-        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
-        "Blumaan - 3 EPLs could not ship (1 old, 2 from today); Shipium errors; John (SLC",
-        "SLA 4/7 - 1+ day old outbound SLAs present in Ops OB; must be at 0; flagged by H"
+        "Utilities — Rocky Mountain Power & Enbridge confirmed under Atomix meters in SLC; landlord received likely final invoice",
+        "Returns documentation process — Double-entry identified in Twoboxes + Slack for damaged returns (Stakt, Ryker, and other clients); process improvement suggested by Kayla",
+        "IQBAR FIFO compliance — Quarantine items (TCC 12ct QTY 339, CMC 4ct for TJX) clearly separated and labeled; adherence confirmed"
       ]
     },
     "Finance": {
       "total_open": 2,
       "high": 0,
-      "medium": 1,
+      "medium": 2,
       "wins": 0,
       "recent": [
-        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
-        "Ops/Finance Monthly Expense Review canceled by Mitchell Harris (was scheduled Tu"
+        "A&J Pallets invoices unpaid — Drake forwarded pallet company invoices to AP, Mitchell Harris, and Patrick Day for payment"
       ]
     },
     "Tech": {
-      "total_open": 2,
+      "total_open": 3,
+      "high": 1,
+      "medium": 1,
+      "wins": 1,
+      "recent": [
+        "Metabase — Multiple unauthorized login alerts from unknown device in North Carolina (8+ notifications); possible security breach or shared credentials",
+        "RetailReady (RR) outage — System went down ~18:27; resolved by 19:35; Annie Robinson confirmed resolution",
+        "IQBAR Additional Customer Setup in RetailReady — Sheets and Lipari connections need to be created in RR by Atomix (Connections > Columns > Create Connection)"
+      ]
+    },
+    "HR": {
+      "total_open": 3,
       "high": 1,
       "medium": 1,
       "wins": 0,
       "recent": [
-        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
-        "Metabase account - 8+ new device login alerts throughout the day from unknown de"
-      ]
-    },
-    "HR": {
-      "total_open": 4,
-      "high": 0,
-      "medium": 3,
-      "wins": 0,
-      "recent": [
-        "SAMPLE — Co-Work will auto-populate this row when you log a note.",
-        "Jarel Thomas projected to exceed weekly hours threshold - OT risk flagged by Hom",
-        "Laura Perez submitted 3 time off requests (Apr 22, 23, 28); one previously delet"
+        "Jayvonte — 6 late shifts in past 2 weeks; formal verbal warning issued by Hugh Myers; expectations reviewed; failure to improve may result in termination; HR to be notified",
+        "Ricardo W. — Onboarding planning meeting notes created in ClickUp (04/08/2026)"
       ]
     }
   },
   "totals": {
-    "open": 20,
-    "high": 7,
-    "wins": 6
+    "open": 30,
+    "high": 4,
+    "wins": 3
   }
 }
