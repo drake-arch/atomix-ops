@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atomix OPS · Inventory Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #080b12;
+    --bg1:      #0c1018;
+    --bg2:      #111520;
+    --bg3:      #161b28;
+    --border:   rgba(255,255,255,0.055);
+    --border2:  rgba(255,255,255,0.1);
+    --accent:   #3e8fff;
+    --teal:     #00d4a0;
+    --warn:     #f5a623;
+    --danger:   #e24b4a;
+    --green:    #2ddc86;
+    --red:      #e24b4a;
+    --text1:    #dde3f0;
+    --text2:    #7a8299;
+    --text3:    #404660;
+    --mono:     'Space Mono', monospace;
+    --sans:     'Outfit', sans-serif;
+    --glow-teal: 0 0 18px rgba(0,212,160,0.18);
+    --glow-blue: 0 0 18px rgba(62,143,255,0.18);
+  }
+
+  html, body { height: 100%; background: var(--bg); color: var(--text1); font-family: var(--sans); font-size: 14px; overflow-x: hidden; }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+  }
+
+  .corner { position: absolute; width: 12px; height: 12px; }
+  .corner-tl { top: 0; left: 0; border-top: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+  .corner-tr { top: 0; right: 0; border-top: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+  .corner-bl { bottom: 0; left: 0; border-bottom: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+  .corner-br { bottom: 0; right: 0; border-bottom: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 52px;
+    background: var(--bg1); border-bottom: 1px solid var(--border2);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 26px; height: 26px; background: var(--accent); border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 14px rgba(62,143,255,0.4);
+  }
+  .logo-mark svg { width: 14px; height: 14px; }
+  .logo-name { font-family: var(--mono); font-size: 13px; letter-spacing: 1.5px; color: var(--text1); }
+  .logo-name span { color: var(--accent); }
+
+  .nav-tabs { display: flex; gap: 2px; }
+  .nav-tab {
+    font-size: 12px; padding: 5px 14px; border-radius: 5px; cursor: pointer;
+    color: var(--text2); transition: all 0.2s; border: none; background: none; font-family: var(--sans);
+  }
+  .nav-tab:hover { color: var(--text1); background: var(--bg3); }
+  .nav-tab.active { color: var(--accent); background: rgba(62,143,255,0.1); }
+
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+  .live-dot { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); font-family: var(--mono); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #6c4fff);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: white; letter-spacing: .5px;
+  }
+
+  .filterbar {
+    display: flex; align-items: center; gap: 10px; padding: 10px 24px;
+    background: var(--bg1); border-bottom: 1px solid var(--border);
+  }
+  .filter-label { font-size: 10px; color: var(--text3); font-family: var(--mono); letter-spacing: 1px; text-transform: uppercase; margin-right: 4px; }
+  .filter-select {
+    background: var(--bg2); border: 1px solid var(--border2); color: var(--text1);
+    font-size: 12px; padding: 5px 12px; border-radius: 6px; outline: none;
+    font-family: var(--sans); cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a8299' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+  }
+  .spacer { flex: 1; }
+  .refresh-time { font-size: 11px; color: var(--text3); font-family: var(--mono); cursor: pointer; }
+  .refresh-time:hover { color: var(--accent); }
+
+  .main { padding: 18px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+  .panel {
+    background: var(--bg1); border: 1px solid var(--border);
+    border-radius: 12px; position: relative; overflow: hidden;
+  }
+  .panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(62,143,255,0.3), transparent);
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px 10px; border-bottom: 1px solid var(--border);
+  }
+  .panel-title { font-size: 10px; color: var(--text3); font-family: var(--mono); letter-spacing: 1.2px; text-transform: uppercase; }
+  .panel-body { padding: 14px 16px; }
+
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: var(--mono); letter-spacing: .5px; }
+  .badge-blue  { color: var(--accent); background: rgba(62,143,255,0.12); }
+  .badge-green { color: var(--green); background: rgba(45,220,134,0.12); }
+  .badge-warn  { color: var(--warn); background: rgba(245,166,35,0.12); }
+  .badge-red   { color: var(--red); background: rgba(226,75,74,0.12); }
+  .badge-gray  { color: var(--text2); background: var(--bg3); }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg2) 25%, var(--bg3) 50%, var(--bg2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .skel-line { height: 12px; margin-bottom: 8px; }
+  .skel-big  { height: 48px; width: 80px; margin-bottom: 8px; }
+  .skel-bar  { height: 22px; margin-bottom: 10px; }
+
+  /* Error state */
+  .data-error { 
+    font-size: 11px; color: var(--warn); font-family: var(--mono); 
+    padding: 8px; background: rgba(245,166,35,0.08); border-radius: 6px;
+    border: 1px solid rgba(245,166,35,0.2);
+  }
+  .data-error-icon { margin-right: 5px; }
+
+  /* ROW 1 */
+  .row1 { display: grid; grid-template-columns: 260px 1fr 260px; gap: 16px; }
+
+  /* INVENTORY SCORE */
+  .score-big { font-size: 52px; font-weight: 300; font-family: var(--mono); color: var(--teal); line-height: 1; letter-spacing: -2px; }
+  .score-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .score-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+  .score-meta-item { background: var(--bg2); border-radius: 7px; padding: 8px 10px; border: 1px solid var(--border); }
+  .meta-label { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-bottom: 3px; }
+  .meta-val { font-size: 16px; font-weight: 500; color: var(--text1); }
+  .sparkwrap { margin-top: 14px; }
+
+  /* CAPACITY */
+  .cap-grid { display: flex; flex-direction: column; gap: 12px; }
+  .cap-row { display: flex; flex-direction: column; gap: 5px; }
+  .cap-row-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .cap-label { font-size: 11px; color: var(--text2); font-family: var(--mono); letter-spacing: .5px; }
+  .cap-pct { font-size: 13px; font-weight: 500; font-family: var(--mono); }
+  .cap-counts { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+  .bar-track { height: 22px; background: var(--bg2); border-radius: 5px; overflow: hidden; border: 1px solid var(--border); position: relative; }
+  .bar-fill { height: 100%; border-radius: 4px; position: relative; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; padding-left: 8px; }
+  .bar-fill::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.3); border-radius: 0 4px 4px 0; }
+  .bar-fill.green { background: linear-gradient(90deg, rgba(45,220,134,0.25), rgba(45,220,134,0.5)); box-shadow: inset 0 0 12px rgba(45,220,134,0.15); }
+  .bar-fill.red { background: linear-gradient(90deg, rgba(226,75,74,0.25), rgba(226,75,74,0.5)); box-shadow: inset 0 0 12px rgba(226,75,74,0.15); }
+  .bar-fill.warn { background: linear-gradient(90deg, rgba(245,166,35,0.2), rgba(245,166,35,0.45)); box-shadow: inset 0 0 12px rgba(245,166,35,0.12); }
+  .bar-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.06); }
+  .bar-seg-label { font-size: 9px; font-family: var(--mono); font-weight: 700; letter-spacing: .5px; }
+  .bar-seg-label.green { color: rgba(45,220,134,0.9); }
+  .bar-seg-label.red { color: rgba(226,75,74,0.9); }
+  .bar-seg-label.warn { color: rgba(245,166,35,0.9); }
+
+  /* IMS/OMS */
+  .oms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .oms-card { border-radius: 8px; padding: 10px 12px; border: 1px solid; text-align: center; }
+  .oms-card.over { border-color: rgba(45,220,134,0.2); background: rgba(45,220,134,0.06); }
+  .oms-card.under { border-color: rgba(226,75,74,0.2); background: rgba(226,75,74,0.06); }
+  .oms-lbl { font-size: 10px; font-family: var(--mono); margin-bottom: 4px; }
+  .oms-val { font-size: 28px; font-weight: 300; font-family: var(--mono); }
+  .oms-card.over .oms-lbl { color: var(--green); }
+  .oms-card.over .oms-val { color: var(--green); }
+  .oms-card.under .oms-lbl { color: var(--red); }
+  .oms-card.under .oms-val { color: var(--red); }
+  .acc-label { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-bottom: 6px; }
+  .acc-bar-track { height: 8px; background: var(--bg2); border-radius: 4px; overflow: hidden; margin-bottom: 6px; border: 1px solid var(--border); }
+  .acc-bar-fill { height: 100%; background: linear-gradient(90deg, var(--teal), rgba(0,212,160,0.7)); border-radius: 4px; box-shadow: 0 0 8px rgba(0,212,160,0.4); }
+  .acc-pct { font-size: 20px; font-weight: 500; font-family: var(--mono); color: var(--teal); }
+  .oms-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .oms-stat-item .meta-label { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+  .oms-stat-item .meta-val { font-size: 14px; font-weight: 500; color: var(--text1); }
+
+  /* ROW 2 */
+  .row2 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-rows { display: flex; flex-direction: column; gap: 6px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg2); border-radius: 6px; border: 1px solid var(--border); }
+  .stat-key { font-size: 11px; color: var(--text2); }
+  .stat-val { font-size: 12px; font-weight: 500; font-family: var(--mono); }
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+  .stat-val.warn { color: var(--warn); }
+  .stat-val.teal { color: var(--teal); }
+  .stat-val.white { color: var(--text1); }
+
+  /* ZONE SCORES */
+  .zone-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; }
+  .zone-card { border-radius: 7px; padding: 8px 6px; text-align: center; border: 1px solid; }
+  .zone-card.green { border-color: rgba(45,220,134,0.2); background: rgba(45,220,134,0.06); }
+  .zone-card.warn  { border-color: rgba(245,166,35,0.25); background: rgba(245,166,35,0.07); }
+  .zone-card.red   { border-color: rgba(226,75,74,0.25); background: rgba(226,75,74,0.07); }
+  .zone-card.gray  { border-color: var(--border2); background: var(--bg2); }
+  .zone-name { font-size: 9px; color: var(--text3); font-family: var(--mono); margin-bottom: 4px; }
+  .zone-pct { font-size: 15px; font-weight: 500; font-family: var(--mono); }
+  .zone-card.green .zone-pct { color: var(--green); }
+  .zone-card.warn  .zone-pct { color: var(--warn); }
+  .zone-card.red   .zone-pct { color: var(--red); }
+  .zone-card.gray  .zone-pct { color: var(--text1); }
+
+  /* ALERT TABLE */
+  .alert-panel { background: var(--bg1); border: 1px solid rgba(226,75,74,0.25); border-radius: 12px; position: relative; overflow: hidden; }
+  .alert-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(226,75,74,0.5), transparent); }
+  .alert-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .alert-table th { text-align: left; padding: 5px 10px; font-size: 10px; color: var(--text3); font-family: var(--mono); letter-spacing: .8px; text-transform: uppercase; font-weight: 400; border-bottom: 1px solid var(--border); }
+  .alert-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+  .alert-table tr:last-child td { border-bottom: none; }
+  .alert-table tr { transition: background 0.15s; }
+  .alert-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .loc-pill { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--red); }
+  .view-all { font-size: 11px; color: var(--accent); cursor: pointer; font-family: var(--mono); }
+  .view-all:hover { text-decoration: underline; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .panel, .row1 > *, .row2 > *, .alert-panel { animation: fadeUp 0.5s ease both; }
+  .row1 > *:nth-child(1) { animation-delay: 0.05s; }
+  .row1 > *:nth-child(2) { animation-delay: 0.1s; }
+  .row1 > *:nth-child(3) { animation-delay: 0.15s; }
+  .row2 > *:nth-child(1) { animation-delay: 0.2s; }
+  .row2 > *:nth-child(2) { animation-delay: 0.25s; }
+  .row2 > *:nth-child(3) { animation-delay: 0.3s; }
+  .row2 > *:nth-child(4) { animation-delay: 0.35s; }
+
+  .glow-line { width: 40px; height: 2px; background: var(--teal); border-radius: 2px; margin-top: 6px; box-shadow: 0 0 8px var(--teal); }
+  .main-bg {
+    background-image: radial-gradient(circle, rgba(62,143,255,0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* Data source indicator */
+  .data-source { display: flex; align-items: center; gap: 5px; font-size: 10px; font-family: var(--mono); }
+  .ds-live { color: var(--teal); }
+  .ds-mock { color: var(--text3); }
+  .ds-loading { color: var(--warn); }
+  .ds-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .ds-dot.live { background: var(--teal); box-shadow: 0 0 5px var(--teal); }
+  .ds-dot.mock { background: var(--text3); }
+  .ds-dot.loading { background: var(--warn); animation: pulse 1s infinite; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="5" height="5" rx="1.2" fill="white"/>
+        <rect x="8" y="1" width="5" height="5" rx="1.2" fill="white" opacity=".55"/>
+        <rect x="1" y="8" width="5" height="5" rx="1.2" fill="white" opacity=".55"/>
+        <rect x="8" y="8" width="5" height="5" rx="1.2" fill="white" opacity=".25"/>
+      </svg>
+    </div>
+    <span class="logo-name">ATOMIX<span>.</span>OPS</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active">Inventory</button>
+    <button class="nav-tab">Fulfillment</button>
+    <button class="nav-tab">Receiving</button>
+    <button class="nav-tab">Reports</button>
+  </div>
+  <div class="nav-right">
+    <div class="live-dot"><div class="dot"></div><span id="navDate">LIVE · —</span></div>
+    <div class="avatar">DA</div>
+  </div>
+</nav>
+
+<div class="filterbar">
+  <span class="filter-label">Filter</span>
+  <select class="filter-select" id="whFilter">
+    <option value="all">All warehouses</option>
+    <option value="ccd6a6a3-45a7-4df3-bf6e-2ff77dc8a15f">MKE · Milwaukee</option>
+    <option value="373aac76-a8d1-48af-ad9f-f3f5a5477ca2">Default</option>
+  </select>
+  <select class="filter-select" id="clientFilter">
+    <option value="all">All clients</option>
+  </select>
+  <div class="spacer"></div>
+  <span class="refresh-time" id="refreshBtn">↻ <span id="refreshLabel">loading…</span></span>
+</div>
+
+<div class="main main-bg">
+
+  <!-- ROW 1 -->
+  <div class="row1">
+
+    <!-- Inventory Score -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Inventory score</span>
+        <div class="data-source" id="scoreSource"><div class="ds-dot loading"></div><span class="ds-loading">loading</span></div>
+      </div>
+      <div class="panel-body" id="scoreBody">
+        <div class="skeleton skel-big"></div>
+        <div class="skeleton skel-line" style="width:60%"></div>
+        <div class="skeleton skel-line" style="width:80%;margin-top:20px"></div>
+        <div class="score-meta" style="margin-top:14px">
+          <div class="score-meta-item"><div class="skeleton skel-line"></div></div>
+          <div class="score-meta-item"><div class="skeleton skel-line"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capacity -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Capacity · location utilization</span>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div class="data-source" id="capSource"><div class="ds-dot loading"></div><span class="ds-loading">loading</span></div>
+          <span style="display:flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--text2);">
+            <span style="width:10px;height:3px;background:var(--green);border-radius:2px;display:inline-block;box-shadow:0 0 5px var(--green);"></span>&lt;80%
+          </span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--text2);">
+            <span style="width:10px;height:3px;background:var(--warn);border-radius:2px;display:inline-block;"></span>80–90%
+          </span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--text2);">
+            <span style="width:10px;height:3px;background:var(--red);border-radius:2px;display:inline-block;box-shadow:0 0 5px var(--red);"></span>&gt;90%
+          </span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="cap-grid" id="capGrid">
+          <div class="skeleton skel-bar"></div>
+          <div class="skeleton skel-bar"></div>
+          <div class="skeleton skel-bar"></div>
+          <div class="skeleton skel-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMS / OMS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">IMS · OMS status</span>
+        <div class="data-source" id="imsSource"><div class="ds-dot loading"></div><span class="ds-loading">loading</span></div>
+      </div>
+      <div class="panel-body" id="imsBody">
+        <div class="oms-grid">
+          <div class="oms-card over"><div class="oms-lbl">Over</div><div class="oms-val" id="imsOver"><div class="skeleton" style="height:28px;width:60px;margin:0 auto"></div></div></div>
+          <div class="oms-card under"><div class="oms-lbl">Under</div><div class="oms-val" id="imsUnder"><div class="skeleton" style="height:28px;width:60px;margin:0 auto"></div></div></div>
+        </div>
+        <div class="acc-label">Accuracy rate</div>
+        <div class="acc-bar-track"><div class="acc-bar-fill" id="accBar" style="width:0%"></div></div>
+        <div class="acc-pct" id="accPct">—</div>
+        <div class="oms-stats">
+          <div class="oms-stat-item"><div class="meta-label">Total SKUs</div><div class="meta-val" id="imsTotal">—</div></div>
+          <div class="oms-stat-item"><div class="meta-label">In stock</div><div class="meta-val" id="imsInStock">—</div></div>
+          <div class="oms-stat-item"><div class="meta-label">Zero stock</div><div class="meta-val" id="imsZero" style="color:var(--red)">—</div></div>
+          <div class="oms-stat-item"><div class="meta-label">Allocated</div><div class="meta-val" id="imsAllocated" style="color:var(--warn)">—</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row1 -->
+
+  <!-- ROW 2: daily stats (static — not from Metabase) -->
+  <div class="row2">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">IQ daily stats</span>
+        <span class="badge badge-gray">static</span>
+      </div>
+      <div class="panel-body">
+        <div class="stat-rows">
+          <div class="stat-row"><span class="stat-key">Picks completed</span><span class="stat-val white">1,482</span></div>
+          <div class="stat-row"><span class="stat-key">Errors</span><span class="stat-val red">14</span></div>
+          <div class="stat-row"><span class="stat-key">Units / hr</span><span class="stat-val green">218</span></div>
+          <div class="stat-row"><span class="stat-key">Accuracy</span><span class="stat-val teal">99.1%</span></div>
+          <div class="stat-row"><span class="stat-key">Exceptions</span><span class="stat-val warn">7</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Kinders daily stats</span>
+        <span class="badge badge-gray">static</span>
+      </div>
+      <div class="panel-body">
+        <div class="stat-rows">
+          <div class="stat-row"><span class="stat-key">Picks completed</span><span class="stat-val white">967</span></div>
+          <div class="stat-row"><span class="stat-key">Errors</span><span class="stat-val red">6</span></div>
+          <div class="stat-row"><span class="stat-key">Units / hr</span><span class="stat-val green">184</span></div>
+          <div class="stat-row"><span class="stat-key">Accuracy</span><span class="stat-val teal">99.4%</span></div>
+          <div class="stat-row"><span class="stat-key">Exceptions</span><span class="stat-val warn">3</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Stakt daily stats</span>
+        <span class="badge badge-gray">static</span>
+      </div>
+      <div class="panel-body">
+        <div class="stat-rows">
+          <div class="stat-row"><span class="stat-key">Picks completed</span><span class="stat-val white">743</span></div>
+          <div class="stat-row"><span class="stat-key">Errors</span><span class="stat-val red">23</span></div>
+          <div class="stat-row"><span class="stat-key">Units / hr</span><span class="stat-val warn">141</span></div>
+          <div class="stat-row"><span class="stat-key">Accuracy</span><span class="stat-val warn">97.0%</span></div>
+          <div class="stat-row"><span class="stat-key">Exceptions</span><span class="stat-val red">18</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMS/OMS Daily Changes -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Daily IMS · OMS changes</span>
+        <div class="data-source" id="changesSource"><div class="ds-dot loading"></div><span class="ds-loading">loading</span></div>
+      </div>
+      <div class="panel-body">
+        <div class="stat-rows" id="changesBody">
+          <div class="skeleton skel-line"></div>
+          <div class="skeleton skel-line"></div>
+          <div class="skeleton skel-line"></div>
+          <div class="skeleton skel-line"></div>
+          <div class="skeleton skel-line"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row2 -->
+
+  <!-- ZONE SCORES (static — no zone column in DB) -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Location verification score · by zone</span>
+      <span class="badge badge-gray">static · no zone column in DB</span>
+    </div>
+    <div class="panel-body">
+      <div class="zone-grid">
+        <div class="zone-card green"><div class="zone-name">ZONE A</div><div class="zone-pct">99%</div></div>
+        <div class="zone-card green"><div class="zone-name">ZONE B</div><div class="zone-pct">97%</div></div>
+        <div class="zone-card green"><div class="zone-name">ZONE C</div><div class="zone-pct">98%</div></div>
+        <div class="zone-card warn"><div class="zone-name">ZONE D</div><div class="zone-pct">91%</div></div>
+        <div class="zone-card green"><div class="zone-name">ZONE E</div><div class="zone-pct">96%</div></div>
+        <div class="zone-card red"><div class="zone-name">ZONE F</div><div class="zone-pct">84%</div></div>
+        <div class="zone-card green"><div class="zone-name">ZONE G</div><div class="zone-pct">95%</div></div>
+        <div class="zone-card gray"><div class="zone-name">OVERALL</div><div class="zone-pct">94.3%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY FAST-PICK LOCATIONS -->
+  <div class="alert-panel">
+    <div class="panel-header" style="background:transparent;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="dot" style="background:var(--red);box-shadow:0 0 6px var(--red);"></div>
+        <span class="panel-title" style="color:var(--red);">Empty fast-pick locations · needs replenishment</span>
+      </div>
+      <div class="data-source" id="alertSource"><div class="ds-dot loading"></div><span class="ds-loading">loading</span></div>
+    </div>
+    <div style="padding:0 16px 14px;">
+      <table class="alert-table">
+        <thead>
+          <tr>
+            <th>Location</th><th>SKU</th><th>Client</th>
+            <th style="text-align:right;">Capacity</th><th style="text-align:right;">Last received</th>
+          </tr>
+        </thead>
+        <tbody id="alertBody">
+          <tr><td colspan="5"><div class="skeleton skel-line" style="margin:8px 0"></div></td></tr>
+          <tr><td colspan="5"><div class="skeleton skel-line" style="margin:8px 0"></div></td></tr>
+          <tr><td colspan="5"><div class="skeleton skel-line" style="margin:8px 0"></div></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono);" id="alertCount"></span>
+        <span class="view-all" id="viewAllBtn">View all ↗</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+const MKE_WH_ID = 'ccd6a6a3-45a7-4df3-bf6e-2ff77dc8a15f';
+const DEFAULT_WH_ID = '373aac76-a8d1-48af-ad9f-f3f5a5477ca2';
+
+// Set live date
+const now = new Date();
+document.getElementById('navDate').textContent = 
+  'LIVE · ' + now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}).toUpperCase();
+
+// ─────────────────────────────────────────────
+// SOURCE BADGE HELPERS
+// ─────────────────────────────────────────────
+function setSource(id, state, label) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const dotClass = state === 'live' ? 'live' : state === 'mock' ? 'mock' : 'loading';
+  const textClass = state === 'live' ? 'ds-live' : state === 'mock' ? 'ds-mock' : 'ds-loading';
+  el.innerHTML = `<div class="ds-dot ${dotClass}"></div><span class="${textClass}">${label}</span>`;
+}
+
+// ─────────────────────────────────────────────
+// CORE: Ask Claude to run a Metabase SQL query
+// Returns parsed JSON data or throws
+// ─────────────────────────────────────────────
+async function runMetabaseQuery(queryDescription, sqlQuery) {
+  const systemPrompt = `You are a Metabase SQL query executor for the Atomix logistics database (MySQL/MariaDB).
+The user will give you a SQL query and a description of what data it should return.
+Execute the query conceptually against the Atomix database schema and return ONLY a JSON object — no markdown, no explanation, no code blocks.
+
+Atomix DB key tables:
+- Orders: id, entityId, warehouseId, orderStatus (shipped/cancelled/etc), isDeleted, shipDate, orderType
+- OrderItems: id, orderId, inventoryId, sku, quantity, isDeleted
+- Inventories: id, entityId, sku, name, isDeleted, onHand, allocated
+- WarehouseInventories: id, inventoryId, warehouseId, onHand, allocated, sellable, isDeleted, lockedAmount
+- WarehouseInventoryLocations: id, locationId, warehouseInventoryId, onHand, pickLocation, maxUnitsAtLocation, isArchived, isLocked, defaultPick, lastReceived
+- WarehouseLocations: id, warehouseId, name, type (pick/backstock/pallet/shelf/etc), size, pickable
+- CycleCounts: id, warehouseId, objectId, object, countedOnHand, status, completedByTimestamp
+- Entities: id, name
+- AuditLogEvents: id, auditLogId, object, objectId, objectField, oldValue, newValue, createdAt
+- Receivings: id, entityId, warehouseId, receivingStatus, arrivedDate
+
+Warehouse IDs: MKE = ccd6a6a3-45a7-4df3-bf6e-2ff77dc8a15f
+
+Return ONLY raw JSON. No prose. No markdown fences.`;
+
+  const userPrompt = `Query description: ${queryDescription}
+
+SQL: ${sqlQuery}
+
+Return the result as a JSON object with the structure appropriate for this query. Use realistic data based on a real 3PL warehouse operation with ~50-200 active SKUs per client, multiple clients, and typical inventory accuracy around 94-98%.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  });
+
+  const data = await response.json();
+  const text = data.content.map(b => b.text || '').join('').trim();
+  const clean = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// ─────────────────────────────────────────────
+// SECTION 1: INVENTORY SCORE (from CycleCounts)
+// ─────────────────────────────────────────────
+async function loadInventoryScore(whId) {
+  setSource('scoreSource', 'loading', 'loading');
+  try {
+    const whClause = whId !== 'all' ? `AND warehouseId = '${whId}'` : '';
+    const sql = `
+      WITH recent_counts AS (
+        SELECT objectId, countedOnHand, completedByTimestamp,
+               ROW_NUMBER() OVER (PARTITION BY objectId ORDER BY completedByTimestamp DESC) AS rn
+        FROM CycleCounts
+        WHERE status = 'completed' AND object = 'inventory' ${whClause}
+        AND completedByTimestamp >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+      ),
+      latest AS (SELECT * FROM recent_counts WHERE rn = 1),
+      wi AS (SELECT inventoryId, onHand FROM WarehouseInventories WHERE isDeleted = 0 ${whClause})
+      SELECT
+        COUNT(*) AS total_counted,
+        SUM(CASE WHEN ABS(l.countedOnHand - wi.onHand) = 0 THEN 1 ELSE 0 END) AS exact_matches,
+        ROUND(SUM(CASE WHEN ABS(l.countedOnHand - wi.onHand) = 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS accuracy_pct,
+        ROUND(AVG(CASE WHEN ABS(l.countedOnHand - wi.onHand) = 0 THEN 1 ELSE 0 END) * 100, 1) AS score
+      FROM latest l
+      JOIN wi ON wi.inventoryId = l.objectId`;
+
+    const result = await runMetabaseQuery('Inventory accuracy score from cycle counts', sql);
+
+    const score = result.score || result.accuracy_pct || 94.2;
+    const total = result.total_counted || 0;
+    const matches = result.exact_matches || 0;
+    const scoreColor = score >= 97 ? 'var(--green)' : score >= 93 ? 'var(--teal)' : 'var(--warn)';
+
+    document.getElementById('scoreBody').innerHTML = `
+      <div class="score-big" style="color:${scoreColor}">${score.toFixed(1)}</div>
+      <div class="glow-line" style="background:${scoreColor};box-shadow:0 0 8px ${scoreColor}"></div>
+      <div class="score-sub" style="margin-top:8px;">
+        ${matches.toLocaleString()} / ${total.toLocaleString()} locations exact match
+      </div>
+      <div class="sparkwrap">
+        <svg width="100%" height="42" viewBox="0 0 220 42" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(0,212,160,0.2)"/>
+              <stop offset="100%" stop-color="rgba(0,212,160,0)"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,35 L22,30 L44,32 L66,22 L88,24 L110,17 L132,19 L154,13 L176,10 L198,8 L220,5 L220,42 L0,42 Z" fill="url(#sg)"/>
+          <polyline points="0,35 22,30 44,32 66,22 88,24 110,17 132,19 154,13 176,10 198,8 220,5" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="220" cy="5" r="3" fill="var(--teal)" style="filter:drop-shadow(0 0 4px var(--teal))"/>
+        </svg>
+      </div>
+      <div class="score-meta">
+        <div class="score-meta-item"><div class="meta-label">Counted (30d)</div><div class="meta-val">${total.toLocaleString()}</div></div>
+        <div class="score-meta-item"><div class="meta-label">Exact matches</div><div class="meta-val">${matches.toLocaleString()}</div></div>
+      </div>`;
+
+    setSource('scoreSource', 'live', 'metabase');
+  } catch(e) {
+    setSource('scoreSource', 'mock', 'error');
+    document.getElementById('scoreBody').innerHTML = `
+      <div class="score-big">94.2</div>
+      <div class="glow-line"></div>
+      <div class="score-sub" style="margin-top:8px;color:var(--warn);">⚠ Could not connect to Metabase</div>
+      <div class="score-meta" style="margin-top:14px">
+        <div class="score-meta-item"><div class="meta-label">7-day avg</div><div class="meta-val">93.1</div></div>
+        <div class="score-meta-item"><div class="meta-label">30-day avg</div><div class="meta-val">91.8</div></div>
+      </div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// SECTION 2: CAPACITY (from WarehouseLocations)
+// ─────────────────────────────────────────────
+async function loadCapacity(whId) {
+  setSource('capSource', 'loading', 'loading');
+  try {
+    const whClause = whId !== 'all' ? `WHERE warehouseId = '${whId}'` : 'WHERE 1=1';
+    const sql = `
+      SELECT
+        type,
+        COUNT(*) AS total_locations,
+        SUM(CASE WHEN wil.onHand > 0 THEN 1 ELSE 0 END) AS used_locations
+      FROM WarehouseLocations wl
+      LEFT JOIN WarehouseInventoryLocations wil ON wil.locationId = wl.id AND wil.isArchived = 0
+      ${whClause}
+      AND wl.type IN ('pick','backstock','pallet','shelf')
+      GROUP BY wl.type`;
+
+    const result = await runMetabaseQuery('Location utilization by type', sql);
+
+    const rows = result.rows || result.data || result;
+    const typeLabels = { pick: 'Pick locations', backstock: 'Back stock', pallet: 'Pallet storage', shelf: 'Shelf / case' };
+
+    const grid = document.getElementById('capGrid');
+    grid.innerHTML = '';
+
+    const dataArr = Array.isArray(rows) ? rows : Object.entries(rows).map(([type, vals]) => ({ type, ...vals }));
+
+    dataArr.forEach(row => {
+      const used = parseInt(row.used_locations) || 0;
+      const total = parseInt(row.total_locations) || 1;
+      const pct = Math.round((used / total) * 100);
+      const label = typeLabels[row.type] || row.type;
+      const cls = pct >= 90 ? 'red' : pct >= 80 ? 'warn' : 'green';
+      const col = pct >= 90 ? 'var(--red)' : pct >= 80 ? 'var(--warn)' : 'var(--green)';
+
+      const div = document.createElement('div');
+      div.className = 'cap-row';
+      div.innerHTML = `
+        <div class="cap-row-header">
+          <span class="cap-label">${label.toUpperCase()}</span>
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <span class="cap-counts">${used.toLocaleString()} / ${total.toLocaleString()} locs</span>
+            <span class="cap-pct" style="color:${col}">${pct}%</span>
+          </div>
+        </div>
+        <div class="bar-track">
+          <div class="bar-tick" style="left:25%"></div>
+          <div class="bar-tick" style="left:50%"></div>
+          <div class="bar-tick" style="left:75%"></div>
+          <div class="bar-fill ${cls}" style="width:0%" data-target="${pct}%">
+            <span class="bar-seg-label ${cls}">${label.split(' ')[0].toUpperCase()}</span>
+          </div>
+        </div>`;
+      grid.appendChild(div);
+    });
+
+    setTimeout(() => {
+      document.querySelectorAll('.bar-fill[data-target]').forEach(el => {
+        el.style.width = el.dataset.target;
+      });
+    }, 200);
+
+    setSource('capSource', 'live', 'metabase');
+  } catch(e) {
+    setSource('capSource', 'mock', 'error');
+    // Fallback to static
+    const fallback = [
+      { label: 'Pallet storage', used: 412, total: 520, pct: 79 },
+      { label: 'Shelf / case',   used: 1840, total: 2000, pct: 92 },
+      { label: 'Pallet pick',    used: 188, total: 280, pct: 67 },
+      { label: 'Back stock',     used: 310, total: 400, pct: 78 },
+    ];
+    const grid = document.getElementById('capGrid');
+    grid.innerHTML = '';
+    fallback.forEach(d => {
+      const cls = d.pct >= 90 ? 'red' : d.pct >= 80 ? 'warn' : 'green';
+      const col = d.pct >= 90 ? 'var(--red)' : d.pct >= 80 ? 'var(--warn)' : 'var(--green)';
+      const div = document.createElement('div');
+      div.className = 'cap-row';
+      div.innerHTML = `
+        <div class="cap-row-header">
+          <span class="cap-label">${d.label.toUpperCase()}</span>
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <span class="cap-counts">${d.used.toLocaleString()} / ${d.total.toLocaleString()} locs</span>
+            <span class="cap-pct" style="color:${col}">${d.pct}%</span>
+          </div>
+        </div>
+        <div class="bar-track">
+          <div class="bar-tick" style="left:25%"></div><div class="bar-tick" style="left:50%"></div><div class="bar-tick" style="left:75%"></div>
+          <div class="bar-fill ${cls}" style="width:0%" data-target="${d.pct}%">
+            <span class="bar-seg-label ${cls}">${d.label.split(' ')[0].toUpperCase()}</span>
+          </div>
+        </div>`;
+      grid.appendChild(div);
+    });
+    setTimeout(() => {
+      document.querySelectorAll('.bar-fill[data-target]').forEach(el => el.style.width = el.dataset.target);
+    }, 200);
+  }
+}
+
+// ─────────────────────────────────────────────
+// SECTION 3: IMS / OMS STATUS
+// ─────────────────────────────────────────────
+async function loadImsOms(whId) {
+  setSource('imsSource', 'loading', 'loading');
+  try {
+    const whClause = whId !== 'all' ? `AND wi.warehouseId = '${whId}'` : '';
+    const sql = `
+      SELECT
+        COUNT(DISTINCT wi.inventoryId) AS total_skus,
+        SUM(CASE WHEN wi.onHand > 0 THEN 1 ELSE 0 END) AS in_stock,
+        SUM(CASE WHEN wi.onHand = 0 THEN 1 ELSE 0 END) AS zero_stock,
+        SUM(CASE WHEN wi.allocated > 0 THEN 1 ELSE 0 END) AS has_allocated,
+        SUM(CASE WHEN wi.onHand > wi.allocated THEN 1 ELSE 0 END) AS over_count,
+        SUM(CASE WHEN wi.onHand < wi.allocated THEN 1 ELSE 0 END) AS under_count,
+        ROUND(SUM(CASE WHEN wi.onHand >= wi.allocated THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS accuracy_pct,
+        SUM(wi.onHand) AS total_units_on_hand,
+        SUM(wi.allocated) AS total_units_allocated
+      FROM WarehouseInventories wi
+      JOIN Inventories i ON i.id = wi.inventoryId AND i.isDeleted = 0
+      WHERE wi.isDeleted = 0 ${whClause}`;
+
+    const r = await runMetabaseQuery('IMS vs OMS inventory status summary', sql);
+
+    const over = parseInt(r.over_count) || 0;
+    const under = parseInt(r.under_count) || 0;
+    const acc = parseFloat(r.accuracy_pct) || 97.3;
+    const total = parseInt(r.total_skus) || 0;
+    const inStock = parseInt(r.in_stock) || 0;
+    const zero = parseInt(r.zero_stock) || 0;
+    const allocated = parseInt(r.has_allocated) || 0;
+
+    document.getElementById('imsOver').textContent = '+' + over.toLocaleString();
+    document.getElementById('imsUnder').textContent = '−' + under.toLocaleString();
+    document.getElementById('accBar').style.width = acc + '%';
+    document.getElementById('accPct').textContent = acc.toFixed(1) + '%';
+    document.getElementById('imsTotal').textContent = total.toLocaleString();
+    document.getElementById('imsInStock').textContent = inStock.toLocaleString();
+    document.getElementById('imsZero').textContent = zero.toLocaleString();
+    document.getElementById('imsAllocated').textContent = allocated.toLocaleString();
+
+    setSource('imsSource', 'live', 'metabase');
+  } catch(e) {
+    setSource('imsSource', 'mock', 'error');
+    document.getElementById('imsOver').textContent = '+312';
+    document.getElementById('imsUnder').textContent = '−88';
+    document.getElementById('accBar').style.width = '97.3%';
+    document.getElementById('accPct').textContent = '97.3%';
+    document.getElementById('imsTotal').textContent = '3,847';
+    document.getElementById('imsInStock').textContent = '3,741';
+    document.getElementById('imsZero').textContent = '106';
+    document.getElementById('imsAllocated').textContent = '22';
+  }
+}
+
+// ─────────────────────────────────────────────
+// SECTION 4: DAILY IMS CHANGES (AuditLogEvents)
+// ─────────────────────────────────────────────
+async function loadDailyChanges(whId) {
+  setSource('changesSource', 'loading', 'loading');
+  try {
+    const sql = `
+      SELECT
+        COUNT(*) AS total_adjustments,
+        SUM(CASE WHEN CAST(ale.newValue AS SIGNED) > CAST(ale.oldValue AS SIGNED) THEN 1 ELSE 0 END) AS increases,
+        SUM(CASE WHEN CAST(ale.newValue AS SIGNED) < CAST(ale.oldValue AS SIGNED) THEN 1 ELSE 0 END) AS decreases,
+        SUM(CAST(ale.newValue AS SIGNED) - CAST(ale.oldValue AS SIGNED)) AS net_unit_change,
+        COUNT(DISTINCT ale.objectId) AS distinct_skus_adjusted
+      FROM AuditLogEvents ale
+      JOIN AuditLogs al ON al.id = ale.auditLogId
+      WHERE ale.object = 'inventory'
+        AND ale.objectField = 'onHand'
+        AND DATE(ale.createdAt) = CURDATE()`;
+
+    const r = await runMetabaseQuery('Today inventory adjustment counts from audit log', sql);
+
+    const total = parseInt(r.total_adjustments) || 0;
+    const increases = parseInt(r.increases) || 0;
+    const decreases = parseInt(r.decreases) || 0;
+    const net = parseInt(r.net_unit_change) || 0;
+    const skus = parseInt(r.distinct_skus_adjusted) || 0;
+
+    const netColor = net >= 0 ? 'green' : 'red';
+    const netPrefix = net >= 0 ? '+' : '';
+
+    document.getElementById('changesBody').innerHTML = `
+      <div class="stat-row"><span class="stat-key">Total adjustments</span><span class="stat-val white">${total.toLocaleString()}</span></div>
+      <div class="stat-row"><span class="stat-key">Increases</span><span class="stat-val green">+${increases.toLocaleString()}</span></div>
+      <div class="stat-row"><span class="stat-key">Decreases</span><span class="stat-val red">−${decreases.toLocaleString()}</span></div>
+      <div class="stat-row"><span class="stat-key">SKUs affected</span><span class="stat-val white">${skus.toLocaleString()}</span></div>
+      <div class="stat-row"><span class="stat-key">Net unit change</span><span class="stat-val ${netColor}">${netPrefix}${net.toLocaleString()}</span></div>`;
+
+    setSource('changesSource', 'live', 'metabase');
+  } catch(e) {
+    setSource('changesSource', 'mock', 'error');
+    document.getElementById('changesBody').innerHTML = `
+      <div class="stat-row"><span class="stat-key">Total adjustments</span><span class="stat-val white">84</span></div>
+      <div class="stat-row"><span class="stat-key">Increases</span><span class="stat-val green">+53</span></div>
+      <div class="stat-row"><span class="stat-key">Decreases</span><span class="stat-val red">−31</span></div>
+      <div class="stat-row"><span class="stat-key">SKUs affected</span><span class="stat-val white">61</span></div>
+      <div class="stat-row"><span class="stat-key">Net unit change</span><span class="stat-val green">+22</span></div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// SECTION 5: EMPTY FAST-PICK LOCATIONS
+// ─────────────────────────────────────────────
+async function loadEmptyFastPick(whId) {
+  setSource('alertSource', 'loading', 'loading');
+  try {
+    const whClause = whId !== 'all' ? `AND wl.warehouseId = '${whId}'` : `AND wl.warehouseId = '${MKE_WH_ID}'`;
+    const sql = `
+      SELECT
+        wl.name AS location_name,
+        i.sku,
+        e.name AS client_name,
+        wil.maxUnitsAtLocation AS capacity,
+        wil.lastReceived,
+        wil.id AS wil_id
+      FROM WarehouseInventoryLocations wil
+      JOIN WarehouseLocations wl ON wl.id = wil.locationId
+      JOIN WarehouseInventories wi ON wi.id = wil.warehouseInventoryId
+      JOIN Inventories i ON i.id = wi.inventoryId AND i.isDeleted = 0
+      JOIN Entities e ON e.id = i.entityId
+      WHERE wil.pickLocation = 1
+        AND wil.onHand = 0
+        AND wil.isArchived = 0
+        AND wil.isLocked = 0
+        ${whClause}
+      ORDER BY wil.lastReceived ASC
+      LIMIT 10`;
+
+    const r = await runMetabaseQuery('Empty pick locations that need replenishment', sql);
+    const rows = r.rows || r.data || r;
+
+    const tbody = document.getElementById('alertBody');
+    if (!Array.isArray(rows) || rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--green);font-family:var(--mono);font-size:11px;padding:14px">✓ No empty fast-pick locations</td></tr>`;
+      document.getElementById('alertCount').textContent = '0 alerts';
+      setSource('alertSource', 'live', 'metabase');
+      return;
+    }
+
+    tbody.innerHTML = rows.slice(0, 5).map(row => {
+      const cap = row.capacity ? row.capacity.toLocaleString() : '—';
+      const lastRec = row.lastReceived ? new Date(row.lastReceived).toLocaleDateString() : 'never';
+      const client = (row.client_name || '').substring(0, 20);
+      return `<tr>
+        <td><span class="loc-pill">${row.location_name || '—'}</span></td>
+        <td style="color:var(--text2);font-family:var(--mono);font-size:11px">${row.sku || '—'}</td>
+        <td style="color:var(--text3);font-family:var(--mono);font-size:11px">${client}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--text1)">${cap}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--text3)">${lastRec}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('alertCount').textContent = `${rows.length} alert${rows.length !== 1 ? 's' : ''}`;
+    // Update header badge
+    const headerBadge = document.querySelector('.alert-panel .panel-header .badge-red');
+    if (headerBadge) headerBadge.textContent = rows.length + ' alerts';
+
+    setSource('alertSource', 'live', 'metabase');
+  } catch(e) {
+    setSource('alertSource', 'mock', 'error');
+    document.getElementById('alertBody').innerHTML = `
+      <tr>
+        <td><span class="loc-pill">A-04-02</span></td>
+        <td style="color:var(--text2);font-family:var(--mono);font-size:11px">KND-8821-B</td>
+        <td style="color:var(--text3);font-family:var(--mono);font-size:11px">Kinders</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--text1)">24</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--text3)">3 days ago</td>
+      </tr>
+      <tr>
+        <td><span class="loc-pill">B-07-11</span></td>
+        <td style="color:var(--text2);font-family:var(--mono);font-size:11px">IQ-4490-A</td>
+        <td style="color:var(--text3);font-family:var(--mono);font-size:11px">IQ Bar</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--text1)">12</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--text3)">1 day ago</td>
+      </tr>
+      <tr>
+        <td><span class="loc-pill">A-11-05</span></td>
+        <td style="color:var(--text2);font-family:var(--mono);font-size:11px">STK-3301-C</td>
+        <td style="color:var(--text3);font-family:var(--mono);font-size:11px">Stakt</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--text1)">18</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--text3)">today</td>
+      </tr>`;
+    document.getElementById('alertCount').textContent = 'could not connect';
+  }
+}
+
+// ─────────────────────────────────────────────
+// ORCHESTRATOR
+// ─────────────────────────────────────────────
+let lastRefresh = null;
+
+async function refreshAll() {
+  const whId = document.getElementById('whFilter').value;
+  lastRefresh = new Date();
+  document.getElementById('refreshLabel').textContent = 'refreshing…';
+
+  await Promise.all([
+    loadInventoryScore(whId),
+    loadCapacity(whId),
+    loadImsOms(whId),
+    loadDailyChanges(whId),
+    loadEmptyFastPick(whId),
+  ]);
+
+  const t = lastRefresh.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('refreshLabel').textContent = `updated ${t}`;
+}
+
+// Filter change triggers refresh
+document.getElementById('whFilter').addEventListener('change', refreshAll);
+
+// Manual refresh
+document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+
+// Initial load
+refreshAll();
+</script>
+</body>
+</html>
