@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atomix IMS Dashboard</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3347;
+    --accent: #4f8ef7;
+    --accent2: #7c5cfc;
+    --green: #22c55e;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  header h1 span { color: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .last-updated { font-size: 11px; color: var(--muted); }
+  .refresh-btn {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity .2s;
+  }
+  .refresh-btn:hover { opacity: .85; }
+  .refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .wh-selector {
+    display: flex; gap: 6px; padding: 12px 24px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  .wh-btn {
+    padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; transition: all .2s;
+  }
+  .wh-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; position: relative; overflow: hidden;
+  }
+  .card.wide { grid-column: span 2; }
+  .card.full { grid-column: span 3; }
+
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  }
+  .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); }
+  .source-badge {
+    font-size: 9px; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: .5px;
+  }
+  .source-badge.live { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+  .source-badge.error { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+  .source-badge.loading { background: rgba(79,142,247,.15); color: var(--accent); border: 1px solid rgba(79,142,247,.3); }
+
+  /* Score card */
+  .score-ring { display: flex; align-items: center; gap: 20px; }
+  .ring-wrap { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-val {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+  }
+  .ring-val .big { font-size: 22px; font-weight: 800; }
+  .ring-val .label { font-size: 9px; color: var(--muted); font-weight: 600; }
+  .score-meta { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .meta-row { display: flex; justify-content: space-between; font-size: 12px; }
+  .meta-row .key { color: var(--muted); }
+  .meta-row .val { font-weight: 600; }
+
+  /* Stat pairs */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-box { background: var(--surface2); border-radius: 8px; padding: 14px; }
+  .stat-box .s-val { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .stat-box .s-key { font-size: 11px; color: var(--muted); }
+  .stat-box .s-sub { font-size: 11px; margin-top: 4px; }
+
+  /* Capacity bars */
+  .cap-list { display: flex; flex-direction: column; gap: 10px; }
+  .cap-row { }
+  .cap-row-header { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; }
+  .cap-row-header .type { text-transform: capitalize; }
+  .cap-row-header .pct { font-weight: 700; }
+  .bar-track { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+  .bar-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  /* IMS status */
+  .ims-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .ims-box { background: var(--surface2); border-radius: 8px; padding: 12px; text-align: center; }
+  .ims-box .i-val { font-size: 26px; font-weight: 800; }
+  .ims-box .i-key { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* Change log */
+  .change-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .change-box { background: var(--surface2); border-radius: 8px; padding: 14px; }
+  .change-box .c-val { font-size: 26px; font-weight: 800; }
+  .change-box .c-key { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    text-align: left; padding: 8px 12px; font-size: 10px; text-transform: uppercase;
+    letter-spacing: .6px; color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  tbody tr { border-bottom: 1px solid rgba(46,51,71,.5); transition: background .15s; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 10px 12px; }
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700;
+  }
+  .pill-red { background: rgba(239,68,68,.15); color: var(--red); }
+  .pill-yellow { background: rgba(245,158,11,.15); color: var(--yellow); }
+
+  /* Loading spinner */
+  .loading-state {
+    display: flex; align-items: center; justify-content: center; padding: 30px;
+    color: var(--muted); font-size: 12px; gap: 8px;
+  }
+  .spinner {
+    width: 16px; height: 16px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-state {
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    color: var(--red); font-size: 12px; flex-direction: column; gap: 6px; text-align: center;
+  }
+  .error-state small { color: var(--muted); font-size: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Atomix <span>IMS</span> Dashboard</h1>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated">—</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<div class="wh-selector">
+  <button class="wh-btn active" onclick="setWarehouse('mke', this)">MKE</button>
+  <button class="wh-btn" onclick="setWarehouse('default', this)">Default</button>
+</div>
+
+<div class="grid">
+
+  <!-- Inventory Score -->
+  <div class="card" id="card-score">
+    <div class="card-header">
+      <span class="card-title">Inventory Score</span>
+      <span class="source-badge loading" id="badge-score">LOADING</span>
+    </div>
+    <div id="content-score">
+      <div class="loading-state"><div class="spinner"></div> Querying Metabase…</div>
+    </div>
+  </div>
+
+  <!-- Capacity -->
+  <div class="card wide" id="card-capacity">
+    <div class="card-header">
+      <span class="card-title">Location Utilization</span>
+      <span class="source-badge loading" id="badge-capacity">LOADING</span>
+    </div>
+    <div id="content-capacity">
+      <div class="loading-state"><div class="spinner"></div> Querying Metabase…</div>
+    </div>
+  </div>
+
+  <!-- IMS / OMS Status -->
+  <div class="card wide" id="card-ims">
+    <div class="card-header">
+      <span class="card-title">IMS · OMS Status</span>
+      <span class="source-badge loading" id="badge-ims">LOADING</span>
+    </div>
+    <div id="content-ims">
+      <div class="loading-state"><div class="spinner"></div> Querying Metabase…</div>
+    </div>
+  </div>
+
+  <!-- Daily Changes -->
+  <div class="card" id="card-changes">
+    <div class="card-header">
+      <span class="card-title">Daily IMS Changes</span>
+      <span class="source-badge loading" id="badge-changes">LOADING</span>
+    </div>
+    <div id="content-changes">
+      <div class="loading-state"><div class="spinner"></div> Querying Metabase…</div>
+    </div>
+  </div>
+
+  <!-- Empty Pick Locations -->
+  <div class="card full" id="card-picks">
+    <div class="card-header">
+      <span class="card-title">Empty Fast-Pick Locations</span>
+      <span class="source-badge loading" id="badge-picks">LOADING</span>
+    </div>
+    <div id="content-picks">
+      <div class="loading-state"><div class="spinner"></div> Querying Metabase…</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PROXY = 'https://script.google.com/macros/s/AKfycbyKKJKLbWBnr5ZLLvzJuu6Y7-UXUZ7q3Xr4EWLq2qQT2h8YSQj_0ZfxwLNhoETORqvjJw/exec';
+
+const WAREHOUSES = {
+  mke:     'ccd6a6a3-45a7-4df3-bf6e-2ff77dc8a15f',
+  default: '373aac76-a8d1-48af-ad9f-f3f5a5477ca2'
+};
+
+let currentWarehouse = 'mke';
+let DB_ID = 2;
+
+function setWarehouse(key, btn) {
+  document.querySelectorAll('.wh-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentWarehouse = key;
+  loadAll();
+}
+
+function wid() { return WAREHOUSES[currentWarehouse]; }
+
+async function queryMetabase(sql) {
+  const resp = await fetch(PROXY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sql, dbId: DB_ID }),
+    redirect: 'follow'
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const json = await resp.json();
+  if (json.error) throw new Error(json.error);
+  // Metabase format: { data: { rows: [], cols: [] } }
+  const cols = (json.data?.cols || []).map(c => c.name);
+  const rows = (json.data?.rows || []).map(row => {
+    const obj = {};
+    cols.forEach((c, i) => obj[c] = row[i]);
+    return obj;
+  });
+  return rows;
+}
+
+function setBadge(id, state) {
+  const el = document.getElementById('badge-' + id);
+  el.className = 'source-badge ' + state;
+  el.textContent = state === 'live' ? 'LIVE' : state === 'error' ? 'ERROR' : 'LOADING';
+}
+
+// ──────────────────────────────────────────
+// 1. INVENTORY SCORE
+// ──────────────────────────────────────────
+async function loadScore() {
+  try {
+    const sql = `
+      WITH recent_counts AS (
+        SELECT
+          cc.id,
+          cc.countedOnHand,
+          wi.onHand AS actualOnHand
+        FROM CycleCounts cc
+        INNER JOIN WarehouseInventories wi ON wi.id = cc.warehouseInventoryId
+        WHERE cc.warehouseId = '${wid()}'
+          AND cc.isDeleted = 0
+          AND cc.status = 'completed'
+          AND cc.completedAt >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      ),
+      agg AS (
+        SELECT
+          COUNT(*) AS total,
+          SUM(CASE WHEN ABS(countedOnHand - actualOnHand) = 0 THEN 1 ELSE 0 END) AS exact_match,
+          SUM(CASE WHEN ABS(countedOnHand - actualOnHand) <= 1 THEN 1 ELSE 0 END) AS within_one
+        FROM recent_counts
+      )
+      SELECT total, exact_match, within_one,
+        ROUND(exact_match / NULLIF(total, 0) * 100, 1) AS accuracy_pct
+      FROM agg
+    `;
+    const rows = await queryMetabase(sql);
+    const r = rows[0] || {};
+    const pct = parseFloat(r.accuracy_pct) || 0;
+    const color = pct >= 95 ? '#22c55e' : pct >= 85 ? '#f59e0b' : '#ef4444';
+    const circumference = 2 * Math.PI * 40;
+    const offset = circumference * (1 - pct / 100);
+
+    document.getElementById('content-score').innerHTML = `
+      <div class="score-ring">
+        <div class="ring-wrap">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#22263a" stroke-width="10"/>
+            <circle cx="50" cy="50" r="40" fill="none" stroke="${color}" stroke-width="10"
+              stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+              stroke-linecap="round"/>
+          </svg>
+          <div class="ring-val">
+            <span class="big" style="color:${color}">${pct}%</span>
+            <span class="label">ACCURACY</span>
+          </div>
+        </div>
+        <div class="score-meta">
+          <div class="meta-row"><span class="key">Total counts (30d)</span><span class="val">${(r.total||0).toLocaleString()}</span></div>
+          <div class="meta-row"><span class="key">Exact matches</span><span class="val" style="color:var(--green)">${(r.exact_match||0).toLocaleString()}</span></div>
+          <div class="meta-row"><span class="key">Within ±1 unit</span><span class="val" style="color:var(--yellow)">${(r.within_one||0).toLocaleString()}</span></div>
+        </div>
+      </div>
+    `;
+    setBadge('score', 'live');
+  } catch(e) {
+    document.getElementById('content-score').innerHTML = `<div class="error-state">⚠ ${e.message}<small>Check proxy or DB ID</small></div>`;
+    setBadge('score', 'error');
+  }
+}
+
+// ──────────────────────────────────────────
+// 2. CAPACITY / LOCATION UTILIZATION
+// ──────────────────────────────────────────
+async function loadCapacity() {
+  try {
+    const sql = `
+      WITH loc_totals AS (
+        SELECT \`type\`, COUNT(*) AS total_locs
+        FROM WarehouseLocations
+        WHERE warehouseId = '${wid()}'
+          AND isArchived = 0
+        GROUP BY \`type\`
+      ),
+      used_locs AS (
+        SELECT wl.\`type\`, COUNT(DISTINCT wil.warehouseLocationId) AS used_locs
+        FROM WarehouseInventoryLocations wil
+        INNER JOIN WarehouseLocations wl ON wl.id = wil.warehouseLocationId
+        WHERE wl.warehouseId = '${wid()}'
+          AND wl.isArchived = 0
+          AND wil.isArchived = 0
+          AND wil.onHand > 0
+        GROUP BY wl.\`type\`
+      )
+      SELECT lt.\`type\`, lt.total_locs, COALESCE(ul.used_locs, 0) AS used_locs,
+        ROUND(COALESCE(ul.used_locs, 0) / lt.total_locs * 100, 1) AS utilization_pct
+      FROM loc_totals lt
+      LEFT JOIN used_locs ul ON ul.\`type\` = lt.\`type\`
+      ORDER BY lt.total_locs DESC
+    `;
+    const rows = await queryMetabase(sql);
+
+    const barColor = (pct) => pct >= 90 ? '#ef4444' : pct >= 75 ? '#f59e0b' : '#4f8ef7';
+
+    const bars = rows.map(r => {
+      const pct = parseFloat(r.utilization_pct) || 0;
+      return `
+        <div class="cap-row">
+          <div class="cap-row-header">
+            <span class="type">${r.type || 'Unknown'}</span>
+            <span class="pct" style="color:${barColor(pct)}">${pct}%</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${pct}%; background:${barColor(pct)}"></div>
+          </div>
+          <div class="bar-sub">${(r.used_locs||0).toLocaleString()} / ${(r.total_locs||0).toLocaleString()} locations used</div>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('content-capacity').innerHTML = `<div class="cap-list">${bars || '<div class="error-state">No location data found</div>'}</div>`;
+    setBadge('capacity', 'live');
+  } catch(e) {
+    document.getElementById('content-capacity').innerHTML = `<div class="error-state">⚠ ${e.message}<small>Check proxy or DB ID</small></div>`;
+    setBadge('capacity', 'error');
+  }
+}
+
+// ──────────────────────────────────────────
+// 3. IMS / OMS STATUS
+// ──────────────────────────────────────────
+async function loadIMS() {
+  try {
+    const sql = `
+      WITH wi_agg AS (
+        SELECT
+          COUNT(*) AS total_skus,
+          SUM(CASE WHEN onHand > allocated THEN 1 ELSE 0 END) AS over_count,
+          SUM(CASE WHEN onHand < allocated THEN 1 ELSE 0 END) AS under_count,
+          SUM(CASE WHEN onHand = 0 THEN 1 ELSE 0 END) AS zero_stock,
+          SUM(CASE WHEN onHand = allocated THEN 1 ELSE 0 END) AS exact_match
+        FROM WarehouseInventories
+        WHERE warehouseId = '${wid()}'
+          AND isDeleted = 0
+      )
+      SELECT total_skus, over_count, under_count, zero_stock, exact_match,
+        ROUND(exact_match / NULLIF(total_skus, 0) * 100, 1) AS accuracy_pct
+      FROM wi_agg
+    `;
+    const rows = await queryMetabase(sql);
+    const r = rows[0] || {};
+
+    document.getElementById('content-ims').innerHTML = `
+      <div class="ims-grid">
+        <div class="ims-box">
+          <div class="i-val">${(r.total_skus||0).toLocaleString()}</div>
+          <div class="i-key">Total SKUs</div>
+        </div>
+        <div class="ims-box">
+          <div class="i-val" style="color:var(--green)">${(r.exact_match||0).toLocaleString()}</div>
+          <div class="i-key">IMS = OMS ✓</div>
+        </div>
+        <div class="ims-box">
+          <div class="i-val" style="color:var(--accent)">${r.accuracy_pct||0}%</div>
+          <div class="i-key">Match Rate</div>
+        </div>
+        <div class="ims-box">
+          <div class="i-val" style="color:var(--yellow)">${(r.over_count||0).toLocaleString()}</div>
+          <div class="i-key">IMS Over</div>
+        </div>
+        <div class="ims-box">
+          <div class="i-val" style="color:var(--red)">${(r.under_count||0).toLocaleString()}</div>
+          <div class="i-key">IMS Under</div>
+        </div>
+        <div class="ims-box">
+          <div class="i-val" style="color:var(--muted)">${(r.zero_stock||0).toLocaleString()}</div>
+          <div class="i-key">Zero Stock</div>
+        </div>
+      </div>
+    `;
+    setBadge('ims', 'live');
+  } catch(e) {
+    document.getElementById('content-ims').innerHTML = `<div class="error-state">⚠ ${e.message}<small>Check proxy or DB ID</small></div>`;
+    setBadge('ims', 'error');
+  }
+}
+
+// ──────────────────────────────────────────
+// 4. DAILY IMS CHANGES
+// ──────────────────────────────────────────
+async function loadChanges() {
+  try {
+    const sql = `
+      WITH today_events AS (
+        SELECT
+          objectAction,
+          CAST(newValue AS SIGNED) AS new_val,
+          CAST(oldValue AS SIGNED) AS old_val
+        FROM AuditLogEvents
+        WHERE object = 'WarehouseInventory'
+          AND fieldName = 'onHand'
+          AND DATE(createdAt) = CURDATE()
+      ),
+      agg AS (
+        SELECT
+          COUNT(*) AS total_adjustments,
+          SUM(CASE WHEN new_val > old_val THEN 1 ELSE 0 END) AS increases,
+          SUM(CASE WHEN new_val < old_val THEN 1 ELSE 0 END) AS decreases,
+          SUM(new_val - old_val) AS net_units
+        FROM today_events
+      )
+      SELECT total_adjustments, increases, decreases, net_units FROM agg
+    `;
+    const rows = await queryMetabase(sql);
+    const r = rows[0] || {};
+    const net = parseInt(r.net_units) || 0;
+    const netColor = net > 0 ? 'var(--green)' : net < 0 ? 'var(--red)' : 'var(--muted)';
+    const netPrefix = net > 0 ? '+' : '';
+
+    document.getElementById('content-changes').innerHTML = `
+      <div class="change-grid">
+        <div class="change-box">
+          <div class="c-val">${(r.total_adjustments||0).toLocaleString()}</div>
+          <div class="c-key">Adjustments Today</div>
+        </div>
+        <div class="change-box">
+          <div class="c-val" style="color:${netColor}">${netPrefix}${net.toLocaleString()}</div>
+          <div class="c-key">Net Units</div>
+        </div>
+        <div class="change-box">
+          <div class="c-val" style="color:var(--green)">$x(r.increases||0).toLocaleString()}</div>
+          <div class="c-key">Increases</div>
+        </div>
+      </div>
+    `;
+    setBadge('changes', 'live');
+  } catch(e) {
+    document.getElementById('content-changes').innerHTML = `<div class="error-state">⚠ ${e.message}<small>Check proxy or DB ID</small></div>`;
+    setBadge('changes', 'error');
+  }
+}
+
+// ──────────────────────────────────────────
+// 5. EMPTY FAST-PICK LOCATIONS
+// ──────────────────────────────────────────
+async function loadPicks() {
+  try {
+    const sql = `
+      WITH empty_picks AS (
+        SELECT
+          wl.name AS location_name,
+          wl.\`type\`,
+          i.sku,
+          wi.onHand,
+          wil.updatedAt AS last_activity
+        FROM WarehouseInventoryLocations wil
+        INNER JOIN WarehouseLocations wl ON wl.id = wil.warehouseLocationId
+        INNER JOIN WarehouseInventories wi ON wi.id = wil.warehouseInventoryId
+        INNER JOIN Inventories i ON i.id = wi.inventoryId
+        WHERE wl.warehouseId = '${wid()}'
+          AND wl.isArchived = 0
+          AND wl.\`type\` = 'pick'
+          AND wil.isArchived = 0
+          AND wil.onHand = 0
+          AND wi.isDeleted = 0
+          AND i.isDeleted = 0
+        ORDER BY last_activity ASC
+        LIMIT 25
+      )
+      SELECT * FROM empty_picks
+    `;
+    const rows = await queryMetabase(sql);
+
+    if (!rows.length) {
+      document.getElementById('content-picks').innerHTML = `
+        <div style="text-align:center; padding:20px; color:var(--green); font-weight:700;">
+          ✓ No empty fast-pick locations
+        </div>
+      `;
+    } else {
+      const urgency = (ts) => {
+        if (!ts) return '';
+        const hours = (Date.now() - new Date(ts).getTime()) / 36e5;
+        if (hours > 24) return '<span class="pill pill-red">24h+</span>';
+        if (hours > 8)  return '<span class="pill pill-yellow">8h+</span>';
+        return '';
+      };
+      const rows_html = rows.map(r => `
+        <tr>
+          <td><strong>${r.location_name || '—'}</strong></td>
+          <td>${r.sku || '—'}</td>
+          <td style="color:var(--red); font-weight:700">0</td>
+          <td>${urgency(r.last_activity) || formatTime(r.last_activity)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('content-picks').innerHTML = `
+        <table>
+          <thead><tr><th>Location</th><th>SKU</th><th>On Hand</th><th>Last Activity</th></tr></thead>
+          <tbody>${rows_html}</tbody>
+        </table>
+      `;
+    }
+    setBadge('picks', 'live');
+  } catch(e) {
+    document.getElementById('content-picks').innerHTML = `<div class="error-state">⚠ ${e.message}<small>Check proxy or DB ID</small></div>`;
+    setBadge('picks', 'error');
+  }
+}
+
+function formatTime(ts) {
+  if (!ts) return '—';
+  return new Date(ts).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+async function loadAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = '↻ Loading…';
+
+  // Reset all to loading
+  ['score','capacity','ims','changes','picks'].forEach(id => {
+    setBadge(id, 'loading');
+    document.getElementById('content-' + id).innerHTML = '<div class="loading-state"><div class="spinner"></div> Querying Metabase…</div>';
+  });
+
+  await Promise.allSettled([
+    loadScore(),
+    loadCapacity(),
+    loadIMS(),
+    loadChanges(),
+    loadPicks()
+  ]);
+
+  const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('lastUpdated').textContent = `Updated ${now}`;
+  btn.disabled = false;
+  btn.textContent = '↻ Refresh';
+}
+
+// Auto-load on page open
+loadAll();
+</script>
+</body>
+</html>
