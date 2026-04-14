@@ -1,64 +1,66 @@
 {
-  "last_updated": "Apr 13, 2026 at 09:43 AM",
-  "date": "2026-04-12",
+  "last_updated": "Apr 14, 2026 at 09:28 AM",
+  "date": "2026-04-13",
   "tabs": {
     "CX": {
-      "total_open": 11,
-      "high": 3,
-      "medium": 5,
-      "wins": 2,
+      "total_open": 20,
+      "high": 7,
+      "medium": 10,
+      "wins": 3,
       "recent": [
-        "Order 13689 — Carrier fake-signed delivery drop-off; customer hasn't received pa",
-        "Stakt client requested order cancellation; customer reached out to Kayla Ford an",
-        "ZhenNymph celebrates 2-year anniversary as an Atomix client"
+        "Sirlin Games — Offboarding in progress (Ticket 88914009); separate billing/mapping/packaging issues",
+        "Freja — Multiple orders need claims filed; Alejandro flagged need for more time to work through claim file",
+        "CX Team Wins (Alejandro) — Updated all client tickets, helped team, created REPL/reships for Lights Lacquer"
       ]
     },
     "Operations": {
-      "total_open": 14,
-      "high": 1,
-      "medium": 10,
+      "total_open": 22,
+      "high": 4,
+      "medium": 15,
       "wins": 2,
       "recent": [
-        "SLA BREACH — 145 orders with Ship By Date older than 1 day require immediate att",
-        "Order 14051 — Puerto Rico address verification; Denis confirmed ATOMIX address m",
-        "Order 14199 — PSC/APO order flagged by Denis; tagged Deja Williams and Alejandro"
+        "Norman emergency — Norman left early (personal emergency); all carrier pickups arrived at 3:45 PM; pushed to next day",
+        "Blumaan — B2B invoices Invoice-2427-2 and Invoice-2509; Norman asking whether orders can be cancelled or kept on hold",
+        "CleverPup → Pet Supplies Plus — SPS trading partner add needed (SPS Commerce); Patrick OOO, Kayla confirming"
       ]
     },
     "Finance": {
-      "total_open": 1,
+      "total_open": 4,
       "high": 0,
-      "medium": 1,
+      "medium": 4,
       "wins": 0,
       "recent": [
-        "A&J Pallets invoices unpaid — Drake forwarded pallet company invoices to AP, Mit"
+        "A&J Pallets invoices unpaid — Drake forwarded pallet company invoices to AP, Mitchell Harris, and Patrick Day",
+        "Sirlin Games — Ongoing billing disputes and mapping/packaging issues on old intercom (Tickets 70799892, 67693905)",
+        "Blumaan — Norman requesting hold or cancel on B2B invoices Invoice-2427-2 and Invoice-2509; financial impact TBD"
       ]
     },
     "Tech": {
-      "total_open": 3,
-      "high": 2,
-      "medium": 0,
+      "total_open": 6,
+      "high": 4,
+      "medium": 1,
       "wins": 1,
       "recent": [
-        "Metabase — 50+ repeated unauthorized login alerts all day from unknown device in",
-        "Metabase — Multiple unauthorized login alerts from unknown device in North Carol",
-        "RetailReady (RR) outage — System went down ~18:27; resolved by 19:35; Annie Robi"
+        "Metabase — 50+ repeated unauthorized login alerts all day from unknown device in North Carolina (issue ongoing)",
+        "Metabase — 12+ repeated new login alerts from unknown device (type unknown/unknown) in North Carolina throughout the day",
+        "Google Apps Script \"In building errors\" — Automated script failed to finish successfully; failure summary emailed"
       ]
     },
     "HR": {
-      "total_open": 3,
+      "total_open": 4,
       "high": 1,
-      "medium": 1,
+      "medium": 2,
       "wins": 0,
       "recent": [
-        "Norman Longshaw planning mid-July vacation; requesting Kody be sent to SLC for a",
-        "Jayvonte — 6 late shifts in past 2 weeks; formal verbal warning issued by Hugh M",
-        "Ricardo W. — Onboarding planning meeting notes created in ClickUp (04/08/2026)"
+        "Jayvonte — 6 late shifts in past 2 weeks; formal verbal warning issued by Hugh Myers; expectations reviewed",
+        "Ricardo W. — Onboarding planning meeting notes created in ClickUp (04/08/2026)",
+        "Norman Longshaw planning mid-July vacation; requesting Kody be sent to SLC for a few days to cover"
       ]
     }
   },
   "totals": {
-    "open": 32,
-    "high": 7,
-    "wins": 5
+    "open": 56,
+    "high": 16,
+    "wins": 6
   }
 }
