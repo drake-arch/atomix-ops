@@ -1,66 +1,66 @@
 {
-  "last_updated": "Apr 14, 2026 at 09:28 AM",
+  "last_updated": "Apr 14, 2026 at 5:30 PM",
   "date": "2026-04-13",
   "tabs": {
     "CX": {
-      "total_open": 20,
-      "high": 7,
-      "medium": 10,
-      "wins": 3,
+      "total_open": 33,
+      "high": 3,
+      "medium": 9,
+      "wins": 5,
       "recent": [
-        "Sirlin Games — Offboarding in progress (Ticket 88914009); separate billing/mapping/packaging issues",
-        "Freja — Multiple orders need claims filed; Alejandro flagged need for more time to work through claim file",
-        "CX Team Wins (Alejandro) — Updated all client tickets, helped team, created REPL/reships for Lights Lacquer"
+        "Brow Code: Multiple claims approved — billing tickets created. Claim files updated.",
+        "Pirooz: Order atomix-1775496235586 confirmed shipped after being on hold. Client updated.",
+        "Clever Pup: Requesting expedited shipping for B2B order atomix-1775690052558 — shipped via FedEx 2Day (Ticket 90641767)."
       ]
     },
     "Operations": {
-      "total_open": 22,
-      "high": 4,
-      "medium": 15,
-      "wins": 2,
+      "total_open": 37,
+      "high": 1,
+      "medium": 12,
+      "wins": 3,
       "recent": [
-        "Norman emergency — Norman left early (personal emergency); all carrier pickups arrived at 3:45 PM; pushed to next day",
-        "Blumaan — B2B invoices Invoice-2427-2 and Invoice-2509; Norman asking whether orders can be cancelled or kept on hold",
-        "CleverPup → Pet Supplies Plus — SPS trading partner add needed (SPS Commerce); Patrick OOO, Kayla confirming"
+        "Dandylion: Operations resumed — ~170 orders dropped and being processed after hold lifted.",
+        "Ryker: Low inventory of bags reported by ops — client response pending.",
+        "Glumur: New receiving checklist submission received in ClickUp."
       ]
     },
     "Finance": {
-      "total_open": 4,
+      "total_open": 6,
       "high": 0,
-      "medium": 4,
+      "medium": 2,
       "wins": 0,
       "recent": [
-        "A&J Pallets invoices unpaid — Drake forwarded pallet company invoices to AP, Mitchell Harris, and Patrick Day",
-        "Sirlin Games — Ongoing billing disputes and mapping/packaging issues on old intercom (Tickets 70799892, 67693905)",
-        "Blumaan — Norman requesting hold or cancel on B2B invoices Invoice-2427-2 and Invoice-2509; financial impact TBD"
+        "Dailies (client): Billing dispute — all 1lb packages being billed as going via box (12x10x8) instead of padded poly. Bill due today. Credit to be issued.",
+        "Blumaan B2B: Norman requesting cancellation or hold on invoices Invoice-2427-2 and Invoice-2509.",
+        "Blumaan — Norman requesting hold or cancel on B2B invoices Invoice-2427-2 and Invoice-2509; financial impact needs assessment"
       ]
     },
     "Tech": {
-      "total_open": 6,
-      "high": 4,
+      "total_open": 8,
+      "high": 1,
       "medium": 1,
       "wins": 1,
       "recent": [
-        "Metabase — 50+ repeated unauthorized login alerts all day from unknown device in North Carolina (issue ongoing)",
-        "Metabase — 12+ repeated new login alerts from unknown device (type unknown/unknown) in North Carolina throughout the day",
+        "Google Apps Script: \"In building errors\" script failed to complete successfully.",
+        "Metabase: 15+ new login alert emails from unknown device (type unknown) located in North Carolina. Repeated hourly throughout the day.",
         "Google Apps Script \"In building errors\" — Automated script failed to finish successfully; failure summary emailed"
       ]
     },
     "HR": {
       "total_open": 4,
-      "high": 1,
-      "medium": 2,
+      "high": 0,
+      "medium": 0,
       "wins": 0,
       "recent": [
-        "Jayvonte — 6 late shifts in past 2 weeks; formal verbal warning issued by Hugh Myers; expectations reviewed",
+        "Norman Longshaw planning mid-July vacation; requesting Kody be sent to SLC for a few days to cover",
         "Ricardo W. — Onboarding planning meeting notes created in ClickUp (04/08/2026)",
-        "Norman Longshaw planning mid-July vacation; requesting Kody be sent to SLC for a few days to cover"
+        "Jayvonte — 6 late shifts in past 2 weeks; formal verbal warning issued by Hugh Myers; expectations reviewed; failure to improve may result in termination; HR to be notified"
       ]
     }
   },
   "totals": {
-    "open": 56,
-    "high": 16,
-    "wins": 6
+    "open": 88,
+    "high": 5,
+    "wins": 9
   }
 }
