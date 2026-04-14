@@ -1,66 +1,65 @@
 {
-  "last_updated": "Apr 14, 2026 at 5:30 PM",
+  "last_updated": "Apr 14, 2026 at 05:32 PM",
   "date": "2026-04-13",
   "tabs": {
     "CX": {
-      "total_open": 33,
-      "high": 3,
-      "medium": 9,
-      "wins": 5,
+      "total_open": 28,
+      "high": 10,
+      "medium": 15,
+      "wins": 4,
       "recent": [
-        "Brow Code: Multiple claims approved — billing tickets created. Claim files updated.",
-        "Pirooz: Order atomix-1775496235586 confirmed shipped after being on hold. Client updated.",
-        "Clever Pup: Requesting expedited shipping for B2B order atomix-1775690052558 — shipped via FedEx 2Day (Ticket 90641767)."
+        "Freja — Cannot cancel already-shipped orders FNY140835/FNY140869; sensitive return (cash in package) in transit; SKU discrepancy",
+        "Pirooz.co — Urgent hold on Coladidah lots + sample request resolved; order atomix-1775496235586 confirmed shipped",
+        "CleverPup/SPS Commerce — Trading partner add needed for CleverPup>Pet Supplies Plus; Patrick OOO; Kayla responding"
       ]
     },
     "Operations": {
-      "total_open": 37,
-      "high": 1,
-      "medium": 12,
-      "wins": 3,
+      "total_open": 29,
+      "high": 5,
+      "medium": 19,
+      "wins": 2,
       "recent": [
-        "Dandylion: Operations resumed — ~170 orders dropped and being processed after hold lifted.",
-        "Ryker: Low inventory of bags reported by ops — client response pending.",
-        "Glumur: New receiving checklist submission received in ClickUp."
+        "UPS — Required action needed on UPS Ground Saver labels; could affect processing and billing",
+        "Lights Lacquer — New receiving checklist & billing submission via ClickUp",
+        "Glumur — New receiving checklist & billing submission via ClickUp"
       ]
     },
     "Finance": {
-      "total_open": 6,
+      "total_open": 5,
       "high": 0,
-      "medium": 2,
+      "medium": 5,
       "wins": 0,
       "recent": [
-        "Dailies (client): Billing dispute — all 1lb packages being billed as going via box (12x10x8) instead of padded poly. Bill due today. Credit to be issued.",
-        "Blumaan B2B: Norman requesting cancellation or hold on invoices Invoice-2427-2 and Invoice-2509.",
-        "Blumaan — Norman requesting hold or cancel on B2B invoices Invoice-2427-2 and Invoice-2509; financial impact needs assessment"
+        "Blumaan — Norman asking if B2B invoices Invoice-2427-2 and Invoice-2509 can be cancelled or kept on hold",
+        "Dailies client — 1lb packages incorrectly billed as box shipments (12x10x8 rate) but shipped via padded poly; credit needed"
       ]
     },
     "Tech": {
       "total_open": 8,
-      "high": 1,
-      "medium": 1,
+      "high": 5,
+      "medium": 2,
       "wins": 1,
       "recent": [
-        "Google Apps Script: \"In building errors\" script failed to complete successfully.",
-        "Metabase: 15+ new login alert emails from unknown device (type unknown) located in North Carolina. Repeated hourly throughout the day.",
-        "Google Apps Script \"In building errors\" — Automated script failed to finish successfully; failure summary emailed"
+        "Metabase — 15+ repeated unauthorized login alerts from unknown device in North Carolina throughout the day",
+        "Google Apps Script 'In building errors' — script failed to finish successfully; needs diagnosis",
+        "SLA Management — 'Create shipment' button greyed out on orders in processing status"
       ]
     },
     "HR": {
-      "total_open": 4,
-      "high": 0,
-      "medium": 0,
+      "total_open": 3,
+      "high": 1,
+      "medium": 1,
       "wins": 0,
       "recent": [
-        "Norman Longshaw planning mid-July vacation; requesting Kody be sent to SLC for a few days to cover",
+        "Jayvonte — 6 late shifts in past 2 weeks; formal verbal warning issued by Hugh Myers",
         "Ricardo W. — Onboarding planning meeting notes created in ClickUp (04/08/2026)",
-        "Jayvonte — 6 late shifts in past 2 weeks; formal verbal warning issued by Hugh Myers; expectations reviewed; failure to improve may result in termination; HR to be notified"
+        "Norman Longshaw planning mid-July vacation; requesting Kody be sent to SLC for coverage"
       ]
     }
   },
   "totals": {
-    "open": 88,
-    "high": 5,
-    "wins": 9
+    "open": 73,
+    "high": 21,
+    "wins": 7
   }
 }
