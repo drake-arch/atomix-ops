@@ -1,65 +1,66 @@
 {
-  "last_updated": "Apr 14, 2026 at 05:32 PM",
-  "date": "2026-04-13",
+  "last_updated": "Apr 15, 2026 at 12:04 PM",
+  "date": "2026-04-14",
   "tabs": {
     "CX": {
-      "total_open": 28,
-      "high": 10,
-      "medium": 15,
-      "wins": 4,
+      "total_open": 38,
+      "high": 12,
+      "medium": 22,
+      "wins": 6,
       "recent": [
-        "Freja — Cannot cancel already-shipped orders FNY140835/FNY140869; sensitive return (cash in package) in transit; SKU discrepancy",
-        "Pirooz.co — Urgent hold on Coladidah lots + sample request resolved; order atomix-1775496235586 confirmed shipped",
-        "CleverPup/SPS Commerce — Trading partner add needed for CleverPup>Pet Supplies Plus; Patrick OOO; Kayla responding"
+        "WIN — Kinders claim for missing items during transit approved",
+        "WIN — Sl'eau client onboarding complete; profile setup finished by Zainab",
+        "Freja — Multiple pending claims need to be filed; insufficient time flagged by CX"
       ]
     },
     "Operations": {
-      "total_open": 29,
-      "high": 5,
-      "medium": 19,
-      "wins": 2,
+      "total_open": 36,
+      "high": 6,
+      "medium": 22,
+      "wins": 3,
       "recent": [
-        "UPS — Required action needed on UPS Ground Saver labels; could affect processing and billing",
-        "Lights Lacquer — New receiving checklist & billing submission via ClickUp",
-        "Glumur — New receiving checklist & billing submission via ClickUp"
+        "New inbound sales lead — Charles Uwaje / Fortis Express Enterprises; intro call 4/22",
+        "Guardrail & epoxy floor quote review — Austin flagging costs as high; seeking alternate vendors",
+        "Yes Equipment — Following up on Preventative Maintenance; awaiting Atomix response"
       ]
     },
     "Finance": {
-      "total_open": 5,
-      "high": 0,
-      "medium": 5,
+      "total_open": 8,
+      "high": 1,
+      "medium": 6,
       "wins": 0,
       "recent": [
-        "Blumaan — Norman asking if B2B invoices Invoice-2427-2 and Invoice-2509 can be cancelled or kept on hold",
-        "Dailies client — 1lb packages incorrectly billed as box shipments (12x10x8 rate) but shipped via padded poly; credit needed"
+        "Guardrail & epoxy floor quote — Appears pricey; Austin seeking alternate vendor contacts",
+        "Blumaan — COO Kimmy Kwok following up on shipping fee increase request; Patrick looped in Hunter",
+        "Dailies client — 1lb packages incorrectly billed as box shipments (12x10x8 rate) but shipped via padded poly"
       ]
     },
     "Tech": {
-      "total_open": 8,
-      "high": 5,
-      "medium": 2,
+      "total_open": 12,
+      "high": 6,
+      "medium": 4,
       "wins": 1,
       "recent": [
-        "Metabase — 15+ repeated unauthorized login alerts from unknown device in North Carolina throughout the day",
-        "Google Apps Script 'In building errors' — script failed to finish successfully; needs diagnosis",
-        "SLA Management — 'Create shipment' button greyed out on orders in processing status"
+        "IQ BAR — Requesting Ground Advantage and blocked carrier shipping options be removed from manual shipment entry",
+        "No centralized carrier rate card repository — Jerod asked where to access all carrier rates with surcharges",
+        "Metabase — 10+ consecutive new login alerts from unknown device in North Carolina"
       ]
     },
     "HR": {
-      "total_open": 3,
-      "high": 1,
-      "medium": 1,
+      "total_open": 6,
+      "high": 2,
+      "medium": 3,
       "wins": 0,
       "recent": [
-        "Jayvonte — 6 late shifts in past 2 weeks; formal verbal warning issued by Hugh Myers",
-        "Ricardo W. — Onboarding planning meeting notes created in ClickUp (04/08/2026)",
+        "Xavier Longshaw — Homebase alert: projected to exceed weekly hours threshold; at risk of overtime",
+        "Myrio — 8 late shifts in past 3 weeks; formal verbal warning issued; advised failure may result in termination",
         "Norman Longshaw planning mid-July vacation; requesting Kody be sent to SLC for coverage"
       ]
     }
   },
   "totals": {
-    "open": 73,
-    "high": 21,
-    "wins": 7
+    "open": 100,
+    "high": 27,
+    "wins": 10
   }
 }
