@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atomix MKE — Inventory Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+  header { background: #1a1d2e; border-bottom: 1px solid #2d3748;
+    padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+  .logo span { color: #6366f1; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .warehouse-badge { background: #6366f1; color: #fff; font-size: 12px;
+    font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+  .last-updated { font-size: 12px; color: #718096; }
+  .refresh-btn { background: #2d3748; border: 1px solid #4a5568; color: #a0aec0;
+    padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px;
+    transition: all 0.15s; }
+  .refresh-btn:hover { background: #4a5568; color: #fff; }
+  .status-bar { display: flex; gap: 8px; padding: 10px 24px;
+    background: #141622; border-bottom: 1px solid #2d3748; flex-wrap: wrap; }
+  .status-item { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-ok { background: #48bb78; }
+  .dot-loading { background: #ecc94b; animation: pulse 1s infinite; }
+  .dot-error { background: #fc8181; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  main { padding: 24px; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+  .card { background: #1a1d2e; border: 1px solid #2d3748; border-radius: 12px;
+    padding: 20px; position: relative; overflow: hidden; }
+  .card.wide { grid-column: span 2; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; color: #a0aec0; text-transform: uppercase;
+    letter-spacing: 0.5px; }
+  .card-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    background: #2d3748; color: #718096; }
+  .card-badge.live { background: #1a3a2a; color: #48bb78; }
+  .card-badge.error { background: #3a1a1a; color: #fc8181; }
+  .big-num { font-size: 48px; font-weight: 700; line-height: 1; color: #fff; }
+  .big-num.green { color: #48bb78; }
+  .big-num.yellow { color: #ecc94b; }
+  .big-num.red { color: #fc8181; }
+  .sub-label { font-size: 13px; color: #718096; margin-top: 6px; }
+  .metrics-row { display: flex; gap: 24px; margin-top: 16px; }
+  .metric { flex: 1; }
+  .metric-val { font-size: 22px; font-weight: 700; color: #fff; }
+  .metric-label { font-size: 12px; color: #718096; margin-top: 2px; }
+  .progress-section { margin-top: 16px; }
+  .progress-row { margin-bottom: 12px; }
+  .progress-label { display: flex; justify-content: space-between;
+    font-size: 12px; color: #a0aec0; margin-bottom: 5px; }
+  .progress-bar { height: 8px; background: #2d3748; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .fill-pick { background: linear-gradient(90deg, #6366f1, #818cf8); }
+  .fill-back { background: linear-gradient(90deg, #0891b2, #38bdf8); }
+  .fill-pallet { background: linear-gradient(90deg, #d97706, #fbbf24); }
+  .fill-shelf { background: linear-gradient(90deg, #16a34a, #4ade80); }
+  .fill-bin { background: linear-gradient(90deg, #9333ea, #c084fc); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  th { text-align: left; color: #718096; font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.5px; padding: 0 8px 10px 0; }
+  td { padding: 8px 8px 8px 0; border-top: 1px solid #2d3748; color: #e2e8f0; }
+  td.mono { font-family: monospace; font-size: 12px; color: #a0aec0; }
+  td.alert { color: #fc8181; font-weight: 600; }
+  .score-ring { position: relative; width: 120px; height: 120px; margin: 0 auto 16px; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring .ring-bg { fill: none; stroke: #2d3748; stroke-width: 10; }
+  .score-ring .ring-fill { fill: none; stroke-width: 10; stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease; }
+  .score-center { position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%); text-align: center; }
+  .score-center .score-pct { font-size: 26px; font-weight: 700; color: #fff; }
+  .score-center .score-lbl { font-size: 11px; color: #718096; }
+  .loading-skeleton { background: linear-gradient(90deg, #2d3748 25%, #3a4556 50%, #2d3748 75%);
+    background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+  @keyframes shimmer { 0%{background-position:200%} 100%{background-position:-200%} }
+  .skel-line { height: 14px; margin-bottom: 8px; }
+  .skel-big { height: 48px; width: 120px; margin-bottom: 8px; }
+  .changes-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .change-box { background: #141622; border-radius: 8px; padding: 12px; text-align: center; }
+  .change-box .val { font-size: 28px; font-weight: 700; }
+  .change-box .lbl { font-size: 11px; color: #718096; margin-top: 4px; }
+  .replen-row { display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-top: 1px solid #2d3748; font-size: 13px; }
+  .replen-row:first-child { border-top: none; }
+  .tag { font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+  .tag-manual { background: #312e81; color: #a5b4fc; }
+  .tag-auto { background: #14532d; color: #86efac; }
+  @media (max-width: 768px) { .card.wide { grid-column: span 1; }
+    main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Atomix<span>.</span>IMS</div>
+  <div class="header-right">
+    <span class="warehouse-badge">MKE — Oak Creek</span>
+    <span class="last-updated" id="lastUpdated">Loading…</span>
+    <button class="refresh-btn" onclick="refreshAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<div class="status-bar" id="statusBar">
+  <div class="status-item"><div class="dot dot-loading" id="dot-score"></div><span id="lbl-score">Inventory Score</span></div>
+  <div class="status-item"><div class="dot dot-loading" id="dot-capacity"></div><span id="lbl-capacity">Capacity</span></div>
+  <div class="status-item"><div class="dot dot-loading" id="dot-ims"></div><span id="lbl-ims">IMS Status</span></div>
+  <div class="status-item"><div class="dot dot-loading" id="dot-changes"></div><span id="lbl-changes">Daily Changes</span></div>
+  <div class="status-item"><div class="dot dot-loading" id="dot-emptypick"></div><span id="lbl-emptypick">Empty Pick Locs</span></div>
+  <div class="status-item"><div class="dot dot-loading" id="dot-replen"></div><span id="lbl-replen">Replenishments</span></div>
+</div>
+
+<main>
+  <!-- Inventory Score -->
+  <div class="card" id="card-score">
+    <div class="card-header">
+      <span class="card-title">Inventory Score</span>
+      <span class="card-badge" id="badge-score">loading…</span>
+    </div>
+    <div class="score-ring">
+      <svg viewBox="0 0 120 120" width="120" height="120">
+        <circle class="ring-bg" cx="60" cy="60" r="52"/>
+        <circle class="ring-fill" id="scoreRing" cx="60" cy="60" r="52"
+          stroke="#48bb78" stroke-dasharray="327" stroke-dashoffset="327"/>
+      </svg>
+      <div class="score-center">
+        <div class="score-pct" id="scorePct">—</div>
+        <div class="score-lbl">accuracy</div>
+      </div>
+    </div>
+    <div class="metrics-row">
+      <div class="metric"><div class="metric-val" id="scoreCounts">—</div><div class="metric-label">counts (30d)</div></div>
+      <div class="metric"><div class="metric-val" id="scoreAccurate">—</div><div class="metric-label">accurate</div></div>
+      <div class="metric"><div class="metric-val" id="scoreToday">—</div><div class="metric-label">today</div></div>
+    </div>
+  </div>
+
+  <!-- IMS Status -->
+  <div class="card" id="card-ims">
+    <div class="card-header">
+      <span class="card-title">IMS Status</span>
+      <span class="card-badge" id="badge-ims">loading…</span>
+    </div>
+    <div class="big-num green" id="imsInStock">—</div>
+    <div class="sub-label">SKUs in stock</div>
+    <div class="metrics-row" style="margin-top:20px">
+      <div class="metric"><div class="metric-val" id="imsTotalSkus">—</div><div class="metric-label">total SKUs</div></div>
+      <div class="metric"><div class="metric-val red" id="imsZeroStock">—</div><div class="metric-label">zero stock</div></div>
+      <div class="metric"><div class="metric-val" id="imsTotalUnits">—</div><div class="metric-label">units on hand</div></div>
+    </div>
+  </div>
+
+  <!-- Capacity Utilization -->
+  <div class="card wide" id="card-capacity">
+    <div class="card-header">
+      <span class="card-title">Capacity Utilization</span>
+      <span class="card-badge" id="badge-capacity">loading…</span>
+    </div>
+    <div class="progress-section" id="capacityContent">
+      <div class="loading-skeleton skel-line" style="width:60%"></div>
+      <div class="loading-skeleton skel-line" style="width:80%"></div>
+      <div class="loading-skeleton skel-line" style="width:50%"></div>
+    </div>
+  </div>
+
+  <!-- Daily IMS Changes -->
+  <div class="card" id="card-changes">
+    <div class="card-header">
+      <span class="card-title">Inventory Changes Today</span>
+      <span class="card-badge" id="badge-changes">loading…</span>
+    </div>
+    <div class="changes-grid" id="changesContent">
+      <div class="change-box"><div class="val" id="chgTotal">—</div><div class="lbl">adjustments</div></div>
+      <div class="change-box"><div class="val green" id="chgUp">—</div><div class="lbl">increases</div></div>
+      <div class="change-box"><div class="val red" id="chgDown">—</div><div class="lbl">decreases</div></div>
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:#a0aec0">
+      Net units: <span style="font-weight:600;color:#fff" id="chgNet">—</span>
+    </div>
+  </div>
+
+  <!-- Open Replenishments -->
+  <div class="card" id="card-replen">
+    <div class="card-header">
+      <span class="card-title">Open Replenishments</span>
+      <span class="card-badge" id="badge-replen">loading…</span>
+    </div>
+    <div id="replenContent">
+      <div class="loading-skeleton skel-line"></div>
+      <div class="loading-skeleton skel-line"></div>
+    </div>
+  </div>
+
+  <!-- Empty Fast-Pick Locations -->
+  <div class="card wide" id="card-emptypick">
+    <div class="card-header">
+      <span class="card-title">Empty Fast-Pick Locations</span>
+      <span class="card-badge" id="badge-emptypick">loading…</span>
+    </div>
+    <div id="emptypickContent">
+      <div class="loading-skeleton skel-line"></div>
+      <div class="loading-skeleton skel-line"></div>
+      <div class="loading-skeleton skel-line"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const PROXY = 'https://script.google.com/macros/s/AKfycbwgtEIxNIVTjRbK4KEeNA0RzYZ09X9OaXbzEC1QgnGlH1gxFDGh1K-tqwJ1jWIAfFdj-g/exec';
+const DB_ID = 2;
+const MKE   = 'ccd6a6a3-45a7-4df3-bf6e-2ff77dc8a15f';
+
+async function query(sql) {
+  const r = await fetch(PROXY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ sql, dbId: DB_ID })
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message || JSON.stringify(j.error));
+  const cols = j.data.cols.map(c => c.name);
+  return j.data.rows.map(row => Object.fromEntries(cols.map((c, i) => [c, row[i]])));
+}
+
+function setDot(id, state) {
+  const d = document.getElementById('dot-' + id);
+  const l = document.getElementById('lbl-' + id);
+  d.className = 'dot ' + (state === 'ok' ? 'dot-ok' : state === 'error' ? 'dot-error' : 'dot-loading');
+  if (state === 'ok') l.style.color = '#e2e8f0';
+  if (state === 'error') l.style.color = '#fc8181';
+}
+
+function setBadge(id, text, state) {
+  const b = document.getElementById('badge-' + id);
+  b.textContent = text;
+  b.className = 'card-badge ' + (state === 'live' ? 'live' : state === 'error' ? 'error' : '');
+}
+
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  return Number(n).toLocaleString();
+}
+
+// SECTION 1: Inventory Score
+async function loadScore() {
+  const sql = `
+    WITH counts_30d AS (
+      SELECT cc.id,
+        cc.countedOnHand,
+        wi.onHand AS actual_onhand
+      FROM CycleCounts cc
+      JOIN WarehouseInventories wi ON wi.id = cc.objectId
+      WHERE cc.warehouseId = '${MKE}'
+        AND cc.object = 'inventory'
+        AND cc.status = 'completed'
+        AND cc.completedByTimestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        AND wi.isDeleted = 0
+    ),
+    score_agg AS (
+      SELECT COUNT(*) AS total_counts,
+        SUM(CASE WHEN ABS(countedOnHand - actual_onhand) = 0 THEN 1 ELSE 0 END) AS accurate_counts
+      FROM counts_30d
+    ),
+    today_counts AS (
+      SELECT COUNT(*) AS today_total
+      FROM CycleCounts
+      WHERE warehouseId = '${MKE}'
+        AND status = 'completed'
+        AND DATE(completedByTimestamp) = CURDATE()
+    )
+    SELECT s.total_counts, s.accurate_counts, t.today_total,
+      CASE WHEN s.total_counts > 0
+        THEN ROUND(100.0 * s.accurate_counts / s.total_counts, 1)
+        ELSE 0 END AS accuracy_pct
+    FROM score_agg s, today_counts t`;
+  try {
+    const rows = await query(sql);
+    const r = rows[0] || {};
+    const pct = parseFloat(r.accuracy_pct) || 0;
+    document.getElementById('scorePct').textContent = pct + '%';
+    document.getElementById('scoreCounts').textContent = fmt(r.total_counts);
+    document.getElementById('scoreAccurate').textContent = fmt(r.accurate_counts);
+    document.getElementById('scoreToday').textContent = fmt(r.today_total);
+    const circ = 2 * Math.PI * 52;
+    const offset = circ - (pct / 100) * circ;
+    const ring = document.getElementById('scoreRing');
+    ring.style.strokeDashoffset = offset;
+    ring.style.stroke = pct >= 95 ? '#48bb78' : pct >= 85 ? '#ecc94b' : '#fc8181';
+    setDot('score', 'ok'); setBadge('score', 'live', 'live');
+  } catch(e) {
+    setDot('score', 'error'); setBadge('score', 'error', 'error');
+    document.getElementById('scorePct').textContent = 'ERR';
+    console.error('score:', e);
+  }
+}
+
+// SECTION 2: IMS Status
+async function loadIMS() {
+  const sql = `
+    WITH wi_agg AS (
+      SELECT
+        COUNT(*) AS total_skus,
+        SUM(CASE WHEN wi.onHand > 0 THEN 1 ELSE 0 END) AS in_stock,
+        SUM(CASE WHEN wi.onHand = 0 THEN 1 ELSE 0 END) AS zero_stock,
+        SUM(wi.onHand) AS total_units,
+        SUM(wi.allocated) AS total_allocated
+      FROM WarehouseInventories wi
+      WHERE wi.warehouseId = '${MKE}'
+        AND wi.isDeleted = 0
+        AND wi.onHand > 0
+    )
+    SELECT * FROM wi_agg`;
+  try {
+    const rows = await query(sql);
+    const r = rows[0] || {};
+    document.getElementById('imsInStock').textContent = fmt(r.in_stock);
+    document.getElementById('imsTotalSkus').textContent = fmt(r.total_skus);
+    document.getElementById('imsZeroStock').textContent = fmt(r.zero_stock);
+    document.getElementById('imsTotalUnits').textContent = fmt(r.total_units);
+    setDot('ims', 'ok'); setBadge('ims', 'live', 'live');
+  } catch(e) {
+    setDot('ims', 'error'); setBadge('ims', 'error', 'error');
+    document.getElementById('imsInStock').textContent = 'ERR';
+    console.error('ims:', e);
+  }
+}
+
+// SECTION 3: Capacity Utilization
+async function loadCapacity() {
+  const sql = `
+    WITH loc_totals AS (
+      SELECT wl.\`type\`, COUNT(*) AS total_locs
+      FROM WarehouseLocations wl
+      WHERE wl.warehouseId = '${MKE}'
+      GROUP BY wl.\`type\`
+    ),
+    loc_used AS (
+      SELECT wl.\`type\`, COUNT(DISTINCT wil.locationId) AS used_locs
+      FROM WarehouseInventoryLocations wil
+      JOIN WarehouseLocations wl ON wl.id = wil.locationId
+      WHERE wl.warehouseId = '${MKE}'
+        AND wil.onHand > 0
+        AND wil.isArchived = 0
+      GROUP BY wl.\`type\`
+    )
+    SELECT t.\`type\`, t.total_locs,
+      COALESCE(u.used_locs, 0) AS used_locs,
+      ROUND(100.0 * COALESCE(u.used_locs, 0) / t.total_locs, 1) AS pct_used
+    FROM loc_totals t
+    LEFT JOIN loc_used u ON u.\`type\` = t.\`type\`
+    ORDER BY t.total_locs DESC`;
+  const fillClass = { pick:'fill-pick', backstock:'fill-back', pallet:'fill-pallet',
+    shelf:'fill-shelf', bin:'fill-bin', cart:'fill-back', floor:'fill-pallet',
+    floor_pallet:'fill-pallet' };
+  try {
+    const rows = await query(sql);
+    let html = '';
+    for (const r of rows) {
+      const fc = fillClass[r.type] || 'fill-pick';
+      html += `<div class="progress-row">
+        <div class="progress-label">
+          <span>${r.type}</span>
+          <span>${fmt(r.used_locs)} / ${fmt(r.total_locs)} (${r.pct_used}%)</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill ${fc}" style="width:${r.pct_used}%"></div>
+        </div>
+      </div>`;
+    }
+    document.getElementById('capacityContent').innerHTML = html || '<p style="color:#718096">No location data</p>';
+    setDot('capacity', 'ok'); setBadge('capacity', 'live', 'live');
+  } catch(e) {
+    setDot('capacity', 'error'); setBadge('capacity', 'error', 'error');
+    document.getElementById('capacityContent').innerHTML = '<p style="color:#fc8181">Error loading capacity</p>';
+    console.error('capacity:', e);
+  }
+}
+
+// SECTION 4: Daily IMS Changes
+async function loadChanges() {
+  const sql = `
+    SELECT
+      COUNT(*) AS total_adjustments,
+      SUM(CASE WHEN CAST(newValue AS SIGNED) > CAST(oldValue AS SIGNED) THEN 1 ELSE 0 END) AS increases,
+      SUM(CASE WHEN CAST(newValue AS SIGNED) < CAST(oldValue AS SIGNED) THEN 1 ELSE 0 END) AS decreases,
+      SUM(CAST(newValue AS SIGNED) - CAST(oldValue AS SIGNED)) AS net_units
+    FROM AuditLogEvents
+    WHERE \`object\` = 'WarehouseInventory'
+      AND objectAction = 'update'
+      AND DATE(createdAt) = CURDATE()`;
+  try {
+    const rows = await query(sql);
+    const r = rows[0] || {};
+    document.getElementById('chgTotal').textContent = fmt(r.total_adjustments);
+    document.getElementById('chgUp').textContent = fmt(r.increases);
+    document.getElementById('chgDown').textContent = fmt(r.decreases);
+    const net = parseInt(r.net_units) || 0;
+    const netEl = document.getElementById('chgNet');
+    netEl.textContent = (net > 0 ? '+' : '') + fmt(net);
+    netEl.style.color = net > 0 ? '#48bb78' : net < 0 ? '#fc8181' : '#fff';
+    setDot('changes', 'ok'); setBadge('changes', 'live', 'live');
+  } catch(e) {
+    setDot('changes', 'error'); setBadge('changes', 'error', 'error');
+    console.error('changes:', e);
+  }
+}
+
+// SECTION 5: Open Replenishments
+async function loadReplen() {
+  const sql = `
+    WITH replen_agg AS (
+      SELECT ir.status, ir.\`type\`,
+        COUNT(*) AS cnt,
+        SUM(ir.quantity) AS total_qty
+      FROM InventoryReplenishments ir
+      WHERE ir.warehouseId = '${MKE}'
+        AND ir.status NOT IN ('completed', 'cancelled')
+      GROUP BY ir.status, ir.\`type\`
+    )
+    SELECT * FROM replen_agg ORDER BY cnt DESC LIMIT 10`;
+  try {
+    const rows = await query(sql);
+    if (!rows.length) {
+      document.getElementById('replenContent').innerHTML = '<p style="color:#48bb78;font-size:14px">✓ No open replenishments</p>';
+    } else {
+      let html = '';
+      let total = 0;
+      for (const r of rows) {
+        total += parseInt(r.cnt);
+        html += `<div class="replen-row">
+          <span>${r.status}</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="tag ${r.type === 'manual' ? 'tag-manual' : 'tag-auto'}">${r.type}</span>
+            <span style="font-weight:600">${fmt(r.cnt)}</span>
+          </div>
+        </div>`;
+      }
+      setBadge('replen', total + ' open', 'live');
+      document.getElementById('replenContent').innerHTML = html;
+    }
+    setDot('replen', 'ok');
+    if (rows.length) setBadge('replen', 'live', 'live');
+    else setBadge('replen', 'clear', 'live');
+  } catch(e) {
+    setDot('replen', 'error'); setBadge('replen', 'error', 'error');
+    document.getElementById('replenContent').innerHTML = '<p style="color:#fc8181">Error loading</p>';
+    console.error('replen:', e);
+  }
+}
+
+// SECTION 6: Empty Fast-Pick Locations
+async function loadEmptyPick() {
+  const sql = `
+    WITH empty_picks AS (
+      SELECT
+        wl.name AS location,
+        i.sku,
+        i.name AS product_name,
+        wi.onHand AS wh_onhand,
+        wi.allocated AS wh_allocated
+      FROM WarehouseInventoryLocations wil
+      JOIN WarehouseLocations wl ON wl.id = wil.locationId
+      JOIN WarehouseInventories wi ON wi.id = wil.warehouseInventoryId
+      JOIN Inventories i ON i.id = wi.inventoryId
+      WHERE wl.warehouseId = '${MKE}'
+        AND wil.pickLocation = 1
+        AND wil.onHand = 0
+        AND wil.isArchived = 0
+        AND wi.isDeleted = 0
+        AND i.isDeleted = 0
+      ORDER BY wi.onHand DESC, wl.name ASC
+      LIMIT 25
+    )
+    SELECT * FROM empty_picks`;
+  try {
+    const rows = await query(sql);
+    if (!rows.length) {
+      document.getElementById('emptypickContent').innerHTML =
+        '<p style="color:#48bb78;font-size:14px">✓ All pick locations stocked</p>';
+    } else {
+      let html = `<table><thead><tr>
+        <th>Location</th><th>SKU</th><th>Product</th><th>WH Stock</th><th>Allocated</th>
+      </tr></thead><tbody>`;
+      for (const r of rows) {
+        const hasStock = parseInt(r.wh_onhand) > 0;
+        html += `<tr>
+          <td class="mono">${r.location || '—'}</td>
+          <td class="mono">${r.sku || '—'}</td>
+          <td>${(r.product_name || '').substring(0, 35)}</td>
+          <td class="${hasStock ? '' : 'alert'}">${fmt(r.wh_onhand)}</td>
+          <td>${fmt(r.wh_allocated)}</td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      document.getElementById('emptypickContent').innerHTML = html;
+      setBadge('emptypick', rows.length + ' empty', 'error');
+    }
+    setDot('emptypick', 'ok');
+    if (!rows.length) setBadge('emptypick', 'all clear', 'live');
+  } catch(e) {
+    setDot('emptypick', 'error'); setBadge('emptypick', 'error', 'error');
+    document.getElementById('emptypickContent').innerHTML = '<p style="color:#fc8181">Error loading</p>';
+    console.error('emptypick:', e);
+  }
+}
+
+async function refreshAll() {
+  document.getElementById('lastUpdated').textContent = 'Refreshing…';
+  ['score','capacity','ims','changes','emptypick','replen'].forEach(id => {
+    setDot(id, 'loading');
+    setBadge(id, 'loading…', '');
+  });
+  await Promise.allSettled([
+    loadScore(), loadIMS(), loadCapacity(),
+    loadChanges(), loadReplen(), loadEmptyPick()
+  ]);
+  const now = new Date();
+  document.getElementById('lastUpdated').textContent =
+    'Updated ' + now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+// Boot
+document.addEventListener('DOMContentLoaded', refreshAll);
+</script>
+</body>
+</html>
