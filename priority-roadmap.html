@@ -735,6 +735,345 @@ body {
   .rm-columns { grid-template-columns: 1fr; }
   .rm-summary { grid-template-columns: 1fr 1fr 1fr; }
 }
+
+/* ── LEADERSHIP MEETING ── */
+.lm-hero {
+  background: linear-gradient(135deg, #1a0533 0%, #2d1354 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.lm-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(192,132,252,0.08);
+  pointer-events: none;
+}
+.lm-hero-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #c084fc; opacity: 0.8; margin-bottom: 6px; }
+.lm-hero-title { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 300; color: #fff; letter-spacing: -0.5px; }
+.lm-hero-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 6px; line-height: 1.5; }
+.lm-date { font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 400; position: relative; z-index: 1; }
+
+.lm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.lm-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.lm-card.full { grid-column: 1 / -1; }
+.lm-card-head {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.lm-card-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lm-card-icon {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.lm-card-body { padding: 16px 18px; }
+
+/* Priority items */
+.lm-priority-list { display: flex; flex-direction: column; gap: 10px; }
+.lm-priority-item {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+.lm-priority-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--green);
+  font-family: 'Fraunces', serif;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.lm-priority-input {
+  width: 100%;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  resize: none;
+  line-height: 1.5;
+  min-height: 38px;
+  transition: border-color 0.12s;
+}
+.lm-priority-input:focus { outline: none; border-color: #c084fc; background: #fff; }
+.lm-priority-input::placeholder { color: var(--text3); }
+
+/* Huddles */
+.lm-huddle-list { display: flex; flex-direction: column; gap: 8px; }
+.lm-huddle-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text);
+  transition: border-color 0.12s;
+}
+.lm-huddle-item:hover { border-color: var(--border-strong); }
+.lm-huddle-text { font-size: 12px; background: transparent; border: none; font-family: 'DM Mono', monospace; color: var(--text); flex: 1; outline: none; width: 100%; }
+.lm-huddle-status {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.lm-huddle-status.open   { background: var(--red-bg);    color: var(--red-text); }
+.lm-huddle-status.watch  { background: var(--amber-bg);  color: var(--amber-text); }
+.lm-huddle-status.closed { background: var(--green-muted); color: #085041; }
+.lm-add-btn {
+  margin-top: 10px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  background: transparent;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text3);
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.12s;
+}
+.lm-add-btn:hover { border-color: #c084fc; color: #c084fc; }
+
+/* SLA missing */
+.lm-sla-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--red-bg);
+  border-radius: var(--radius);
+  border: 1px solid rgba(226,75,74,0.2);
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.lm-sla-item.ok { background: var(--green-muted); border-color: rgba(93,202,165,0.3); }
+.lm-sla-input { background: transparent; border: none; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); outline: none; width: 100%; }
+
+/* Personnel */
+.lm-person-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  transition: border-color 0.12s;
+}
+.lm-person-item:hover { border-color: var(--border-strong); }
+.lm-person-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.lm-person-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.lm-person-note { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.lm-person-type {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lm-person-type.update  { background: var(--blue-bg);    color: var(--blue-text); }
+.lm-person-type.concern { background: var(--amber-bg);   color: var(--amber-text); }
+.lm-person-type.positive{ background: var(--green-muted);color: #085041; }
+
+/* ── CUSTOM SECTIONS ── */
+.cs-hero {
+  background: linear-gradient(135deg, #101d2e 0%, #1a2d45 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cs-hero-title { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 300; color: #fff; }
+.cs-hero-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+.cs-add-section-btn {
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius);
+  color: #fff;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cs-add-section-btn:hover { background: rgba(255,255,255,0.18); }
+.cs-section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.cs-section-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cs-section-name {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--navy);
+}
+.cs-section-body { padding: 16px 18px; }
+.cs-field-row { margin-bottom: 14px; }
+.cs-field-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; font-weight: 500; }
+.cs-field-textarea {
+  width: 100%;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.5;
+  transition: border-color 0.12s;
+}
+.cs-field-textarea:focus { outline: none; border-color: var(--navy); background: #fff; }
+.lm-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.lm-save-btn {
+  padding: 9px 22px;
+  background: var(--navy);
+  color: var(--green);
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.lm-save-btn:hover { background: var(--navy-mid); }
+.lm-save-btn.saved { background: var(--green-dark); color: #fff; }
+.lm-del-btn {
+  padding: 5px 12px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.lm-del-btn:hover { border-color: var(--red-accent); color: var(--red-accent); }
+
+/* modal for add person / add huddle */
+.lm-inline-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.lm-inline-input {
+  flex: 1;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.lm-inline-input:focus { border-color: #c084fc; background: #fff; }
+.lm-inline-btn {
+  padding: 7px 14px;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  background: var(--navy);
+  color: var(--green);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lm-inline-select {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 10px;
+  outline: none;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -784,6 +1123,20 @@ body {
       <div class="nav-dot" style="background:#A3F3C5"></div>
       Wish list
       <span class="nav-count" id="cnt-wishlist" style="background:rgba(163,243,197,0.15);color:var(--green)">0</span>
+    </div>
+
+    <div class="nav-label" style="margin-top:16px">Meetings</div>
+    <div class="nav-item" onclick="switchTab('leadership')">
+      <div class="nav-dot" style="background:#c084fc"></div>
+      Leadership
+      <span class="nav-count" id="cnt-leadership"></span>
+    </div>
+
+    <div class="nav-label" style="margin-top:16px">Custom</div>
+    <div id="custom-nav-items"></div>
+    <div class="nav-item" onclick="switchTab('add-section')" style="opacity:0.6;font-style:italic">
+      <div class="nav-dot" style="background:#555"></div>
+      + Add section
     </div>
 
     <div class="sidebar-footer">
@@ -1007,6 +1360,14 @@ async function loadFromSheets() {
     const data = await res.json();
     if (data.state)  state = data.state;
     if (data.wishes) state._wish = data.wishes;
+    // restore leadership meeting data
+    if (data.state && data.state.__lm__ && data.state.__lm__.note) {
+      try { state._lm = JSON.parse(data.state.__lm__.note); } catch(e){}
+    }
+    // restore custom sections
+    if (data.state && data.state.__custom_sections__ && data.state.__custom_sections__.note) {
+      try { state._customSections = JSON.parse(data.state.__custom_sections__.note); } catch(e){}
+    }
     setSyncStatus('');
   } catch(err) {
     console.warn('Could not load from Sheets, starting fresh:', err);
@@ -1063,12 +1424,16 @@ function switchTab(tab) {
   document.querySelectorAll('.nav-item').forEach(el => {
     if(el.getAttribute('onclick') === `switchTab('${tab}')`) el.classList.add('active');
   });
-  const titles = { inventory:'Inventory', quality:'Quality control', sp:'Special projects', b2b:'B2B', retail:'Retail', roadmap:'Master roadmap', wishlist:'Wish list' };
-  document.getElementById('page-title').textContent = titles[tab];
+  const titles = { inventory:'Inventory', quality:'Quality control', sp:'Special projects', b2b:'B2B', retail:'Retail', roadmap:'Master roadmap', wishlist:'Wish list', leadership:'Leadership Meeting', 'add-section':'Add Custom Section' };
+  document.getElementById('page-title').textContent = titles[tab] || (tab.startsWith('custom-') ? (state._customSections||[]).find(s=>s.id===tab.replace('custom-',''))?.name || 'Custom Section' : tab);
   document.getElementById('page-sub').textContent = tab==='roadmap'
     ? 'Drag cards between columns to adjust priorities — filtered by department'
     : tab==='wishlist'
     ? 'Ideas that did not make the main list — rate them and they will appear in the roadmap'
+    : tab==='leadership'
+    ? 'Weekly priorities, huddles, personnel updates, and SLA gaps — saved to Sheets'
+    : tab==='add-section'
+    ? 'Create a new reusable section — like KPIs, training, or anything else'
     : 'Rate each item 1–3, add notes for the team';
   render();
 }
@@ -1171,10 +1536,14 @@ function renderRoadmap() {
 function render() {
   const el = document.getElementById('content');
   if(!el) return;
-  if(currentTab==='roadmap')   el.innerHTML = renderRoadmap();
-  else if(currentTab==='wishlist') el.innerHTML = renderWishlist();
+  if(currentTab==='roadmap')        el.innerHTML = renderRoadmap();
+  else if(currentTab==='wishlist')  el.innerHTML = renderWishlist();
+  else if(currentTab==='leadership')el.innerHTML = renderLeadership();
+  else if(currentTab==='add-section') el.innerHTML = renderAddSection();
+  else if(currentTab.startsWith('custom-')) el.innerHTML = renderCustomSection(currentTab.replace('custom-',''));
   else el.innerHTML = renderSection(currentTab);
   updateSidebar();
+  renderCustomNav();
 }
 
 // ── ACTIONS: PRIORITY & NOTES ─────────────────────────────────
@@ -1415,6 +1784,344 @@ function renderWishlist() {
   });
   return html;
 }
+
+// ── LEADERSHIP MEETING ────────────────────────────────────────
+function getLM() {
+  return state._lm || {
+    priorities: ['','',''],
+    huddles: [],
+    personnel: [],
+    sla: [],
+    notes: ''
+  };
+}
+
+function renderLeadership() {
+  const lm  = getLM();
+  const now = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Priorities
+  const priHTML = [0,1,2].map(i => `
+    <div class="lm-priority-item">
+      <div class="lm-priority-num">${i+1}</div>
+      <textarea class="lm-priority-input" id="lm-p${i}" rows="2" placeholder="Top priority #${i+1} for this week...">${lm.priorities[i]||''}</textarea>
+    </div>`).join('');
+
+  // Huddles / issues
+  const huddleHTML = (lm.huddles||[]).map((h,i) => `
+    <div class="lm-huddle-item" id="lm-huddle-${i}">
+      <input class="lm-huddle-text" id="lm-ht-${i}" value="${escHtml(h.text||'')}" placeholder="Issue or huddle item..." oninput="lmHuddleEdit(${i},this.value)"/>
+      <span class="lm-huddle-status ${h.status||'open'}" onclick="lmCycleStatus(${i})">${h.status||'open'}</span>
+      <button class="del-btn" onclick="lmDelHuddle(${i})" style="width:24px;height:24px;font-size:12px">×</button>
+    </div>`).join('');
+
+  // Personnel
+  const personHTML = (lm.personnel||[]).map((p,i) => `
+    <div class="lm-person-item">
+      <div class="lm-person-avatar">${(p.name||'?').slice(0,2)}</div>
+      <div>
+        <div class="lm-person-name">${escHtml(p.name||'')}</div>
+        <div class="lm-person-note">${escHtml(p.note||'')}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="lm-person-type ${p.type||'update'}">${p.type||'update'}</span>
+        <button class="del-btn" onclick="lmDelPerson(${i})" style="width:24px;height:24px;font-size:12px">×</button>
+      </div>
+    </div>`).join('');
+
+  // SLA
+  const slaHTML = (lm.sla||[]).map((s,i) => `
+    <div class="lm-sla-item ${s.ok?'ok':''}">
+      <input class="lm-sla-input" id="lm-sla-${i}" value="${escHtml(s.text||'')}" placeholder="Missing or at-risk SLA..." oninput="lmSlaEdit(${i},this.value)"/>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-size:10px;cursor:pointer;padding:2px 8px;border-radius:10px;background:${s.ok?'rgba(29,158,117,0.2)':'rgba(226,75,74,0.15)'};color:${s.ok?'#085041':'var(--red-text)'}" onclick="lmToggleSla(${i})">${s.ok?'✓ OK':'⚠ Missing'}</span>
+        <button class="del-btn" onclick="lmDelSla(${i})" style="width:24px;height:24px;font-size:12px">×</button>
+      </div>
+    </div>`).join('');
+
+  return `
+  <div class="lm-hero">
+    <div class="lm-hero-text" style="position:relative;z-index:1">
+      <div class="lm-hero-label">Weekly leadership meeting</div>
+      <div class="lm-hero-title">Meeting Prep</div>
+      <div class="lm-hero-sub">Top priorities, open issues, personnel updates, and SLA gaps.<br>All changes save automatically to Sheets.</div>
+    </div>
+    <div class="lm-date" style="text-align:right">${now}</div>
+  </div>
+
+  <div class="lm-grid">
+    <!-- Top 3 Priorities -->
+    <div class="lm-card full">
+      <div class="lm-card-head">
+        <div class="lm-card-title">
+          <div class="lm-card-icon" style="background:var(--navy)">🎯</div>
+          Top 3 Priorities This Week
+        </div>
+      </div>
+      <div class="lm-card-body">
+        <div class="lm-priority-list">${priHTML}</div>
+        <div class="lm-save-bar">
+          <button class="lm-save-btn" id="lm-pri-save" onclick="lmSavePriorities()">Save priorities</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Huddles & Issues -->
+    <div class="lm-card">
+      <div class="lm-card-head">
+        <div class="lm-card-title">
+          <div class="lm-card-icon" style="background:#faeeda">🔥</div>
+          Huddles & Issues
+        </div>
+        <span style="font-size:11px;color:var(--text3)">${(lm.huddles||[]).length} item${(lm.huddles||[]).length!==1?'s':''}</span>
+      </div>
+      <div class="lm-card-body">
+        <div id="lm-huddle-list">${huddleHTML}</div>
+        <div class="lm-inline-add">
+          <input class="lm-inline-input" id="new-huddle-text" placeholder="Add issue or huddle item..." onkeydown="if(event.key==='Enter')lmAddHuddle()"/>
+          <button class="lm-inline-btn" onclick="lmAddHuddle()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personnel Updates -->
+    <div class="lm-card">
+      <div class="lm-card-head">
+        <div class="lm-card-title">
+          <div class="lm-card-icon" style="background:#e6f1fb">👤</div>
+          Personnel Updates
+        </div>
+        <span style="font-size:11px;color:var(--text3)">${(lm.personnel||[]).length} update${(lm.personnel||[]).length!==1?'s':''}</span>
+      </div>
+      <div class="lm-card-body">
+        <div id="lm-person-list">${personHTML}</div>
+        <div class="lm-inline-add" style="flex-wrap:wrap;gap:6px">
+          <input class="lm-inline-input" id="new-person-name" placeholder="Name..." style="min-width:100px;flex:1"/>
+          <input class="lm-inline-input" id="new-person-note" placeholder="Note..." style="min-width:120px;flex:2"/>
+          <select class="lm-inline-select" id="new-person-type">
+            <option value="update">update</option>
+            <option value="concern">concern</option>
+            <option value="positive">positive</option>
+          </select>
+          <button class="lm-inline-btn" onclick="lmAddPerson()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLA Missing -->
+    <div class="lm-card full">
+      <div class="lm-card-head">
+        <div class="lm-card-title">
+          <div class="lm-card-icon" style="background:var(--red-bg)">⚠️</div>
+          Anything Missing SLA
+        </div>
+        <span style="font-size:11px;color:var(--text3)">${(lm.sla||[]).filter(s=>!s.ok).length} open</span>
+      </div>
+      <div class="lm-card-body">
+        <div id="lm-sla-list">${slaHTML}</div>
+        <div class="lm-inline-add">
+          <input class="lm-inline-input" id="new-sla-text" placeholder="Client, SLA, or commitment at risk..." onkeydown="if(event.key==='Enter')lmAddSla()"/>
+          <button class="lm-inline-btn" onclick="lmAddSla()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- General Notes -->
+    <div class="lm-card full">
+      <div class="lm-card-head">
+        <div class="lm-card-title">
+          <div class="lm-card-icon" style="background:var(--surface3)">📝</div>
+          General Meeting Notes
+        </div>
+      </div>
+      <div class="lm-card-body">
+        <textarea class="cs-field-textarea" id="lm-notes" rows="5" placeholder="Open notes, action items, follow-ups from the meeting...">${escHtml(lm.notes||'')}</textarea>
+        <div class="lm-save-bar">
+          <button class="lm-save-btn" id="lm-notes-save" onclick="lmSaveNotes()">Save notes</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function lmGet()  { return state._lm || (state._lm = { priorities:['','',''], huddles:[], personnel:[], sla:[], notes:'' }); }
+
+window.lmSavePriorities = function() {
+  const lm = lmGet();
+  lm.priorities = [0,1,2].map(i => (document.getElementById('lm-p'+i)||{}).value||'');
+  const btn = document.getElementById('lm-pri-save');
+  if(btn){btn.textContent='Saving...';btn.disabled=true;}
+  sheetsPost({ action:'setNote', id:'__lm__', note: JSON.stringify(lm) }).then(()=>{
+    if(btn){btn.textContent='Saved';btn.classList.add('saved');btn.disabled=false;setTimeout(()=>{btn.textContent='Save priorities';btn.classList.remove('saved');},1500);}
+  });
+};
+
+window.lmSaveNotes = function() {
+  const lm = lmGet();
+  lm.notes = (document.getElementById('lm-notes')||{}).value||'';
+  const btn = document.getElementById('lm-notes-save');
+  if(btn){btn.textContent='Saving...';btn.disabled=true;}
+  sheetsPost({ action:'setNote', id:'__lm__', note: JSON.stringify(lm) }).then(()=>{
+    if(btn){btn.textContent='Saved';btn.classList.add('saved');btn.disabled=false;setTimeout(()=>{btn.textContent='Save notes';btn.classList.remove('saved');},1500);}
+  });
+};
+
+function lmPersist() {
+  sheetsPost({ action:'setNote', id:'__lm__', note: JSON.stringify(lmGet()) });
+}
+
+window.lmAddHuddle = function() {
+  const el = document.getElementById('new-huddle-text');
+  const text = (el?.value||'').trim();
+  if(!text) return;
+  lmGet().huddles.push({ text, status:'open' });
+  el.value = '';
+  lmPersist();
+  render();
+};
+window.lmDelHuddle = function(i) { lmGet().huddles.splice(i,1); lmPersist(); render(); };
+window.lmHuddleEdit = function(i,v) { lmGet().huddles[i].text=v; };
+window.lmCycleStatus = function(i) {
+  const cycle = {open:'watch',watch:'closed',closed:'open'};
+  const h = lmGet().huddles[i];
+  h.status = cycle[h.status]||'open';
+  lmPersist(); render();
+};
+window.lmAddPerson = function() {
+  const name = (document.getElementById('new-person-name')?.value||'').trim();
+  if(!name) return;
+  const note = document.getElementById('new-person-note')?.value||'';
+  const type = document.getElementById('new-person-type')?.value||'update';
+  lmGet().personnel.push({ name, note, type });
+  document.getElementById('new-person-name').value='';
+  document.getElementById('new-person-note').value='';
+  lmPersist(); render();
+};
+window.lmDelPerson = function(i) { lmGet().personnel.splice(i,1); lmPersist(); render(); };
+window.lmAddSla = function() {
+  const el = document.getElementById('new-sla-text');
+  const text = (el?.value||'').trim();
+  if(!text) return;
+  lmGet().sla.push({ text, ok:false });
+  el.value='';
+  lmPersist(); render();
+};
+window.lmDelSla = function(i) { lmGet().sla.splice(i,1); lmPersist(); render(); };
+window.lmSlaEdit = function(i,v) { lmGet().sla[i].text=v; };
+window.lmToggleSla = function(i) { lmGet().sla[i].ok=!lmGet().sla[i].ok; lmPersist(); render(); };
+
+// ── CUSTOM SECTIONS ───────────────────────────────────────────
+function getCustomSections() { return state._customSections || (state._customSections=[]); }
+
+function renderCustomNav() {
+  const container = document.getElementById('custom-nav-items');
+  if(!container) return;
+  const sections = getCustomSections();
+  container.innerHTML = sections.map(s => `
+    <div class="nav-item ${currentTab==='custom-'+s.id?'active':''}" onclick="switchTab('custom-${s.id}')">
+      <div class="nav-dot" style="background:${s.color||'#888'}"></div>
+      ${escHtml(s.name)}
+    </div>`).join('');
+}
+
+function renderAddSection() {
+  return `
+  <div class="cs-hero">
+    <div>
+      <div style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(163,243,197,0.7);margin-bottom:6px">Custom sections</div>
+      <div class="cs-hero-title">Add a new section</div>
+      <div class="cs-hero-sub">Give it a name, pick a color, and define the fields you want to track. Everything saves to Sheets.</div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;max-width:560px">
+    <div class="cs-field-row">
+      <div class="cs-field-label">Section name *</div>
+      <input class="lm-inline-input" id="cs-name" style="width:100%;font-size:14px;padding:10px 14px" placeholder="e.g. KPIs, Training, Client Reviews..." />
+    </div>
+    <div class="cs-field-row">
+      <div class="cs-field-label">Description</div>
+      <input class="lm-inline-input" id="cs-desc" style="width:100%;padding:10px 14px" placeholder="What does this section track?" />
+    </div>
+    <div class="cs-field-row">
+      <div class="cs-field-label">Accent color</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${['#1D9E75','#378ADD','#7F77DD','#EF9F27','#E24B4A','#c084fc','#f472b6','#34d399'].map(c=>
+          `<div onclick="document.getElementById('cs-color-pick').value='${c}';document.querySelectorAll('.cs-color-dot').forEach(d=>d.style.outline='none');this.style.outline='3px solid #fff'"
+            class="cs-color-dot" style="width:24px;height:24px;border-radius:50%;background:${c};cursor:pointer;transition:outline 0.1s"></div>`
+        ).join('')}
+        <input type="color" id="cs-color-pick" value="#1D9E75" style="width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;background:none;padding:0"/>
+      </div>
+    </div>
+    <div class="cs-field-row">
+      <div class="cs-field-label">Fields (one per line) *</div>
+      <textarea class="cs-field-textarea" id="cs-fields" rows="5" placeholder="Goals this week&#10;Blockers&#10;Metrics&#10;Action items"></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Each line becomes a labeled text area in the section.</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="lm-del-btn" onclick="switchTab('roadmap')">Cancel</button>
+      <button class="lm-save-btn" onclick="csCreate()">Create section</button>
+    </div>
+  </div>`;
+}
+
+window.csCreate = function() {
+  const name   = (document.getElementById('cs-name')?.value||'').trim();
+  const desc   = (document.getElementById('cs-desc')?.value||'').trim();
+  const color  = document.getElementById('cs-color-pick')?.value || '#1D9E75';
+  const fields = (document.getElementById('cs-fields')?.value||'').split('\n').map(f=>f.trim()).filter(Boolean);
+  if(!name || fields.length===0) { alert('Name and at least one field required.'); return; }
+  const id = 'cs_' + Date.now();
+  getCustomSections().push({ id, name, desc, color, fields, data:{} });
+  sheetsPost({ action:'setNote', id:'__custom_sections__', note: JSON.stringify(getCustomSections()) });
+  switchTab('custom-'+id);
+};
+
+function renderCustomSection(id) {
+  const sections = getCustomSections();
+  const sec = sections.find(s=>s.id===id);
+  if(!sec) return '<div style="padding:40px;color:var(--text3)">Section not found.</div>';
+  const fieldsHTML = (sec.fields||[]).map((f,i) => `
+    <div class="cs-field-row">
+      <div class="cs-field-label">${escHtml(f)}</div>
+      <textarea class="cs-field-textarea" id="csf-${id}-${i}" rows="3" placeholder="Enter ${escHtml(f).toLowerCase()}...">${escHtml((sec.data||{})[i]||'')}</textarea>
+    </div>`).join('');
+  return `
+  <div style="background:linear-gradient(135deg,${sec.color}18,${sec.color}08);border:1px solid ${sec.color}33;border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:20px">
+    <div style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${sec.color};margin-bottom:6px">Custom section</div>
+    <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:300;color:var(--navy)">${escHtml(sec.name)}</div>
+    ${sec.desc?`<div style="font-size:12px;color:var(--text3);margin-top:4px">${escHtml(sec.desc)}</div>`:''}
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px">
+    ${fieldsHTML}
+    <div class="lm-save-bar">
+      <button class="lm-del-btn" onclick="csDelete('${id}')">Delete section</button>
+      <button class="lm-save-btn" id="cs-save-${id}" onclick="csSave('${id}')">Save</button>
+    </div>
+  </div>`;
+}
+
+window.csSave = function(id) {
+  const sections = getCustomSections();
+  const sec = sections.find(s=>s.id===id);
+  if(!sec) return;
+  if(!sec.data) sec.data={};
+  (sec.fields||[]).forEach((_,i) => { sec.data[i] = document.getElementById(`csf-${id}-${i}`)?.value||''; });
+  const btn = document.getElementById('cs-save-'+id);
+  if(btn){btn.textContent='Saving...';btn.disabled=true;}
+  sheetsPost({ action:'setNote', id:'__custom_sections__', note: JSON.stringify(sections) }).then(()=>{
+    if(btn){btn.textContent='Saved';btn.classList.add('saved');btn.disabled=false;setTimeout(()=>{btn.textContent='Save';btn.classList.remove('saved');},1500);}
+  });
+};
+
+window.csDelete = function(id) {
+  if(!confirm('Delete this section?')) return;
+  state._customSections = getCustomSections().filter(s=>s.id!==id);
+  sheetsPost({ action:'setNote', id:'__custom_sections__', note: JSON.stringify(state._customSections) });
+  switchTab('roadmap');
+};
 
 // ── BOOT ─────────────────────────────────────────────────────
 loadFromSheets();
