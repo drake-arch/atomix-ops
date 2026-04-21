@@ -1786,34 +1786,75 @@ function renderWishlist() {
 }
 
 // ── LEADERSHIP MEETING ────────────────────────────────────────
+const LM_DEPTS = [
+  { id:'outbound1', label:'1st Shift Outbound', icon:'📦', color:'#1D9E75', bg:'var(--green-muted)', border:'var(--p1-border)' },
+  { id:'outbound2', label:'2nd Shift Outbound', icon:'🌙', color:'#378ADD', bg:'var(--blue-bg)',     border:'#85B7EB' },
+  { id:'inbound',   label:'Inbound',            icon:'🚚', color:'#7F77DD', bg:'var(--purple-bg)',   border:'#b5b0f0' },
+  { id:'inventory', label:'Inventory',          icon:'📋', color:'#EF9F27', bg:'var(--amber-bg)',    border:'var(--p2-border)' },
+  { id:'sp',        label:'Special Projects',   icon:'⚡', color:'#c084fc', bg:'#f3e8ff',            border:'#d8b4fe' },
+];
+
 function getLM() {
-  return state._lm || {
-    priorities: ['','',''],
-    huddles: [],
-    personnel: [],
-    sla: [],
-    notes: ''
-  };
+  if (!state._lm) state._lm = { priorities:['','',''], sla:[], personnel:[], notes:'', depts:{} };
+  if (!state._lm.depts) state._lm.depts = {};
+  LM_DEPTS.forEach(d => {
+    if (!state._lm.depts[d.id]) state._lm.depts[d.id] = { huddles:[], notes:'' };
+  });
+  return state._lm;
 }
 
 function renderLeadership() {
   const lm  = getLM();
   const now = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
-  // Priorities
+  // Top 3 priorities
   const priHTML = [0,1,2].map(i => `
     <div class="lm-priority-item">
       <div class="lm-priority-num">${i+1}</div>
-      <textarea class="lm-priority-input" id="lm-p${i}" rows="2" placeholder="Top priority #${i+1} for this week...">${lm.priorities[i]||''}</textarea>
+      <textarea class="lm-priority-input" id="lm-p${i}" rows="2" placeholder="Top priority #${i+1} for this week...">${escHtml(lm.priorities[i]||'')}</textarea>
     </div>`).join('');
 
-  // Huddles / issues
-  const huddleHTML = (lm.huddles||[]).map((h,i) => `
-    <div class="lm-huddle-item" id="lm-huddle-${i}">
-      <input class="lm-huddle-text" id="lm-ht-${i}" value="${escHtml(h.text||'')}" placeholder="Issue or huddle item..." oninput="lmHuddleEdit(${i},this.value)"/>
-      <span class="lm-huddle-status ${h.status||'open'}" onclick="lmCycleStatus(${i})">${h.status||'open'}</span>
-      <button class="del-btn" onclick="lmDelHuddle(${i})" style="width:24px;height:24px;font-size:12px">×</button>
-    </div>`).join('');
+  // Per-dept cards
+  const deptCardsHTML = LM_DEPTS.map(d => {
+    const dd = lm.depts[d.id] || { huddles:[], notes:'' };
+    const openCount = (dd.huddles||[]).filter(h=>h.status!=='closed').length;
+    const huddleHTML = (dd.huddles||[]).map((h,i) => `
+      <div class="lm-huddle-item">
+        <input class="lm-huddle-text" value="${escHtml(h.text||'')}" placeholder="Issue or item..." oninput="lmDeptHuddleEdit('${d.id}',${i},this.value)"/>
+        <span class="lm-huddle-status ${h.status||'open'}" onclick="lmDeptCycleStatus('${d.id}',${i})">${h.status||'open'}</span>
+        <button class="del-btn" onclick="lmDeptDelHuddle('${d.id}',${i})" style="width:24px;height:24px;font-size:12px">×</button>
+      </div>`).join('') || '<div style="font-size:12px;color:var(--text3);padding:4px 0 8px">No items — add one below</div>';
+
+    return `
+    <div class="lm-card full" style="border-left:3px solid ${d.border}">
+      <div class="lm-card-head" style="background:${d.bg}20">
+        <div class="lm-card-title">
+          <div class="lm-card-icon" style="background:${d.bg};font-size:14px">${d.icon}</div>
+          <span style="color:${d.color};font-size:15px;font-weight:600">${d.label}</span>
+        </div>
+        ${openCount > 0 ? `<span style="font-size:11px;background:${d.bg};color:${d.color};padding:2px 10px;border-radius:10px;font-weight:500">${openCount} open</span>` : '<span style="font-size:11px;color:var(--text3)">all clear</span>'}
+      </div>
+      <div class="lm-card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div>
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${d.color};font-weight:500;margin-bottom:10px">Huddles & Issues</div>
+            <div id="lm-huddle-${d.id}">${huddleHTML}</div>
+            <div class="lm-inline-add" style="margin-top:8px">
+              <input class="lm-inline-input" id="new-huddle-${d.id}" placeholder="Add item..." onkeydown="if(event.key==='Enter')lmDeptAddHuddle('${d.id}')"/>
+              <button class="lm-inline-btn" style="background:${d.color}" onclick="lmDeptAddHuddle('${d.id}')">Add</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${d.color};font-weight:500;margin-bottom:10px">Notes</div>
+            <textarea class="cs-field-textarea" id="lm-dept-notes-${d.id}" rows="5" placeholder="Updates, context, action items for ${d.label}...">${escHtml(dd.notes||'')}</textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button class="lm-save-btn" id="lm-dept-save-${d.id}" style="background:${d.color};color:#fff" onclick="lmSaveDeptNotes('${d.id}')">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 
   // Personnel
   const personHTML = (lm.personnel||[]).map((p,i) => `
@@ -1827,36 +1868,34 @@ function renderLeadership() {
         <span class="lm-person-type ${p.type||'update'}">${p.type||'update'}</span>
         <button class="del-btn" onclick="lmDelPerson(${i})" style="width:24px;height:24px;font-size:12px">×</button>
       </div>
-    </div>`).join('');
+    </div>`).join('') || '<div style="font-size:12px;color:var(--text3);padding:4px 0">No updates yet</div>';
 
   // SLA
   const slaHTML = (lm.sla||[]).map((s,i) => `
     <div class="lm-sla-item ${s.ok?'ok':''}">
-      <input class="lm-sla-input" id="lm-sla-${i}" value="${escHtml(s.text||'')}" placeholder="Missing or at-risk SLA..." oninput="lmSlaEdit(${i},this.value)"/>
+      <input class="lm-sla-input" value="${escHtml(s.text||'')}" placeholder="Missing or at-risk SLA..." oninput="lmSlaEdit(${i},this.value)"/>
       <div style="display:flex;gap:6px;align-items:center">
         <span style="font-size:10px;cursor:pointer;padding:2px 8px;border-radius:10px;background:${s.ok?'rgba(29,158,117,0.2)':'rgba(226,75,74,0.15)'};color:${s.ok?'#085041':'var(--red-text)'}" onclick="lmToggleSla(${i})">${s.ok?'✓ OK':'⚠ Missing'}</span>
         <button class="del-btn" onclick="lmDelSla(${i})" style="width:24px;height:24px;font-size:12px">×</button>
       </div>
-    </div>`).join('');
+    </div>`).join('') || '<div style="font-size:12px;color:var(--text3);padding:4px 0">Nothing flagged</div>';
 
   return `
   <div class="lm-hero">
     <div class="lm-hero-text" style="position:relative;z-index:1">
       <div class="lm-hero-label">Weekly leadership meeting</div>
       <div class="lm-hero-title">Meeting Prep</div>
-      <div class="lm-hero-sub">Top priorities, open issues, personnel updates, and SLA gaps.<br>All changes save automatically to Sheets.</div>
+      <div class="lm-hero-sub">Scroll through each department — huddles, issues, and notes all in one view.<br>Everything saves automatically to Sheets.</div>
     </div>
     <div class="lm-date" style="text-align:right">${now}</div>
   </div>
 
   <div class="lm-grid">
+
     <!-- Top 3 Priorities -->
     <div class="lm-card full">
       <div class="lm-card-head">
-        <div class="lm-card-title">
-          <div class="lm-card-icon" style="background:var(--navy)">🎯</div>
-          Top 3 Priorities This Week
-        </div>
+        <div class="lm-card-title"><div class="lm-card-icon" style="background:var(--navy)">🎯</div>Top 3 Priorities This Week</div>
       </div>
       <div class="lm-card-body">
         <div class="lm-priority-list">${priHTML}</div>
@@ -1866,36 +1905,18 @@ function renderLeadership() {
       </div>
     </div>
 
-    <!-- Huddles & Issues -->
-    <div class="lm-card">
-      <div class="lm-card-head">
-        <div class="lm-card-title">
-          <div class="lm-card-icon" style="background:#faeeda">🔥</div>
-          Huddles & Issues
-        </div>
-        <span style="font-size:11px;color:var(--text3)">${(lm.huddles||[]).length} item${(lm.huddles||[]).length!==1?'s':''}</span>
-      </div>
-      <div class="lm-card-body">
-        <div id="lm-huddle-list">${huddleHTML}</div>
-        <div class="lm-inline-add">
-          <input class="lm-inline-input" id="new-huddle-text" placeholder="Add issue or huddle item..." onkeydown="if(event.key==='Enter')lmAddHuddle()"/>
-          <button class="lm-inline-btn" onclick="lmAddHuddle()">Add</button>
-        </div>
-      </div>
-    </div>
+    <!-- One card per department -->
+    ${deptCardsHTML}
 
     <!-- Personnel Updates -->
     <div class="lm-card">
       <div class="lm-card-head">
-        <div class="lm-card-title">
-          <div class="lm-card-icon" style="background:#e6f1fb">👤</div>
-          Personnel Updates
-        </div>
+        <div class="lm-card-title"><div class="lm-card-icon" style="background:#e6f1fb">👤</div>Personnel Updates</div>
         <span style="font-size:11px;color:var(--text3)">${(lm.personnel||[]).length} update${(lm.personnel||[]).length!==1?'s':''}</span>
       </div>
       <div class="lm-card-body">
         <div id="lm-person-list">${personHTML}</div>
-        <div class="lm-inline-add" style="flex-wrap:wrap;gap:6px">
+        <div class="lm-inline-add" style="flex-wrap:wrap;gap:6px;margin-top:10px">
           <input class="lm-inline-input" id="new-person-name" placeholder="Name..." style="min-width:100px;flex:1"/>
           <input class="lm-inline-input" id="new-person-note" placeholder="Note..." style="min-width:120px;flex:2"/>
           <select class="lm-inline-select" id="new-person-type">
@@ -1909,17 +1930,14 @@ function renderLeadership() {
     </div>
 
     <!-- SLA Missing -->
-    <div class="lm-card full">
+    <div class="lm-card">
       <div class="lm-card-head">
-        <div class="lm-card-title">
-          <div class="lm-card-icon" style="background:var(--red-bg)">⚠️</div>
-          Anything Missing SLA
-        </div>
+        <div class="lm-card-title"><div class="lm-card-icon" style="background:var(--red-bg)">⚠️</div>Anything Missing SLA</div>
         <span style="font-size:11px;color:var(--text3)">${(lm.sla||[]).filter(s=>!s.ok).length} open</span>
       </div>
       <div class="lm-card-body">
         <div id="lm-sla-list">${slaHTML}</div>
-        <div class="lm-inline-add">
+        <div class="lm-inline-add" style="margin-top:10px">
           <input class="lm-inline-input" id="new-sla-text" placeholder="Client, SLA, or commitment at risk..." onkeydown="if(event.key==='Enter')lmAddSla()"/>
           <button class="lm-inline-btn" onclick="lmAddSla()">Add</button>
         </div>
@@ -1929,10 +1947,7 @@ function renderLeadership() {
     <!-- General Notes -->
     <div class="lm-card full">
       <div class="lm-card-head">
-        <div class="lm-card-title">
-          <div class="lm-card-icon" style="background:var(--surface3)">📝</div>
-          General Meeting Notes
-        </div>
+        <div class="lm-card-title"><div class="lm-card-icon" style="background:var(--surface3)">📝</div>General Meeting Notes</div>
       </div>
       <div class="lm-card-body">
         <textarea class="cs-field-textarea" id="lm-notes" rows="5" placeholder="Open notes, action items, follow-ups from the meeting...">${escHtml(lm.notes||'')}</textarea>
@@ -1944,12 +1959,12 @@ function renderLeadership() {
   </div>`;
 }
 
+
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function lmGet()  { return state._lm || (state._lm = { priorities:['','',''], huddles:[], personnel:[], sla:[], notes:'' }); }
 
 window.lmSavePriorities = function() {
-  const lm = lmGet();
+  const lm = getLM();
   lm.priorities = [0,1,2].map(i => (document.getElementById('lm-p'+i)||{}).value||'');
   const btn = document.getElementById('lm-pri-save');
   if(btn){btn.textContent='Saving...';btn.disabled=true;}
@@ -1959,7 +1974,7 @@ window.lmSavePriorities = function() {
 };
 
 window.lmSaveNotes = function() {
-  const lm = lmGet();
+  const lm = getLM();
   lm.notes = (document.getElementById('lm-notes')||{}).value||'';
   const btn = document.getElementById('lm-notes-save');
   if(btn){btn.textContent='Saving...';btn.disabled=true;}
@@ -1969,48 +1984,67 @@ window.lmSaveNotes = function() {
 };
 
 function lmPersist() {
-  sheetsPost({ action:'setNote', id:'__lm__', note: JSON.stringify(lmGet()) });
+  sheetsPost({ action:'setNote', id:'__lm__', note: JSON.stringify(getLM()) });
 }
 
-window.lmAddHuddle = function() {
-  const el = document.getElementById('new-huddle-text');
+
+window.lmDeptAddHuddle = function(deptId) {
+  const el = document.getElementById('new-huddle-' + deptId);
   const text = (el?.value||'').trim();
   if(!text) return;
-  lmGet().huddles.push({ text, status:'open' });
+  const lm = getLM();
+  if(!lm.depts[deptId]) lm.depts[deptId] = { huddles:[], notes:'' };
+  lm.depts[deptId].huddles.push({ text, status:'open' });
   el.value = '';
-  lmPersist();
-  render();
-};
-window.lmDelHuddle = function(i) { lmGet().huddles.splice(i,1); lmPersist(); render(); };
-window.lmHuddleEdit = function(i,v) { lmGet().huddles[i].text=v; };
-window.lmCycleStatus = function(i) {
-  const cycle = {open:'watch',watch:'closed',closed:'open'};
-  const h = lmGet().huddles[i];
-  h.status = cycle[h.status]||'open';
   lmPersist(); render();
+};
+window.lmDeptDelHuddle = function(deptId, i) {
+  const lm = getLM();
+  lm.depts[deptId]?.huddles.splice(i,1);
+  lmPersist(); render();
+};
+window.lmDeptHuddleEdit = function(deptId, i, v) {
+  const lm = getLM();
+  if(lm.depts[deptId]?.huddles[i]) lm.depts[deptId].huddles[i].text = v;
+};
+window.lmDeptCycleStatus = function(deptId, i) {
+  const cycle = {open:'watch',watch:'closed',closed:'open'};
+  const lm = getLM();
+  const h = lm.depts[deptId]?.huddles[i];
+  if(h) { h.status = cycle[h.status]||'open'; lmPersist(); render(); }
+};
+window.lmSaveDeptNotes = function(deptId) {
+  const lm = getLM();
+  if(!lm.depts[deptId]) lm.depts[deptId] = { huddles:[], notes:'' };
+  lm.depts[deptId].notes = document.getElementById('lm-dept-notes-' + deptId)?.value||'';
+  const btn = document.getElementById('lm-dept-save-' + deptId);
+  if(btn){btn.textContent='Saving...';btn.disabled=true;}
+  sheetsPost({ action:'setNote', id:'__lm__', note: JSON.stringify(lm) }).then(()=>{
+    if(btn){btn.textContent='Saved';btn.disabled=false;setTimeout(()=>{btn.textContent='Save';},1500);}
+  });
 };
 window.lmAddPerson = function() {
   const name = (document.getElementById('new-person-name')?.value||'').trim();
   if(!name) return;
   const note = document.getElementById('new-person-note')?.value||'';
   const type = document.getElementById('new-person-type')?.value||'update';
-  lmGet().personnel.push({ name, note, type });
+  getLM().personnel.push({ name, note, type });
   document.getElementById('new-person-name').value='';
   document.getElementById('new-person-note').value='';
   lmPersist(); render();
 };
-window.lmDelPerson = function(i) { lmGet().personnel.splice(i,1); lmPersist(); render(); };
+window.lmDelPerson = function(i) { getLM().personnel.splice(i,1); lmPersist(); render(); };
 window.lmAddSla = function() {
   const el = document.getElementById('new-sla-text');
   const text = (el?.value||'').trim();
   if(!text) return;
-  lmGet().sla.push({ text, ok:false });
+  getLM().sla.push({ text, ok:false });
   el.value='';
   lmPersist(); render();
 };
-window.lmDelSla = function(i) { lmGet().sla.splice(i,1); lmPersist(); render(); };
-window.lmSlaEdit = function(i,v) { lmGet().sla[i].text=v; };
-window.lmToggleSla = function(i) { lmGet().sla[i].ok=!lmGet().sla[i].ok; lmPersist(); render(); };
+window.lmDelSla = function(i) { getLM().sla.splice(i,1); lmPersist(); render(); };
+window.lmSlaEdit = function(i,v) { getLM().sla[i].text=v; };
+window.lmToggleSla = function(i) { getLM().sla[i].ok=!getLM().sla[i].ok; lmPersist(); render(); };
 
 // ── CUSTOM SECTIONS ───────────────────────────────────────────
 function getCustomSections() { return state._customSections || (state._customSections=[]); }
