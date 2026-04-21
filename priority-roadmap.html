@@ -1798,7 +1798,13 @@ function getLM() {
   if (!state._lm) state._lm = { priorities:['','',''], sla:[], personnel:[], notes:'', depts:{} };
   if (!state._lm.depts) state._lm.depts = {};
   LM_DEPTS.forEach(d => {
-    if (!state._lm.depts[d.id]) state._lm.depts[d.id] = { huddles:[], notes:'' };
+    if (!state._lm.depts[d.id]) state._lm.depts[d.id] = { huddles:[], priorities:['','',''], wins:'', needs:'' };
+    const dd = state._lm.depts[d.id];
+    if (!dd.priorities) dd.priorities = ['','',''];
+    if (!dd.wins)  dd.wins  = '';
+    if (!dd.needs) dd.needs = '';
+    if (!dd.sop)   dd.sop   = '';
+    if (!dd.sla)   dd.sla   = '';
   });
   return state._lm;
 }
@@ -1814,10 +1820,11 @@ function renderLeadership() {
       <textarea class="lm-priority-input" id="lm-p${i}" rows="2" placeholder="Top priority #${i+1} for this week...">${escHtml(lm.priorities[i]||'')}</textarea>
     </div>`).join('');
 
-  // Per-dept cards
+  // Per-dept cards — 4 sub-sections each
   const deptCardsHTML = LM_DEPTS.map(d => {
-    const dd = lm.depts[d.id] || { huddles:[], notes:'' };
+    const dd = lm.depts[d.id] || { huddles:[], priorities:['','',''], wins:'', needs:'' };
     const openCount = (dd.huddles||[]).filter(h=>h.status!=='closed').length;
+
     const huddleHTML = (dd.huddles||[]).map((h,i) => `
       <div class="lm-huddle-item">
         <input class="lm-huddle-text" value="${escHtml(h.text||'')}" placeholder="Issue or item..." oninput="lmDeptHuddleEdit('${d.id}',${i},this.value)"/>
@@ -1825,32 +1832,91 @@ function renderLeadership() {
         <button class="del-btn" onclick="lmDeptDelHuddle('${d.id}',${i})" style="width:24px;height:24px;font-size:12px">×</button>
       </div>`).join('') || '<div style="font-size:12px;color:var(--text3);padding:4px 0 8px">No items — add one below</div>';
 
+    const priHTML = [0,1,2].map(i => `
+      <div class="lm-priority-item">
+        <div class="lm-priority-num" style="background:${d.color};color:#fff;font-size:12px;width:24px;height:24px">${i+1}</div>
+        <textarea class="lm-priority-input" id="lm-dp-${d.id}-${i}" rows="2" placeholder="Priority #${i+1}...">${escHtml((dd.priorities||[])[i]||'')}</textarea>
+      </div>`).join('');
+
     return `
-    <div class="lm-card full" style="border-left:3px solid ${d.border}">
-      <div class="lm-card-head" style="background:${d.bg}20">
+    <div class="lm-card full" style="border-left:4px solid ${d.color}">
+      <div class="lm-card-head" style="background:${d.bg}30;padding:16px 20px">
         <div class="lm-card-title">
-          <div class="lm-card-icon" style="background:${d.bg};font-size:14px">${d.icon}</div>
-          <span style="color:${d.color};font-size:15px;font-weight:600">${d.label}</span>
+          <div class="lm-card-icon" style="background:${d.bg};font-size:15px;width:28px;height:28px">${d.icon}</div>
+          <span style="color:${d.color};font-size:17px;font-weight:600;font-family:'Fraunces',serif;letter-spacing:-0.3px">${d.label}</span>
         </div>
-        ${openCount > 0 ? `<span style="font-size:11px;background:${d.bg};color:${d.color};padding:2px 10px;border-radius:10px;font-weight:500">${openCount} open</span>` : '<span style="font-size:11px;color:var(--text3)">all clear</span>'}
+        ${openCount > 0 ? `<span style="font-size:11px;background:${d.bg};color:${d.color};padding:3px 12px;border-radius:10px;font-weight:500">${openCount} open issue${openCount!==1?'s':''}</span>` : '<span style="font-size:11px;color:var(--text3)">✓ all clear</span>'}
       </div>
       <div class="lm-card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+
+          <!-- Top 3 Priorities -->
           <div>
-            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${d.color};font-weight:500;margin-bottom:10px">Huddles & Issues</div>
-            <div id="lm-huddle-${d.id}">${huddleHTML}</div>
+            <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${d.color};font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+              🎯 Top 3 Priorities
+            </div>
+            <div class="lm-priority-list" style="gap:8px">${priHTML}</div>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button class="lm-save-btn" id="lm-dpri-save-${d.id}" style="background:${d.color};color:#fff;font-size:11px;padding:6px 14px" onclick="lmSaveDeptPriorities('${d.id}')">Save</button>
+            </div>
+          </div>
+
+          <!-- Issues & Huddles -->
+          <div>
+            <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${d.color};font-weight:600;margin-bottom:10px">
+              🔥 Issues & Huddles
+            </div>
+            <div>${huddleHTML}</div>
             <div class="lm-inline-add" style="margin-top:8px">
-              <input class="lm-inline-input" id="new-huddle-${d.id}" placeholder="Add item..." onkeydown="if(event.key==='Enter')lmDeptAddHuddle('${d.id}')"/>
+              <input class="lm-inline-input" id="new-huddle-${d.id}" placeholder="Add issue..." onkeydown="if(event.key==='Enter')lmDeptAddHuddle('${d.id}')"/>
               <button class="lm-inline-btn" style="background:${d.color}" onclick="lmDeptAddHuddle('${d.id}')">Add</button>
             </div>
           </div>
+
+          <!-- Last Week Wins -->
           <div>
-            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${d.color};font-weight:500;margin-bottom:10px">Notes</div>
-            <textarea class="cs-field-textarea" id="lm-dept-notes-${d.id}" rows="5" placeholder="Updates, context, action items for ${d.label}...">${escHtml(dd.notes||'')}</textarea>
+            <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${d.color};font-weight:600;margin-bottom:10px">
+              🏆 Last Week Wins
+            </div>
+            <textarea class="cs-field-textarea" id="lm-wins-${d.id}" rows="4" placeholder="What went well last week? Callouts, achievements, milestones...">${escHtml(dd.wins||'')}</textarea>
             <div style="display:flex;justify-content:flex-end;margin-top:8px">
-              <button class="lm-save-btn" id="lm-dept-save-${d.id}" style="background:${d.color};color:#fff" onclick="lmSaveDeptNotes('${d.id}')">Save</button>
+              <button class="lm-save-btn" id="lm-wins-save-${d.id}" style="background:${d.color};color:#fff;font-size:11px;padding:6px 14px" onclick="lmSaveDeptField('${d.id}','wins')">Save</button>
             </div>
           </div>
+
+          <!-- Needs -->
+          <div>
+            <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${d.color};font-weight:600;margin-bottom:10px">
+              🙋 Needs
+            </div>
+            <textarea class="cs-field-textarea" id="lm-needs-${d.id}" rows="4" placeholder="What does this area need? Resources, decisions, support, headcount...">${escHtml(dd.needs||'')}</textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button class="lm-save-btn" id="lm-needs-save-${d.id}" style="background:${d.color};color:#fff;font-size:11px;padding:6px 14px" onclick="lmSaveDeptField('${d.id}','needs')">Save</button>
+            </div>
+          </div>
+
+          <!-- This Week SOP -->
+          <div>
+            <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${d.color};font-weight:600;margin-bottom:10px">
+              📋 This Week's SOP
+            </div>
+            <textarea class="cs-field-textarea" id="lm-sop-${d.id}" rows="4" placeholder="Which SOPs are in focus, being trained, or updated this week?">${escHtml(dd.sop||'')}</textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button class="lm-save-btn" id="lm-sop-save-${d.id}" style="background:${d.color};color:#fff;font-size:11px;padding:6px 14px" onclick="lmSaveDeptField('${d.id}','sop')">Save</button>
+            </div>
+          </div>
+
+          <!-- Out of SLA -->
+          <div>
+            <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${d.color};font-weight:600;margin-bottom:10px">
+              ⚠️ Out of SLA
+            </div>
+            <textarea class="cs-field-textarea" id="lm-sla-${d.id}" rows="4" placeholder="Anything missing SLA? Client commitments, ship windows, response times at risk...">${escHtml(dd.sla||'')}</textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button class="lm-save-btn" id="lm-sla-save-${d.id}" style="background:${d.color};color:#fff;font-size:11px;padding:6px 14px" onclick="lmSaveDeptField('${d.id}','sla')">Save</button>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>`;
@@ -2015,9 +2081,31 @@ window.lmDeptCycleStatus = function(deptId, i) {
 };
 window.lmSaveDeptNotes = function(deptId) {
   const lm = getLM();
-  if(!lm.depts[deptId]) lm.depts[deptId] = { huddles:[], notes:'' };
+  if(!lm.depts[deptId]) lm.depts[deptId] = { huddles:[], priorities:['','',''], wins:'', needs:'' };
   lm.depts[deptId].notes = document.getElementById('lm-dept-notes-' + deptId)?.value||'';
   const btn = document.getElementById('lm-dept-save-' + deptId);
+  if(btn){btn.textContent='Saving...';btn.disabled=true;}
+  sheetsPost({ action:'setNote', id:'__lm__', note: JSON.stringify(lm) }).then(()=>{
+    if(btn){btn.textContent='Saved';btn.disabled=false;setTimeout(()=>{btn.textContent='Save';},1500);}
+  });
+};
+
+window.lmSaveDeptPriorities = function(deptId) {
+  const lm = getLM();
+  if(!lm.depts[deptId]) lm.depts[deptId] = { huddles:[], priorities:['','',''], wins:'', needs:'' };
+  lm.depts[deptId].priorities = [0,1,2].map(i => document.getElementById(`lm-dp-${deptId}-${i}`)?.value||'');
+  const btn = document.getElementById('lm-dpri-save-' + deptId);
+  if(btn){btn.textContent='Saving...';btn.disabled=true;}
+  sheetsPost({ action:'setNote', id:'__lm__', note: JSON.stringify(lm) }).then(()=>{
+    if(btn){btn.textContent='Saved';btn.disabled=false;setTimeout(()=>{btn.textContent='Save';},1500);}
+  });
+};
+
+window.lmSaveDeptField = function(deptId, field) {
+  const lm = getLM();
+  if(!lm.depts[deptId]) lm.depts[deptId] = { huddles:[], priorities:['','',''], wins:'', needs:'' };
+  lm.depts[deptId][field] = document.getElementById(`lm-${field}-${deptId}`)?.value||'';
+  const btn = document.getElementById(`lm-${field}-save-${deptId}`);
   if(btn){btn.textContent='Saving...';btn.disabled=true;}
   sheetsPost({ action:'setNote', id:'__lm__', note: JSON.stringify(lm) }).then(()=>{
     if(btn){btn.textContent='Saved';btn.disabled=false;setTimeout(()=>{btn.textContent='Save';},1500);}
