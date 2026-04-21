@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATX Ops — Priority Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0D2D53;
+  --navy-mid: #1a3f6f;
+  --navy-light: #e8eef5;
+  --green: #A3F3C5;
+  --green-dark: #1D9E75;
+  --green-muted: #e1f5ee;
+  --red-bg: #fcebeb;
+  --red-text: #791F1F;
+  --red-accent: #E24B4A;
+  --purple-bg: #eeedfe;
+  --purple-text: #3C3489;
+  --purple-accent: #7F77DD;
+  --blue-bg: #e6f1fb;
+  --blue-text: #0C447C;
+  --blue-accent: #378ADD;
+  --amber-bg: #faeeda;
+  --amber-text: #633806;
+  --amber-accent: #EF9F27;
+  --p1-bg: #e1f5ee; --p1-text: #085041; --p1-border: #5DCAA5;
+  --p2-bg: #faeeda; --p2-text: #633806; --p2-border: #EF9F27;
+  --p3-bg: #e6f1fb; --p3-text: #0C447C; --p3-border: #85B7EB;
+  --surface: #ffffff;
+  --surface2: #f7f8fa;
+  --surface3: #f0f2f5;
+  --border: rgba(0,0,0,0.1);
+  --border-strong: rgba(0,0,0,0.18);
+  --text: #111827;
+  --text2: #4b5563;
+  --text3: #9ca3af;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--navy);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── LAYOUT ── */
+.shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--navy);
+  padding: 28px 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.logo {
+  padding: 0 20px 28px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 20px;
+}
+.logo-mark {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.logo-sub {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-top: 3px;
+}
+
+.nav-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  padding: 0 20px 8px;
+  margin-top: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  cursor: pointer;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+  margin: 1px 0;
+}
+.nav-item:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.04); }
+.nav-item.active { color: #fff; border-left-color: var(--green); background: rgba(163,243,197,0.08); }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.nav-count { margin-left: auto; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
+.nav-count.has-items { background: rgba(163,243,197,0.15); color: var(--green); }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 20px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.stat-pill {
+  text-align: center;
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.stat-pill .n { font-size: 16px; font-weight: 500; font-family: 'Fraunces', serif; display: block; }
+.stat-pill.s1 { background: var(--p1-bg); color: var(--p1-text); }
+.stat-pill.s2 { background: var(--p2-bg); color: var(--p2-text); }
+.stat-pill.s3 { background: var(--p3-bg); color: var(--p3-text); }
+
+/* ── MAIN ── */
+.main {
+  background: var(--surface2);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.page-title {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--navy);
+}
+.page-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+
+.export-btn {
+  padding: 8px 18px;
+  background: var(--navy);
+  color: var(--green);
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.03em;
+}
+.export-btn:hover { background: var(--navy-mid); }
+
+.content { padding: 28px 32px; flex: 1; }
+
+/* ── SECTION HEADER ── */
+.section-header {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--navy);
+  letter-spacing: -0.5px;
+}
+.section-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 10px;
+  vertical-align: middle;
+  position: relative;
+  top: -2px;
+}
+.section-count { font-size: 13px; color: var(--text3); }
+
+/* ── ITEM CARDS ── */
+.group-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin: 24px 0 10px;
+  font-weight: 500;
+}
+.group-label:first-child { margin-top: 0; }
+
+.item-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.item-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+.item-card.rated-1 { border-left: 3px solid var(--p1-border); }
+.item-card.rated-2 { border-left: 3px solid var(--p2-border); }
+.item-card.rated-3 { border-left: 3px solid var(--p3-border); }
+
+.item-top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 14px 16px 10px;
+  align-items: start;
+}
+.item-title { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.4; }
+.item-desc { font-size: 12px; color: var(--text2); margin-top: 4px; line-height: 1.5; font-weight: 400; }
+
+.priority-group { display: flex; gap: 4px; flex-shrink: 0; }
+.pbtn {
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  transition: all 0.12s;
+}
+.pbtn:hover { border-color: var(--border-strong); color: var(--text2); }
+.pbtn.active-1 { background: var(--p1-bg); color: var(--p1-text); border-color: var(--p1-border); }
+.pbtn.active-2 { background: var(--p2-bg); color: var(--p2-text); border-color: var(--p2-border); }
+.pbtn.active-3 { background: var(--p3-bg); color: var(--p3-text); border-color: var(--p3-border); }
+
+.item-bottom {
+  padding: 0 16px 14px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.note-area {
+  flex: 1;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  resize: vertical;
+  min-height: 38px;
+  line-height: 1.5;
+  transition: border-color 0.12s;
+}
+.note-area:focus { outline: none; border-color: var(--navy); background: #fff; }
+.note-area::placeholder { color: var(--text3); }
+.save-btn {
+  padding: 8px 14px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text3);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+.save-btn:hover { border-color: var(--green-dark); color: var(--green-dark); }
+.save-btn.saved { background: var(--green-muted); border-color: var(--green-dark); color: var(--green-dark); }
+
+/* ── ROADMAP ── */
+.roadmap-wrap { }
+.rm-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.rm-stat {
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+}
+.rm-stat.r1 { background: var(--p1-bg); border-color: var(--p1-border); }
+.rm-stat.r2 { background: var(--p2-bg); border-color: var(--p2-border); }
+.rm-stat.r3 { background: var(--p3-bg); border-color: var(--p3-border); }
+.rm-stat .rn { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 600; line-height: 1; }
+.rm-stat.r1 .rn { color: var(--p1-text); }
+.rm-stat.r2 .rn { color: var(--p2-text); }
+.rm-stat.r3 .rn { color: var(--p3-text); }
+.rm-stat .rl { font-size: 11px; margin-top: 4px; }
+.rm-stat.r1 .rl { color: var(--p1-text); }
+.rm-stat.r2 .rl { color: var(--p2-text); }
+.rm-stat.r3 .rl { color: var(--p3-text); }
+
+.rm-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.rm-filter-label { font-size: 11px; color: var(--text3); margin-right: 4px; }
+.fbtn {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.fbtn:hover { border-color: var(--border-strong); }
+.fbtn.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.leg { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); }
+.leg-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+.rm-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.rm-col-head {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.rm-col-head.h1 { background: var(--p1-bg); color: var(--p1-text); }
+.rm-col-head.h2 { background: var(--p2-bg); color: var(--p2-text); }
+.rm-col-head.h3 { background: var(--p3-bg); color: var(--p3-text); }
+
+.rm-col {
+  background: var(--surface3);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  min-height: 120px;
+  transition: background 0.15s;
+}
+.rm-col.drag-over { background: #ddeeff; outline: 2px dashed var(--blue-accent); }
+
+.rc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  cursor: grab;
+  transition: box-shadow 0.12s, transform 0.12s;
+  user-select: none;
+}
+.rc:hover { box-shadow: var(--shadow); }
+.rc:active { cursor: grabbing; transform: scale(0.98); opacity: 0.8; }
+.rc-title { font-size: 13px; font-weight: 500; line-height: 1.35; color: var(--text); }
+.rc-dept {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 10px;
+  margin-top: 5px;
+}
+.rc-note { font-size: 11px; color: var(--text2); margin-top: 4px; line-height: 1.4; font-weight: 400; }
+
+.rc.d-inv { border-left: 3px solid var(--green-dark); }
+.rc.d-inv .rc-dept { background: var(--green-muted); color: #085041; }
+.rc.d-qual { border-left: 3px solid var(--red-accent); }
+.rc.d-qual .rc-dept { background: var(--red-bg); color: var(--red-text); }
+.rc.d-sp { border-left: 3px solid var(--purple-accent); }
+.rc.d-sp .rc-dept { background: var(--purple-bg); color: var(--purple-text); }
+.rc.d-b2b { border-left: 3px solid var(--blue-accent); }
+.rc.d-b2b .rc-dept { background: var(--blue-bg); color: var(--blue-text); }
+.rc.d-ret { border-left: 3px solid var(--amber-accent); }
+.rc.d-ret .rc-dept { background: var(--amber-bg); color: var(--amber-text); }
+
+.empty-col { text-align: center; padding: 24px 12px; font-size: 12px; color: var(--text3); }
+
+.rm-no-items {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text3);
+  font-size: 14px;
+}
+.rm-no-items strong { display: block; font-family: 'Fraunces', serif; font-size: 22px; font-weight: 300; color: var(--text2); margin-bottom: 8px; }
+
+/* ── PRIORITY LEGEND ── */
+.p-legend {
+  display: flex;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  border: 1px solid var(--border);
+}
+.p-leg { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.p-leg .chip {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ── WISH LIST ── */
+.wish-hero {
+  background: linear-gradient(135deg, var(--navy) 0%, #1a3f6f 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  overflow: hidden;
+  position: relative;
+}
+.wish-hero::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(163,243,197,0.06);
+  pointer-events: none;
+}
+.wish-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -50px; right: 60px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: rgba(163,243,197,0.04);
+  pointer-events: none;
+}
+.wish-hero-text .wh-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green);
+  opacity: 0.7;
+  margin-bottom: 6px;
+}
+.wish-hero-text .wh-title {
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-weight: 300;
+  color: #fff;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.wish-hero-text .wh-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.wish-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  background: var(--green);
+  color: var(--navy);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+  position: relative;
+  z-index: 1;
+}
+.wish-add-btn:hover { background: #b8f7d4; transform: translateY(-1px); }
+.wish-add-btn:active { transform: translateY(0); }
+.plus-icon {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.wish-empty {
+  text-align: center;
+  padding: 48px 20px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text3);
+}
+.wish-empty-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+.wish-empty strong {
+  display: block;
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+.wish-empty p { font-size: 13px; }
+
+.wish-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 10px;
+}
+.wish-group-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-weight: 500;
+}
+.wish-group-line { flex: 1; height: 1px; background: var(--border); }
+.wish-group-count { font-size: 11px; color: var(--text3); }
+
+.wish-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  animation: slideIn 0.2s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.wish-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+.wish-card.rated-1 { border-left: 3px solid var(--p1-border); }
+.wish-card.rated-2 { border-left: 3px solid var(--p2-border); }
+.wish-card.rated-3 { border-left: 3px solid var(--p3-border); }
+
+.wish-card-top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  align-items: start;
+}
+.wish-card-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.del-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+.del-btn:hover { border-color: var(--red-accent); color: var(--red-accent); background: var(--red-bg); }
+
+/* ── MODAL ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,45,83,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.15s ease;
+  padding: 20px;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.2s ease;
+  overflow: hidden;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--navy);
+}
+.modal-close {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text3);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.12s;
+}
+.modal-close:hover { background: var(--surface2); color: var(--text); }
+.modal-body { padding: 20px 24px; }
+.modal-field { margin-bottom: 16px; }
+.modal-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+.modal-input, .modal-textarea, .modal-select {
+  width: 100%;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  transition: border-color 0.12s;
+}
+.modal-input:focus, .modal-textarea:focus, .modal-select:focus {
+  outline: none;
+  border-color: var(--navy);
+  background: #fff;
+}
+.modal-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+.modal-select { cursor: pointer; }
+.modal-footer {
+  padding: 16px 24px 20px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+.modal-cancel {
+  padding: 9px 18px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.modal-cancel:hover { background: var(--surface2); }
+.modal-submit {
+  padding: 9px 22px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  background: var(--navy);
+  color: var(--green);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.12s;
+  letter-spacing: 0.03em;
+}
+.modal-submit:hover { background: var(--navy-mid); }
+
+/* ── TOPBAR VISUAL UPGRADE ── */
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.topbar-divider { width: 1px; height: 28px; background: var(--border); }
+
+/* ── WISH BADGE IN NAV ── */
+.wish-badge {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(163,243,197,0.15);
+  color: var(--green);
+}
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { height: auto; position: static; flex-direction: row; flex-wrap: wrap; padding: 12px; gap: 4px; }
+  .logo { display: none; }
+  .nav-label { display: none; }
+  .sidebar-footer { display: none; }
+  .rm-columns { grid-template-columns: 1fr; }
+  .rm-summary { grid-template-columns: 1fr 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">ATX Ops</div>
+      <div class="logo-sub">Priority Roadmap</div>
+    </div>
+
+    <div class="nav-label">Sections</div>
+    <div class="nav-item active" onclick="switchTab('inventory')">
+      <div class="nav-dot" style="background:#1D9E75"></div>
+      Inventory
+      <span class="nav-count" id="cnt-inventory">0</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('quality')">
+      <div class="nav-dot" style="background:#E24B4A"></div>
+      Quality control
+      <span class="nav-count" id="cnt-quality">0</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('sp')">
+      <div class="nav-dot" style="background:#7F77DD"></div>
+      Special projects
+      <span class="nav-count" id="cnt-sp">0</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('b2b')">
+      <div class="nav-dot" style="background:#378ADD"></div>
+      B2B
+      <span class="nav-count" id="cnt-b2b">0</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('retail')">
+      <div class="nav-dot" style="background:#EF9F27"></div>
+      Retail
+      <span class="nav-count" id="cnt-retail">0</span>
+    </div>
+
+    <div class="nav-label" style="margin-top:16px">Views</div>
+    <div class="nav-item" onclick="switchTab('roadmap')">
+      <div class="nav-dot" style="background:#888780"></div>
+      Master roadmap
+      <span class="nav-count" id="cnt-roadmap">0</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('wishlist')">
+      <div class="nav-dot" style="background:#A3F3C5"></div>
+      Wish list
+      <span class="nav-count" id="cnt-wishlist" style="background:rgba(163,243,197,0.15);color:var(--green)">0</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="nav-label" style="padding:0 0 8px; margin-top:0">Total rated</div>
+      <div class="stats-row">
+        <div class="stat-pill s1"><span class="n" id="tot1">0</span>P1</div>
+        <div class="stat-pill s2"><span class="n" id="tot2">0</span>P2</div>
+        <div class="stat-pill s3"><span class="n" id="tot3">0</span>P3</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Inventory</div>
+        <div class="page-sub" id="page-sub">Rate each item, add notes, then see the master roadmap</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="sync-status" style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace"></div>
+        <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+      </div>
+    </div>
+
+    <div id="loading-overlay" style="display:flex;align-items:center;justify-content:center;padding:80px;flex-direction:column;gap:16px">
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:300;color:var(--navy)">Loading roadmap...</div>
+      <div style="font-size:12px;color:var(--text3)">Fetching shared state from Google Sheets</div>
+    </div>
+    <div class="content" id="content" style="display:none"></div>
+  </main>
+</div>
+
+<script>
+// ── SHEETS CONFIG — paste your Apps Script Web App URL here ──
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwQLeu1m1syk4IdsodACyAMdWeEZ5pdPeqMXIX68xS_EAe-cPuXbHV2DBlgF0EwXMme/exec';
+
+const ITEMS = {
+  inventory: {
+    label: 'Inventory',
+    color: '#1D9E75',
+    badge: { bg: '#e1f5ee', text: '#085041' },
+    groups: {
+      'Space & slotting': [
+        { id:'inv1', title:'Space utilization snapshot', desc:'All empty location counts (floor, rack, backstock, put-away) in one real-time view' },
+        { id:'inv2', title:'Suboptimal zone picks', desc:'How many times was a SKU picked from a further zone when a better location was empty?' },
+        { id:'inv3', title:'Consolidation candidates', desc:'Pallet locations with less than a full pallet — identify for consolidation' },
+      ],
+      'Location activity': [
+        { id:'inv4', title:'Manual location adjustments', desc:'How many locations were manually adjusted this week?' },
+        { id:'inv5', title:'Archived locations this week', desc:'How many locations were archived this week?' },
+        { id:'inv6', title:'Dedicated employee activity', desc:'Actions by IQ and Kinder\'s dedicated employees, searchable by name' },
+      ],
+      'Accuracy & IMS/OMS': [
+        { id:'inv7', title:'Missing inventory trend', desc:'Current missing inventory count — did it go up or down vs. last week?' },
+        { id:'inv8', title:'Top 200 SKU inventory score', desc:'Accuracy score on top 200 velocity SKUs' },
+        { id:'inv9', title:'IMS vs. OMS delta', desc:'Current and prior-day difference between IMS and OMS' },
+        { id:'inv10', title:'IMS/OMS daily changes detail', desc:'Which SKUs changed, how many units, in what locations — yesterday' },
+      ],
+      'FIFO compliance': [
+        { id:'inv11', title:'FIFO breaks (daily)', desc:'Which SKUs broke FIFO yesterday — units, locations, and why' },
+        { id:'inv12', title:'FIFO breaks (weekly)', desc:'Total FIFO breaks this week and root cause summary' },
+      ],
+      'Kinder\'s tracking': [
+        { id:'inv13', title:'New Kinder\'s items created', desc:'How many new items were created from Kinder\'s this week?' },
+      ],
+      'Dashboard health': [
+        { id:'inv14', title:'Inventory good-day indicator', desc:'A single leading metric — are we on track or off track before errors appear?' },
+      ],
+      'Damage out': [
+        { id:'inv15', title:'Damage location snapshot', desc:'What is currently in the damaged goods location? Count, SKU, client, date flagged' },
+        { id:'inv16', title:'Damage additions log', desc:'What was added to damage this week? Who flagged it, what client, what SKU?' },
+        { id:'inv17', title:'Weekly damage report', desc:'Units in, units resolved (credited, returned, disposed), net outstanding per week' },
+      ],
+    }
+  },
+  quality: {
+    label: 'Quality control',
+    color: '#E24B4A',
+    badge: { bg: '#fcebeb', text: '#791F1F' },
+    groups: {
+      'Raybo': [
+        { id:'qa1', title:'Raybo poll ownership', desc:'Who is responsible for checking that all Raybo polls are active?' },
+        { id:'qa2', title:'Raybo sign-off process', desc:'Formal daily/weekly checkpoint confirming polls are live — we\'re paying for nothing if missed' },
+        { id:'qa3', title:'Multiple scan attempts report', desc:'Weekly count of multiple scan attempts by employee and location' },
+        { id:'qa4', title:'Pack rates by location/customer', desc:'Overall and per-location pack rates per customer from Raybo' },
+        { id:'qa5', title:'Real-time pack rate view', desc:'Current pack rate — live or daily snapshot' },
+        { id:'qa6', title:'Raybo video attached to CAR', desc:'Attach Raybo clip to corrective action report for flagged events' },
+      ],
+      'Corrective action': [
+        { id:'qa7', title:'CAR completion rate', desc:'Are managers completing corrective action forms consistently for every error?' },
+        { id:'qa8', title:'Trend analysis dashboard', desc:'Who reviews the error trend dashboard and on what cadence?' },
+        { id:'qa9', title:'Weekly error report owner', desc:'Single owner to generate and distribute the weekly error report' },
+        { id:'qa10', title:'Weekly error report — all types', desc:'Clean weekly report: IBEs, OBEs, internal, customer-reported — CARs attached to each' },
+      ],
+      'Quality program': [
+        { id:'qa11', title:'Weekly quality call cadence', desc:'Recurring call: trend review, each error by client, changes made, what\'s next' },
+        { id:'qa12', title:'Error rate target', desc:'Define a numeric error rate target — we need a number before we can say we\'re winning' },
+        { id:'qa13', title:'Quality ownership — single name', desc:'Assign one person as the owner of quality accountability at ATX' },
+      ],
+    }
+  },
+  sp: {
+    label: 'Special projects',
+    color: '#7F77DD',
+    badge: { bg: '#eeedfe', text: '#3C3489' },
+    groups: {
+      'Status & volume': [
+        { id:'sp1', title:'Active project count', desc:'How many special projects are currently running?' },
+        { id:'sp2', title:'Completions last week', desc:'How many projects were completed last week?' },
+        { id:'sp3', title:'On-time rate (30 days)', desc:'How many projects were on time vs. not over the last month? Any at risk?' },
+      ],
+      'Prioritization views': [
+        { id:'sp4', title:'Time-sorted project list', desc:'All active projects sorted by estimated hours, highest to lowest' },
+        { id:'sp5', title:'Revenue-sorted project list', desc:'All active projects sorted by quoted value, highest to lowest' },
+        { id:'sp6', title:'Deadline-sorted project list', desc:'All active projects sorted by days until deadline, soonest first' },
+      ],
+      'Labor & capacity': [
+        { id:'sp7', title:'Labor load visual', desc:'Bar chart of estimated hours per project, color-coded by urgency' },
+        { id:'sp8', title:'Quoting section / tab', desc:'Separate view for projects in quote stage — not committed, not mixed with active' },
+      ],
+      'Kitting integration': [
+        { id:'sp9', title:'End-of-shift kitting flip', desc:'SP team flips to kitting last 2 hours for predictable SKUs (e.g. Breath Net poly mailer)' },
+        { id:'sp10', title:'Kitting-eligible SKU list', desc:'Which SKUs always ship in the same config? What is daily volume and predictability?' },
+      ],
+      'Revenue & performance': [
+        { id:'sp11', title:'Revenue vs. labor per project', desc:'Are we pricing correctly? Revenue earned vs. hours invested per project' },
+        { id:'sp12', title:'Quote-to-close rate', desc:'How many quotes convert to active projects?' },
+        { id:'sp13', title:'Post-project client feedback', desc:'Do we have a feedback loop after a special project is completed?' },
+      ],
+    }
+  },
+  b2b: {
+    label: 'B2B',
+    color: '#378ADD',
+    badge: { bg: '#e6f1fb', text: '#0C447C' },
+    groups: {
+      'Order tracking': [
+        { id:'b2b1', title:'Orders by status (real-time)', desc:'Count of B2B orders in each status bucket — received, processing, shipped, held' },
+        { id:'b2b2', title:'Orders by customer', desc:'Volume per B2B client — today, this week, this month' },
+        { id:'b2b3', title:'Freight vs. small parcel split', desc:'% of B2B orders by shipment type' },
+        { id:'b2b4', title:'Volume line graph', desc:'B2B shipped orders by day — yesterday, 7 days, 30 days, with customer filter' },
+      ],
+      'Carrier & shipping': [
+        { id:'b2b5', title:'Carrier breakdown', desc:'Orders shipped per carrier, week over week' },
+        { id:'b2b6', title:'Carrier performance tracking', desc:'Missed pickups, claims, delays by carrier' },
+        { id:'b2b7', title:'On-time ship rate by customer', desc:'Are we meeting all routing guide windows per B2B customer?' },
+      ],
+      'Pick planning': [
+        { id:'b2b8', title:'Backstock vs. pick-face flag', desc:'Active B2B orders flagged by pick location type — with estimated hours and bodies needed' },
+        { id:'b2b9', title:'B2B order accuracy rate', desc:'Error rate separate from DTC, tracked per B2B customer' },
+      ],
+    }
+  },
+  retail: {
+    label: 'Retail',
+    color: '#EF9F27',
+    badge: { bg: '#faeeda', text: '#633806' },
+    groups: {
+      'Alignment questions': [
+        { id:'ret1', title:'Retail vs. B2B distinction', desc:'Is retail operationally the same as B2B? Why track separately?' },
+        { id:'ret2', title:'Retail routing guide compliance', desc:'Are there unique packing standards, labeling, or compliance requirements for retail?' },
+        { id:'ret3', title:'Retail chargeback tracking', desc:'Are there retail-specific SLA requirements or chargebacks requiring separate reporting?' },
+        { id:'ret4', title:'Consolidate into single B2B category', desc:'Can retail and B2B merge into one category with a shipment-type flag?' },
+      ],
+      'Reporting (if separate)': [
+        { id:'ret5', title:'Retail order accuracy rate', desc:'Same as B2B accuracy tracking — any nuances for retail compliance?' },
+        { id:'ret6', title:'Retail volume visibility', desc:'Same line graph and status views as B2B — separate view or just a filter?' },
+      ],
+    }
+  }
+};
+
+const DEPT_CLASS = { inventory:'d-inv', quality:'d-qual', sp:'d-sp', b2b:'d-b2b', retail:'d-ret' };
+const DEPT_LABELS = { inventory:'Inventory', quality:'Quality', sp:'Special projects', b2b:'B2B', retail:'Retail' };
+const P_LABELS = { 1:'1 — Immediate', 2:'2 — Need that', 3:'3 — Would use' };
+
+// ── RUNTIME STATE ─────────────────────────────────────────────
+let state = {};
+let currentTab = 'inventory';
+let rmFilter = 'all';
+let dragId = null;
+let dragDept = null;
+let isSyncing = false;
+let pendingSync = null;
+
+// ── SYNC STATUS UI ─────────────────────────────────────────────
+function setSyncStatus(msg, color) {
+  const el = document.getElementById('sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--text3)'; }
+}
+
+// ── SHEETS API ────────────────────────────────────────────────
+async function sheetsPost(body) {
+  if (!SHEETS_URL || SHEETS_URL === 'YOUR_APPS_SCRIPT_URL_HERE') return;
+  try {
+    setSyncStatus('Saving...', 'var(--amber-text)');
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    setSyncStatus('✓ Saved', 'var(--green-dark)');
+    setTimeout(() => setSyncStatus(''), 2000);
+  } catch(err) {
+    setSyncStatus('⚠ Save failed', 'var(--red-accent)');
+    console.error('Sheets POST failed:', err);
+  }
+}
+
+async function loadFromSheets() {
+  if (!SHEETS_URL || SHEETS_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    // No URL configured — just render empty state
+    showApp();
+    return;
+  }
+  try {
+    setSyncStatus('Loading...', 'var(--text3)');
+    const res  = await fetch(SHEETS_URL + '?t=' + Date.now());
+    const data = await res.json();
+    if (data.state)  state = data.state;
+    if (data.wishes) state._wish = data.wishes;
+    setSyncStatus('');
+  } catch(err) {
+    console.warn('Could not load from Sheets, starting fresh:', err);
+    setSyncStatus('⚠ Offline mode', 'var(--amber-text)');
+  }
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('loading-overlay').style.display = 'none';
+  document.getElementById('content').style.display = '';
+  render();
+}
+
+// ── STATE HELPERS ─────────────────────────────────────────────
+function gs(id) { return state[id] || { priority: 0, note: '' }; }
+function allItems() { return Object.entries(ITEMS).flatMap(([dept,sec]) => Object.values(sec.groups).flat().map(it => ({...it, dept}))); }
+
+function counts() {
+  let p1=0,p2=0,p3=0;
+  allItems().forEach(it => {
+    const p = gs(it.id).priority;
+    if(p===1) p1++; else if(p===2) p2++; else if(p===3) p3++;
+  });
+  return {p1,p2,p3};
+}
+function deptCounts() {
+  const out = {};
+  Object.keys(ITEMS).forEach(dept => {
+    out[dept] = Object.values(ITEMS[dept].groups).flat().filter(it => gs(it.id).priority > 0).length;
+  });
+  out.roadmap  = Object.values(out).reduce((a,b)=>a+b,0);
+  out.wishlist = (state._wish||[]).length;
+  return out;
+}
+function updateSidebar() {
+  const dc = deptCounts();
+  const c  = counts();
+  document.getElementById('tot1').textContent = c.p1;
+  document.getElementById('tot2').textContent = c.p2;
+  document.getElementById('tot3').textContent = c.p3;
+  Object.keys(dc).forEach(k => {
+    const el = document.getElementById('cnt-'+k);
+    if(!el) return;
+    el.textContent = dc[k];
+    el.className   = 'nav-count' + (dc[k]>0?' has-items':'');
+  });
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if(el.getAttribute('onclick') === `switchTab('${tab}')`) el.classList.add('active');
+  });
+  const titles = { inventory:'Inventory', quality:'Quality control', sp:'Special projects', b2b:'B2B', retail:'Retail', roadmap:'Master roadmap', wishlist:'Wish list' };
+  document.getElementById('page-title').textContent = titles[tab];
+  document.getElementById('page-sub').textContent = tab==='roadmap'
+    ? 'Drag cards between columns to adjust priorities — filtered by department'
+    : tab==='wishlist'
+    ? 'Ideas that did not make the main list — rate them and they will appear in the roadmap'
+    : 'Rate each item 1–3, add notes for the team';
+  render();
+}
+
+// ── RENDER SECTION ────────────────────────────────────────────
+function renderSection(dept) {
+  const sec = ITEMS[dept];
+  let html = `<div class="p-legend">
+    <div class="p-leg"><div class="chip" style="background:var(--p1-bg);color:var(--p1-text)">1</div> Immediate impact</div>
+    <div class="p-leg"><div class="chip" style="background:var(--p2-bg);color:var(--p2-text)">2</div> Need that</div>
+    <div class="p-leg"><div class="chip" style="background:var(--p3-bg);color:var(--p3-text)">3</div> Would use that</div>
+    <div style="margin-left:auto;font-size:11px;color:var(--text3)">Click a number to rate. Click again to clear.</div>
+  </div>`;
+  Object.entries(sec.groups).forEach(([grp, items]) => {
+    html += `<div class="group-label">${grp}</div>`;
+    items.forEach(it => {
+      const s = gs(it.id);
+      const p = s.priority;
+      html += `<div class="item-card ${p?'rated-'+p:''}" id="card-${it.id}">
+        <div class="item-top">
+          <div>
+            <div class="item-title">${it.title}</div>
+            <div class="item-desc">${it.desc}</div>
+          </div>
+          <div class="priority-group">
+            <button class="pbtn ${p===1?'active-1':''}" onclick="setP('${it.id}','${dept}',1)">1</button>
+            <button class="pbtn ${p===2?'active-2':''}" onclick="setP('${it.id}','${dept}',2)">2</button>
+            <button class="pbtn ${p===3?'active-3':''}" onclick="setP('${it.id}','${dept}',3)">3</button>
+          </div>
+        </div>
+        <div class="item-bottom">
+          <textarea class="note-area" id="note-${it.id}" rows="2" placeholder="Add team notes here...">${s.note||''}</textarea>
+          <button class="save-btn" id="savebtn-${it.id}" onclick="saveNote('${it.id}')">Save</button>
+        </div>
+      </div>`;
+    });
+  });
+  return html;
+}
+
+// ── RENDER ROADMAP ────────────────────────────────────────────
+function renderRoadmap() {
+  const c = counts();
+  const total = c.p1+c.p2+c.p3;
+  const totalItems = allItems().length;
+  let html = `<div class="rm-summary">
+    <div class="rm-stat r1"><div class="rn">${c.p1}</div><div class="rl">Immediate impact</div></div>
+    <div class="rm-stat r2"><div class="rn">${c.p2}</div><div class="rl">Need that</div></div>
+    <div class="rm-stat r3"><div class="rn">${c.p3}</div><div class="rl">Would use that</div></div>
+  </div>`;
+  const filterBtns = [['all','All departments'],...Object.entries(DEPT_LABELS)].map(([k,lbl]) =>
+    `<button class="fbtn ${rmFilter===k?'on':''}" onclick="setFilter('${k}')">${lbl}</button>`
+  ).join('');
+  html += `<div class="rm-filters"><span class="rm-filter-label">Filter:</span>${filterBtns}</div>`;
+  const legend = Object.entries(ITEMS).map(([dept,sec]) =>
+    `<div class="leg"><div class="leg-dot" style="background:${sec.color}"></div>${sec.label}</div>`
+  ).join('');
+  html += `<div class="legend">${legend}</div>`;
+  if(total === 0) {
+    html += `<div class="rm-no-items"><strong>No items rated yet</strong>Go to each section and assign priority scores — then come back here to see your roadmap.</div>`;
+    return html;
+  }
+  const depts = rmFilter==='all' ? Object.keys(ITEMS) : [rmFilter];
+  const cols = {1:[],2:[],3:[]};
+  depts.forEach(dept => {
+    Object.values(ITEMS[dept].groups).flat().forEach(it => {
+      const p = gs(it.id).priority;
+      if([1,2,3].includes(p)) cols[p].push({...it, dept, _isWish:false});
+    });
+  });
+  if(rmFilter==='all') {
+    (state._wish||[]).forEach(w => {
+      if([1,2,3].includes(w.priority)) cols[w.priority].push({...w, _isWish:true});
+    });
+  }
+  const WISH_DEPT_LABELS = {inventory:'Inventory',quality:'Quality',sp:'Special projects',b2b:'B2B',retail:'Retail',general:'General'};
+  const makeCard = (it, isWish) => {
+    const note    = isWish ? (it.note||'') : gs(it.id).note;
+    const deptCls = isWish ? ('d-'+(it.dept==='general'?'inv':it.dept)) : DEPT_CLASS[it.dept];
+    const deptLbl = isWish ? (WISH_DEPT_LABELS[it.dept]||it.dept) : DEPT_LABELS[it.dept];
+    return `<div class="rc ${deptCls}" draggable="true"
+      ondragstart="dstart(event,'${it.id}','${isWish?'__wish__':it.dept}')" ondragend="dend(event)">
+      <div class="rc-title">${it.title}</div>
+      <div class="rc-dept">${deptLbl}${isWish?' &#9733;':''}</div>
+      ${note ? `<div class="rc-note">${note}</div>` : ''}
+    </div>`;
+  };
+  const makeCol = (p, cls) => `
+    <div>
+      <div class="rm-col-head ${cls}">Priority ${p} — ${P_LABELS[p]}</div>
+      <div class="rm-col" id="rmcol-${p}" ondragover="dover(event)" ondrop="ddrop(event,${p})" ondragleave="dleave(event)">
+        ${cols[p].length ? cols[p].map(it=>makeCard(it,it._isWish)).join('') : '<div class="empty-col">No items here</div>'}
+      </div>
+    </div>`;
+  html += `<div class="rm-columns">${makeCol(1,'h1')}${makeCol(2,'h2')}${makeCol(3,'h3')}</div>
+    <div style="margin-top:12px;font-size:11px;color:var(--text3)">${total} of ${totalItems} items rated. Drag cards between columns to reprioritize.</div>`;
+  return html;
+}
+
+function render() {
+  const el = document.getElementById('content');
+  if(!el) return;
+  if(currentTab==='roadmap')   el.innerHTML = renderRoadmap();
+  else if(currentTab==='wishlist') el.innerHTML = renderWishlist();
+  else el.innerHTML = renderSection(currentTab);
+  updateSidebar();
+}
+
+// ── ACTIONS: PRIORITY & NOTES ─────────────────────────────────
+window.setP = function(id, dept, p) {
+  if(!state[id]) state[id] = {priority:0, note:''};
+  const newP = state[id].priority === p ? 0 : p;
+  state[id].priority = newP;
+  render();
+  sheetsPost({ action: 'setP', id, priority: newP });
+};
+
+window.saveNote = function(id) {
+  const el = document.getElementById('note-'+id);
+  if(!el) return;
+  if(!state[id]) state[id] = {priority:0, note:''};
+  state[id].note = el.value;
+  const btn = document.getElementById('savebtn-'+id);
+  if(btn) { btn.textContent='Saving...'; btn.disabled=true; }
+  sheetsPost({ action: 'setNote', id, note: el.value }).then(() => {
+    if(btn) { btn.textContent='Saved'; btn.classList.add('saved'); btn.disabled=false; setTimeout(()=>{btn.textContent='Save';btn.classList.remove('saved');},1400); }
+  });
+};
+
+window.setFilter = function(f) { rmFilter=f; render(); };
+
+// ── DRAG & DROP ───────────────────────────────────────────────
+window.dstart = function(e, id, dept) { dragId=id; dragDept=dept; e.dataTransfer.effectAllowed='move'; };
+window.dend   = function(e) { dragId=null; dragDept=null; document.querySelectorAll('.rm-col').forEach(c=>c.classList.remove('drag-over')); };
+window.dover  = function(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+window.dleave = function(e) { e.currentTarget.classList.remove('drag-over'); };
+window.ddrop  = function(e, newP) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(!dragId) return;
+  const isWish = dragDept === '__wish__';
+  if(isWish) {
+    const w = (state._wish||[]).find(x=>x.id===dragId);
+    if(w) { w.priority=newP; render(); sheetsPost({ action:'dragP', id:dragId, priority:newP, isWish:true }); }
+  } else {
+    if(!state[dragId]) state[dragId]={priority:0,note:''};
+    state[dragId].priority = newP;
+    render();
+    sheetsPost({ action:'dragP', id:dragId, priority:newP, isWish:false });
+  }
+};
+
+// ── EXPORT CSV ────────────────────────────────────────────────
+window.exportCSV = function() {
+  const rows = [['Department','Item','Description','Priority','Priority Label','Notes','Source','Exported At']];
+  const ts = new Date().toISOString();
+  const pLabel = p => ({1:'Immediate impact',2:'Need that',3:'Would use that'}[p]||'');
+  allItems().forEach(it => {
+    const s = gs(it.id);
+    rows.push([DEPT_LABELS[it.dept], it.title, it.desc, s.priority||'', pLabel(s.priority), (s.note||'').replace(/\n/g,' '), 'Main list', ts]);
+  });
+  (state._wish||[]).forEach(w => {
+    rows.push([DEPT_LABELS[w.dept]||w.dept, w.title, w.desc||'', w.priority||'', pLabel(w.priority), (w.note||'').replace(/\n/g,' '), 'Wish list', ts]);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'atx_ops_roadmap_' + ts.slice(0,10) + '.csv';
+  a.click();
+};
+
+// ── WISH LIST ─────────────────────────────────────────────────
+window.openWishModal = function() {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.id = 'wish-modal';
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Add to wish list</div>
+        <button class="modal-close" onclick="closeWishModal()">&#215;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label">Item title *</label>
+          <input class="modal-input" id="wish-title" type="text" placeholder="What do you want to build or track?" autofocus />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Description</label>
+          <textarea class="modal-textarea" id="wish-desc" placeholder="What problem does this solve? Who benefits?"></textarea>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Department</label>
+          <select class="modal-select" id="wish-dept">
+            <option value="inventory">Inventory</option>
+            <option value="quality">Quality control</option>
+            <option value="sp">Special projects</option>
+            <option value="b2b">B2B</option>
+            <option value="retail">Retail</option>
+            <option value="general">General / cross-functional</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Initial priority (optional)</label>
+          <select class="modal-select" id="wish-priority">
+            <option value="0">Unrated</option>
+            <option value="1">1 — Immediate impact</option>
+            <option value="2">2 — Need that</option>
+            <option value="3">3 — Would use that</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" onclick="closeWishModal()">Cancel</button>
+        <button class="modal-submit" onclick="submitWish()">Add to wish list</button>
+      </div>
+    </div>`;
+  backdrop.addEventListener('click', function(e){ if(e.target===backdrop) closeWishModal(); });
+  document.body.appendChild(backdrop);
+  setTimeout(()=>{ const t=document.getElementById('wish-title'); if(t) t.focus(); },50);
+};
+
+window.closeWishModal = function() { const m=document.getElementById('wish-modal'); if(m) m.remove(); };
+
+window.submitWish = function() {
+  const title = (document.getElementById('wish-title').value||'').trim();
+  if(!title) { document.getElementById('wish-title').focus(); return; }
+  const wish = {
+    id: 'wish_' + Date.now(),
+    title,
+    desc:     (document.getElementById('wish-desc').value||'').trim(),
+    dept:     document.getElementById('wish-dept').value,
+    priority: parseInt(document.getElementById('wish-priority').value)||0,
+    note:     '',
+    createdAt: Date.now()
+  };
+  if(!state._wish) state._wish = [];
+  state._wish.push(wish);
+  closeWishModal();
+  render();
+  sheetsPost({ action: 'addWish', wish });
+};
+
+window.deleteWish = function(id) {
+  if(!state._wish) return;
+  state._wish = state._wish.filter(w=>w.id!==id);
+  render();
+  sheetsPost({ action: 'deleteWish', id });
+};
+
+window.setWishP = function(id, p) {
+  if(!state._wish) return;
+  const w = state._wish.find(x=>x.id===id);
+  if(!w) return;
+  w.priority = w.priority===p ? 0 : p;
+  render();
+  sheetsPost({ action: 'setWishP', id, priority: w.priority });
+};
+
+window.saveWishNote = function(id) {
+  const el = document.getElementById('wnote-'+id);
+  if(!el) return;
+  const w = (state._wish||[]).find(x=>x.id===id);
+  if(!w) return;
+  w.note = el.value;
+  const btn = document.getElementById('wsavebtn-'+id);
+  if(btn) { btn.textContent='Saving...'; btn.disabled=true; }
+  sheetsPost({ action:'setWishNote', id, note: el.value }).then(() => {
+    if(btn){ btn.textContent='Saved'; btn.classList.add('saved'); btn.disabled=false; setTimeout(()=>{btn.textContent='Save';btn.classList.remove('saved');},1400); }
+  });
+};
+
+const WISH_DEPT_LABELS = { inventory:'Inventory', quality:'Quality', sp:'Special projects', b2b:'B2B', retail:'Retail', general:'General' };
+const WISH_DEPT_COLORS = { inventory:'#1D9E75', quality:'#E24B4A', sp:'#7F77DD', b2b:'#378ADD', retail:'#EF9F27', general:'#888780' };
+const WISH_DEPT_BG     = { inventory:'var(--green-muted)', quality:'var(--red-bg)', sp:'var(--purple-bg)', b2b:'var(--blue-bg)', retail:'var(--amber-bg)', general:'var(--surface3)' };
+const WISH_DEPT_TEXT   = { inventory:'#085041', quality:'var(--red-text)', sp:'var(--purple-text)', b2b:'var(--blue-text)', retail:'var(--amber-text)', general:'#4b5563' };
+
+function renderWishlist() {
+  const wishes = state._wish || [];
+  const byDept = {};
+  wishes.forEach(w => { if(!byDept[w.dept]) byDept[w.dept]=[]; byDept[w.dept].push(w); });
+
+  let html = `<div class="wish-hero">
+    <div class="wish-hero-text">
+      <div class="wh-label">Wish list</div>
+      <div class="wh-title">Ideas &amp; future asks</div>
+      <div class="wh-sub">Things that didn't make the main list but deserve to be captured.<br>Rate them and they'll flow into the master roadmap.</div>
+    </div>
+    <button class="wish-add-btn" onclick="openWishModal()">
+      <div class="plus-icon">+</div>
+      Add item
+    </button>
+  </div>`;
+
+  if(wishes.length === 0) {
+    html += `<div class="wish-empty">
+      <div class="wish-empty-icon">&#9998;</div>
+      <strong>Nothing on the wish list yet</strong>
+      <p>Hit the button above to capture any idea that comes up in the meeting.</p>
+    </div>`;
+    return html;
+  }
+
+  html += `<div class="p-legend">
+    <div class="p-leg"><div class="chip" style="background:var(--p1-bg);color:var(--p1-text)">1</div> Immediate impact</div>
+    <div class="p-leg"><div class="chip" style="background:var(--p2-bg);color:var(--p2-text)">2</div> Need that</div>
+    <div class="p-leg"><div class="chip" style="background:var(--p3-bg);color:var(--p3-text)">3</div> Would use that</div>
+    <div style="margin-left:auto;font-size:11px;color:var(--text3)">${wishes.length} item${wishes.length!==1?'s':''} total</div>
+  </div>`;
+
+  ['inventory','quality','sp','b2b','retail','general'].forEach(dept => {
+    if(!byDept[dept]||byDept[dept].length===0) return;
+    const items = byDept[dept];
+    html += `<div class="wish-group-head">
+      <div class="wish-group-line"></div>
+      <div class="wish-group-label" style="color:${WISH_DEPT_COLORS[dept]}">${WISH_DEPT_LABELS[dept]}</div>
+      <div class="wish-group-count">${items.length}</div>
+      <div class="wish-group-line"></div>
+    </div>`;
+    items.forEach(w => {
+      const p = w.priority||0;
+      html += `<div class="wish-card ${p?'rated-'+p:''}" id="wish-card-${w.id}">
+        <div class="wish-card-top">
+          <div>
+            <div class="item-title">${w.title}</div>
+            ${w.desc?`<div class="item-desc">${w.desc}</div>`:''}
+            <div style="margin-top:6px"><span style="display:inline-block;font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px;background:${WISH_DEPT_BG[w.dept]};color:${WISH_DEPT_TEXT[w.dept]}">${WISH_DEPT_LABELS[w.dept]}</span></div>
+          </div>
+          <div class="wish-card-actions">
+            <div class="priority-group">
+              <button class="pbtn ${p===1?'active-1':''}" onclick="setWishP('${w.id}',1)">1</button>
+              <button class="pbtn ${p===2?'active-2':''}" onclick="setWishP('${w.id}',2)">2</button>
+              <button class="pbtn ${p===3?'active-3':''}" onclick="setWishP('${w.id}',3)">3</button>
+            </div>
+            <button class="del-btn" onclick="deleteWish('${w.id}')" title="Remove">&#215;</button>
+          </div>
+        </div>
+        <div class="item-bottom">
+          <textarea class="note-area" id="wnote-${w.id}" rows="2" placeholder="Team notes...">${w.note||''}</textarea>
+          <button class="save-btn" id="wsavebtn-${w.id}" onclick="saveWishNote('${w.id}')">Save</button>
+        </div>
+      </div>`;
+    });
+  });
+  return html;
+}
+
+// ── BOOT ─────────────────────────────────────────────────────
+loadFromSheets();
+</script>
+</body>
+</html>
