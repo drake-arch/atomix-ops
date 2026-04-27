@@ -42,89 +42,39 @@ body{
   color:var(--white);
   overflow-x:hidden;
 }
-
-/* TOPBAR */
-.topbar{
-  position:sticky;top:0;z-index:300;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 24px;height:52px;
-  background:rgba(9,30,56,0.92);
-  backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-}
+.topbar{position:sticky;top:0;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;background:rgba(9,30,56,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 .tl{display:flex;align-items:center;gap:10px}
-.logo{
-  width:26px;height:26px;border-radius:6px;
-  background:linear-gradient(135deg,var(--green),#3dc47a);
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--ui);font-weight:800;font-size:12px;color:#091e38;
-}
+.logo{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--green),#3dc47a);display:flex;align-items:center;justify-content:center;font-family:var(--ui);font-weight:800;font-size:12px;color:#091e38;}
 .brand{font-family:var(--ui);font-weight:700;font-size:13px;letter-spacing:.07em}
 .sep{width:1px;height:14px;background:var(--border)}
 .ptitle{font-family:var(--ui);font-weight:600;font-size:12px;color:var(--amber);letter-spacing:.04em}
 .tabs{display:flex;gap:2px}
-.tab{
-  padding:6px 14px;border-radius:6px;cursor:pointer;
-  font-family:var(--ui);font-weight:600;font-size:11px;letter-spacing:.06em;
-  color:var(--slate);background:none;border:none;transition:all .2s;text-transform:uppercase;
-}
+.tab{padding:6px 14px;border-radius:6px;cursor:pointer;font-family:var(--ui);font-weight:600;font-size:11px;letter-spacing:.06em;color:var(--slate);background:none;border:none;transition:all .2s;text-transform:uppercase;}
 .tab:hover{color:var(--white)}
 .tab.active{background:var(--card2);color:var(--green);border:1px solid var(--green-border)}
-
-/* PAGES */
 .page{display:none;padding:20px 24px 60px;max-width:1400px;margin:0 auto}
 .page.active{display:block}
-
-/* SECTION HEADER */
-.sh{
-  font-family:var(--ui);font-weight:800;font-size:18px;
-  letter-spacing:.01em;margin-bottom:4px;
-}
+.sh{font-family:var(--ui);font-weight:800;font-size:18px;letter-spacing:.01em;margin-bottom:4px;}
 .sd{font-size:11px;color:var(--slate);margin-bottom:20px;letter-spacing:.03em}
-
-/* CARD */
-.card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:12px;padding:18px 20px;
-  transition:border-color .2s;
-}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:border-color .2s;}
 .card:hover{border-color:var(--border2)}
-.card-hd{
-  font-family:var(--ui);font-weight:700;font-size:10px;
-  letter-spacing:.13em;text-transform:uppercase;color:var(--slate);
-  margin-bottom:14px;display:flex;align-items:center;gap:6px;
-}
+.card-hd{font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
 .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .dg{background:var(--green)}.da{background:var(--amber)}.db{background:var(--blue)}.dr{background:var(--red)}
-
-/* GRID LAYOUTS */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .g4{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .g5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 .lp{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
-
-/* FORM */
 .fld{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
 .fld:last-child{margin-bottom:0}
 .fl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--slate)}
-.fi{
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-  border-radius:7px;padding:9px 12px;color:var(--white);
-  font-family:var(--mono);font-size:13px;width:100%;
-  outline:none;transition:border-color .2s,background .2s;
-}
+.fi{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:9px 12px;color:var(--white);font-family:var(--mono);font-size:13px;width:100%;outline:none;transition:border-color .2s,background .2s;}
 .fi:focus{border-color:var(--green-border);background:rgba(163,243,197,0.04)}
 .fi::placeholder{color:rgba(139,155,170,0.35)}
 .fh{font-size:10px;color:rgba(139,155,170,0.6)}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-.btn{
-  width:100%;padding:10px;border-radius:8px;cursor:pointer;
-  font-family:var(--ui);font-weight:700;font-size:11px;
-  letter-spacing:.08em;text-transform:uppercase;
-  transition:all .2s;border:1px solid;
-}
+.btn{width:100%;padding:10px;border-radius:8px;cursor:pointer;font-family:var(--ui);font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;transition:all .2s;border:1px solid;}
 .btn-g{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
 .btn-g:hover{background:rgba(163,243,197,.2);box-shadow:0 0 20px rgba(163,243,197,.08)}
 .btn-a{background:var(--amber-dim);border-color:var(--amber-border);color:var(--amber)}
@@ -132,108 +82,49 @@ body{
 .btn-b{background:var(--blue-dim);border-color:var(--blue-border);color:var(--blue)}
 .btn-b:hover{background:rgba(96,165,250,.2)}
 .btn:active{transform:scale(.98)}
-
-/* METRIC TILE */
-.tile{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:10px;padding:14px 15px;
-  position:relative;overflow:hidden;transition:all .2s;
-}
-.tile::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--green-border),transparent);
-  opacity:0;transition:opacity .3s;
-}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 15px;position:relative;overflow:hidden;transition:all .2s;}
+.tile::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--green-border),transparent);opacity:0;transition:opacity .3s;}
 .tile.ta::before{background:linear-gradient(90deg,transparent,var(--amber-border),transparent)}
 .tile.tb::before{background:linear-gradient(90deg,transparent,var(--blue-border),transparent)}
 .tile.tr::before{background:linear-gradient(90deg,transparent,var(--red-border),transparent)}
 .tile:hover::before{opacity:1}
 .tile:hover{border-color:rgba(255,255,255,.1)}
 .t-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-bottom:7px}
-.t-val{
-  font-family:var(--ui);font-weight:800;font-size:22px;
-  color:var(--white);line-height:1;letter-spacing:-.01em;
-}
-.t-val.g{color:var(--green)}.t-val.a{color:var(--amber)}
-.t-val.r{color:var(--red)}.t-val.b{color:var(--blue)}.t-val.s{color:var(--slate)}
+.t-val{font-family:var(--ui);font-weight:800;font-size:22px;color:var(--white);line-height:1;letter-spacing:-.01em;}
+.t-val.g{color:var(--green)}.t-val.a{color:var(--amber)}.t-val.r{color:var(--red)}.t-val.b{color:var(--blue)}.t-val.s{color:var(--slate)}
 .t-sub{font-size:10px;color:var(--slate);margin-top:5px;line-height:1.4}
-.t-delta{
-  font-size:9px;padding:2px 6px;border-radius:4px;
-  margin-top:5px;display:inline-block;font-family:var(--ui);font-weight:600;
-}
+.t-delta{font-size:9px;padding:2px 6px;border-radius:4px;margin-top:5px;display:inline-block;font-family:var(--ui);font-weight:600;}
 .t-delta.up{background:rgba(163,243,197,.12);color:var(--green)}
 .t-delta.dn{background:rgba(255,107,107,.12);color:var(--red)}
 .t-delta.nt{background:rgba(139,155,170,.1);color:var(--slate)}
-
-/* SLIDER */
 .slider-wrap{margin:10px 0 4px}
-.slider{
-  width:100%;-webkit-appearance:none;appearance:none;
-  height:4px;border-radius:2px;background:rgba(255,255,255,.08);outline:none;cursor:pointer;
-}
-.slider::-webkit-slider-thumb{
-  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
-  background:var(--green);cursor:pointer;border:2px solid #091e38;
-  box-shadow:0 0 8px rgba(163,243,197,.4);transition:transform .15s;
-}
+.slider{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.08);outline:none;cursor:pointer;}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--green);cursor:pointer;border:2px solid #091e38;box-shadow:0 0 8px rgba(163,243,197,.4);transition:transform .15s;}
 .slider::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .slider-row{display:flex;justify-content:space-between;font-size:10px;color:var(--slate);margin-top:4px}
-
-/* PROJECTION RESULT ROWS */
-.pr-row{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);
-}
+.pr-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
 .pr-row:last-child{border-bottom:none}
 .pr-k{font-size:11px;color:var(--slate)}
 .pr-v{font-family:var(--ui);font-weight:700;font-size:13px;color:var(--white)}
 .pr-v.g{color:var(--green)}.pr-v.a{color:var(--amber)}.pr-v.r{color:var(--red)}.pr-v.b{color:var(--blue)}
-
-/* HISTORY TABLE */
 .htbl{width:100%;border-collapse:collapse;font-size:11px}
-.htbl th{
-  font-size:9px;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--slate);text-align:left;padding:0 10px 10px 0;
-  border-bottom:1px solid var(--border);white-space:nowrap;
-}
-.htbl td{
-  padding:8px 10px 8px 0;border-bottom:1px solid rgba(255,255,255,.025);
-  color:var(--white);vertical-align:middle;white-space:nowrap;
-}
+.htbl th{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);text-align:left;padding:0 10px 10px 0;border-bottom:1px solid var(--border);white-space:nowrap;}
+.htbl td{padding:8px 10px 8px 0;border-bottom:1px solid rgba(255,255,255,.025);color:var(--white);vertical-align:middle;white-space:nowrap;}
 .htbl tr:last-child td{border-bottom:none}
 .htbl tr:hover td{background:rgba(255,255,255,.015)}
-.htbl td.m{color:var(--slate)}.htbl td.g{color:var(--green)}
-.htbl td.a{color:var(--amber)}.htbl td.r{color:var(--red)}.htbl td.b{color:var(--blue)}
-.badge{
-  padding:2px 7px;border-radius:4px;font-size:9px;font-weight:600;
-  font-family:var(--ui);letter-spacing:.06em;display:inline-block;
-}
+.htbl td.m{color:var(--slate)}.htbl td.g{color:var(--green)}.htbl td.a{color:var(--amber)}.htbl td.r{color:var(--red)}.htbl td.b{color:var(--blue)}
+.badge{padding:2px 7px;border-radius:4px;font-size:9px;font-weight:600;font-family:var(--ui);letter-spacing:.06em;display:inline-block;}
 .badge-g{background:rgba(163,243,197,.12);color:var(--green)}
 .badge-a{background:rgba(255,181,71,.12);color:var(--amber)}
 .badge-r{background:rgba(255,107,107,.12);color:var(--red)}
 .badge-s{background:rgba(139,155,170,.1);color:var(--slate)}
-
-/* CHART BARS */
 .bar-wrap{display:flex;align-items:flex-end;gap:3px;height:80px;margin:14px 0 6px}
-.bar{
-  flex:1;border-radius:3px 3px 0 0;
-  transition:height .5s cubic-bezier(.4,0,.2,1),opacity .2s;
-  cursor:pointer;position:relative;
-}
+.bar{flex:1;border-radius:3px 3px 0 0;transition:height .5s cubic-bezier(.4,0,.2,1),opacity .2s;cursor:pointer;position:relative;}
 .bar:hover{opacity:.8}
 .bar-lbl{font-size:8px;color:var(--slate);text-align:center;margin-top:4px;letter-spacing:.04em}
 .bar-axis{display:flex;justify-content:space-between;font-size:9px;color:rgba(139,155,170,.5)}
-
-/* TREND LINE SVG */
 .sparkline{width:100%;height:60px}
-
-/* STAT BANNER */
-.statbanner{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--green-dim);border:1px solid var(--green-border);
-  border-radius:12px;padding:16px 22px;margin-bottom:18px;
-  transition:all .4s;
-}
+.statbanner{display:flex;align-items:center;justify-content:space-between;background:var(--green-dim);border:1px solid var(--green-border);border-radius:12px;padding:16px 22px;margin-bottom:18px;transition:all .4s;}
 .statbanner.warn{background:var(--amber-dim);border-color:var(--amber-border)}
 .statbanner.over{background:var(--red-dim);border-color:var(--red-border)}
 .statbanner.neutral{background:var(--card);border-color:var(--border)}
@@ -254,59 +145,26 @@ body{
 .statbanner.over .sb-big{color:var(--red)}
 .statbanner.neutral .sb-big{color:var(--slate)}
 .sb-big-lbl{font-size:9px;color:var(--slate);text-align:right;letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
-
-/* GAP */
-.gap{height:18px}
-.gap-sm{height:10px}
-
-/* NO DATA */
+.gap{height:18px}.gap-sm{height:10px}
 .no-data{font-size:11px;color:rgba(139,155,170,.4);text-align:center;padding:20px}
-
-/* TOAST */
-.toast{
-  position:fixed;bottom:20px;right:20px;z-index:999;
-  background:rgba(9,30,56,.96);border:1px solid var(--green-border);
-  color:var(--green);font-size:11px;padding:8px 15px;border-radius:7px;
-  backdrop-filter:blur(12px);transform:translateY(50px);opacity:0;
-  transition:all .25s;pointer-events:none;
-}
+.toast{position:fixed;bottom:20px;right:20px;z-index:999;background:rgba(9,30,56,.96);border:1px solid var(--green-border);color:var(--green);font-size:11px;padding:8px 15px;border-radius:7px;backdrop-filter:blur(12px);transform:translateY(50px);opacity:0;transition:all .25s;pointer-events:none;}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.err{border-color:var(--red-border);color:var(--red)}
-
-/* DBTN */
 .dbtn{background:none;border:none;color:rgba(139,155,170,.25);cursor:pointer;font-size:11px;transition:color .2s;padding:2px 4px}
 .dbtn:hover{color:var(--red)}
-
-/* HISTORY FILTER PILLS */
 .pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.pill{
-  padding:4px 10px;border-radius:20px;cursor:pointer;
-  font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.06em;
-  background:var(--card);border:1px solid var(--border);color:var(--slate);
-  transition:all .15s;
-}
+.pill{padding:4px 10px;border-radius:20px;cursor:pointer;font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.06em;background:var(--card);border:1px solid var(--border);color:var(--slate);transition:all .15s;}
 .pill:hover{border-color:var(--border2);color:var(--white)}
 .pill.active{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
-
-/* DEPT ROWS */
-.dept-row{
-  padding:10px 14px;border-radius:9px;
-  background:rgba(255,255,255,.02);border:1px solid var(--border);
-  transition:border-color .2s;
-}
+.dept-row{padding:10px 14px;border-radius:9px;background:rgba(255,255,255,.02);border:1px solid var(--border);transition:border-color .2s;}
 .dept-row:hover{border-color:rgba(255,255,255,.1)}
-
-@media(max-width:800px){
-  .dept-row > div{grid-template-columns:110px 70px 1fr 80px 80px!important}
-  .dept-cplh{display:none}
-}
+@media(max-width:800px){.dept-row > div{grid-template-columns:110px 70px 1fr 80px 80px!important}.dept-cplh{display:none}}
 @media(max-width:1000px){.lp{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}.g5{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:680px){.g2,.g3{grid-template-columns:1fr}.g5{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
 <header class="topbar">
   <div class="tl">
     <div class="logo">A</div>
@@ -321,129 +179,70 @@ body{
   </div>
 </header>
 
-<!-- ═══════════════════ PAGE: ANALYZER ═══════════════════ -->
 <div class="page active" id="page-analyzer">
   <div class="sh">Labor Analyzer</div>
   <div class="sd">Enter a week's actuals. All metrics compute automatically from spend, hours, and orders.</div>
-
   <div class="lp">
-    <!-- LEFT: Input Panel -->
     <div>
       <div class="card" style="margin-bottom:14px">
         <div class="card-hd"><span class="dot da"></span>Week Inputs</div>
-
         <div class="fld">
           <div class="fl">Week of</div>
           <input class="fi" id="aDate" type="date">
         </div>
-
-        <!-- SITE TABS -->
         <div style="display:flex;gap:6px;margin-bottom:14px">
-          <button id="siteTabCombined" onclick="setSiteTab('combined')"
-            style="flex:1;padding:7px;border-radius:7px;font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;background:var(--green-dim);border:1px solid var(--green-border);color:var(--green)">
-            Combined
-          </button>
-          <button id="siteTabSplit" onclick="setSiteTab('split')"
-            style="flex:1;padding:7px;border-radius:7px;font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;background:var(--card);border:1px solid var(--border);color:var(--slate)">
-            MKE / SLC Split
-          </button>
+          <button id="siteTabCombined" onclick="setSiteTab('combined')" style="flex:1;padding:7px;border-radius:7px;font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;background:var(--green-dim);border:1px solid var(--green-border);color:var(--green)">Combined</button>
+          <button id="siteTabSplit" onclick="setSiteTab('split')" style="flex:1;padding:7px;border-radius:7px;font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;background:var(--card);border:1px solid var(--border);color:var(--slate)">MKE / SLC Split</button>
         </div>
-
-        <!-- COMBINED MODE -->
         <div id="modeCombined">
           <div class="frow">
-            <div class="fld">
-              <div class="fl">Total Labor Spend ($)</div>
-              <input class="fi" id="aSpend" type="number" placeholder="e.g. 45000" oninput="analyzeCalc()">
-            </div>
-            <div class="fld">
-              <div class="fl">Total Labor Hours</div>
-              <input class="fi" id="aHours" type="number" placeholder="e.g. 2800" oninput="analyzeCalc()">
-            </div>
+            <div class="fld"><div class="fl">Total Labor Spend ($)</div><input class="fi" id="aSpend" type="number" placeholder="e.g. 45000" oninput="analyzeCalc()"></div>
+            <div class="fld"><div class="fl">Total Labor Hours</div><input class="fi" id="aHours" type="number" placeholder="e.g. 2800" oninput="analyzeCalc()"></div>
           </div>
           <div class="frow">
-            <div class="fld">
-              <div class="fl">Orders Shipped</div>
-              <input class="fi" id="aOrders" type="number" placeholder="e.g. 18000" oninput="analyzeCalc()">
-            </div>
-            <div class="fld">
-              <div class="fl">Headcount (Bodies)</div>
-              <input class="fi" id="aHeads" type="number" placeholder="e.g. 40" oninput="analyzeCalc()">
-            </div>
+            <div class="fld"><div class="fl">Orders Shipped</div><input class="fi" id="aOrders" type="number" placeholder="e.g. 18000" oninput="analyzeCalc()"></div>
+            <div class="fld"><div class="fl">Headcount (Bodies)</div><input class="fi" id="aHeads" type="number" placeholder="e.g. 40" oninput="analyzeCalc()"></div>
           </div>
         </div>
-
-        <!-- SPLIT MODE -->
         <div id="modeSplit" style="display:none">
-          <!-- MKE -->
           <div style="background:rgba(163,243,197,.04);border:1px solid var(--green-border);border-radius:9px;padding:12px;margin-bottom:10px">
             <div style="font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:10px">MKE — Milwaukee</div>
             <div class="frow">
-              <div class="fld" style="margin-bottom:8px">
-                <div class="fl">Labor Spend ($)</div>
-                <input class="fi" id="aMkeSpend" type="number" placeholder="e.g. 38000" oninput="splitCalc()">
-              </div>
-              <div class="fld" style="margin-bottom:8px">
-                <div class="fl">Labor Hours</div>
-                <input class="fi" id="aMkeHours" type="number" placeholder="e.g. 2200" oninput="splitCalc()">
-              </div>
+              <div class="fld" style="margin-bottom:8px"><div class="fl">Labor Spend ($)</div><input class="fi" id="aMkeSpend" type="number" placeholder="e.g. 38000" oninput="splitCalc()"></div>
+              <div class="fld" style="margin-bottom:8px"><div class="fl">Labor Hours</div><input class="fi" id="aMkeHours" type="number" placeholder="e.g. 2200" oninput="splitCalc()"></div>
             </div>
             <div class="frow">
-              <div class="fld" style="margin-bottom:0">
-                <div class="fl">Orders Shipped</div>
-                <input class="fi" id="aMkeOrders" type="number" placeholder="e.g. 28000" oninput="splitCalc()">
-              </div>
-              <div class="fld" style="margin-bottom:0">
-                <div class="fl">Headcount</div>
-                <input class="fi" id="aMkeHeads" type="number" placeholder="e.g. 32" oninput="splitCalc()">
-              </div>
+              <div class="fld" style="margin-bottom:0"><div class="fl">Orders Shipped</div><input class="fi" id="aMkeOrders" type="number" placeholder="e.g. 28000" oninput="splitCalc()"></div>
+              <div class="fld" style="margin-bottom:0"><div class="fl">Headcount</div><input class="fi" id="aMkeHeads" type="number" placeholder="e.g. 32" oninput="splitCalc()"></div>
             </div>
           </div>
-          <!-- SLC -->
           <div style="background:rgba(96,165,250,.04);border:1px solid var(--blue-border);border-radius:9px;padding:12px;margin-bottom:10px">
             <div style="font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:10px">SLC — Salt Lake City</div>
             <div class="frow">
-              <div class="fld" style="margin-bottom:8px">
-                <div class="fl">Labor Spend ($)</div>
-                <input class="fi" id="aSlcSpend" type="number" placeholder="e.g. 7000" oninput="splitCalc()">
-              </div>
-              <div class="fld" style="margin-bottom:8px">
-                <div class="fl">Labor Hours</div>
-                <input class="fi" id="aSlcHours" type="number" placeholder="e.g. 400" oninput="splitCalc()">
-              </div>
+              <div class="fld" style="margin-bottom:8px"><div class="fl">Labor Spend ($)</div><input class="fi" id="aSlcSpend" type="number" placeholder="e.g. 7000" oninput="splitCalc()"></div>
+              <div class="fld" style="margin-bottom:8px"><div class="fl">Labor Hours</div><input class="fi" id="aSlcHours" type="number" placeholder="e.g. 400" oninput="splitCalc()"></div>
             </div>
             <div class="frow">
-              <div class="fld" style="margin-bottom:0">
-                <div class="fl">Orders Shipped</div>
-                <input class="fi" id="aSlcOrders" type="number" placeholder="e.g. 7000" oninput="splitCalc()">
-              </div>
-              <div class="fld" style="margin-bottom:0">
-                <div class="fl">Headcount</div>
-                <input class="fi" id="aSlcHeads" type="number" placeholder="e.g. 8" oninput="splitCalc()">
-              </div>
+              <div class="fld" style="margin-bottom:0"><div class="fl">Orders Shipped</div><input class="fi" id="aSlcOrders" type="number" placeholder="e.g. 7000" oninput="splitCalc()"></div>
+              <div class="fld" style="margin-bottom:0"><div class="fl">Headcount</div><input class="fi" id="aSlcHeads" type="number" placeholder="e.g. 8" oninput="splitCalc()"></div>
             </div>
           </div>
-          <!-- Split totals preview -->
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:10px;color:var(--slate);text-align:center;padding:8px 0">
             <div>Total Spend<br><span style="font-family:var(--ui);font-weight:700;font-size:13px;color:var(--white)" id="splitTotalSpend">—</span></div>
             <div>Total Orders<br><span style="font-family:var(--ui);font-weight:700;font-size:13px;color:var(--white)" id="splitTotalOrders">—</span></div>
             <div>Total Hours<br><span style="font-family:var(--ui);font-weight:700;font-size:13px;color:var(--white)" id="splitTotalHours">—</span></div>
           </div>
         </div>
-
         <div class="fld" style="margin-top:10px">
           <div class="fl">Weekly Revenue ($) <span style="color:rgba(139,155,170,.5)">optional</span></div>
           <input class="fi" id="aRev" type="number" placeholder="e.g. 380000" oninput="analyzeCalc()">
           <div class="fh">Used to calculate labor % of revenue.</div>
         </div>
-
         <div style="display:flex;gap:8px;margin-top:10px">
           <button class="btn btn-g" style="flex:1" onclick="saveWeek()">+ Save to History</button>
           <button class="btn btn-b" style="width:44px;padding:0;font-size:14px" onclick="exportCSV()" title="Export history to CSV">↓</button>
         </div>
       </div>
-
-      <!-- COMP vs HISTORICAL -->
       <div class="card">
         <div class="card-hd"><span class="dot db"></span>vs. Historical Avg</div>
         <div class="pr-row"><span class="pr-k">Your CPO</span><span class="pr-v" id="aCpoComp">—</span></div>
@@ -457,110 +256,40 @@ body{
         <div class="pr-row"><span class="pr-k">Best OPH (logged wks)</span><span class="pr-v g" id="aHistOphBest">—</span></div>
       </div>
     </div>
-
-    <!-- RIGHT: Metrics -->
     <div>
-      <!-- STATUS BANNER -->
       <div class="statbanner neutral" id="aBanner">
-        <div class="sb-l">
-          <div class="sb-dot"></div>
-          <div>
-            <div class="sb-title" id="aBannerTitle">Enter Data</div>
-            <div class="sb-sub" id="aBannerSub">Input spend, hours, and orders to analyze your week.</div>
-          </div>
-        </div>
-        <div>
-          <div class="sb-big" id="aBannerBig">—</div>
-          <div class="sb-big-lbl">Cost Per Order</div>
-        </div>
+        <div class="sb-l"><div class="sb-dot"></div><div><div class="sb-title" id="aBannerTitle">Enter Data</div><div class="sb-sub" id="aBannerSub">Input spend, hours, and orders to analyze your week.</div></div></div>
+        <div><div class="sb-big" id="aBannerBig">—</div><div class="sb-big-lbl">Cost Per Order</div></div>
       </div>
-
-      <!-- CORE METRICS -->
       <div class="g5" style="margin-bottom:14px">
-        <div class="tile ta">
-          <div class="t-lbl">Cost Per Order</div>
-          <div class="t-val" id="mCpo">$—</div>
-          <div class="t-sub">Spend ÷ Orders</div>
-        </div>
-        <div class="tile">
-          <div class="t-lbl">Orders Per Hour</div>
-          <div class="t-val" id="mOph">—</div>
-          <div class="t-sub">Floor throughput</div>
-        </div>
-        <div class="tile">
-          <div class="t-lbl">Orders Per Body</div>
-          <div class="t-val g" id="mOpb">—</div>
-          <div class="t-sub">Weekly per head</div>
-        </div>
-        <div class="tile">
-          <div class="t-lbl">Cost Per Labor Hr</div>
-          <div class="t-val" id="mCplh">$—</div>
-          <div class="t-sub">Avg loaded rate</div>
-        </div>
-        <div class="tile ta">
-          <div class="t-lbl">Labor % of Rev</div>
-          <div class="t-val" id="mLpct">—</div>
-          <div class="t-sub">Spend ÷ Revenue</div>
-        </div>
+        <div class="tile ta"><div class="t-lbl">Cost Per Order</div><div class="t-val" id="mCpo">$—</div><div class="t-sub">Spend ÷ Orders</div></div>
+        <div class="tile"><div class="t-lbl">Orders Per Hour</div><div class="t-val" id="mOph">—</div><div class="t-sub">Floor throughput</div></div>
+        <div class="tile"><div class="t-lbl">Orders Per Body</div><div class="t-val g" id="mOpb">—</div><div class="t-sub">Weekly per head</div></div>
+        <div class="tile"><div class="t-lbl">Cost Per Labor Hr</div><div class="t-val" id="mCplh">$—</div><div class="t-sub">Avg loaded rate</div></div>
+        <div class="tile ta"><div class="t-lbl">Labor % of Rev</div><div class="t-val" id="mLpct">—</div><div class="t-sub">Spend ÷ Revenue</div></div>
       </div>
-
       <div class="g4" style="margin-bottom:14px">
-        <div class="tile">
-          <div class="t-lbl">Hours Per Body</div>
-          <div class="t-val b" id="mHpb">—</div>
-          <div class="t-sub">Weekly avg hrs/head</div>
-        </div>
-        <div class="tile">
-          <div class="t-lbl">Spend Per Body</div>
-          <div class="t-val" id="mSpb">$—</div>
-          <div class="t-sub">Weekly cost/head</div>
-        </div>
-        <div class="tile">
-          <div class="t-lbl">Rev Per Labor Hr</div>
-          <div class="t-val" id="mRph">$—</div>
-          <div class="t-sub">Revenue leverage</div>
-        </div>
-        <div class="tile">
-          <div class="t-lbl">Avg Order Value</div>
-          <div class="t-val" id="mAov">$—</div>
-          <div class="t-sub">Rev ÷ Orders</div>
-        </div>
+        <div class="tile"><div class="t-lbl">Hours Per Body</div><div class="t-val b" id="mHpb">—</div><div class="t-sub">Weekly avg hrs/head</div></div>
+        <div class="tile"><div class="t-lbl">Spend Per Body</div><div class="t-val" id="mSpb">$—</div><div class="t-sub">Weekly cost/head</div></div>
+        <div class="tile"><div class="t-lbl">Rev Per Labor Hr</div><div class="t-val" id="mRph">$—</div><div class="t-sub">Revenue leverage</div></div>
+        <div class="tile"><div class="t-lbl">Avg Order Value</div><div class="t-val" id="mAov">$—</div><div class="t-sub">Rev ÷ Orders</div></div>
       </div>
-
-      <!-- CPO TREND CHART -->
-      <div class="card">
-        <div class="card-hd"><span class="dot dg"></span>CPO Trend — Historical Weeks</div>
-        <div id="trendChart"><div class="no-data">Loading historical data…</div></div>
-      </div>
+      <div class="card"><div class="card-hd"><span class="dot dg"></span>CPO Trend — Historical Weeks</div><div id="trendChart"><div class="no-data">Loading historical data…</div></div></div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════ PAGE: PROJECTOR ═══════════════════ -->
 <div class="page" id="page-projector">
   <div class="sh">Labor Projector</div>
   <div class="sd">Set your parameters. Dial in OPH to see exactly what happens to your staffing, spend, and CPO.</div>
-
-  <!-- TOP: Parameters row -->
   <div class="card" style="margin-bottom:18px">
     <div class="card-hd"><span class="dot da"></span>Week Parameters</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-      <div class="fld" style="margin:0">
-        <div class="fl">Estimated Orders</div>
-        <input class="fi" id="pOrders" type="number" placeholder="e.g. 36000" oninput="saveProjectorState();projectCalc()">
-      </div>
-      <div class="fld" style="margin:0">
-        <div class="fl">Target CPLH ($)</div>
-        <input class="fi" id="pCplh" type="number" placeholder="e.g. 17.50" oninput="saveProjectorState();projectCalc()">
-      </div>
-      <div class="fld" style="margin:0">
-        <div class="fl">Revenue ($) <span style="color:rgba(139,155,170,.4)">optional</span></div>
-        <input class="fi" id="pRev" type="number" placeholder="e.g. 380000" oninput="saveProjectorState();projectCalc()">
-      </div>
+      <div class="fld" style="margin:0"><div class="fl">Estimated Orders</div><input class="fi" id="pOrders" type="number" placeholder="e.g. 36000" oninput="saveProjectorState();projectCalc()"></div>
+      <div class="fld" style="margin:0"><div class="fl">Target CPLH ($)</div><input class="fi" id="pCplh" type="number" placeholder="e.g. 17.50" oninput="saveProjectorState();projectCalc()"></div>
+      <div class="fld" style="margin:0"><div class="fl">Revenue ($) <span style="color:rgba(139,155,170,.4)">optional</span></div><input class="fi" id="pRev" type="number" placeholder="e.g. 380000" oninput="saveProjectorState();projectCalc()"></div>
     </div>
   </div>
-
-  <!-- OPH DIAL — full width, front and center -->
   <div class="card" style="margin-bottom:18px;padding-top:42px" id="ophDialCard">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div>
@@ -568,42 +297,22 @@ body{
         <div style="font-size:11px;color:var(--slate)" id="ophDialSub">Enter orders above to see your required OPH, then adjust to model different floor realities.</div>
       </div>
       <div style="text-align:right;display:flex;flex-direction:column;gap:8px">
-        <div>
-          <div style="font-size:10px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">Required OPH</div>
-          <div style="font-family:var(--ui);font-weight:800;font-size:22px;color:var(--blue)" id="ophRequired">—</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">Hist. Avg OPH</div>
-          <div style="font-family:var(--ui);font-weight:800;font-size:22px;color:var(--slate)" id="ophHistAvg">—</div>
-        </div>
+        <div><div style="font-size:10px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">Required OPH</div><div style="font-family:var(--ui);font-weight:800;font-size:22px;color:var(--blue)" id="ophRequired">—</div></div>
+        <div><div style="font-size:10px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">Hist. Avg OPH</div><div style="font-family:var(--ui);font-weight:800;font-size:22px;color:var(--slate)" id="ophHistAvg">—</div></div>
       </div>
     </div>
-
-    <!-- BIG OPH DISPLAY -->
     <div style="display:flex;align-items:center;gap:24px;margin-bottom:16px">
       <div style="flex:1">
         <div style="position:relative;margin-bottom:8px">
-          <div style="position:absolute;top:-28px;left:0;z-index:0;pointer-events:none;user-select:none">
-            <span id="ophGhostAvg" style="
-              font-family:var(--ui);font-weight:800;font-size:52px;line-height:1;
-              color:rgba(163,243,197,0.15);letter-spacing:-.01em;
-            ">12.6</span>
-          </div>
+          <div style="position:absolute;top:-28px;left:0;z-index:0;pointer-events:none;user-select:none"><span id="ophGhostAvg" style="font-family:var(--ui);font-weight:800;font-size:52px;line-height:1;color:rgba(163,243,197,0.15);letter-spacing:-.01em;">12.6</span></div>
           <div style="display:flex;align-items:baseline;gap:10px;position:relative;z-index:1">
             <span style="font-family:var(--ui);font-weight:800;font-size:52px;line-height:1;color:var(--green);transition:color .3s" id="ophDialVal">—</span>
-            <div>
-              <div style="font-size:12px;color:var(--slate)">orders / hour</div>
-              <div style="font-size:10px;color:rgba(163,243,197,0.4);margin-top:3px;letter-spacing:.04em" id="ophGhostLbl">avg 12.6</div>
-              <div id="ophDeltaBadge" style="margin-top:4px"></div>
-            </div>
+            <div><div style="font-size:12px;color:var(--slate)">orders / hour</div><div style="font-size:10px;color:rgba(163,243,197,0.4);margin-top:3px;letter-spacing:.04em" id="ophGhostLbl">avg 12.6</div><div id="ophDeltaBadge" style="margin-top:4px"></div></div>
           </div>
         </div>
-        <input type="range" class="slider" id="pOphSlider" min="2" max="30" step="0.5" value="10"
-               oninput="ophSlide(this.value)" style="width:100%">
+        <input type="range" class="slider" id="pOphSlider" min="2" max="30" step="0.5" value="10" oninput="ophSlide(this.value)" style="width:100%">
         <div class="slider-row" style="margin-top:6px"><span>2 (very slow)</span><span>10</span><span>20</span><span>30 (max)</span></div>
       </div>
-
-      <!-- OPH presets -->
       <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
         <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">Presets</div>
         <button class="pill" onclick="setOph(5)">Slow 5</button>
@@ -613,103 +322,34 @@ body{
         <button class="pill" onclick="setOph(18)">Elite 18</button>
       </div>
     </div>
-
-    <!-- OPH IMPACT STRIP -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--border)" id="ophImpactStrip">
-      <div style="text-align:center">
-        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Hours Needed</div>
-        <div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riHours">—</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Bodies Needed</div>
-        <div style="font-family:var(--ui);font-weight:800;font-size:18px;color:var(--amber)" id="riBodies">—</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Labor Spend</div>
-        <div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riSpend">$—</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">CPO</div>
-        <div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riCpo">$—</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Labor %</div>
-        <div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riLpct">—</div>
-      </div>
+      <div style="text-align:center"><div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Hours Needed</div><div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riHours">—</div></div>
+      <div style="text-align:center"><div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Bodies Needed</div><div style="font-family:var(--ui);font-weight:800;font-size:18px;color:var(--amber)" id="riBodies">—</div></div>
+      <div style="text-align:center"><div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Labor Spend</div><div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riSpend">$—</div></div>
+      <div style="text-align:center"><div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">CPO</div><div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riCpo">$—</div></div>
+      <div style="text-align:center"><div style="font-size:9px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Labor %</div><div style="font-family:var(--ui);font-weight:800;font-size:18px" id="riLpct">—</div></div>
     </div>
-
-    <!-- VERDICT BAR -->
-    <div id="ophVerdict" style="margin-top:12px;padding:12px 16px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);font-size:11px;color:var(--slate);line-height:1.6">
-      Set orders and CPLH to generate your required OPH, then use the slider to see the impact.
-    </div>
+    <div id="ophVerdict" style="margin-top:12px;padding:12px 16px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);font-size:11px;color:var(--slate);line-height:1.6">Set orders and CPLH to generate your required OPH, then use the slider to see the impact.</div>
   </div>
-
-  <!-- BOTTOM: Full metrics + scenario table -->
   <div class="g2" style="margin-bottom:16px">
-
-    <!-- Left: output tiles -->
     <div>
       <div class="card" style="margin-bottom:14px">
         <div class="card-hd"><span class="dot dg"></span>Staffing Plan</div>
         <div class="g2">
-          <div class="tile ta">
-            <div class="t-lbl">Bodies Needed</div>
-            <div class="t-val a" id="rBodies">—</div>
-            <div class="t-sub" id="rBodiesSub">Hours ÷ 40hr week</div>
-          </div>
-          <div class="tile">
-            <div class="t-lbl">Hours Needed</div>
-            <div class="t-val" id="rHours">—</div>
-            <div class="t-sub" id="rHoursSub">Orders ÷ OPH</div>
-          </div>
-          <div class="tile ta">
-            <div class="t-lbl">Proj. Labor Spend</div>
-            <div class="t-val" id="rSpend">$—</div>
-            <div class="t-sub" id="rSpendSub">Hours × CPLH</div>
-          </div>
-          <div class="tile">
-            <div class="t-lbl">Proj. CPO</div>
-            <div class="t-val" id="rCpo">$—</div>
-            <div class="t-sub">Spend ÷ Orders</div>
-          </div>
-          <div class="tile">
-            <div class="t-lbl">Labor % of Rev</div>
-            <div class="t-val" id="rLpct">—</div>
-            <div class="t-sub">Proj. labor rate</div>
-          </div>
+          <div class="tile ta"><div class="t-lbl">Bodies Needed</div><div class="t-val a" id="rBodies">—</div><div class="t-sub" id="rBodiesSub">Hours ÷ 40hr week</div></div>
+          <div class="tile"><div class="t-lbl">Hours Needed</div><div class="t-val" id="rHours">—</div><div class="t-sub" id="rHoursSub">Orders ÷ OPH</div></div>
+          <div class="tile ta"><div class="t-lbl">Proj. Labor Spend</div><div class="t-val" id="rSpend">$—</div><div class="t-sub" id="rSpendSub">Hours × CPLH</div></div>
+          <div class="tile"><div class="t-lbl">Proj. CPO</div><div class="t-val" id="rCpo">$—</div><div class="t-sub">Spend ÷ Orders</div></div>
+          <div class="tile"><div class="t-lbl">Labor % of Rev</div><div class="t-val" id="rLpct">—</div><div class="t-sub">Proj. labor rate</div></div>
         </div>
       </div>
-
-      <!-- Recs -->
-      <div class="card" id="recBox">
-        <div class="card-hd"><span class="dot dg"></span>Recommendations</div>
-        <div id="recList"><div class="no-data">Configure inputs to generate recommendations.</div></div>
-      </div>
+      <div class="card" id="recBox"><div class="card-hd"><span class="dot dg"></span>Recommendations</div><div id="recList"><div class="no-data">Configure inputs to generate recommendations.</div></div></div>
     </div>
-
-    <!-- Right: OPH sensitivity table -->
     <div class="card">
       <div class="card-hd"><span class="dot db"></span>OPH Sensitivity — What Changes at Each Rate</div>
-      <table class="htbl">
-        <thead>
-          <tr>
-            <th>OPH</th>
-            <th>Hours</th>
-            <th>Bodies</th>
-            <th>Spend</th>
-            <th>CPO</th>
-            <th>vs Required</th>
-          </tr>
-        </thead>
-        <tbody id="ophSensBody">
-          <tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr>
-        </tbody>
-      </table>
+      <table class="htbl"><thead><tr><th>OPH</th><th>Hours</th><th>Bodies</th><th>Spend</th><th>CPO</th><th>vs Required</th></tr></thead><tbody id="ophSensBody"><tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr></tbody></table>
     </div>
-
   </div>
-
-  <!-- DEPARTMENT LABOR BREAKDOWN -->
   <div class="card" style="margin-top:18px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div class="card-hd" style="margin:0"><span class="dot db"></span>Department Labor Breakdown</div>
@@ -719,289 +359,63 @@ body{
         <span id="deptAllocBar" style="font-size:10px;padding:2px 8px;border-radius:4px;background:var(--green-dim);color:var(--green);font-family:var(--ui);font-weight:600">0 hrs · $0</span>
       </div>
     </div>
-
-    <!-- DEPT ROWS -->
     <div id="deptRows" style="display:flex;flex-direction:column;gap:10px">
-
-      <!-- Outbound -->
-      <div class="dept-row" data-dept="outbound">
-        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
-            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Outbound</span>
-          </div>
-          <div>
-            <input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="outbound" oninput="deptCalc();saveProjectorState()">
-          </div>
-          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-            <div class="dept-bar" data-dept="outbound" style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:width .4s"></div>
-          </div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="outbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="outbound" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="outbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="outbound" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
-        </div>
-      </div>
-
-      <!-- Inbound -->
-      <div class="dept-row" data-dept="inbound">
-        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0"></div>
-            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Inbound</span>
-          </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inbound" oninput="deptCalc();saveProjectorState()"></div>
-          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-            <div class="dept-bar" data-dept="inbound" style="height:100%;width:0%;background:var(--blue);border-radius:3px;transition:width .4s"></div>
-          </div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="inbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="inbound" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="inbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="inbound" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
-        </div>
-      </div>
-
-      <!-- Special Projects -->
-      <div class="dept-row" data-dept="special">
-        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>
-            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Special Projects</span>
-          </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="special" oninput="deptCalc();saveProjectorState()"></div>
-          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-            <div class="dept-bar" data-dept="special" style="height:100%;width:0%;background:var(--amber);border-radius:3px;transition:width .4s"></div>
-          </div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="special" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="special" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="special" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="special" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
-        </div>
-      </div>
-
-      <!-- Kitting -->
-      <div class="dept-row" data-dept="kitting">
-        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:8px;height:8px;border-radius:50%;background:#c084fc;flex-shrink:0"></div>
-            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Kitting</span>
-          </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="kitting" oninput="deptCalc();saveProjectorState()"></div>
-          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-            <div class="dept-bar" data-dept="kitting" style="height:100%;width:0%;background:#c084fc;border-radius:3px;transition:width .4s"></div>
-          </div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="kitting" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="kitting" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="kitting" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="kitting" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
-        </div>
-      </div>
-
-      <!-- Inventory -->
-      <div class="dept-row" data-dept="inventory">
-        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:8px;height:8px;border-radius:50%;background:#34d399;flex-shrink:0"></div>
-            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Inventory</span>
-          </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inventory" oninput="deptCalc();saveProjectorState()"></div>
-          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-            <div class="dept-bar" data-dept="inventory" style="height:100%;width:0%;background:#34d399;border-radius:3px;transition:width .4s"></div>
-          </div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="inventory" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="inventory" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="inventory" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="inventory" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
-        </div>
-      </div>
-
-      <!-- Returns -->
-      <div class="dept-row" data-dept="returns">
-        <div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
-            <span style="font-family:var(--ui);font-weight:700;font-size:12px">Returns</span>
-          </div>
-          <div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="returns" oninput="deptCalc();saveProjectorState()"></div>
-          <div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-            <div class="dept-bar" data-dept="returns" style="height:100%;width:0%;background:var(--red);border-radius:3px;transition:width .4s"></div>
-          </div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="returns" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="returns" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="returns" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div>
-          <div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="returns" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div>
-        </div>
-      </div>
-
-    </div><!-- /deptRows -->
-
-    <!-- ALLOCATION STATUS BAR -->
+      <div class="dept-row" data-dept="outbound"><div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center"><div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div><span style="font-family:var(--ui);font-weight:700;font-size:12px">Outbound</span></div><div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="outbound" oninput="deptCalc();saveProjectorState()"></div><div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div class="dept-bar" data-dept="outbound" style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:width .4s"></div></div><div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="outbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="outbound" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="outbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="outbound" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div></div></div>
+      <div class="dept-row" data-dept="inbound"><div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center"><div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0"></div><span style="font-family:var(--ui);font-weight:700;font-size:12px">Inbound</span></div><div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inbound" oninput="deptCalc();saveProjectorState()"></div><div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div class="dept-bar" data-dept="inbound" style="height:100%;width:0%;background:var(--blue);border-radius:3px;transition:width .4s"></div></div><div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="inbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="inbound" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="inbound" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="inbound" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div></div></div>
+      <div class="dept-row" data-dept="special"><div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center"><div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0"></div><span style="font-family:var(--ui);font-weight:700;font-size:12px">Special Projects</span></div><div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="special" oninput="deptCalc();saveProjectorState()"></div><div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div class="dept-bar" data-dept="special" style="height:100%;width:0%;background:var(--amber);border-radius:3px;transition:width .4s"></div></div><div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="special" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="special" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="special" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="special" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div></div></div>
+      <div class="dept-row" data-dept="kitting"><div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center"><div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#c084fc;flex-shrink:0"></div><span style="font-family:var(--ui);font-weight:700;font-size:12px">Kitting</span></div><div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="kitting" oninput="deptCalc();saveProjectorState()"></div><div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div class="dept-bar" data-dept="kitting" style="height:100%;width:0%;background:#c084fc;border-radius:3px;transition:width .4s"></div></div><div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="kitting" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="kitting" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="kitting" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="kitting" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div></div></div>
+      <div class="dept-row" data-dept="inventory"><div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center"><div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#34d399;flex-shrink:0"></div><span style="font-family:var(--ui);font-weight:700;font-size:12px">Inventory</span></div><div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="inventory" oninput="deptCalc();saveProjectorState()"></div><div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div class="dept-bar" data-dept="inventory" style="height:100%;width:0%;background:#34d399;border-radius:3px;transition:width .4s"></div></div><div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="inventory" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="inventory" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="inventory" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="inventory" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div></div></div>
+      <div class="dept-row" data-dept="returns"><div style="display:grid;grid-template-columns:140px 80px 1fr 90px 90px 90px 90px;gap:12px;align-items:center"><div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></div><span style="font-family:var(--ui);font-weight:700;font-size:12px">Returns</span></div><div><input type="number" class="fi dept-pct" placeholder="%" min="0" max="100" style="padding:6px 8px;font-size:12px;text-align:center" data-dept="returns" oninput="deptCalc();saveProjectorState()"></div><div class="dept-bar-wrap" style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div class="dept-bar" data-dept="returns" style="height:100%;width:0%;background:var(--red);border-radius:3px;transition:width .4s"></div></div><div style="text-align:right;font-size:11px;color:var(--slate)">Hours<br><span class="dept-hrs" data-dept="returns" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Bodies<br><span class="dept-bodies" data-dept="returns" style="color:var(--amber);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">Spend<br><span class="dept-spend" data-dept="returns" style="color:var(--white);font-family:var(--ui);font-weight:700">—</span></div><div style="text-align:right;font-size:11px;color:var(--slate)">CPLH<br><span class="dept-cplh" data-dept="returns" style="color:var(--slate);font-family:var(--ui);font-weight:700">—</span></div></div></div>
+    </div>
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:10px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase">Allocation</span>
-        <span style="font-size:10px;color:var(--slate)" id="deptUnallocLbl">Enter % per department (must total 100%)</span>
-      </div>
-      <!-- stacked bar -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:10px;color:var(--slate);letter-spacing:.08em;text-transform:uppercase">Allocation</span><span style="font-size:10px;color:var(--slate)" id="deptUnallocLbl">Enter % per department (must total 100%)</span></div>
       <div style="height:8px;border-radius:4px;background:rgba(255,255,255,.05);overflow:hidden;display:flex" id="deptStackBar">
-        <div style="height:100%;width:0%;background:var(--green);transition:width .4s"    id="dsb-outbound"></div>
-        <div style="height:100%;width:0%;background:var(--blue);transition:width .4s"     id="dsb-inbound"></div>
-        <div style="height:100%;width:0%;background:var(--amber);transition:width .4s"    id="dsb-special"></div>
-        <div style="height:100%;width:0%;background:#c084fc;transition:width .4s"         id="dsb-kitting"></div>
-        <div style="height:100%;width:0%;background:#34d399;transition:width .4s"         id="dsb-inventory"></div>
-        <div style="height:100%;width:0%;background:var(--red);transition:width .4s"      id="dsb-returns"></div>
+        <div style="height:100%;width:0%;background:var(--green);transition:width .4s" id="dsb-outbound"></div>
+        <div style="height:100%;width:0%;background:var(--blue);transition:width .4s" id="dsb-inbound"></div>
+        <div style="height:100%;width:0%;background:var(--amber);transition:width .4s" id="dsb-special"></div>
+        <div style="height:100%;width:0%;background:#c084fc;transition:width .4s" id="dsb-kitting"></div>
+        <div style="height:100%;width:0%;background:#34d399;transition:width .4s" id="dsb-inventory"></div>
+        <div style="height:100%;width:0%;background:var(--red);transition:width .4s" id="dsb-returns"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--slate-dim);margin-top:4px">
-        <span>0%</span><span id="deptTotalLbl" style="font-family:var(--ui);font-weight:700">0% allocated</span><span>100%</span>
-      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--slate-dim);margin-top:4px"><span>0%</span><span id="deptTotalLbl" style="font-family:var(--ui);font-weight:700">0% allocated</span><span>100%</span></div>
     </div>
-
-    <div style="margin-top:10px;font-size:10px;color:var(--slate);line-height:1.6" id="deptHint">
-      Enter % of total hours allocated to each department. Hours, bodies (hrs ÷ 40), and spend calculate automatically from your OPH projection above.
-    </div>
+    <div style="margin-top:10px;font-size:10px;color:var(--slate);line-height:1.6" id="deptHint">Enter % of total hours allocated to each department. Hours, bodies (hrs ÷ 40), and spend calculate automatically from your OPH projection above.</div>
   </div>
-
 </div>
 
-<!-- ═══════════════════ PAGE: HISTORY ═══════════════════ -->
 <div class="page" id="page-history">
   <div class="sh">Weekly History</div>
   <div class="sd">All logged weeks. Loaded from your CPO Master file + any manually saved weeks.</div>
-
-  <!-- SUMMARY STATS -->
   <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px">
-    <div class="tile">
-      <div class="t-lbl">Total Weeks</div>
-      <div class="t-val b" id="hWks">—</div>
-    </div>
-    <div class="tile">
-      <div class="t-lbl">Avg CPO Raw</div>
-      <div class="t-val" id="hAvgCpo">$—</div>
-      <div class="t-sub">All time</div>
-    </div>
-    <div class="tile ta">
-      <div class="t-lbl">Avg CPO Raw (L8)</div>
-      <div class="t-val" id="hAvgCpo8">$—</div>
-      <div class="t-sub">Last 8 weeks</div>
-    </div>
-    <div class="tile ta">
-      <div class="t-lbl">Avg CPO +12%</div>
-      <div class="t-val" id="hAvgCpo12">$—</div>
-      <div class="t-sub">All time loaded</div>
-    </div>
-    <div class="tile ta">
-      <div class="t-lbl">Avg CPO +12% (L8)</div>
-      <div class="t-val" id="hAvgCpo12L8">$—</div>
-      <div class="t-sub">Last 8 loaded</div>
-    </div>
-    <div class="tile">
-      <div class="t-lbl">Avg Orders/Wk</div>
-      <div class="t-val g" id="hAvgOrd">—</div>
-    </div>
+    <div class="tile"><div class="t-lbl">Total Weeks</div><div class="t-val b" id="hWks">—</div></div>
+    <div class="tile"><div class="t-lbl">Avg CPO Raw</div><div class="t-val" id="hAvgCpo">$—</div><div class="t-sub">All time</div></div>
+    <div class="tile ta"><div class="t-lbl">Avg CPO Raw (L8)</div><div class="t-val" id="hAvgCpo8">$—</div><div class="t-sub">Last 8 weeks</div></div>
+    <div class="tile ta"><div class="t-lbl">Avg CPO +12%</div><div class="t-val" id="hAvgCpo12">$—</div><div class="t-sub">All time loaded</div></div>
+    <div class="tile ta"><div class="t-lbl">Avg CPO +12% (L8)</div><div class="t-val" id="hAvgCpo12L8">$—</div><div class="t-sub">Last 8 loaded</div></div>
+    <div class="tile"><div class="t-lbl">Avg Orders/Wk</div><div class="t-val g" id="hAvgOrd">—</div></div>
   </div>
-
-  <!-- CHARTS SECTION -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" id="chartsGrid">
-
-    <div class="card chart-card" onclick="expandChart('chartSpendOrders')" style="cursor:pointer">
-      <div class="card-hd" style="justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:6px"><span class="dot da"></span>Labor Spend vs Order Volume</div>
-        <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
-      </div>
-      <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--amber);display:inline-block;border-radius:1px"></span>Spend</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>Orders</span>
-      </div>
-      <canvas id="chartSpendOrders" style="width:100%;height:160px;display:block"></canvas>
-    </div>
-
-    <div class="card chart-card" onclick="expandChart('chartCpo')" style="cursor:pointer">
-      <div class="card-hd" style="justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:6px"><span class="dot dg"></span>CPO — Raw vs Loaded +12%</div>
-        <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
-      </div>
-      <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>CPO Raw</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--amber);display:inline-block;border-radius:1px"></span>CPO +12%</span>
-      </div>
-      <canvas id="chartCpo" style="width:100%;height:160px;display:block"></canvas>
-    </div>
-
-    <div class="card chart-card" onclick="expandChart('chartSites')" style="cursor:pointer">
-      <div class="card-hd" style="justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:6px"><span class="dot db"></span>MKE vs SLC — Order Volume</div>
-        <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
-      </div>
-      <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>MKE</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--blue);display:inline-block;border-radius:1px"></span>SLC</span>
-      </div>
-      <canvas id="chartSites" style="width:100%;height:160px;display:block"></canvas>
-    </div>
-
-    <div class="card chart-card" onclick="expandChart('chartOph')" style="cursor:pointer">
-      <div class="card-hd" style="justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:6px"><span class="dot dg"></span>OPH Trend (Implied @ $17.50)</div>
-        <span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span>
-      </div>
-      <div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px">
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>OPH</span>
-      </div>
-      <canvas id="chartOph" style="width:100%;height:160px;display:block"></canvas>
-    </div>
-
+    <div class="card chart-card" onclick="expandChart('chartSpendOrders')" style="cursor:pointer"><div class="card-hd" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="dot da"></span>Labor Spend vs Order Volume</div><span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span></div><div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px"><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--amber);display:inline-block;border-radius:1px"></span>Spend</span><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>Orders</span></div><canvas id="chartSpendOrders" style="width:100%;height:160px;display:block"></canvas></div>
+    <div class="card chart-card" onclick="expandChart('chartCpo')" style="cursor:pointer"><div class="card-hd" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="dot dg"></span>CPO — Raw vs Loaded +12%</div><span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span></div><div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px"><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>CPO Raw</span><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--amber);display:inline-block;border-radius:1px"></span>CPO +12%</span></div><canvas id="chartCpo" style="width:100%;height:160px;display:block"></canvas></div>
+    <div class="card chart-card" onclick="expandChart('chartSites')" style="cursor:pointer"><div class="card-hd" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="dot db"></span>MKE vs SLC — Order Volume</div><span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span></div><div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px"><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>MKE</span><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--blue);display:inline-block;border-radius:1px"></span>SLC</span></div><canvas id="chartSites" style="width:100%;height:160px;display:block"></canvas></div>
+    <div class="card chart-card" onclick="expandChart('chartOph')" style="cursor:pointer"><div class="card-hd" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="dot dg"></span>OPH Trend (Implied @ $17.50)</div><span style="font-size:10px;color:var(--slate);letter-spacing:.04em">⤢ expand</span></div><div style="font-size:10px;color:var(--slate);margin-bottom:10px;display:flex;gap:16px"><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span>OPH</span></div><canvas id="chartOph" style="width:100%;height:160px;display:block"></canvas></div>
   </div>
-
-  <!-- FILTER PILLS -->
   <div class="pills" id="filterPills">
     <div class="pill active" onclick="filterHist('all',this)">All Time</div>
     <div class="pill" onclick="filterHist('8wk',this)">Last 8 Weeks</div>
     <div class="pill" onclick="filterHist('2025',this)">2025</div>
     <div class="pill" onclick="filterHist('2026',this)">2026</div>
   </div>
-
-  <div class="card">
-    <div id="histTableWrap"></div>
-  </div>
+  <div class="card"><div id="histTableWrap"></div></div>
 </div>
 
-<!-- CHART MODAL -->
-<div id="chartModal" style="
-  display:none;position:fixed;inset:0;z-index:500;
-  background:rgba(9,30,56,0.92);backdrop-filter:blur(20px);
-  padding:24px;box-sizing:border-box;
-  animation:fadeIn .18s ease;
-" onclick="closeModal(event)">
-  <div style="
-    width:100%;height:100%;
-    background:rgba(13,36,64,0.98);border:1px solid rgba(255,255,255,.1);
-    border-radius:16px;display:flex;flex-direction:column;
-    box-shadow:0 32px 80px rgba(0,0,0,.5);
-    overflow:hidden;position:relative;
-  " onclick="event.stopPropagation()">
-    <div style="
-      display:flex;align-items:center;justify-content:space-between;
-      padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;
-    ">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span id="modalTitle" style="font-family:var(--ui);font-weight:700;font-size:15px;color:var(--white)"></span>
-        <span id="modalLegend" style="display:flex;gap:14px;font-size:10px;color:var(--slate);margin-left:8px"></span>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <span id="modalTooltip" style="font-family:var(--mono);font-size:11px;color:var(--white);min-width:280px;text-align:right"></span>
-        <button onclick="closeModal()" style="
-          background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-          color:var(--slate);border-radius:7px;padding:6px 12px;cursor:pointer;
-          font-family:var(--ui);font-weight:600;font-size:11px;transition:all .15s;
-        " onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--slate)'">✕ Close</button>
-      </div>
+<div id="chartModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(9,30,56,0.92);backdrop-filter:blur(20px);padding:24px;box-sizing:border-box;animation:fadeIn .18s ease;" onclick="closeModal(event)">
+  <div style="width:100%;height:100%;background:rgba(13,36,64,0.98);border:1px solid rgba(255,255,255,.1);border-radius:16px;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.5);overflow:hidden;position:relative;" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:10px"><span id="modalTitle" style="font-family:var(--ui);font-weight:700;font-size:15px;color:var(--white)"></span><span id="modalLegend" style="display:flex;gap:14px;font-size:10px;color:var(--slate);margin-left:8px"></span></div>
+      <div style="display:flex;align-items:center;gap:12px"><span id="modalTooltip" style="font-family:var(--mono);font-size:11px;color:var(--white);min-width:280px;text-align:right"></span><button onclick="closeModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--slate);border-radius:7px;padding:6px 12px;cursor:pointer;font-family:var(--ui);font-weight:600;font-size:11px;transition:all .15s;" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--slate)'">✕ Close</button></div>
     </div>
-    <div style="flex:1;padding:20px;position:relative;min-height:0">
-      <canvas id="modalCanvas" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas>
-      <div id="modalCrosshair" style="
-        display:none;position:absolute;top:20px;bottom:20px;
-        width:1px;background:rgba(255,255,255,.2);pointer-events:none;
-      "></div>
-    </div>
+    <div style="flex:1;padding:20px;position:relative;min-height:0"><canvas id="modalCanvas" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas><div id="modalCrosshair" style="display:none;position:absolute;top:20px;bottom:20px;width:1px;background:rgba(255,255,255,.2);pointer-events:none;"></div></div>
   </div>
 </div>
 
@@ -1011,7 +425,6 @@ body{
 .chart-card:hover canvas{opacity:.85}
 </style>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1082,772 +495,410 @@ const HIST_DATA = [
   {week:"2026-03-15",spend:43527,slc_spend:0,temp:0,mke_orders:22013,slc_orders:8743,spend_12:48750.24,cpo_12:1.5851},
   {week:"2026-03-22",spend:43291,slc_spend:0,temp:0,mke_orders:28270,slc_orders:7214,spend_12:48485.92,cpo_12:1.3665},
 ].map(r=>{
-  const orders     = r.mke_orders + r.slc_orders;
-  const mke_spend  = r.spend;
-  const total_spend= r.spend + (r.slc_spend||0);
-  const spend_12   = r.spend_12 || total_spend * 1.12;
-  const cpo        = orders > 0 ? total_spend / orders : null;
-  const cpo_12     = orders > 0 ? spend_12 / orders : null;
-  const oph        = orders > 0 ? orders / (total_spend / 17.5) : null;
-  return { ...r, spend: total_spend, mke_spend, orders, cpo, cpo_12, spend_12, oph };
+  const orders=r.mke_orders+r.slc_orders;
+  const mke_spend=r.spend;
+  const total_spend=r.spend+(r.slc_spend||0);
+  const spend_12=r.spend_12||total_spend*1.12;
+  const cpo=orders>0?total_spend/orders:null;
+  const cpo_12=orders>0?spend_12/orders:null;
+  const oph=orders>0?orders/(total_spend/17.5):null;
+  return{...r,spend:total_spend,mke_spend,orders,cpo,cpo_12,spend_12,oph};
 }).sort((a,b)=>a.week.localeCompare(b.week));
 
-const hist_cpos   = HIST_DATA.filter(r=>r.cpo != null).map(r=>r.cpo);
-const H_AVG_CPO   = hist_cpos.length ? hist_cpos.reduce((s,v)=>s+v,0)/hist_cpos.length : 0;
-const H_BEST_CPO  = hist_cpos.length ? Math.min(...hist_cpos) : 0;
-const H_WORST_CPO = hist_cpos.length ? Math.max(...hist_cpos) : 0;
-const LAST8       = HIST_DATA.filter(r=>r.cpo != null).slice(-8);
-const H_LAST8_CPO = LAST8.length ? LAST8.reduce((s,r)=>s+r.cpo,0)/LAST8.length : 0;
-const H_AVG_ORDERS = Math.round(HIST_DATA.map(r=>r.orders).reduce((s,v)=>s+v,0)/HIST_DATA.length);
-const H_AVG_SPEND  = Math.round(HIST_DATA.map(r=>r.spend).reduce((s,v)=>s+v,0)/HIST_DATA.length);
-const LAST8_ORDERS = Math.round(LAST8.reduce((s,r)=>s+r.orders,0)/LAST8.length);
-const LAST8_SPEND  = Math.round(LAST8.reduce((s,r)=>s+r.spend,0)/LAST8.length);
+const hist_cpos=HIST_DATA.filter(r=>r.cpo!=null).map(r=>r.cpo);
+const H_AVG_CPO=hist_cpos.length?hist_cpos.reduce((s,v)=>s+v,0)/hist_cpos.length:0;
+const H_BEST_CPO=hist_cpos.length?Math.min(...hist_cpos):0;
+const H_WORST_CPO=hist_cpos.length?Math.max(...hist_cpos):0;
+const LAST8=HIST_DATA.filter(r=>r.cpo!=null).slice(-8);
+const H_LAST8_CPO=LAST8.length?LAST8.reduce((s,r)=>s+r.cpo,0)/LAST8.length:0;
+const H_AVG_ORDERS=Math.round(HIST_DATA.map(r=>r.orders).reduce((s,v)=>s+v,0)/HIST_DATA.length);
+const H_AVG_SPEND=Math.round(HIST_DATA.map(r=>r.spend).reduce((s,v)=>s+v,0)/HIST_DATA.length);
+const LAST8_ORDERS=Math.round(LAST8.reduce((s,r)=>s+r.orders,0)/LAST8.length);
+const LAST8_SPEND=Math.round(LAST8.reduce((s,r)=>s+r.spend,0)/LAST8.length);
 
+// ── PATCH 1: localStorage key migration ──────────────────────
+// Supports both old key ('laborHistory') and new key ('atx_proj_weeks')
 let userWeeks = [];
-try { userWeeks = JSON.parse(localStorage.getItem('atx_proj_weeks')||'[]'); } catch(e){}
+try {
+  const _newKey = localStorage.getItem('atx_proj_weeks');
+  const _oldKey = localStorage.getItem('laborHistory');
+  userWeeks = JSON.parse(_newKey || _oldKey || '[]');
+  if (!_newKey && _oldKey) {
+    try { localStorage.setItem('atx_proj_weeks', _oldKey); } catch(e){}
+  }
+} catch(e){}
 
-function allWeeks() {
-  const ids = new Set(HIST_DATA.map(r=>r.week));
-  const extra = userWeeks
-    .filter(r=>!ids.has(r.week))
-    .map(r=>{
-      const mke_orders = r.mke_orders || r.orders || 0;
-      const slc_orders = r.slc_orders || 0;
-      const orders     = r.orders || (mke_orders + slc_orders);
-      const spend      = r.spend || 0;
-      const slc_spend  = r.slc_spend || 0;
-      const total_spend= spend + slc_spend;
-      const spend_12   = r.spend_12 || total_spend * 1.12;
-      const cpo        = orders > 0 ? total_spend / orders : null;
-      const cpo_12     = orders > 0 ? spend_12 / orders : null;
-      const oph        = r.hours && orders ? orders / r.hours
-                       : total_spend > 0   ? orders / (total_spend / 17.5) : null;
-      return { ...r, mke_orders, slc_orders, orders, spend: total_spend, mke_spend: spend, spend_12, cpo, cpo_12, oph, temp: r.temp || 0 };
-    });
-  return [...HIST_DATA, ...extra].sort((a,b)=>a.week.localeCompare(b.week));
+function allWeeks(){
+  const ids=new Set(HIST_DATA.map(r=>r.week));
+  const extra=userWeeks.filter(r=>!ids.has(r.week)).map(r=>{
+    const mke_orders=r.mke_orders||r.orders||0;
+    const slc_orders=r.slc_orders||0;
+    const orders=r.orders||(mke_orders+slc_orders);
+    const spend=r.spend||0;
+    const slc_spend=r.slc_spend||0;
+    const total_spend=spend+slc_spend;
+    const spend_12=r.spend_12||total_spend*1.12;
+    const cpo=orders>0?total_spend/orders:null;
+    const cpo_12=orders>0?spend_12/orders:null;
+    const oph=r.hours&&orders?orders/r.hours:total_spend>0?orders/(total_spend/17.5):null;
+    return{...r,mke_orders,slc_orders,orders,spend:total_spend,mke_spend:spend,spend_12,cpo,cpo_12,oph,temp:r.temp||0};
+  });
+  return[...HIST_DATA,...extra].sort((a,b)=>a.week.localeCompare(b.week));
 }
 
-// ══════════════════════════════════════════════════════════════
-// TAB ROUTING
-// ══════════════════════════════════════════════════════════════
-function setTab(t) {
+// ── PATCH 3: setTab with 60ms delay for History tab ──────────
+function setTab(t){
   document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.querySelector(`.tab[onclick*="${t}"]`).classList.add('active');
   document.getElementById(`page-${t}`).classList.add('active');
-  if(t==='history') renderHistory();
+  if(t==='history'){ setTimeout(function(){ renderHistory(); }, 60); }
 }
 
-// ══════════════════════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════════════════════
-const $ = id => document.getElementById(id);
-const fv = id => parseFloat($(id).value)||null;
-const fmt = n => n==null?'—':Math.round(n).toLocaleString();
-const fmtd = (n,d=2) => n==null?'—':n.toFixed(d);
-const fmtc = n => n==null?'$—':'$'+n.toFixed(2);
-const fmtk = n => n==null?'$—':'$'+Math.round(n).toLocaleString();
-const fmtp = n => n==null?'—':n.toFixed(1)+'%';
-
+const $=id=>document.getElementById(id);
+const fv=id=>parseFloat($(id).value)||null;
+const fmt=n=>n==null?'—':Math.round(n).toLocaleString();
+const fmtd=(n,d=2)=>n==null?'—':n.toFixed(d);
+const fmtc=n=>n==null?'$—':'$'+n.toFixed(2);
+const fmtk=n=>n==null?'$—':'$'+Math.round(n).toLocaleString();
+const fmtp=n=>n==null?'—':n.toFixed(1)+'%';
 function tv(id,v){const e=$(id);if(e)e.textContent=v}
 function tcv(id,v,cls){const e=$(id);if(!e)return;e.textContent=v;e.className='t-val'+(cls?' '+cls:'')}
 function prv(id,v,cls){const e=$(id);if(!e)return;e.textContent=v;e.className='pr-v'+(cls?' '+cls:'')}
+function toast(msg,err){const t=$('toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function cpoBadge(cpo){if(cpo==null)return'<span class="badge badge-s">—</span>';if(cpo<1.2)return`<span class="badge badge-g">$${cpo.toFixed(2)}</span>`;if(cpo<1.7)return`<span class="badge badge-a">$${cpo.toFixed(2)}</span>`;return`<span class="badge badge-r">$${cpo.toFixed(2)}</span>`;}
 
-function toast(msg,err){
-  const t=$('toast');t.textContent=msg;
-  t.className='toast'+(err?' err':'');t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2600);
-}
-
-function cpoBadge(cpo){
-  if(cpo==null) return '<span class="badge badge-s">—</span>';
-  if(cpo<1.2)   return `<span class="badge badge-g">$${cpo.toFixed(2)}</span>`;
-  if(cpo<1.7)   return `<span class="badge badge-a">$${cpo.toFixed(2)}</span>`;
-  return `<span class="badge badge-r">$${cpo.toFixed(2)}</span>`;
-}
-
-// ══════════════════════════════════════════════════════════════
-// ANALYZER
-// ══════════════════════════════════════════════════════════════
-function analyzeCalc() {
-  const spend  = fv('aSpend');
-  const hours  = fv('aHours');
-  const orders = fv('aOrders');
-  const heads  = fv('aHeads');
-  const rev    = fv('aRev');
-
-  const cpo  = (spend && orders) ? spend/orders : null;
-  const oph  = (orders && hours) ? orders/hours : null;
-  const opb  = (orders && heads) ? orders/heads : null;
-  const cplh = (spend && hours)  ? spend/hours  : null;
-  const hpb  = (hours && heads)  ? hours/heads  : null;
-  const spb  = (spend && heads)  ? spend/heads  : null;
-  const lpct = (spend && rev)    ? spend/rev*100 : null;
-  const rph  = (rev && hours)    ? rev/hours    : null;
-  const aov  = (rev && orders)   ? rev/orders   : null;
-
-  tcv('mCpo',  cpo  ? '$'+cpo.toFixed(2)     : '$—', cpoColor(cpo));
-  tcv('mOph',  oph  ? oph.toFixed(2)          : '—',  '');
-  tcv('mOpb',  opb  ? fmt(opb)                : '—',  'g');
-  tcv('mCplh', cplh ? '$'+cplh.toFixed(2)    : '$—', '');
-  tcv('mLpct', lpct ? lpct.toFixed(1)+'%'    : '—',  lpct ? (lpct<=12?'g':lpct<=15?'a':'r') : '');
-  tcv('mHpb',  hpb  ? hpb.toFixed(1)          : '—',  'b');
-  tcv('mSpb',  spb  ? '$'+fmt(spb)            : '$—', '');
-  tcv('mRph',  rph  ? '$'+rph.toFixed(2)      : '$—', '');
-  tcv('mAov',  aov  ? '$'+aov.toFixed(2)      : '$—', '');
-
-  const bn=$('aBanner'), bt=$('aBannerTitle'), bs=$('aBannerSub'), bb=$('aBannerBig');
-  if(!cpo){ bn.className='statbanner neutral'; bt.textContent='Enter Data'; bs.textContent='Input spend, hours, and orders.'; bb.textContent='—'; return; }
+function analyzeCalc(){
+  const spend=fv('aSpend'),hours=fv('aHours'),orders=fv('aOrders'),heads=fv('aHeads'),rev=fv('aRev');
+  const cpo=(spend&&orders)?spend/orders:null;
+  const oph=(orders&&hours)?orders/hours:null;
+  const opb=(orders&&heads)?orders/heads:null;
+  const cplh=(spend&&hours)?spend/hours:null;
+  const hpb=(hours&&heads)?hours/heads:null;
+  const spb=(spend&&heads)?spend/heads:null;
+  const lpct=(spend&&rev)?spend/rev*100:null;
+  const rph=(rev&&hours)?rev/hours:null;
+  const aov=(rev&&orders)?rev/orders:null;
+  tcv('mCpo',cpo?'$'+cpo.toFixed(2):'$—',cpoColor(cpo));
+  tcv('mOph',oph?oph.toFixed(2):'—','');
+  tcv('mOpb',opb?fmt(opb):'—','g');
+  tcv('mCplh',cplh?'$'+cplh.toFixed(2):'$—','');
+  tcv('mLpct',lpct?lpct.toFixed(1)+'%':'—',lpct?(lpct<=12?'g':lpct<=15?'a':'r'):'');
+  tcv('mHpb',hpb?hpb.toFixed(1):'—','b');
+  tcv('mSpb',spb?'$'+fmt(spb):'$—','');
+  tcv('mRph',rph?'$'+rph.toFixed(2):'$—','');
+  tcv('mAov',aov?'$'+aov.toFixed(2):'$—','');
+  const bn=$('aBanner'),bt=$('aBannerTitle'),bs=$('aBannerSub'),bb=$('aBannerBig');
+  if(!cpo){bn.className='statbanner neutral';bt.textContent='Enter Data';bs.textContent='Input spend, hours, and orders.';bb.textContent='—';return;}
   bb.textContent='$'+cpo.toFixed(2);
-  if(cpo < H_LAST8_CPO * 0.95){
-    bn.className='statbanner'; bt.textContent='🟢 Strong Week'; bs.textContent=`CPO beating recent avg by $${(H_LAST8_CPO-cpo).toFixed(2)}/order.`;
-  } else if(cpo < H_LAST8_CPO * 1.1){
-    bn.className='statbanner warn'; bt.textContent='🟡 In Range'; bs.textContent=`CPO within 10% of recent average ($${H_LAST8_CPO.toFixed(2)}).`;
-  } else {
-    bn.className='statbanner over'; bt.textContent='🔴 High CPO'; bs.textContent=`CPO $${(cpo-H_LAST8_CPO).toFixed(2)} above recent avg — review labor mix.`;
-  }
-
-  prv('aCpoComp',  cpo  ? '$'+cpo.toFixed(2)  : '—', cpoColor(cpo));
-  prv('aHistCpo',  '$'+H_AVG_CPO.toFixed(2),          'b');
-  prv('aHistBest', '$'+H_BEST_CPO.toFixed(2),          'g');
-  prv('aHistWorst','$'+H_WORST_CPO.toFixed(2),         'r');
-  prv('aCplhComp', cplh ? '$'+cplh.toFixed(2) : '—', '');
-  prv('aHistCplh', 'N/A (no hrs data)', 's');
-
-  const ophWeeks = allWeeks().filter(r=>r.hours && r.orders);
-  const ophVals  = ophWeeks.map(r=>r.orders/r.hours);
-  const histOphAvg  = ophVals.length ? ophVals.reduce((s,v)=>s+v,0)/ophVals.length : null;
-  const histOphBest = ophVals.length ? Math.max(...ophVals) : null;
-  prv('aOphComp',    oph  ? oph.toFixed(2)                          : '—', '');
-  prv('aHistOph',    histOphAvg  ? histOphAvg.toFixed(2)            : 'No hrs logged', histOphAvg?'b':'s');
-  prv('aHistOphBest',histOphBest ? histOphBest.toFixed(2)           : '—',             histOphBest?'g':'s');
-
-  const dialHistEl = $('ophHistAvg');
-  if(dialHistEl) {
-    dialHistEl.textContent = histOphAvg ? histOphAvg.toFixed(1) : '—';
-    dialHistEl.style.color = histOphAvg ? 'var(--blue)' : 'var(--slate)';
-  }
+  if(cpo<H_LAST8_CPO*0.95){bn.className='statbanner';bt.textContent='🟢 Strong Week';bs.textContent=`CPO beating recent avg by $${(H_LAST8_CPO-cpo).toFixed(2)}/order.`;}
+  else if(cpo<H_LAST8_CPO*1.1){bn.className='statbanner warn';bt.textContent='🟡 In Range';bs.textContent=`CPO within 10% of recent average ($${H_LAST8_CPO.toFixed(2)}).`;}
+  else{bn.className='statbanner over';bt.textContent='🔴 High CPO';bs.textContent=`CPO $${(cpo-H_LAST8_CPO).toFixed(2)} above recent avg — review labor mix.`;}
+  prv('aCpoComp',cpo?'$'+cpo.toFixed(2):'—',cpoColor(cpo));
+  prv('aHistCpo','$'+H_AVG_CPO.toFixed(2),'b');
+  prv('aHistBest','$'+H_BEST_CPO.toFixed(2),'g');
+  prv('aHistWorst','$'+H_WORST_CPO.toFixed(2),'r');
+  prv('aCplhComp',cplh?'$'+cplh.toFixed(2):'—','');
+  prv('aHistCplh','N/A (no hrs data)','s');
+  const ophWeeks=allWeeks().filter(r=>r.hours&&r.orders);
+  const ophVals=ophWeeks.map(r=>r.orders/r.hours);
+  const histOphAvg=ophVals.length?ophVals.reduce((s,v)=>s+v,0)/ophVals.length:null;
+  const histOphBest=ophVals.length?Math.max(...ophVals):null;
+  prv('aOphComp',oph?oph.toFixed(2):'—','');
+  prv('aHistOph',histOphAvg?histOphAvg.toFixed(2):'No hrs logged',histOphAvg?'b':'s');
+  prv('aHistOphBest',histOphBest?histOphBest.toFixed(2):'—',histOphBest?'g':'s');
+  const dialHistEl=$('ophHistAvg');
+  if(dialHistEl){dialHistEl.textContent=histOphAvg?histOphAvg.toFixed(1):'—';dialHistEl.style.color=histOphAvg?'var(--blue)':'var(--slate)';}
 }
 
-function cpoColor(cpo){
-  if(!cpo) return '';
-  if(cpo < 1.2) return 'g';
-  if(cpo < 1.7) return 'a';
-  return 'r';
-}
+function cpoColor(cpo){if(!cpo)return'';if(cpo<1.2)return'g';if(cpo<1.7)return'a';return'r';}
 
-function saveWeek() {
-  const spend  = fv('aSpend');
-  const hours  = fv('aHours');
-  const orders = fv('aOrders');
-  const heads  = fv('aHeads');
-  const rev    = fv('aRev');
-  const date   = $('aDate').value;
-  if(!spend || !orders || !date){ toast('Need spend, orders + date.',true); return; }
-
-  const mkeOrders = siteMode==='split' ? (parseFloat($('aMkeOrders').value)||orders) : orders;
-  const slcOrders = siteMode==='split' ? (parseFloat($('aSlcOrders').value)||0)      : 0;
-  const mkeSpend  = siteMode==='split' ? (parseFloat($('aMkeSpend').value)||spend)   : spend;
-  const slcSpend  = siteMode==='split' ? (parseFloat($('aSlcSpend').value)||0)       : 0;
-  const mkeHours  = siteMode==='split' ? (parseFloat($('aMkeHours').value)||null)    : null;
-  const slcHours  = siteMode==='split' ? (parseFloat($('aSlcHours').value)||null)    : null;
-  const mkeHeads  = siteMode==='split' ? (parseFloat($('aMkeHeads').value)||null)    : null;
-  const slcHeads  = siteMode==='split' ? (parseFloat($('aSlcHeads').value)||null)    : null;
-
-  const wk = {
-    week:date, spend, hours:hours||null, orders,
-    mke_orders:mkeOrders, slc_orders:slcOrders,
-    mke_spend:mkeSpend,   slc_spend:slcSpend,
-    mke_hours:mkeHours,   slc_hours:slcHours,
-    mke_heads:mkeHeads,   slc_heads:slcHeads,
-    heads:heads||null, rev:rev||null, temp:0,
-    cpo: spend/orders,
-    oph: hours ? orders/hours : orders/(spend/17.5),
-    source:'manual'
-  };
-  userWeeks = userWeeks.filter(r=>r.week!==date);
+function saveWeek(){
+  const spend=fv('aSpend'),hours=fv('aHours'),orders=fv('aOrders'),heads=fv('aHeads'),rev=fv('aRev'),date=$('aDate').value;
+  if(!spend||!orders||!date){toast('Need spend, orders + date.',true);return;}
+  const mkeOrders=siteMode==='split'?(parseFloat($('aMkeOrders').value)||orders):orders;
+  const slcOrders=siteMode==='split'?(parseFloat($('aSlcOrders').value)||0):0;
+  const mkeSpend=siteMode==='split'?(parseFloat($('aMkeSpend').value)||spend):spend;
+  const slcSpend=siteMode==='split'?(parseFloat($('aSlcSpend').value)||0):0;
+  const mkeHours=siteMode==='split'?(parseFloat($('aMkeHours').value)||null):null;
+  const slcHours=siteMode==='split'?(parseFloat($('aSlcHours').value)||null):null;
+  const mkeHeads=siteMode==='split'?(parseFloat($('aMkeHeads').value)||null):null;
+  const slcHeads=siteMode==='split'?(parseFloat($('aSlcHeads').value)||null):null;
+  const wk={week:date,spend,hours:hours||null,orders,mke_orders:mkeOrders,slc_orders:slcOrders,mke_spend:mkeSpend,slc_spend:slcSpend,mke_hours:mkeHours,slc_hours:slcHours,mke_heads:mkeHeads,slc_heads:slcHeads,heads:heads||null,rev:rev||null,temp:0,cpo:spend/orders,oph:hours?orders/hours:orders/(spend/17.5),source:'manual'};
+  userWeeks=userWeeks.filter(r=>r.week!==date);
   userWeeks.push(wk);
-  try{ localStorage.setItem('atx_proj_weeks', JSON.stringify(userWeeks)); }catch(e){}
+  try{localStorage.setItem('atx_proj_weeks',JSON.stringify(userWeeks));}catch(e){}
   toast('Week saved ✓');
   renderHistory();
 }
 
-// ══════════════════════════════════════════════════════════════
-// PROJECTOR
-// ══════════════════════════════════════════════════════════════
-let currentOph = 10;
-let requiredOph = null;
-
-function ophSlide(v){
-  currentOph = parseFloat(v);
-  $('ophDialVal').textContent = parseFloat(v).toFixed(1);
-  saveProjectorState();
-  projectCalc();
-}
-function setOph(v){
-  currentOph = v;
-  $('pOphSlider').value = v;
-  $('ophDialVal').textContent = v.toFixed(1);
-  saveProjectorState();
-  projectCalc();
-}
+let currentOph=10,requiredOph=null;
+function ophSlide(v){currentOph=parseFloat(v);$('ophDialVal').textContent=parseFloat(v).toFixed(1);saveProjectorState();projectCalc();}
+function setOph(v){currentOph=v;$('pOphSlider').value=v;$('ophDialVal').textContent=v.toFixed(1);saveProjectorState();projectCalc();}
 
 function projectCalc(){
-  const orders  = fv('pOrders');
-  const cplh    = fv('pCplh');
-  const oph     = currentOph;
-  const rev     = fv('pRev');
-
-  if(!orders){ clearProjection(); return; }
-
-  requiredOph = null;
-
-  const hrsNeeded = orders / oph;
-  const bodies    = Math.ceil(hrsNeeded / 40);
-  const projSpend = cplh ? hrsNeeded * cplh : null;
-  const projCpo   = (projSpend && orders)  ? projSpend / orders     : null;
-  const projLpct  = (projSpend && rev)     ? projSpend / rev * 100  : null;
-  const delta     = null;
-
-  $('ophDialVal').textContent = oph.toFixed(1);
-  $('ophRequired').textContent = requiredOph ? requiredOph.toFixed(1) : '—';
-  const ophEl = $('ophDialVal');
-  if(requiredOph) ophEl.style.color = oph >= requiredOph ? 'var(--green)' : oph >= requiredOph*0.85 ? 'var(--amber)' : 'var(--red)';
-  else ophEl.style.color = 'var(--green)';
-
-  const ophWeeks2 = allWeeks().filter(r=>r.hours && r.orders);
-  let ophAvg2 = ophWeeks2.length ? ophWeeks2.reduce((s,r)=>s+(r.orders/r.hours),0)/ophWeeks2.length : null;
-  const HIST_IMPLIED_OPH = 12.6;
-  const ghostVal  = ophAvg2 || HIST_IMPLIED_OPH;
-  const ghostLabel = ophAvg2 ? `avg ${ophAvg2.toFixed(1)} (logged)` : `avg ${ghostVal.toFixed(1)} (implied)`;
-
-  const dialH = $('ophHistAvg');
-  if(dialH){ dialH.textContent = ghostVal.toFixed(1); dialH.style.color = 'var(--blue)'; }
-  const ghost = $('ophGhostAvg'), ghostLbl = $('ophGhostLbl');
-  if(ghost){ ghost.textContent = ghostVal.toFixed(1); }
-  if(ghostLbl){ ghostLbl.textContent = ghostLabel; }
-
-  const badge = $('ophDeltaBadge');
-  if(delta !== null){
-    const sign = delta >= 0 ? '+' : '';
-    badge.innerHTML = `<span class="t-delta ${delta>=0?'up':'dn'}">${sign}${delta.toFixed(1)} vs required</span>`;
-  } else { badge.innerHTML = ''; }
-
-  $('ophDialSub').textContent = requiredOph
-    ? `Required OPH: ${requiredOph.toFixed(1)}. You're dialed to ${oph.toFixed(1)}.`
-    : `Enter CPLH to unlock spend projections.`;
-
-  const strip = {riHours:fmt(hrsNeeded), riBodies:bodies, riSpend:projSpend?fmtk(projSpend):'—', riCpo:projCpo?'$'+projCpo.toFixed(2):'—', riLpct:projLpct?projLpct.toFixed(1)+'%':'—'};
-  Object.entries(strip).forEach(([id,v])=>{ const e=$(id); if(e)e.textContent=v; });
-  if($('riSpend')) $('riSpend').style.color = 'var(--white)';
-  if($('riCpo'))   $('riCpo').style.color   = projCpo ? projCpo<1.2?'var(--green)':projCpo<1.7?'var(--amber)':'var(--red)' : 'var(--white)';
-  if($('riLpct'))  $('riLpct').style.color  = projLpct ? projLpct<=12?'var(--green)':projLpct<=15?'var(--amber)':'var(--red)' : 'var(--white)';
-
-  let verdict = '';
-  if(orders && projSpend){
-    const cpoStr = projCpo ? ` · <b>$${projCpo.toFixed(2)} CPO</b>` : '';
-    const lpctStr = projLpct ? ` · <b>${projLpct.toFixed(1)}% labor</b>` : '';
-    verdict = `At <b style="color:var(--green)">${oph.toFixed(1)} OPH</b>: <b>${fmt(hrsNeeded)} hrs needed</b> · <b>${fmtk(projSpend)} proj spend</b>${cpoStr}${lpctStr}`;
-  } else if(orders){
-    verdict = `Set <b>CPLH</b> to unlock spend and CPO projections.`;
-  } else {
-    verdict = `Enter orders and CPLH, then use the slider to model different floor scenarios.`;
-  }
-  $('ophVerdict').innerHTML = verdict;
-
-  tcv('rBodies',   bodies,                                   'a');
-  tv('rBodiesSub', `${fmt(hrsNeeded)} hrs ÷ 40`);
-  tcv('rHours',    fmt(hrsNeeded),                           '');
-  tv('rHoursSub',  `Orders ÷ ${oph.toFixed(1)} OPH`);
-  tcv('rSpend',    projSpend?fmtk(projSpend):'$—',           '');
-  tv('rSpendSub',  cplh?`@ $${cplh}/hr CPLH`:'Set CPLH');
-  tcv('rCpo',      projCpo?'$'+projCpo.toFixed(2):'$—',     cpoColor(projCpo));
-  tcv('rLpct',     projLpct?projLpct.toFixed(1)+'%':'—',    projLpct?projLpct<=12?'g':projLpct<=15?'a':'r':'');
-
-  renderOphSensitivity(orders, cplh, rev);
-  renderRecs(orders, bodies, hrsNeeded, projSpend, projCpo, projLpct, requiredOph, oph, delta);
+  const orders=fv('pOrders'),cplh=fv('pCplh'),oph=currentOph,rev=fv('pRev');
+  if(!orders){clearProjection();return;}
+  requiredOph=null;
+  const hrsNeeded=orders/oph,bodies=Math.ceil(hrsNeeded/40);
+  const projSpend=cplh?hrsNeeded*cplh:null;
+  const projCpo=(projSpend&&orders)?projSpend/orders:null;
+  const projLpct=(projSpend&&rev)?projSpend/rev*100:null;
+  const delta=null;
+  $('ophDialVal').textContent=oph.toFixed(1);
+  $('ophRequired').textContent=requiredOph?requiredOph.toFixed(1):'—';
+  const ophEl=$('ophDialVal');
+  if(requiredOph)ophEl.style.color=oph>=requiredOph?'var(--green)':oph>=requiredOph*0.85?'var(--amber)':'var(--red)';
+  else ophEl.style.color='var(--green)';
+  const ophWeeks2=allWeeks().filter(r=>r.hours&&r.orders);
+  let ophAvg2=ophWeeks2.length?ophWeeks2.reduce((s,r)=>s+(r.orders/r.hours),0)/ophWeeks2.length:null;
+  const HIST_IMPLIED_OPH=12.6;
+  const ghostVal=ophAvg2||HIST_IMPLIED_OPH;
+  const ghostLabel=ophAvg2?`avg ${ophAvg2.toFixed(1)} (logged)`:`avg ${ghostVal.toFixed(1)} (implied)`;
+  const dialH=$('ophHistAvg');
+  if(dialH){dialH.textContent=ghostVal.toFixed(1);dialH.style.color='var(--blue)';}
+  const ghost=$('ophGhostAvg'),ghostLbl=$('ophGhostLbl');
+  if(ghost){ghost.textContent=ghostVal.toFixed(1);}
+  if(ghostLbl){ghostLbl.textContent=ghostLabel;}
+  const badge=$('ophDeltaBadge');
+  if(delta!==null){const sign=delta>=0?'+':'';badge.innerHTML=`<span class="t-delta ${delta>=0?'up':'dn'}">${sign}${delta.toFixed(1)} vs required</span>`;}else{badge.innerHTML='';}
+  $('ophDialSub').textContent=requiredOph?`Required OPH: ${requiredOph.toFixed(1)}. You're dialed to ${oph.toFixed(1)}.`:`Enter CPLH to unlock spend projections.`;
+  const strip={riHours:fmt(hrsNeeded),riBodies:bodies,riSpend:projSpend?fmtk(projSpend):'—',riCpo:projCpo?'$'+projCpo.toFixed(2):'—',riLpct:projLpct?projLpct.toFixed(1)+'%':'—'};
+  Object.entries(strip).forEach(([id,v])=>{const e=$(id);if(e)e.textContent=v;});
+  if($('riSpend'))$('riSpend').style.color='var(--white)';
+  if($('riCpo'))$('riCpo').style.color=projCpo?projCpo<1.2?'var(--green)':projCpo<1.7?'var(--amber)':'var(--red)':'var(--white)';
+  if($('riLpct'))$('riLpct').style.color=projLpct?projLpct<=12?'var(--green)':projLpct<=15?'var(--amber)':'var(--red)':'var(--white)';
+  let verdict='';
+  if(orders&&projSpend){const cpoStr=projCpo?` · <b>$${projCpo.toFixed(2)} CPO</b>`:'';const lpctStr=projLpct?` · <b>${projLpct.toFixed(1)}% labor</b>`:'';verdict=`At <b style="color:var(--green)">${oph.toFixed(1)} OPH</b>: <b>${fmt(hrsNeeded)} hrs needed</b> · <b>${fmtk(projSpend)} proj spend</b>${cpoStr}${lpctStr}`;}
+  else if(orders){verdict=`Set <b>CPLH</b> to unlock spend and CPO projections.`;}
+  else{verdict=`Enter orders and CPLH, then use the slider to model different floor scenarios.`;}
+  $('ophVerdict').innerHTML=verdict;
+  tcv('rBodies',bodies,'a');tv('rBodiesSub',`${fmt(hrsNeeded)} hrs ÷ 40`);
+  tcv('rHours',fmt(hrsNeeded),'');tv('rHoursSub',`Orders ÷ ${oph.toFixed(1)} OPH`);
+  tcv('rSpend',projSpend?fmtk(projSpend):'$—','');tv('rSpendSub',cplh?`@ $${cplh}/hr CPLH`:'Set CPLH');
+  tcv('rCpo',projCpo?'$'+projCpo.toFixed(2):'$—',cpoColor(projCpo));
+  tcv('rLpct',projLpct?projLpct.toFixed(1)+'%':'—',projLpct?projLpct<=12?'g':projLpct<=15?'a':'r':'');
+  renderOphSensitivity(orders,cplh,rev);
+  renderRecs(orders,bodies,hrsNeeded,projSpend,projCpo,projLpct,requiredOph,oph,delta);
   deptCalc();
 }
 
 function clearProjection(){
-  requiredOph = null;
-  $('ophRequired').textContent = '—';
-  $('ophDialVal').textContent  = currentOph.toFixed(1);
-  $('ophDialVal').style.color  = 'var(--green)';
-  $('ophDeltaBadge').innerHTML = '';
-  $('ophDialSub').textContent  = 'Enter orders above to see your required OPH.';
-  $('ophVerdict').textContent  = 'Set orders and CPLH to generate your required OPH, then use the slider to see the impact.';
-  ['riHours','riBodies','riSpend','riCpo','riLpct'].forEach(id=>{ const e=$(id); if(e){e.textContent='—';e.style.color='var(--white)';} });
+  requiredOph=null;$('ophRequired').textContent='—';$('ophDialVal').textContent=currentOph.toFixed(1);$('ophDialVal').style.color='var(--green)';$('ophDeltaBadge').innerHTML='';
+  $('ophDialSub').textContent='Enter orders above to see your required OPH.';
+  $('ophVerdict').textContent='Set orders and CPLH to generate your required OPH, then use the slider to see the impact.';
+  ['riHours','riBodies','riSpend','riCpo','riLpct'].forEach(id=>{const e=$(id);if(e){e.textContent='—';e.style.color='var(--white)';}});
   ['rBodies','rHours','rSpend','rCpo','rLpct'].forEach(id=>tv(id,'—'));
   $('ophSensBody').innerHTML='<tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr>';
   $('recList').innerHTML='<div class="no-data">Configure inputs to generate recommendations.</div>';
-  // NOTE: dept breakdown is intentionally NOT cleared — it persists independently
   deptCalc();
 }
 
-function renderOphSensitivity(orders, cplh, rev){
-  if(!orders || !cplh){ $('ophSensBody').innerHTML='<tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr>'; return; }
-  const ref = requiredOph || currentOph;
-  const candidates = new Set([
-    2,4,5,6,7,8,9,10,11,12,13,15,18,20,25,
-    Math.round(ref*0.7), Math.round(ref*0.85), Math.round(ref), Math.round(ref*1.15), Math.round(ref*1.3),
-    Math.round(currentOph*10)/10
-  ].filter(v=>v>=2&&v<=30).map(v=>Math.round(v*2)/2));
-  const rows = [...candidates].sort((a,b)=>a-b).map(o=>{
-    const hrs    = orders/o;
-    const bodies = Math.ceil(hrs/40);
-    const spend  = hrs*cplh;
-    const cpo    = spend/orders;
-    const lpct   = rev?spend/rev*100:null;
-    const isCur  = Math.abs(o-currentOph)<0.3;
-    const isReq  = requiredOph&&Math.abs(o-requiredOph)<0.3;
-    const style  = isCur?'background:rgba(163,243,197,.04);':isReq?'background:rgba(255,181,71,.04);':'';
-    const vsReq  = requiredOph?o-requiredOph:null;
-    let vsLabel  = '';
-    if(isReq)      vsLabel='<span class="badge badge-a">⟵ Required</span>';
-    else if(isCur) vsLabel='<span class="badge badge-g">● You</span>';
-    else if(vsReq!=null) vsLabel=vsReq>0?`<span class="badge badge-g">+${vsReq.toFixed(1)}</span>`:`<span class="badge badge-r">${vsReq.toFixed(1)}</span>`;
-    return `<tr style="${style}">
-      <td class="${isCur?'g':isReq?'a':''}" style="font-weight:${isCur||isReq?700:400}">${o}</td>
-      <td class="m">${fmt(hrs)}</td>
-      <td class="${isCur?'a':''}">${bodies}</td>
-      <td>${fmtk(spend)}</td>
-      <td class="${cpo<1.2?'g':cpo<1.7?'a':'r'}">${'$'+cpo.toFixed(2)}</td>
-      <td class="${lpct?lpct<=12?'g':lpct<=15?'a':'r':''}">${lpct?lpct.toFixed(1)+'%':'—'}</td>
-      <td>${vsLabel}</td>
-    </tr>`;
+function renderOphSensitivity(orders,cplh,rev){
+  if(!orders||!cplh){$('ophSensBody').innerHTML='<tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr>';return;}
+  const ref=requiredOph||currentOph;
+  const candidates=new Set([2,4,5,6,7,8,9,10,11,12,13,15,18,20,25,Math.round(ref*0.7),Math.round(ref*0.85),Math.round(ref),Math.round(ref*1.15),Math.round(ref*1.3),Math.round(currentOph*10)/10].filter(v=>v>=2&&v<=30).map(v=>Math.round(v*2)/2));
+  const rows=[...candidates].sort((a,b)=>a-b).map(o=>{
+    const hrs=orders/o,bodies=Math.ceil(hrs/40),spend=hrs*cplh,cpo=spend/orders,lpct=rev?spend/rev*100:null;
+    const isCur=Math.abs(o-currentOph)<0.3,isReq=requiredOph&&Math.abs(o-requiredOph)<0.3;
+    const style=isCur?'background:rgba(163,243,197,.04);':isReq?'background:rgba(255,181,71,.04);':'';
+    const vsReq=requiredOph?o-requiredOph:null;
+    let vsLabel='';
+    if(isReq)vsLabel='<span class="badge badge-a">⟵ Required</span>';
+    else if(isCur)vsLabel='<span class="badge badge-g">● You</span>';
+    else if(vsReq!=null)vsLabel=vsReq>0?`<span class="badge badge-g">+${vsReq.toFixed(1)}</span>`:`<span class="badge badge-r">${vsReq.toFixed(1)}</span>`;
+    return`<tr style="${style}"><td class="${isCur?'g':isReq?'a':''}" style="font-weight:${isCur||isReq?700:400}">${o}</td><td class="m">${fmt(hrs)}</td><td class="${isCur?'a':''}">${bodies}</td><td>${fmtk(spend)}</td><td class="${cpo<1.2?'g':cpo<1.7?'a':'r'}">${'$'+cpo.toFixed(2)}</td><td class="${lpct?lpct<=12?'g':lpct<=15?'a':'r':''}">${lpct?lpct.toFixed(1)+'%':'—'}</td><td>${vsLabel}</td></tr>`;
   }).join('');
-  $('ophSensBody').innerHTML = rows;
+  $('ophSensBody').innerHTML=rows;
 }
 
-function renderRecs(orders, bodies, hrs, spend, cpo, lpct, reqOph, oph, delta){
-  const items = [];
-  if(cpo!=null){
-    if(cpo<1.2)      items.push({icon:'✅',txt:`CPO <b>$${cpo.toFixed(2)}</b> — solid. Hold pace.`});
-    else if(cpo<1.7) items.push({icon:'⚠️',txt:`CPO <b>$${cpo.toFixed(2)}</b> — watch overtime creep.`});
-    else             items.push({icon:'🔴',txt:`CPO <b>$${cpo.toFixed(2)}</b> — push OPH up or reduce headcount.`});
-  } else items.push({icon:'💡',txt:`Set <b>CPLH</b> to unlock spend and CPO projections.`});
-  if(delta!=null){
-    if(delta<0) items.push({icon:'⏱️',txt:`Floor is <b>${Math.abs(delta).toFixed(1)} OPH below required rate</b>.`});
-    else        items.push({icon:'📈',txt:`Running ${delta.toFixed(1)} OPH above required — floor is ahead of pace.`});
-  }
-  if(bodies>60) items.push({icon:'📋',txt:`${bodies} bodies is a large crew — stagger start times.`});
-  if(cpo!=null&&H_LAST8_CPO&&cpo<H_LAST8_CPO) items.push({icon:'🏆',txt:`Projecting <b>$${(H_LAST8_CPO-cpo).toFixed(2)}/order better</b> than recent avg ($${H_LAST8_CPO.toFixed(2)}).`});
-  $('recList').innerHTML=items.length
-    ?items.map((r,i)=>`<div style="display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:8px;animation:rise .3s ${i*.06}s both"><span style="font-size:13px;flex-shrink:0;margin-top:1px">${r.icon}</span><span style="font-size:11px;line-height:1.55;color:var(--white)">${r.txt}</span></div>`).join('')
-    :'<div class="no-data">No alerts.</div>';
+function renderRecs(orders,bodies,hrs,spend,cpo,lpct,reqOph,oph,delta){
+  const items=[];
+  if(cpo!=null){if(cpo<1.2)items.push({icon:'✅',txt:`CPO <b>$${cpo.toFixed(2)}</b> — solid. Hold pace.`});else if(cpo<1.7)items.push({icon:'⚠️',txt:`CPO <b>$${cpo.toFixed(2)}</b> — watch overtime creep.`});else items.push({icon:'🔴',txt:`CPO <b>$${cpo.toFixed(2)}</b> — push OPH up or reduce headcount.`});}
+  else items.push({icon:'💡',txt:`Set <b>CPLH</b> to unlock spend and CPO projections.`});
+  if(delta!=null){if(delta<0)items.push({icon:'⏱️',txt:`Floor is <b>${Math.abs(delta).toFixed(1)} OPH below required rate</b>.`});else items.push({icon:'📈',txt:`Running ${delta.toFixed(1)} OPH above required — floor is ahead of pace.`});}
+  if(bodies>60)items.push({icon:'📋',txt:`${bodies} bodies is a large crew — stagger start times.`});
+  if(cpo!=null&&H_LAST8_CPO&&cpo<H_LAST8_CPO)items.push({icon:'🏆',txt:`Projecting <b>$${(H_LAST8_CPO-cpo).toFixed(2)}/order better</b> than recent avg ($${H_LAST8_CPO.toFixed(2)}).`});
+  $('recList').innerHTML=items.length?items.map((r,i)=>`<div style="display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:8px;animation:rise .3s ${i*.06}s both"><span style="font-size:13px;flex-shrink:0;margin-top:1px">${r.icon}</span><span style="font-size:11px;line-height:1.55;color:var(--white)">${r.txt}</span></div>`).join(''):'<div class="no-data">No alerts.</div>';
 }
 
-// ══════════════════════════════════════════════════════════════
-// HISTORY
-// ══════════════════════════════════════════════════════════════
-let histFilter = 'all';
-
-function filterHist(f, el){
-  histFilter = f;
-  document.querySelectorAll('#filterPills .pill').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  renderHistory();
-}
+let histFilter='all';
+function filterHist(f,el){histFilter=f;document.querySelectorAll('#filterPills .pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderHistory();}
 
 function renderHistory(){
-  const all = allWeeks();
-  let data = [...all];
-  if(histFilter==='8wk') data = all.slice(-8);
-  else if(histFilter==='2025') data = all.filter(r=>r.week.startsWith('2025'));
-  else if(histFilter==='2026') data = all.filter(r=>r.week.startsWith('2026'));
-  data = [...data].reverse();
-
-  tv('hWks', all.length);
-  const cpov = all.filter(r=>r.cpo != null).map(r=>r.cpo);
-  const avgCpoRaw = cpov.length ? cpov.reduce((s,v)=>s+v,0)/cpov.length : 0;
-  tv('hAvgCpo',  '$'+avgCpoRaw.toFixed(2));
-  tv('hAvgCpo8', '$'+H_LAST8_CPO.toFixed(2));
-  tv('hAvgCpo12',   '$'+(avgCpoRaw * 1.12).toFixed(2));
-  tv('hAvgCpo12L8', '$'+(H_LAST8_CPO * 1.12).toFixed(2));
-  const ord = all.map(r=>r.orders).filter(Boolean);
-  tv('hAvgOrd', Math.round(ord.reduce((s,v)=>s+v,0)/ord.length).toLocaleString());
-
-  if(!data.length){ $('histTableWrap').innerHTML='<div class="no-data">No data for filter.</div>'; return; }
-
-  const allWithOph = allWeeks().map(r=>({
-    ...r,
-    oph: r.oph || (r.hours && r.orders ? r.orders/r.hours : (r.spend ? r.orders/(r.spend/17.5) : null))
-  }));
-  const ophVals = allWithOph.filter(r=>r.oph).map(r=>r.oph);
-  const avgOph  = ophVals.length ? ophVals.reduce((s,v)=>s+v,0)/ophVals.length : 12.6;
-
-  const dataWithOph = data.map(r=>({
-    ...r,
-    oph: r.oph || (r.hours && r.orders ? r.orders/r.hours : (r.spend ? r.orders/(r.spend/17.5) : null))
-  }));
-
-  const rows = dataWithOph.map(r=>{
-    const isManual = r.source==='manual';
-    const temp_pct = r.temp && r.spend ? (r.temp/r.spend*100).toFixed(0)+'%' : '—';
-    const ophVal   = r.oph;
-    const ophStr   = ophVal ? ophVal.toFixed(1) : '—';
-    const ophCls   = ophVal ? (ophVal >= 10 ? 'g' : ophVal >= 7 ? '' : 's') : 'm';
-    const implied  = ophVal && !r.hours;
-
-    let ophCell = `<span class="${ophCls}">${ophStr}</span>`;
+  const all=allWeeks();
+  let data=[...all];
+  if(histFilter==='8wk')data=all.slice(-8);
+  else if(histFilter==='2025')data=all.filter(r=>r.week.startsWith('2025'));
+  else if(histFilter==='2026')data=all.filter(r=>r.week.startsWith('2026'));
+  data=[...data].reverse();
+  tv('hWks',all.length);
+  const cpov=all.filter(r=>r.cpo!=null).map(r=>r.cpo);
+  const avgCpoRaw=cpov.length?cpov.reduce((s,v)=>s+v,0)/cpov.length:0;
+  tv('hAvgCpo','$'+avgCpoRaw.toFixed(2));tv('hAvgCpo8','$'+H_LAST8_CPO.toFixed(2));
+  tv('hAvgCpo12','$'+(avgCpoRaw*1.12).toFixed(2));tv('hAvgCpo12L8','$'+(H_LAST8_CPO*1.12).toFixed(2));
+  const ord=all.map(r=>r.orders).filter(Boolean);
+  tv('hAvgOrd',Math.round(ord.reduce((s,v)=>s+v,0)/ord.length).toLocaleString());
+  if(!data.length){$('histTableWrap').innerHTML='<div class="no-data">No data for filter.</div>';return;}
+  const allWithOph=allWeeks().map(r=>({...r,oph:r.oph||(r.hours&&r.orders?r.orders/r.hours:(r.spend?r.orders/(r.spend/17.5):null))}));
+  const ophVals=allWithOph.filter(r=>r.oph).map(r=>r.oph);
+  const avgOph=ophVals.length?ophVals.reduce((s,v)=>s+v,0)/ophVals.length:12.6;
+  const dataWithOph=data.map(r=>({...r,oph:r.oph||(r.hours&&r.orders?r.orders/r.hours:(r.spend?r.orders/(r.spend/17.5):null))}));
+  const rows=dataWithOph.map(r=>{
+    const isManual=r.source==='manual';
+    const temp_pct=r.temp&&r.spend?(r.temp/r.spend*100).toFixed(0)+'%':'—';
+    const ophVal=r.oph,ophStr=ophVal?ophVal.toFixed(1):'—',ophCls=ophVal?(ophVal>=10?'g':ophVal>=7?'':'s'):'m';
+    const implied=ophVal&&!r.hours;
+    let ophCell=`<span class="${ophCls}">${ophStr}</span>`;
     if(ophVal){
-      const maxBar  = Math.max(20, ophVal * 1.2, avgOph * 1.2);
-      const fillPct = Math.min(ophVal / maxBar * 100, 100).toFixed(1);
-      const avgPct  = Math.min(avgOph  / maxBar * 100, 100).toFixed(1);
-      const barCol  = ophVal >= avgOph ? 'var(--green)' : 'var(--amber)';
-      ophCell = `
-        <div style="display:flex;align-items:center;gap:6px">
-          <span class="${ophCls}" style="width:32px;flex-shrink:0;font-size:10px">${ophStr}${implied?'<span style="color:rgba(139,155,170,.4);font-size:8px">~</span>':''}</span>
-          <div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;position:relative;min-width:60px">
-            <div style="height:100%;width:${fillPct}%;background:${barCol};border-radius:2px;transition:width .3s"></div>
-            <div style="position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.3);border-radius:1px;left:${avgPct}%" title="avg ${avgOph.toFixed(1)}"></div>
-          </div>
-        </div>`;
+      const maxBar=Math.max(20,ophVal*1.2,avgOph*1.2);
+      const fillPct=Math.min(ophVal/maxBar*100,100).toFixed(1);
+      const avgPct=Math.min(avgOph/maxBar*100,100).toFixed(1);
+      const barCol=ophVal>=avgOph?'var(--green)':'var(--amber)';
+      ophCell=`<div style="display:flex;align-items:center;gap:6px"><span class="${ophCls}" style="width:32px;flex-shrink:0;font-size:10px">${ophStr}${implied?'<span style="color:rgba(139,155,170,.4);font-size:8px">~</span>':''}</span><div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;position:relative;min-width:60px"><div style="height:100%;width:${fillPct}%;background:${barCol};border-radius:2px;transition:width .3s"></div><div style="position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.3);border-radius:1px;left:${avgPct}%" title="avg ${avgOph.toFixed(1)}"></div></div></div>`;
     }
-
-    const dbtn    = isManual ? `<button class="dbtn" onclick="deleteWeek('${r.week}')">✕</button>` : '';
-    const spend12 = r.spend_12 || r.spend * 1.12;
-    const cpo12   = r.cpo_12   || (r.cpo ? r.cpo * 1.12 : null);
-    const delta12 = `<span style="font-size:9px;color:rgba(255,181,71,.5)">+${Math.round(spend12-r.spend).toLocaleString()}</span>`;
-    return `<tr>
-      <td class="m">${r.week}${isManual?'<span class="badge badge-s" style="margin-left:6px">manual</span>':''}</td>
-      <td>${r.orders.toLocaleString()}</td>
-      <td class="a">$${Math.round(r.spend).toLocaleString()}</td>
-      <td style="color:var(--amber)">$${Math.round(spend12).toLocaleString()} ${delta12}</td>
-      <td>${cpoBadge(r.cpo)}</td>
-      <td class="${cpo12?cpo12<1.5?'g':cpo12<2.2?'a':'r':''}" style="font-family:var(--ui);font-weight:700">${cpo12?'$'+cpo12.toFixed(2):'—'}</td>
-      <td style="min-width:120px">${ophCell}</td>
-      <td class="m" style="font-size:10px">${r.mke_orders>0?`<span style="color:var(--green)">${r.mke_orders.toLocaleString()}</span>`:'—'}${r.slc_orders>0?` / <span style="color:var(--blue)">${r.slc_orders.toLocaleString()}</span>`:''}</td>
-      <td class="m">${temp_pct}</td>
-      <td>${dbtn}</td>
-    </tr>`;
+    const dbtn=isManual?`<button class="dbtn" onclick="deleteWeek('${r.week}')">✕</button>`:'';
+    const spend12=r.spend_12||r.spend*1.12,cpo12=r.cpo_12||(r.cpo?r.cpo*1.12:null);
+    const delta12=`<span style="font-size:9px;color:rgba(255,181,71,.5)">+${Math.round(spend12-r.spend).toLocaleString()}</span>`;
+    return`<tr><td class="m">${r.week}${isManual?'<span class="badge badge-s" style="margin-left:6px">manual</span>':''}</td><td>${r.orders.toLocaleString()}</td><td class="a">$${Math.round(r.spend).toLocaleString()}</td><td style="color:var(--amber)">$${Math.round(spend12).toLocaleString()} ${delta12}</td><td>${cpoBadge(r.cpo)}</td><td class="${cpo12?cpo12<1.5?'g':cpo12<2.2?'a':'r':''}" style="font-family:var(--ui);font-weight:700">${cpo12?'$'+cpo12.toFixed(2):'—'}</td><td style="min-width:120px">${ophCell}</td><td class="m" style="font-size:10px">${r.mke_orders>0?`<span style="color:var(--green)">${r.mke_orders.toLocaleString()}</span>`:'—'}${r.slc_orders>0?` / <span style="color:var(--blue)">${r.slc_orders.toLocaleString()}</span>`:''}</td><td class="m">${temp_pct}</td><td>${dbtn}</td></tr>`;
   }).join('');
+  $('histTableWrap').innerHTML=`<table class="htbl"><thead><tr><th>Week</th><th>Total Orders</th><th>Raw Spend</th><th style="color:rgba(255,181,71,.8)">Loaded +12%</th><th>CPO Raw</th><th style="color:rgba(255,181,71,.8)">CPO +12%</th><th>OPH <span style="color:rgba(139,155,170,.4);font-weight:400">│ avg ${avgOph.toFixed(1)}~</span></th><th>MKE / SLC</th><th>Temp %</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 
-  $('histTableWrap').innerHTML = `<table class="htbl">
-    <thead>
-      <tr>
-        <th>Week</th><th>Total Orders</th><th>Raw Spend</th>
-        <th style="color:rgba(255,181,71,.8)">Loaded +12%</th>
-        <th>CPO Raw</th><th style="color:rgba(255,181,71,.8)">CPO +12%</th>
-        <th>OPH <span style="color:rgba(139,155,170,.4);font-weight:400">│ avg ${avgOph.toFixed(1)}~</span></th>
-        <th>MKE / SLC</th><th>Temp %</th><th></th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>`;
-
-  const chartData = [...dataWithOph].sort((a,b)=>a.week.localeCompare(b.week));
-  requestAnimationFrame(()=>drawCharts(chartData));
+  // ── PATCH 2: Force canvas width + double rAF before drawing charts ──
+  const chartData=[...dataWithOph].sort((a,b)=>a.week.localeCompare(b.week));
+  ['chartSpendOrders','chartCpo','chartSites','chartOph'].forEach(function(cid){
+    var c=document.getElementById(cid);
+    if(c&&c.parentElement&&c.parentElement.clientWidth>0){c.style.width=c.parentElement.clientWidth+'px';}
+  });
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ drawCharts(chartData); }); });
 }
 
-function deleteWeek(wk){
-  userWeeks = userWeeks.filter(r=>r.week!==wk);
-  try{ localStorage.setItem('atx_proj_weeks', JSON.stringify(userWeeks)); }catch(e){}
-  renderHistory();
-  toast('Week removed.');
-}
+function deleteWeek(wk){userWeeks=userWeeks.filter(r=>r.week!==wk);try{localStorage.setItem('atx_proj_weeks',JSON.stringify(userWeeks));}catch(e){}renderHistory();toast('Week removed.');}
 
-// ══════════════════════════════════════════════════════════════
-// TREND CHART
-// ══════════════════════════════════════════════════════════════
 function renderTrendChart(){
-  const data = allWeeks().filter(r=>r.cpo).slice(-20);
-  if(!data.length){ $('trendChart').innerHTML='<div class="no-data">No historical data.</div>'; return; }
-
-  const cpos = data.map(r=>r.cpo);
-  const max  = Math.max(...cpos);
-  const min  = Math.min(...cpos);
-  const range= max - min || 1;
-
-  const bars = data.map((r,i)=>{
-    const pct = ((r.cpo - min) / range * 70 + 10).toFixed(1);
-    const col = r.cpo<1.2?'var(--green)':r.cpo<1.7?'var(--amber)':'var(--red)';
-    const lbl = r.week.slice(5);
-    return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;cursor:default" title="${r.week}: $${r.cpo.toFixed(2)}/order">
-      <div style="flex:1;display:flex;align-items:flex-end;width:100%;justify-content:center">
-        <div style="width:80%;height:${pct}%;background:${col};opacity:0.85;border-radius:3px 3px 0 0;min-height:4px;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.85"></div>
-      </div>
-      <div style="font-size:8px;color:var(--slate);margin-top:4px;text-align:center;letter-spacing:.02em">${lbl}</div>
-    </div>`;
+  const data=allWeeks().filter(r=>r.cpo).slice(-20);
+  if(!data.length){$('trendChart').innerHTML='<div class="no-data">No historical data.</div>';return;}
+  const cpos=data.map(r=>r.cpo),max=Math.max(...cpos),min=Math.min(...cpos),range=max-min||1;
+  const bars=data.map((r,i)=>{
+    const pct=((r.cpo-min)/range*70+10).toFixed(1);
+    const col=r.cpo<1.2?'var(--green)':r.cpo<1.7?'var(--amber)':'var(--red)';
+    return`<div style="display:flex;flex-direction:column;align-items:center;flex:1;cursor:default" title="${r.week}: $${r.cpo.toFixed(2)}/order"><div style="flex:1;display:flex;align-items:flex-end;width:100%;justify-content:center"><div style="width:80%;height:${pct}%;background:${col};opacity:0.85;border-radius:3px 3px 0 0;min-height:4px;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.85"></div></div><div style="font-size:8px;color:var(--slate);margin-top:4px;text-align:center;letter-spacing:.02em">${r.week.slice(5)}</div></div>`;
   }).join('');
-
-  $('trendChart').innerHTML = `
-    <div style="display:flex;align-items:stretch;height:80px;gap:2px">${bars}</div>
-    <div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(139,155,170,.4);margin-top:2px">
-      <span>$${min.toFixed(2)} min</span>
-      <span>Last 20 weeks · hover for details</span>
-      <span>$${max.toFixed(2)} max</span>
-    </div>`;
+  $('trendChart').innerHTML=`<div style="display:flex;align-items:stretch;height:80px;gap:2px">${bars}</div><div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(139,155,170,.4);margin-top:2px"><span>$${min.toFixed(2)} min</span><span>Last 20 weeks · hover for details</span><span>$${max.toFixed(2)} max</span></div>`;
 }
 
-// ══════════════════════════════════════════════════════════════
-// DEPARTMENT BREAKDOWN
-// ══════════════════════════════════════════════════════════════
-const DEPTS = ['outbound','inbound','special','kitting','inventory','returns'];
-
+const DEPTS=['outbound','inbound','special','kitting','inventory','returns'];
 function deptCalc(){
-  const orders  = fv('pOrders');
-  const cplh    = fv('pCplh');
-  const oph     = currentOph;
-  const totalHrs   = orders ? orders / oph : null;
-  const totalSpend = (totalHrs && cplh) ? totalHrs * cplh : null;
-
-  const pcts = {};
-  let totalPct = 0;
-  DEPTS.forEach(d => {
-    const el = document.querySelector(`.dept-pct[data-dept="${d}"]`);
-    const v  = el ? (parseFloat(el.value) || 0) : 0;
-    pcts[d]  = v;
-    totalPct += v;
+  const orders=fv('pOrders'),cplh=fv('pCplh'),oph=currentOph;
+  const totalHrs=orders?orders/oph:null,totalSpend=(totalHrs&&cplh)?totalHrs*cplh:null;
+  const pcts={};let totalPct=0;
+  DEPTS.forEach(d=>{const el=document.querySelector(`.dept-pct[data-dept="${d}"]`);const v=el?(parseFloat(el.value)||0):0;pcts[d]=v;totalPct+=v;});
+  const totalPctEl=$('deptTotalPct');
+  if(totalPctEl){totalPctEl.textContent=totalPct.toFixed(0)+'%';totalPctEl.style.color=totalPct>100?'var(--red)':totalPct===100?'var(--green)':'var(--amber)';}
+  DEPTS.forEach(d=>{
+    const pct=pcts[d],hrs=totalHrs?totalHrs*(pct/100):null,spd=totalSpend?totalSpend*(pct/100):null;
+    const bods=hrs?Math.ceil(hrs/40):null,dCplh=(spd&&hrs)?spd/hrs:null;
+    const bar=document.querySelector(`.dept-bar[data-dept="${d}"]`);if(bar)bar.style.width=Math.min(pct,100)+'%';
+    const sb=$('dsb-'+d);if(sb)sb.style.width=Math.min(pct,100)+'%';
+    const hEl=document.querySelector(`.dept-hrs[data-dept="${d}"]`);
+    const bEl=document.querySelector(`.dept-bodies[data-dept="${d}"]`);
+    const sEl=document.querySelector(`.dept-spend[data-dept="${d}"]`);
+    const cEl=document.querySelector(`.dept-cplh[data-dept="${d}"]`);
+    if(hEl)hEl.textContent=hrs?Math.round(hrs).toLocaleString():pct>0?'Set OPH':'—';
+    if(bEl)bEl.textContent=bods?bods:pct>0?'—':'—';
+    if(sEl)sEl.textContent=spd?'$'+Math.round(spd).toLocaleString():pct>0?'Set CPLH':'—';
+    if(cEl)cEl.textContent=dCplh?'$'+dCplh.toFixed(2):'—';
   });
-
-  const totalPctEl = $('deptTotalPct');
-  if(totalPctEl) {
-    totalPctEl.textContent = totalPct.toFixed(0) + '%';
-    totalPctEl.style.color = totalPct > 100 ? 'var(--red)' : totalPct === 100 ? 'var(--green)' : 'var(--amber)';
-  }
-
-  DEPTS.forEach(d => {
-    const pct  = pcts[d];
-    const hrs  = totalHrs  ? totalHrs  * (pct/100) : null;
-    const spd  = totalSpend ? totalSpend * (pct/100) : null;
-    const bods = hrs ? Math.ceil(hrs/40) : null;
-    const dCplh= (spd && hrs) ? spd/hrs : null;
-
-    const bar = document.querySelector(`.dept-bar[data-dept="${d}"]`);
-    if(bar) bar.style.width = Math.min(pct, 100) + '%';
-
-    const sb = $('dsb-'+d);
-    if(sb) sb.style.width = Math.min(pct, 100) + '%';
-
-    const hEl = document.querySelector(`.dept-hrs[data-dept="${d}"]`);
-    const bEl = document.querySelector(`.dept-bodies[data-dept="${d}"]`);
-    const sEl = document.querySelector(`.dept-spend[data-dept="${d}"]`);
-    const cEl = document.querySelector(`.dept-cplh[data-dept="${d}"]`);
-
-    if(hEl) hEl.textContent = hrs  ? Math.round(hrs).toLocaleString()  : pct > 0 ? 'Set OPH' : '—';
-    if(bEl) bEl.textContent = bods ? bods                              : pct > 0 ? '—'       : '—';
-    if(sEl) sEl.textContent = spd  ? '$'+Math.round(spd).toLocaleString() : pct > 0 ? 'Set CPLH' : '—';
-    if(cEl) cEl.textContent = dCplh ? '$'+dCplh.toFixed(2)             : '—';
-  });
-
-  const lbl = $('deptTotalLbl');
-  if(lbl) {
-    if(totalPct === 100)      { lbl.textContent = '✓ 100% allocated'; lbl.style.color = 'var(--green)'; }
-    else if(totalPct > 100)   { lbl.textContent = `⚠ ${totalPct.toFixed(0)}% — over by ${(totalPct-100).toFixed(0)}%`; lbl.style.color = 'var(--red)'; }
-    else                      { lbl.textContent = `${totalPct.toFixed(0)}% allocated · ${(100-totalPct).toFixed(0)}% unallocated`; lbl.style.color = 'var(--slate)'; }
-  }
-
-  const badge = $('deptAllocBar');
-  if(badge && totalHrs && totalSpend) {
-    const allocHrs = totalHrs * (totalPct/100);
-    const allocSpd = totalSpend * (totalPct/100);
-    badge.textContent = `${Math.round(allocHrs).toLocaleString()} hrs · $${Math.round(allocSpd).toLocaleString()}`;
-    badge.style.background = totalPct === 100 ? 'var(--green-dim)' : 'var(--amber-dim)';
-    badge.style.color      = totalPct === 100 ? 'var(--green)'     : 'var(--amber)';
-  } else if(badge) {
-    badge.textContent = '0 hrs · $0';
-  }
-
-  const hint = $('deptHint');
-  if(hint){
-    if(!totalHrs)     hint.textContent = 'Set Orders + OPH in the projector above to populate department hours.';
-    else if(!totalSpend) hint.textContent = 'Set CPLH above to unlock department spend.';
-    else if(totalPct===100) hint.textContent = `Total: ${Math.round(totalHrs).toLocaleString()} hrs · $${Math.round(totalSpend).toLocaleString()} fully allocated across departments.`;
-    else hint.textContent = 'Enter % of total hours allocated to each department. Must total 100%.';
-  }
+  const lbl=$('deptTotalLbl');
+  if(lbl){if(totalPct===100){lbl.textContent='✓ 100% allocated';lbl.style.color='var(--green)';}else if(totalPct>100){lbl.textContent=`⚠ ${totalPct.toFixed(0)}% — over by ${(totalPct-100).toFixed(0)}%`;lbl.style.color='var(--red)';}else{lbl.textContent=`${totalPct.toFixed(0)}% allocated · ${(100-totalPct).toFixed(0)}% unallocated`;lbl.style.color='var(--slate)';}}
+  const badge=$('deptAllocBar');
+  if(badge&&totalHrs&&totalSpend){const allocHrs=totalHrs*(totalPct/100),allocSpd=totalSpend*(totalPct/100);badge.textContent=`${Math.round(allocHrs).toLocaleString()} hrs · $${Math.round(allocSpd).toLocaleString()}`;badge.style.background=totalPct===100?'var(--green-dim)':'var(--amber-dim)';badge.style.color=totalPct===100?'var(--green)':'var(--amber)';}
+  else if(badge){badge.textContent='0 hrs · $0';}
+  const hint=$('deptHint');
+  if(hint){if(!totalHrs)hint.textContent='Set Orders + OPH in the projector above to populate department hours.';else if(!totalSpend)hint.textContent='Set CPLH above to unlock department spend.';else if(totalPct===100)hint.textContent=`Total: ${Math.round(totalHrs).toLocaleString()} hrs · $${Math.round(totalSpend).toLocaleString()} fully allocated across departments.`;else hint.textContent='Enter % of total hours allocated to each department. Must total 100%.';}
 }
 
-// ══════════════════════════════════════════════════════════════
-// SITE TAB + SPLIT MODE
-// ══════════════════════════════════════════════════════════════
-let siteMode = 'combined';
-
+let siteMode='combined';
 function setSiteTab(mode){
-  siteMode = mode;
-  const isSplit = mode === 'split';
-  $('modeCombined').style.display = isSplit ? 'none' : '';
-  $('modeSplit').style.display    = isSplit ? '' : 'none';
-
-  const btnCombined = $('siteTabCombined');
-  const btnSplit    = $('siteTabSplit');
-  const base = 'flex:1;padding:7px;border-radius:7px;font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;';
-  const on   = base + 'background:var(--green-dim);border:1px solid var(--green-border);color:var(--green)';
-  const off  = base + 'background:var(--card);border:1px solid var(--border);color:var(--slate)';
-  btnCombined.setAttribute('style', isSplit ? off : on);
-  btnSplit.setAttribute('style',    isSplit ? on  : off);
-
-  if(isSplit) splitCalc(); else analyzeCalc();
+  siteMode=mode;const isSplit=mode==='split';
+  $('modeCombined').style.display=isSplit?'none':'';$('modeSplit').style.display=isSplit?'':'none';
+  const btnCombined=$('siteTabCombined'),btnSplit=$('siteTabSplit');
+  const base='flex:1;padding:7px;border-radius:7px;font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;';
+  const on=base+'background:var(--green-dim);border:1px solid var(--green-border);color:var(--green)';
+  const off=base+'background:var(--card);border:1px solid var(--border);color:var(--slate)';
+  btnCombined.setAttribute('style',isSplit?off:on);btnSplit.setAttribute('style',isSplit?on:off);
+  if(isSplit)splitCalc();else analyzeCalc();
 }
 
 function splitCalc(){
-  const mkeS = parseFloat($('aMkeSpend').value)||0;
-  const mkeH = parseFloat($('aMkeHours').value)||0;
-  const mkeO = parseFloat($('aMkeOrders').value)||0;
-  const slcS = parseFloat($('aSlcSpend').value)||0;
-  const slcH = parseFloat($('aSlcHours').value)||0;
-  const slcO = parseFloat($('aSlcOrders').value)||0;
-
-  const totSpend  = mkeS + slcS;
-  const totHours  = mkeH + slcH;
-  const totOrders = mkeO + slcO;
-
-  tv('splitTotalSpend',  totSpend  ? '$'+Math.round(totSpend).toLocaleString()  : '—');
-  tv('splitTotalOrders', totOrders ? totOrders.toLocaleString()                 : '—');
-  tv('splitTotalHours',  totHours  ? Math.round(totHours).toLocaleString()      : '—');
-
-  if(totSpend)  $('aSpend').value  = totSpend;
-  if(totHours)  $('aHours').value  = totHours;
-  if(totOrders) $('aOrders').value = totOrders;
+  const mkeS=parseFloat($('aMkeSpend').value)||0,mkeH=parseFloat($('aMkeHours').value)||0,mkeO=parseFloat($('aMkeOrders').value)||0;
+  const slcS=parseFloat($('aSlcSpend').value)||0,slcH=parseFloat($('aSlcHours').value)||0,slcO=parseFloat($('aSlcOrders').value)||0;
+  const totSpend=mkeS+slcS,totHours=mkeH+slcH,totOrders=mkeO+slcO;
+  tv('splitTotalSpend',totSpend?'$'+Math.round(totSpend).toLocaleString():'—');
+  tv('splitTotalOrders',totOrders?totOrders.toLocaleString():'—');
+  tv('splitTotalHours',totHours?Math.round(totHours).toLocaleString():'—');
+  if(totSpend)$('aSpend').value=totSpend;if(totHours)$('aHours').value=totHours;if(totOrders)$('aOrders').value=totOrders;
   analyzeCalc();
 }
 
-// ══════════════════════════════════════════════════════════════
-// EXPORT CSV
-// ══════════════════════════════════════════════════════════════
 function exportCSV(){
-  const weeks = allWeeks();
-  const headers = ['week','mke_orders','slc_orders','total_orders','spend','temp','cpo','oph_implied','source'];
-  const rows = weeks.map(r=>[
-    r.week, r.mke_orders, r.slc_orders, r.orders, r.spend, r.temp||0,
-    r.cpo ? r.cpo.toFixed(4) : '',
-    r.spend ? (r.orders/(r.spend/17.5)).toFixed(2) : '',
-    r.source||'historical'
-  ].join(','));
-  const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `atomix-labor-history-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  toast('CSV exported ✓');
+  const weeks=allWeeks();
+  const headers=['week','mke_orders','slc_orders','total_orders','spend','temp','cpo','oph_implied','source'];
+  const rows=weeks.map(r=>[r.week,r.mke_orders,r.slc_orders,r.orders,r.spend,r.temp||0,r.cpo?r.cpo.toFixed(4):'',r.spend?(r.orders/(r.spend/17.5)).toFixed(2):'',r.source||'historical'].join(','));
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=`atomix-labor-history-${new Date().toISOString().slice(0,10)}.csv`;a.click();toast('CSV exported ✓');
 }
 
-// ══════════════════════════════════════════════════════════════
-// CHARTS
-// ══════════════════════════════════════════════════════════════
 function drawCharts(data){
-  if(!data || !data.length) return;
-  const d = [...data].sort((a,b)=>a.week.localeCompare(b.week));
-  const GREEN='#A3F3C5', AMBER='#FFB547', BLUE='#60A5FA', RED='#FF6B6B', SLATE='rgba(139,155,170,.4)', GRID='rgba(255,255,255,.05)';
-
-  function lineChart(canvasId, series, opts={}){
-    const canvas = document.getElementById(canvasId);
-    if(!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const W = rect.width || canvas.parentElement.clientWidth || 400;
-    const H = rect.height || 160;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width  = W * dpr; canvas.height = H * dpr;
-    canvas.style.width = W+'px'; canvas.style.height = H+'px';
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr,dpr);
-    const PAD = {top:16, right:16, bottom:28, left:opts.leftPad||52};
-    const cW = W-PAD.left-PAD.right, cH = H-PAD.top-PAD.bottom;
+  if(!data||!data.length)return;
+  const d=[...data].sort((a,b)=>a.week.localeCompare(b.week));
+  const GREEN='#A3F3C5',AMBER='#FFB547',BLUE='#60A5FA',RED='#FF6B6B',SLATE='rgba(139,155,170,.4)',GRID='rgba(255,255,255,.05)';
+  function lineChart(canvasId,series,opts={}){
+    const canvas=document.getElementById(canvasId);if(!canvas)return;
+    const rect=canvas.getBoundingClientRect();
+    const W=rect.width||canvas.parentElement.clientWidth||400,H=rect.height||160;
+    const dpr=window.devicePixelRatio||1;
+    canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
+    const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+    const PAD={top:16,right:16,bottom:28,left:opts.leftPad||52};
+    const cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
     ctx.clearRect(0,0,W,H);
-
-    const allVals = series.flatMap(s=>s.values.filter(v=>v!=null));
-    if(!allVals.length) return;
-    let yMin = opts.yMin!=null ? opts.yMin : Math.min(...allVals);
-    let yMax = opts.yMax!=null ? opts.yMax : Math.max(...allVals);
-    if(yMin===yMax){ yMin*=0.9; yMax*=1.1; }
-    const yRange = yMax-yMin;
-    const n = d.length;
-
-    const xPos = i => PAD.left+(i/(n-1||1))*cW;
-    const yPos = v => PAD.top+cH-((v-yMin)/yRange)*cH;
-
-    for(let t=0;t<=4;t++){
-      const yv=yMin+(yRange/4)*t, yp=yPos(yv);
-      ctx.strokeStyle=GRID; ctx.lineWidth=1;
-      ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();
-      ctx.fillStyle=SLATE; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='right';
-      const lbl=opts.yFmt?opts.yFmt(yv):yv.toFixed(opts.decimals!=null?opts.decimals:0);
-      ctx.fillText(lbl,PAD.left-5,yp+3);
-    }
-
-    const step=Math.max(1,Math.floor(n/6));
-    ctx.fillStyle=SLATE; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='center';
-    for(let i=0;i<n;i+=step) ctx.fillText(d[i].week.slice(5),xPos(i),H-PAD.bottom+14);
-
-    if(opts.refLines) opts.refLines.forEach(({value,color,dash})=>{
-      ctx.strokeStyle=color||SLATE; ctx.lineWidth=1; ctx.setLineDash(dash||[4,4]);
-      const yp=yPos(value);
-      ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();
-      ctx.setLineDash([]);
-    });
-
+    const allVals=series.flatMap(s=>s.values.filter(v=>v!=null));if(!allVals.length)return;
+    let yMin=opts.yMin!=null?opts.yMin:Math.min(...allVals),yMax=opts.yMax!=null?opts.yMax:Math.max(...allVals);
+    if(yMin===yMax){yMin*=0.9;yMax*=1.1;}
+    const yRange=yMax-yMin,n=d.length;
+    const xPos=i=>PAD.left+(i/(n-1||1))*cW,yPos=v=>PAD.top+cH-((v-yMin)/yRange)*cH;
+    for(let t=0;t<=4;t++){const yv=yMin+(yRange/4)*t,yp=yPos(yv);ctx.strokeStyle=GRID;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();ctx.fillStyle=SLATE;ctx.font='9px IBM Plex Mono,monospace';ctx.textAlign='right';ctx.fillText(opts.yFmt?opts.yFmt(yv):yv.toFixed(opts.decimals!=null?opts.decimals:0),PAD.left-5,yp+3);}
+    const step=Math.max(1,Math.floor(n/6));ctx.fillStyle=SLATE;ctx.font='9px IBM Plex Mono,monospace';ctx.textAlign='center';
+    for(let i=0;i<n;i+=step)ctx.fillText(d[i].week.slice(5),xPos(i),H-PAD.bottom+14);
+    if(opts.refLines)opts.refLines.forEach(({value,color,dash})=>{ctx.strokeStyle=color||SLATE;ctx.lineWidth=1;ctx.setLineDash(dash||[4,4]);const yp=yPos(value);ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();ctx.setLineDash([]);});
     series.forEach(s=>{
-      if(s.type==='bar'){
-        const bw=Math.max(2,(cW/n)*0.6);
-        s.values.forEach((v,i)=>{
-          if(v==null)return;
-          const x=xPos(i)-bw/2, yp=yPos(v), ybase=yPos(yMin>0?yMin:0), barH=Math.abs(ybase-yp);
-          ctx.fillStyle=s.color; ctx.globalAlpha=0.65;
-          ctx.fillRect(x,Math.min(yp,ybase),bw,barH); ctx.globalAlpha=1;
-        });
-        return;
-      }
-
-      ctx.strokeStyle=s.color; ctx.lineWidth=s.width||2; ctx.lineJoin='round'; ctx.lineCap='round';
-      ctx.setLineDash(s.dash||[]);
-
-      if(s.fill){
-        ctx.save(); ctx.beginPath();
-        let ff=true;
-        s.values.forEach((v,i)=>{if(v==null)return;if(ff){ctx.moveTo(xPos(i),yPos(v));ff=false;}else ctx.lineTo(xPos(i),yPos(v));});
-        const lfi=s.values.reduce((li,v,i)=>v!=null?i:li,-1);
-        const ffi=s.values.findIndex(v=>v!=null);
-        ctx.lineTo(xPos(lfi),yPos(yMin>0?yMin:0));
-        ctx.lineTo(xPos(ffi),yPos(yMin>0?yMin:0));
-        ctx.closePath();
-        const fg=ctx.createLinearGradient(0,PAD.top,0,PAD.top+cH);
-        const r=parseInt(s.color.slice(1,3),16),g=parseInt(s.color.slice(3,5),16),b=parseInt(s.color.slice(5,7),16);
-        fg.addColorStop(0,`rgba(${r},${g},${b},0.18)`);fg.addColorStop(1,`rgba(${r},${g},${b},0.01)`);
-        ctx.fillStyle=fg;ctx.fill();ctx.restore();
-      }
-
-      ctx.beginPath();let fl=true;
-      s.values.forEach((v,i)=>{if(v==null)return;if(fl){ctx.moveTo(xPos(i),yPos(v));fl=false;}else ctx.lineTo(xPos(i),yPos(v));});
-      ctx.stroke();ctx.setLineDash([]);
-
-      const li=s.values.reduce((li,v,i)=>v!=null?i:li,-1);
-      if(li>=0){
-        ctx.beginPath();ctx.arc(xPos(li),yPos(s.values[li]),3.5,0,Math.PI*2);
-        ctx.fillStyle=s.color;ctx.fill();
-      }
+      if(s.type==='bar'){const bw=Math.max(2,(cW/n)*0.6);s.values.forEach((v,i)=>{if(v==null)return;const x=xPos(i)-bw/2,yp=yPos(v),ybase=yPos(yMin>0?yMin:0),barH=Math.abs(ybase-yp);ctx.fillStyle=s.color;ctx.globalAlpha=0.65;ctx.fillRect(x,Math.min(yp,ybase),bw,barH);ctx.globalAlpha=1;});return;}
+      ctx.strokeStyle=s.color;ctx.lineWidth=s.width||2;ctx.lineJoin='round';ctx.lineCap='round';ctx.setLineDash(s.dash||[]);
+      if(s.fill){ctx.save();ctx.beginPath();let ff=true;s.values.forEach((v,i)=>{if(v==null)return;if(ff){ctx.moveTo(xPos(i),yPos(v));ff=false;}else ctx.lineTo(xPos(i),yPos(v));});const lfi=s.values.reduce((li,v,i)=>v!=null?i:li,-1),ffi=s.values.findIndex(v=>v!=null);ctx.lineTo(xPos(lfi),yPos(yMin>0?yMin:0));ctx.lineTo(xPos(ffi),yPos(yMin>0?yMin:0));ctx.closePath();const fg=ctx.createLinearGradient(0,PAD.top,0,PAD.top+cH);const r=parseInt(s.color.slice(1,3),16),g=parseInt(s.color.slice(3,5),16),b=parseInt(s.color.slice(5,7),16);fg.addColorStop(0,`rgba(${r},${g},${b},0.18)`);fg.addColorStop(1,`rgba(${r},${g},${b},0.01)`);ctx.fillStyle=fg;ctx.fill();ctx.restore();}
+      ctx.beginPath();let fl=true;s.values.forEach((v,i)=>{if(v==null)return;if(fl){ctx.moveTo(xPos(i),yPos(v));fl=false;}else ctx.lineTo(xPos(i),yPos(v));});ctx.stroke();ctx.setLineDash([]);
+      const li=s.values.reduce((li,v,i)=>v!=null?i:li,-1);if(li>=0){ctx.beginPath();ctx.arc(xPos(li),yPos(s.values[li]),3.5,0,Math.PI*2);ctx.fillStyle=s.color;ctx.fill();}
     });
-
-    ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+cH);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+cH);ctx.lineTo(PAD.left+cW,PAD.top+cH);ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+cH);ctx.stroke();ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+cH);ctx.lineTo(PAD.left+cW,PAD.top+cH);ctx.stroke();
   }
-
-  const spends=d.map(r=>r.spend||null), orders=d.map(r=>r.orders||null);
+  const spends=d.map(r=>r.spend||null),orders=d.map(r=>r.orders||null);
   const maxS=Math.max(...spends.filter(Boolean)),minS=Math.min(...spends.filter(Boolean));
   const maxO=Math.max(...orders.filter(Boolean)),minO=Math.min(...orders.filter(Boolean));
   const normS=spends.map(v=>v!=null?(v-minS)/(maxS-minS||1):null);
   const normO=orders.map(v=>v!=null?(v-minO)/(maxO-minO||1):null);
   lineChart('chartSpendOrders',[{values:normS,color:AMBER,width:2,fill:true},{values:normO,color:GREEN,width:2}],{yMin:0,yMax:1,decimals:1,leftPad:40,yFmt:v=>v===0?'Low':v===1?'High':''});
-
   const cpoRaw=d.map(r=>r.cpo||null),cpo12=d.map(r=>r.cpo_12||null);
   const avgCpoVal=cpoRaw.filter(Boolean).reduce((s,v)=>s+v,0)/(cpoRaw.filter(Boolean).length||1);
   lineChart('chartCpo',[{values:cpoRaw,color:GREEN,width:2,fill:true},{values:cpo12,color:AMBER,width:1.5,dash:[3,3]}],{yFmt:v=>'$'+v.toFixed(2),leftPad:46,decimals:2,refLines:[{value:avgCpoVal,color:'rgba(255,255,255,.2)',dash:[4,4]}]});
-
   lineChart('chartSites',[{values:d.map(r=>r.mke_orders||null),color:GREEN,width:2,fill:true},{values:d.map(r=>r.slc_orders>0?r.slc_orders:null),color:BLUE,width:2}],{yFmt:v=>v>=1000?Math.round(v/1000)+'k':v.toFixed(0),leftPad:44,decimals:0});
-
   const ophVals2=d.map(r=>r.oph||null);
   const avgOphV2=ophVals2.filter(Boolean).reduce((s,v)=>s+v,0)/(ophVals2.filter(Boolean).length||1);
   lineChart('chartOph',[{values:ophVals2,color:GREEN,width:2,fill:true}],{yFmt:v=>v.toFixed(1),leftPad:38,decimals:1,refLines:[{value:avgOphV2,color:'rgba(255,255,255,.22)',dash:[4,4]}]});
 }
 
-// ══════════════════════════════════════════════════════════════
-// CHART MODAL
-// ══════════════════════════════════════════════════════════════
-let _modalChartId = null, _modalChartData = null;
-
-const CHART_META = {
+let _modalChartId=null,_modalChartData=null;
+const CHART_META={
   chartSpendOrders:{title:'Labor Spend vs Order Volume',legend:[{label:'Spend',color:'#FFB547'},{label:'Orders',color:'#A3F3C5'}],build:(d)=>({series:[{label:'Spend',values:d.map(r=>r.spend||null),color:'#FFB547',width:2.5,fill:true},{label:'Orders',values:d.map(r=>r.orders||null),color:'#A3F3C5',width:2.5}],opts:{yFmt:v=>'$'+Math.round(v/1000)+'k',leftPad:56,decimals:0}})},
   chartCpo:{title:'CPO — Raw vs Loaded +12%',legend:[{label:'CPO Raw',color:'#A3F3C5'},{label:'CPO +12%',color:'#FFB547',dash:true}],build:(d)=>{const avg=d.filter(r=>r.cpo).reduce((s,r)=>s+r.cpo,0)/(d.filter(r=>r.cpo).length||1);return{series:[{label:'CPO Raw',values:d.map(r=>r.cpo||null),color:'#A3F3C5',width:2.5,fill:true},{label:'CPO +12%',values:d.map(r=>r.cpo_12||null),color:'#FFB547',width:2,dash:[5,4]}],opts:{yFmt:v=>'$'+v.toFixed(2),leftPad:52,decimals:2,refLines:[{value:avg,color:'rgba(255,255,255,.2)',dash:[4,4]}]}}}},
   chartSites:{title:'MKE vs SLC — Order Volume',legend:[{label:'MKE',color:'#A3F3C5'},{label:'SLC',color:'#60A5FA'}],build:(d)=>({series:[{label:'MKE',values:d.map(r=>r.mke_orders||null),color:'#A3F3C5',width:2.5,fill:true},{label:'SLC',values:d.map(r=>r.slc_orders>0?r.slc_orders:null),color:'#60A5FA',width:2.5}],opts:{yFmt:v=>v>=1000?Math.round(v/1000)+'k':v.toFixed(0),leftPad:48,decimals:0}})},
@@ -1859,215 +910,85 @@ function expandChart(id){
   _modalChartId=id;
   const all=allWeeks().map(r=>({...r,oph:r.oph||(r.spend?r.orders/(r.spend/17.5):null)}));
   let data=[...all];
-  if(histFilter==='8wk') data=all.slice(-8);
-  else if(histFilter==='2025') data=all.filter(r=>r.week.startsWith('2025'));
-  else if(histFilter==='2026') data=all.filter(r=>r.week.startsWith('2026'));
-  data.sort((a,b)=>a.week.localeCompare(b.week));
-  _modalChartData=data;
-  const {series,opts}=meta.build(data);
-  $('chartModal').style.display='block';
-  $('modalTitle').textContent=meta.title;
+  if(histFilter==='8wk')data=all.slice(-8);else if(histFilter==='2025')data=all.filter(r=>r.week.startsWith('2025'));else if(histFilter==='2026')data=all.filter(r=>r.week.startsWith('2026'));
+  data.sort((a,b)=>a.week.localeCompare(b.week));_modalChartData=data;
+  const{series,opts}=meta.build(data);
+  $('chartModal').style.display='block';$('modalTitle').textContent=meta.title;
   $('modalLegend').innerHTML=meta.legend.map(l=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:2px;background:${l.color};display:inline-block;border-radius:1px${l.dash?';border-top:2px dashed '+l.color+';background:none':''}"></span>${l.label}</span>`).join('');
-  requestAnimationFrame(()=>{
-    const canvas=$('modalCanvas');if(!canvas)return;
-    drawModalChart(canvas,series,opts,data);
-    setupModalInteraction(canvas,series,opts,data);
-  });
+  requestAnimationFrame(()=>{const canvas=$('modalCanvas');if(!canvas)return;drawModalChart(canvas,series,opts,data);setupModalInteraction(canvas,series,opts,data);});
 }
 
 function drawModalChart(canvas,series,opts,data,hoverIdx=null){
-  const dpr=window.devicePixelRatio||1;
-  const rect=canvas.getBoundingClientRect();
-  const W=rect.width,H=rect.height;
-  canvas.width=W*dpr;canvas.height=H*dpr;
-  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const dpr=window.devicePixelRatio||1,rect=canvas.getBoundingClientRect(),W=rect.width,H=rect.height;
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
-  const PAD={top:20,right:24,bottom:36,left:opts.leftPad||52};
-  const cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
-  const SLATE='rgba(139,155,170,.4)',GRID='rgba(255,255,255,.05)';
-  const n=data.length;
-  const allVals=series.flatMap(s=>s.values.filter(v=>v!=null));
-  if(!allVals.length)return;
-  let yMin=opts.yMin!=null?opts.yMin:Math.min(...allVals)*0.97;
-  let yMax=Math.max(...allVals)*1.03;
+  const PAD={top:20,right:24,bottom:36,left:opts.leftPad||52},cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
+  const SLATE='rgba(139,155,170,.4)',GRID='rgba(255,255,255,.05)',n=data.length;
+  const allVals=series.flatMap(s=>s.values.filter(v=>v!=null));if(!allVals.length)return;
+  let yMin=opts.yMin!=null?opts.yMin:Math.min(...allVals)*0.97,yMax=Math.max(...allVals)*1.03;
   if(yMin===yMax){yMin*=0.9;yMax*=1.1;}
-  const yRange=yMax-yMin;
-  const xPos=i=>PAD.left+(i/(n-1||1))*cW;
-  const yPos=v=>PAD.top+cH-((v-yMin)/yRange)*cH;
+  const yRange=yMax-yMin,xPos=i=>PAD.left+(i/(n-1||1))*cW,yPos=v=>PAD.top+cH-((v-yMin)/yRange)*cH;
   ctx.clearRect(0,0,W,H);
-
-  for(let t=0;t<=5;t++){
-    const yv=yMin+(yRange/5)*t,yp=yPos(yv);
-    ctx.strokeStyle=GRID;ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();
-    ctx.fillStyle=SLATE;ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='right';
-    ctx.fillText(opts.yFmt?opts.yFmt(yv):yv.toFixed(opts.decimals||0),PAD.left-7,yp+4);
-  }
-  const step=Math.max(1,Math.floor(n/10));
-  ctx.fillStyle=SLATE;ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
+  for(let t=0;t<=5;t++){const yv=yMin+(yRange/5)*t,yp=yPos(yv);ctx.strokeStyle=GRID;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();ctx.fillStyle=SLATE;ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='right';ctx.fillText(opts.yFmt?opts.yFmt(yv):yv.toFixed(opts.decimals||0),PAD.left-7,yp+4);}
+  const step=Math.max(1,Math.floor(n/10));ctx.fillStyle=SLATE;ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
   for(let i=0;i<n;i+=step)ctx.fillText(data[i].week.slice(5),xPos(i),H-PAD.bottom+18);
-
-  if(opts.refLines)opts.refLines.forEach(({value,color,dash})=>{
-    ctx.strokeStyle=color||SLATE;ctx.lineWidth=1;ctx.setLineDash(dash||[4,4]);
-    const yp=yPos(value);ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();ctx.setLineDash([]);
-  });
-
-  if(hoverIdx!=null){
-    const xp=xPos(hoverIdx);
-    ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
-    ctx.beginPath();ctx.moveTo(xp,PAD.top);ctx.lineTo(xp,PAD.top+cH);ctx.stroke();ctx.setLineDash([]);
-  }
-
+  if(opts.refLines)opts.refLines.forEach(({value,color,dash})=>{ctx.strokeStyle=color||SLATE;ctx.lineWidth=1;ctx.setLineDash(dash||[4,4]);const yp=yPos(value);ctx.beginPath();ctx.moveTo(PAD.left,yp);ctx.lineTo(PAD.left+cW,yp);ctx.stroke();ctx.setLineDash([]);});
+  if(hoverIdx!=null){const xp=xPos(hoverIdx);ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(xp,PAD.top);ctx.lineTo(xp,PAD.top+cH);ctx.stroke();ctx.setLineDash([]);}
   series.forEach(s=>{
-    if(s.type==='bar'){
-      const bw=Math.max(3,(cW/n)*0.65);
-      s.values.forEach((v,i)=>{
-        if(v==null)return;
-        const x=xPos(i)-bw/2,yp=yPos(v),ybase=yPos(yMin>0?yMin:0),bh=Math.abs(ybase-yp);
-        ctx.fillStyle=s.color;ctx.globalAlpha=hoverIdx===i?0.95:0.6;
-        ctx.fillRect(x,Math.min(yp,ybase),bw,bh);ctx.globalAlpha=1;
-      });return;
-    }
+    if(s.type==='bar'){const bw=Math.max(3,(cW/n)*0.65);s.values.forEach((v,i)=>{if(v==null)return;const x=xPos(i)-bw/2,yp=yPos(v),ybase=yPos(yMin>0?yMin:0),bh=Math.abs(ybase-yp);ctx.fillStyle=s.color;ctx.globalAlpha=hoverIdx===i?0.95:0.6;ctx.fillRect(x,Math.min(yp,ybase),bw,bh);ctx.globalAlpha=1;});return;}
     const ffi=s.values.findIndex(v=>v!=null),lfi=s.values.reduce((li,v,i)=>v!=null?i:li,-1);
-    if(s.fill&&ffi>=0){
-      ctx.save();ctx.beginPath();let ff=true;
-      s.values.forEach((v,i)=>{if(v==null)return;if(ff){ctx.moveTo(xPos(i),yPos(v));ff=false;}else ctx.lineTo(xPos(i),yPos(v));});
-      ctx.lineTo(xPos(lfi),yPos(yMin>0?yMin:0));ctx.lineTo(xPos(ffi),yPos(yMin>0?yMin:0));ctx.closePath();
-      const fg=ctx.createLinearGradient(0,PAD.top,0,PAD.top+cH);
-      const r=parseInt(s.color.slice(1,3),16),g=parseInt(s.color.slice(3,5),16),b=parseInt(s.color.slice(5,7),16);
-      fg.addColorStop(0,`rgba(${r},${g},${b},0.2)`);fg.addColorStop(1,`rgba(${r},${g},${b},0.01)`);
-      ctx.fillStyle=fg;ctx.fill();ctx.restore();
-    }
+    if(s.fill&&ffi>=0){ctx.save();ctx.beginPath();let ff=true;s.values.forEach((v,i)=>{if(v==null)return;if(ff){ctx.moveTo(xPos(i),yPos(v));ff=false;}else ctx.lineTo(xPos(i),yPos(v));});ctx.lineTo(xPos(lfi),yPos(yMin>0?yMin:0));ctx.lineTo(xPos(ffi),yPos(yMin>0?yMin:0));ctx.closePath();const fg=ctx.createLinearGradient(0,PAD.top,0,PAD.top+cH);const r=parseInt(s.color.slice(1,3),16),g=parseInt(s.color.slice(3,5),16),b=parseInt(s.color.slice(5,7),16);fg.addColorStop(0,`rgba(${r},${g},${b},0.2)`);fg.addColorStop(1,`rgba(${r},${g},${b},0.01)`);ctx.fillStyle=fg;ctx.fill();ctx.restore();}
     ctx.strokeStyle=s.color;ctx.lineWidth=s.width||2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.setLineDash(s.dash||[]);
-    ctx.beginPath();let fl=true;
-    s.values.forEach((v,i)=>{if(v==null)return;if(fl){ctx.moveTo(xPos(i),yPos(v));fl=false;}else ctx.lineTo(xPos(i),yPos(v));});
-    ctx.stroke();ctx.setLineDash([]);
-    s.values.forEach((v,i)=>{
-      if(v==null)return;
-      const isHov=hoverIdx===i;
-      ctx.beginPath();ctx.arc(xPos(i),yPos(v),isHov?5.5:2.5,0,Math.PI*2);
-      ctx.fillStyle=isHov?s.color:'rgba(9,30,56,0.9)';ctx.strokeStyle=s.color;ctx.lineWidth=isHov?2:1.5;
-      ctx.fill();ctx.stroke();
-    });
+    ctx.beginPath();let fl=true;s.values.forEach((v,i)=>{if(v==null)return;if(fl){ctx.moveTo(xPos(i),yPos(v));fl=false;}else ctx.lineTo(xPos(i),yPos(v));});ctx.stroke();ctx.setLineDash([]);
+    s.values.forEach((v,i)=>{if(v==null)return;const isHov=hoverIdx===i;ctx.beginPath();ctx.arc(xPos(i),yPos(v),isHov?5.5:2.5,0,Math.PI*2);ctx.fillStyle=isHov?s.color:'rgba(9,30,56,0.9)';ctx.strokeStyle=s.color;ctx.lineWidth=isHov?2:1.5;ctx.fill();ctx.stroke();});
   });
-  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+cH);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+cH);ctx.lineTo(PAD.left+cW,PAD.top+cH);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+cH);ctx.stroke();ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+cH);ctx.lineTo(PAD.left+cW,PAD.top+cH);ctx.stroke();
 }
 
 function setupModalInteraction(canvas,series,opts,data){
-  const n=data.length;
-  const PAD={top:20,right:24,bottom:36,left:opts.leftPad||52};
-  function getHoverIdx(e){
-    const rect=canvas.getBoundingClientRect();
-    const mx=e.clientX-rect.left;
-    const cW=rect.width-PAD.left-PAD.right;
-    return Math.max(0,Math.min(n-1,Math.round(((mx-PAD.left)/cW)*(n-1))));
-  }
+  const n=data.length,PAD={top:20,right:24,bottom:36,left:opts.leftPad||52};
+  function getHoverIdx(e){const rect=canvas.getBoundingClientRect(),mx=e.clientX-rect.left,cW=rect.width-PAD.left-PAD.right;return Math.max(0,Math.min(n-1,Math.round(((mx-PAD.left)/cW)*(n-1))));}
   canvas.onmousemove=(e)=>{
-    const idx=getHoverIdx(e);
-    drawModalChart(canvas,series,opts,data,idx);
+    const idx=getHoverIdx(e);drawModalChart(canvas,series,opts,data,idx);
     const week=data[idx]?.week||'';
     const parts=series.map(s=>{const v=s.values[idx];if(v==null)return null;const fv=opts.yFmt?opts.yFmt(v):v.toFixed(opts.decimals||2);return`<span style="color:${s.color};margin-right:14px"><b>${s.label}:</b> ${fv}</span>`;}).filter(Boolean);
     $('modalTooltip').innerHTML=`<span style="color:rgba(139,155,170,.6);margin-right:12px">${week}</span>${parts.join('')}`;
-    const rect=canvas.getBoundingClientRect();
-    const cW=rect.width-PAD.left-PAD.right;
-    const xp=PAD.left+(idx/(n-1||1))*cW;
-    const ch=$('modalCrosshair');
-    ch.style.display='block';
-    ch.style.left=(rect.left-canvas.parentElement.getBoundingClientRect().left+xp)+'px';
+    const rect=canvas.getBoundingClientRect(),cW=rect.width-PAD.left-PAD.right,xp=PAD.left+(idx/(n-1||1))*cW;
+    const ch=$('modalCrosshair');ch.style.display='block';ch.style.left=(rect.left-canvas.parentElement.getBoundingClientRect().left+xp)+'px';
   };
-  canvas.onmouseleave=()=>{
-    drawModalChart(canvas,series,opts,data,null);
-    $('modalTooltip').innerHTML='';
-    $('modalCrosshair').style.display='none';
-  };
+  canvas.onmouseleave=()=>{drawModalChart(canvas,series,opts,data,null);$('modalTooltip').innerHTML='';$('modalCrosshair').style.display='none';};
 }
 
-function closeModal(e){
-  if(e&&e.target!==$('chartModal'))return;
-  $('chartModal').style.display='none';
-  const canvas=$('modalCanvas');
-  if(canvas){canvas.onmousemove=null;canvas.onmouseleave=null;}
-}
+function closeModal(e){if(e&&e.target!==$('chartModal'))return;$('chartModal').style.display='none';const canvas=$('modalCanvas');if(canvas){canvas.onmousemove=null;canvas.onmouseleave=null;}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('chartModal').style.display='none';});
 
-// ══════════════════════════════════════════════════════════════
-// PROJECTOR STATE PERSISTENCE
-// ══════════════════════════════════════════════════════════════
-const PROJ_FIELDS = ['pOrders','pCplh','pRev'];
-
+const PROJ_FIELDS=['pOrders','pCplh','pRev'];
 function saveProjectorState(){
-  // Save projector fields, OPH slider, AND all dept % values together
-  const state = {
-    oph: currentOph,
-    fields: Object.fromEntries(PROJ_FIELDS.map(id=>[ id, $(id)?.value||'' ])),
-    depts: Object.fromEntries(DEPTS.map(d=>{
-      const el = document.querySelector(`.dept-pct[data-dept="${d}"]`);
-      return [d, el ? (el.value||'') : ''];
-    }))
-  };
-  try{ localStorage.setItem('atx_proj_state', JSON.stringify(state)); }catch(e){}
+  const state={oph:currentOph,fields:Object.fromEntries(PROJ_FIELDS.map(id=>[id,$(id)?.value||''])),depts:Object.fromEntries(DEPTS.map(d=>{const el=document.querySelector(`.dept-pct[data-dept="${d}"]`);return[d,el?(el.value||''):''];}))};
+  try{localStorage.setItem('atx_proj_state',JSON.stringify(state));}catch(e){}
 }
-
 function loadProjectorState(){
   try{
-    const s = JSON.parse(localStorage.getItem('atx_proj_state')||'{}');
-
-    // Restore projector top fields
-    if(s.fields) PROJ_FIELDS.forEach(id=>{ if($(id) && s.fields[id]) $(id).value = s.fields[id]; });
-
-    // Restore OPH slider
-    if(s.oph && s.oph >= 2 && s.oph <= 30){
-      currentOph = s.oph;
-      $('pOphSlider').value = s.oph;
-      $('ophDialVal').textContent = s.oph.toFixed(1);
-    }
-
-    // Restore dept % values — this is the key fix
-    if(s.depts){
-      DEPTS.forEach(d=>{
-        const el = document.querySelector(`.dept-pct[data-dept="${d}"]`);
-        if(el && s.depts[d] !== undefined && s.depts[d] !== ''){
-          el.value = s.depts[d];
-        }
-      });
-      // Recalculate dept breakdown with restored values
-      deptCalc();
-    }
+    const s=JSON.parse(localStorage.getItem('atx_proj_state')||'{}');
+    if(s.fields)PROJ_FIELDS.forEach(id=>{if($(id)&&s.fields[id])$(id).value=s.fields[id];});
+    if(s.oph&&s.oph>=2&&s.oph<=30){currentOph=s.oph;$('pOphSlider').value=s.oph;$('ophDialVal').textContent=s.oph.toFixed(1);}
+    if(s.depts){DEPTS.forEach(d=>{const el=document.querySelector(`.dept-pct[data-dept="${d}"]`);if(el&&s.depts[d]!==undefined&&s.depts[d]!==''){el.value=s.depts[d];}});deptCalc();}
   }catch(e){}
 }
 
-// ══════════════════════════════════════════════════════════════
-// BOOT
-// ══════════════════════════════════════════════════════════════
-window.addEventListener('load', ()=>{
-  const d = new Date(); d.setDate(d.getDate()-7);
-  $('aDate').value = d.toISOString().slice(0,10);
-
-  $('aSpend').placeholder  = `avg $${H_AVG_SPEND.toLocaleString()}`;
-  $('aOrders').placeholder = `avg ${H_AVG_ORDERS.toLocaleString()}`;
-  $('pOrders').placeholder = `avg ${LAST8_ORDERS.toLocaleString()} (L8)`;
-  $('pCplh').placeholder   = 'e.g. 17.50';
-
-  renderTrendChart();
-  renderHistory();
-
-  // Restore all projector state including dept %s
-  loadProjectorState();
-  // Run calc AFTER state is loaded so dept values are hydrated
-  projectCalc();
-
-  window.addEventListener('resize', ()=>{
-    if(document.getElementById('page-history').classList.contains('active')) renderHistory();
-  });
-
+window.addEventListener('load',()=>{
+  const d=new Date();d.setDate(d.getDate()-7);$('aDate').value=d.toISOString().slice(0,10);
+  $('aSpend').placeholder=`avg $${H_AVG_SPEND.toLocaleString()}`;
+  $('aOrders').placeholder=`avg ${H_AVG_ORDERS.toLocaleString()}`;
+  $('pOrders').placeholder=`avg ${LAST8_ORDERS.toLocaleString()} (L8)`;
+  $('pCplh').placeholder='e.g. 17.50';
+  renderTrendChart();renderHistory();loadProjectorState();projectCalc();
+  window.addEventListener('resize',()=>{if(document.getElementById('page-history').classList.contains('active'))renderHistory();});
   const ophW=allWeeks().filter(r=>r.hours&&r.orders);
   const ophA=ophW.length?ophW.reduce((s,r)=>s+(r.orders/r.hours),0)/ophW.length:null;
   const gVal=ophA||12.6;
   const g=$('ophGhostAvg'),gl=$('ophGhostLbl');
-  if(g) g.textContent=gVal.toFixed(1);
-  if(gl) gl.textContent=ophA?`avg ${ophA.toFixed(1)} (logged)`:`avg ${gVal.toFixed(1)} (implied)`;
+  if(g)g.textContent=gVal.toFixed(1);if(gl)gl.textContent=ophA?`avg ${ophA.toFixed(1)} (logged)`:`avg ${gVal.toFixed(1)} (implied)`;
 });
 
 const styleEl=document.createElement('style');
