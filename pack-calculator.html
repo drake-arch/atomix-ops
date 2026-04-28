@@ -6,24 +6,24 @@
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    margin: 0;
-    padding: 16px;
-    background: #fafaf7;
-    color: #1a1a1a;
-    font-size: 14px;
-  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; margin: 0; padding: 16px; background: #fafaf7; color: #1a1a1a; font-size: 14px; }
   h1 { font-size: 18px; margin: 0 0 4px; font-weight: 600; }
   .subtitle { color: #666; font-size: 12px; margin-bottom: 16px; }
   .controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; align-items: end; }
   .control { display: flex; flex-direction: column; gap: 2px; }
   .control label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: .03em; font-weight: 600; }
   .control input { width: 90px; padding: 6px 8px; font-size: 13px; border: 1px solid #d4d4d4; border-radius: 4px; background: #fff; }
-  button { padding: 7px 12px; font-size: 13px; font-weight: 500; border: 1px solid #c4c4c4; border-radius: 4px; background: #fff; cursor: pointer; }
-  button:hover { background: #f0f0f0; }
+  button, .file-label { padding: 7px 12px; font-size: 13px; font-weight: 500; border: 1px solid #c4c4c4; border-radius: 4px; background: #fff; cursor: pointer; display: inline-block; }
+  button:hover, .file-label:hover { background: #f0f0f0; }
   button.primary { background: #2c5282; color: #fff; border-color: #2c5282; }
   button.primary:hover { background: #234269; }
+  .file-label { background: #2c5282; color: #fff; border-color: #2c5282; }
+  .file-label:hover { background: #234269; }
+  .upload-status { margin-bottom: 12px; padding: 8px 12px; border-radius: 4px; font-size: 12px; display: none; }
+  .upload-status.show { display: block; }
+  .upload-status.success { background: #f0fdf4; color: #276749; border: 1px solid #bbf7d0; }
+  .upload-status.error { background: #fef2f2; color: #c53030; border: 1px solid #fecaca; }
+  .upload-status.info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
   .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
   .stat { background: #fff; border: 1px solid #e4e4e4; border-radius: 6px; padding: 10px 12px; }
   .stat .num { font-size: 20px; font-weight: 600; color: #1a1a1a; }
@@ -38,8 +38,11 @@
   tr:hover { background: #fafaf7; }
   tr.has-volume { background: #fffbeb; }
   tr.has-volume:hover { background: #fff5d6; }
-  td input.qty { width: 70px; padding: 4px 6px; font-size: 13px; text-align: right; border: 1px solid #d4d4d4; border-radius: 3px; background: #fff; font-variant-numeric: tabular-nums; }
-  td input.qty:focus { outline: 2px solid #2c5282; outline-offset: -1px; border-color: #2c5282; }
+  td input.qty, td input.oph { padding: 4px 6px; font-size: 13px; text-align: right; border: 1px solid #d4d4d4; border-radius: 3px; background: #fff; font-variant-numeric: tabular-nums; }
+  td input.qty { width: 70px; }
+  td input.oph { width: 70px; }
+  td input.qty:focus, td input.oph:focus { outline: 2px solid #2c5282; outline-offset: -1px; border-color: #2c5282; }
+  td input.oph.edited { background: #fef9c3; border-color: #fde047; }
   .muted { color: #999; }
   .warn-bg { background: #fef2f2; }
   .warn-bg:hover { background: #fde8e8; }
@@ -55,12 +58,15 @@
 </head>
 <body>
 <h1>Rabot Pack Time Calculator</h1>
-<div class="subtitle">Enter today's orders per client. Pack rates baked in from the Rabot weekly client report.</div>
+<div class="subtitle">Enter today's orders per client (or upload a file). Pack rates editable inline and saved to this browser.</div>
 <div class="controls">
   <div class="control"><label>Productive Hrs / Person</label><input type="number" id="prodHrs" value="7" step="0.25" min="1"></div>
   <div class="control"><label>Support Overhead %</label><input type="number" id="supportPct" value="12" step="1" min="0"></div>
-  <button id="resetBtn">Reset volumes</button>
+  <label class="file-label">Upload orders (xlsx/csv)<input type="file" id="fileUpload" accept=".xlsx,.xls,.csv" style="display:none"></label>
+  <button id="resetVolumesBtn">Reset volumes</button>
+  <button id="resetRatesBtn">Reset rates to defaults</button>
 </div>
+<div class="upload-status" id="uploadStatus"></div>
 <div class="totals">
   <div class="stat"><div class="num" id="totalOrders">0</div><div class="label">Total Orders</div></div>
   <div class="stat"><div class="num" id="totalPackHrs">0.00</div><div class="label">Pack Hours</div></div>
@@ -81,16 +87,35 @@
   <textarea id="pasteBox" placeholder="Kinders, 320&#10;IQ Bar 280"></textarea>
   <div class="paste-actions"><button class="primary" id="applyPaste">Apply</button><span class="feedback" id="pasteFeedback"></span></div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-const RATES = [["Kinders",53.54],["IQ Bar",53.88],["Stakt",51.07],["Brow Code",40.67],["Ryker Clothing Co",54.02],["Frejanyc",44.22],["Omni",31.49],["Dandylion",26.75],["Teaching Channel",57.81],["Dailies",33.98],["Cleverpup",37.54],["Mart Cobra",25.04],["Breath Death",35.52],["Greenleaf Blends",64.37],["Whereafter",48.45],["Kiwi Lane Designs",33.97],["Veil Garments",59.55],["Covixyl",30.76],["Battle Bars",29.66],["Bindrz",19.86],["Crazy Mountain",14.18],["Nooci",36.24],["MMR Beauty",13.68],["Glumur",57.84],["PJs by PJ",49.02],["XeroStrip",43.09],["Pirooz Co",13.02],["Phoenix Goods",45.00],["Bootsnakes",28.09],["Humantonik",19.61],["Forme",32.62],["Fredbars",48.43],["Ground Luxe",37.59],["DripStick",35.23],["Range Fit",28.00],["Door County Cannabis",32.64],["Guise",26.43],["Kint Cosmetics",28.82],["Stratus",38.37],["Bee Babe Co.",70.00],["Common Sense Ingenuity",45.28],["Liomen",64.86],["Hako",15.25],["Kaimana Productions",20.97],["Desi Paws",15.63],["Magnolia-Star Baking Supply Co.",58.06],["Healthy Cows",14.12],["Yuumei Art",20.57],["Lovet Planners",31.44],["Go Swag",15.86]];
-const state = RATES.map(([name, oph], i) => ({ id: i, name, oph, orders: 0 }));
+const DEFAULT_RATES = [["Kinders",53.54],["IQ Bar",53.88],["Stakt",51.07],["Brow Code",40.67],["Ryker Clothing Co",54.02],["Frejanyc",44.22],["Omni",31.49],["Dandylion",26.75],["Teaching Channel",57.81],["Dailies",33.98],["Cleverpup",37.54],["Mart Cobra",25.04],["Breath Death",35.52],["Greenleaf Blends",64.37],["Whereafter",48.45],["Kiwi Lane Designs",33.97],["Veil Garments",59.55],["Covixyl",30.76],["Battle Bars",29.66],["Bindrz",19.86],["Crazy Mountain",14.18],["Nooci",36.24],["MMR Beauty",13.68],["Glumur",57.84],["PJs by PJ",49.02],["XeroStrip",43.09],["Pirooz Co",13.02],["Phoenix Goods",45.00],["Bootsnakes",28.09],["Humantonik",19.61],["Forme",32.62],["Fredbars",48.43],["Ground Luxe",37.59],["DripStick",35.23],["Range Fit",28.00],["Door County Cannabis",32.64],["Guise",26.43],["Kint Cosmetics",28.82],["Stratus",38.37],["Bee Babe Co.",70.00],["Common Sense Ingenuity",45.28],["Liomen",64.86],["Hako",15.25],["Kaimana Productions",20.97],["Desi Paws",15.63],["Magnolia-Star Baking Supply Co.",58.06],["Healthy Cows",14.12],["Yuumei Art",20.57],["Lovet Planners",31.44],["Go Swag",15.86]];
+const STORAGE_KEY = "rabot_pack_rates_v1";
+function loadRates() { try { const stored = localStorage.getItem(STORAGE_KEY); if (stored) { const parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0) return parsed; } } catch (e) {} return DEFAULT_RATES.map(([name, oph]) => ({ name, oph, edited: false })); }
+function saveRates() { try { const data = state.map(r => ({ name: r.name, oph: r.oph, edited: r.edited })); localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {} }
+const initialRates = loadRates();
+const state = initialRates.map((r, i) => ({ id: i, name: r.name, oph: r.oph, defaultOph: (DEFAULT_RATES[i] && DEFAULT_RATES[i][0] === r.name) ? DEFAULT_RATES[i][1] : r.oph, edited: !!r.edited, orders: 0 }));
 let sortKey = "orders"; let sortDir = -1;
 const tbody = document.getElementById("tbody");
 const prodHrsEl = document.getElementById("prodHrs");
 const supportPctEl = document.getElementById("supportPct");
-function fmt(n, d = 2) { if (!isFinite(n)) return "-"; return n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); }
+const statusEl = document.getElementById("uploadStatus");
+function showStatus(msg, type) { statusEl.textContent = msg; statusEl.className = "upload-status show " + (type || "info"); }
+function clearStatus() { statusEl.className = "upload-status"; }
+function fmt(n, d) { if (d === undefined) d = 2; if (!isFinite(n)) return "-"; return n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); }
 function calcRow(r) { const packHrs = r.oph > 0 ? r.orders / r.oph : 0; const supportMult = 1 + (parseFloat(supportPctEl.value) || 0) / 100; return { packHrs, finalHrs: packHrs * supportMult }; }
-function rowHTML(r) { const c = calcRow(r); const orders = r.orders || ""; const packCell = r.orders ? fmt(c.packHrs) : '<span class="muted">-</span>'; const finalCell = r.orders ? fmt(c.finalHrs) : '<span class="muted">-</span>'; return '<td>' + r.name + '</td><td class="num">' + fmt(r.oph, 2) + '</td><td class="num"><input type="number" class="qty" min="0" step="1" value="' + orders + '" data-id="' + r.id + '" placeholder="0"></td><td class="num">' + packCell + '</td><td class="num">' + finalCell + '</td>'; }
+function rowHTML(r) {
+  const c = calcRow(r);
+  const orders = r.orders || "";
+  const packCell = r.orders ? fmt(c.packHrs) : '<span class="muted">-</span>';
+  const finalCell = r.orders ? fmt(c.finalHrs) : '<span class="muted">-</span>';
+  const ophClass = r.edited ? "oph edited" : "oph";
+  return '<td>' + r.name + '</td>' +
+    '<td class="num"><input type="number" class="' + ophClass + '" min="0" step="0.01" value="' + r.oph + '" data-id="' + r.id + '" data-field="oph"></td>' +
+    '<td class="num"><input type="number" class="qty" min="0" step="1" value="' + orders + '" data-id="' + r.id + '" data-field="orders" placeholder="0"></td>' +
+    '<td class="num">' + packCell + '</td>' +
+    '<td class="num">' + finalCell + '</td>';
+}
 function render() {
   const sorted = [...state].sort((a, b) => {
     let av, bv;
@@ -123,12 +148,26 @@ function updateTotals() {
   document.getElementById("recHeads").textContent = totalFinalHrs > 0 ? Math.ceil(totalFinalHrs / prod) : 0;
 }
 tbody.addEventListener("input", (e) => {
-  if (e.target.classList.contains("qty")) {
-    const id = parseInt(e.target.dataset.id);
-    const v = parseFloat(e.target.value);
+  const t = e.target;
+  if (!t.dataset.id) return;
+  const id = parseInt(t.dataset.id);
+  const v = parseFloat(t.value);
+  const tr = t.closest("tr");
+  if (t.dataset.field === "orders") {
     state[id].orders = isNaN(v) || v < 0 ? 0 : v;
-    const tr = e.target.closest("tr");
     if (state[id].orders > 0) tr.classList.add("has-volume"); else tr.classList.remove("has-volume");
+    const c = calcRow(state[id]);
+    if (c.finalHrs > 8) tr.classList.add("warn-bg"); else tr.classList.remove("warn-bg");
+    const cells = tr.querySelectorAll("td.num");
+    cells[2].innerHTML = state[id].orders ? fmt(c.packHrs) : '<span class="muted">-</span>';
+    cells[3].innerHTML = state[id].orders ? fmt(c.finalHrs) : '<span class="muted">-</span>';
+    updateTotals();
+  } else if (t.dataset.field === "oph") {
+    const newOph = isNaN(v) || v <= 0 ? 0 : v;
+    state[id].oph = newOph;
+    state[id].edited = Math.abs(newOph - state[id].defaultOph) > 0.001;
+    if (state[id].edited) t.classList.add("edited"); else t.classList.remove("edited");
+    saveRates();
     const c = calcRow(state[id]);
     if (c.finalHrs > 8) tr.classList.add("warn-bg"); else tr.classList.remove("warn-bg");
     const cells = tr.querySelectorAll("td.num");
@@ -146,27 +185,120 @@ document.querySelectorAll("th[data-sort]").forEach(th => {
 });
 prodHrsEl.addEventListener("input", updateTotals);
 supportPctEl.addEventListener("input", render);
-document.getElementById("resetBtn").addEventListener("click", () => { state.forEach(r => r.orders = 0); render(); });
+document.getElementById("resetVolumesBtn").addEventListener("click", () => { state.forEach(r => r.orders = 0); render(); clearStatus(); });
+document.getElementById("resetRatesBtn").addEventListener("click", () => {
+  if (!confirm("Reset all pack rates to Rabot defaults? This will also clear your saved rate edits.")) return;
+  state.forEach((r, i) => { r.oph = DEFAULT_RATES[i][1]; r.defaultOph = DEFAULT_RATES[i][1]; r.edited = false; });
+  saveRates(); render();
+  showStatus("Pack rates reset to Rabot defaults.", "success");
+});
+function applyOrdersFromMap(orderMap) {
+  let matched = 0, unmatched = [];
+  for (const [name, count] of orderMap) {
+    const lower = name.toLowerCase().trim();
+    const target = state.find(r => r.name.toLowerCase() === lower) || state.find(r => r.name.toLowerCase().includes(lower) || lower.includes(r.name.toLowerCase()));
+    if (!target) { unmatched.push(name); continue; }
+    target.orders = isNaN(count) || count < 0 ? 0 : count;
+    matched++;
+  }
+  render();
+  return { matched, unmatched };
+}
 document.getElementById("applyPaste").addEventListener("click", () => {
   const txt = document.getElementById("pasteBox").value;
   const fb = document.getElementById("pasteFeedback");
   if (!txt.trim()) { fb.textContent = "Paste box is empty."; fb.className = "feedback error"; return; }
   const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  let matched = 0, unmatched = [];
+  const orderMap = []; const parseFails = [];
   for (const line of lines) {
     let m = line.match(/^(.+?)[,\t]\s*(-?\d+(?:\.\d+)?)\s*$/);
     if (!m) m = line.match(/^(.+?)\s+(-?\d+(?:\.\d+)?)\s*$/);
-    if (!m) { unmatched.push(line); continue; }
-    const name = m[1].trim().toLowerCase();
-    const orders = parseFloat(m[2]);
-    const target = state.find(r => r.name.toLowerCase() === name) || state.find(r => r.name.toLowerCase().includes(name) || name.includes(r.name.toLowerCase()));
-    if (!target) { unmatched.push(line); continue; }
-    target.orders = isNaN(orders) || orders < 0 ? 0 : orders;
-    matched++;
+    if (!m) { parseFails.push(line); continue; }
+    orderMap.push([m[1].trim(), parseFloat(m[2])]);
   }
-  render();
-  if (unmatched.length === 0) { fb.textContent = "Applied " + matched + " rows."; fb.className = "feedback success"; }
-  else { fb.textContent = "Applied " + matched + ". Unmatched: " + unmatched.slice(0, 3).join(" | ") + (unmatched.length > 3 ? " (+" + (unmatched.length - 3) + " more)" : ""); fb.className = "feedback error"; }
+  const { matched, unmatched } = applyOrdersFromMap(orderMap);
+  const allUnmatched = parseFails.concat(unmatched);
+  if (allUnmatched.length === 0) { fb.textContent = "Applied " + matched + " rows."; fb.className = "feedback success"; }
+  else { fb.textContent = "Applied " + matched + ". Unmatched: " + allUnmatched.slice(0, 3).join(" | ") + (allUnmatched.length > 3 ? " (+" + (allUnmatched.length - 3) + " more)" : ""); fb.className = "feedback error"; }
+});
+const CLIENT_HEADERS = ["client", "customer", "name", "account", "shop", "store", "brand"];
+const ORDER_HEADERS = ["orders", "order count", "order_count", "ordercount", "count", "volume", "qty", "quantity", "total orders", "shipments"];
+function detectColumns(rows) {
+  if (!rows || rows.length === 0) return null;
+  const headers = rows[0].map(h => String(h || "").trim().toLowerCase());
+  let clientIdx = -1, ordersIdx = -1;
+  for (let i = 0; i < headers.length; i++) {
+    const h = headers[i];
+    if (clientIdx === -1 && CLIENT_HEADERS.some(k => h === k || h.includes(k))) clientIdx = i;
+    if (ordersIdx === -1 && ORDER_HEADERS.some(k => h === k || h.includes(k))) ordersIdx = i;
+  }
+  if (clientIdx === -1 || ordersIdx === -1) {
+    const sampleRow = rows[1] || [];
+    for (let i = 0; i < sampleRow.length; i++) {
+      const v = sampleRow[i];
+      if (clientIdx === -1 && typeof v === "string" && v.trim()) clientIdx = i;
+      if (ordersIdx === -1 && (typeof v === "number" || (!isNaN(parseFloat(v)) && parseFloat(v) > 0))) ordersIdx = i;
+    }
+  }
+  return { clientIdx, ordersIdx, headers };
+}
+function processRows(rows) {
+  const det = detectColumns(rows);
+  if (!det || det.clientIdx === -1 || det.ordersIdx === -1) {
+    showStatus("Could not auto-detect client and order columns. Make sure your file has headers like 'Client' and 'Orders'.", "error");
+    return;
+  }
+  const orderMap = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const name = String(row[det.clientIdx] || "").trim();
+    const count = parseFloat(row[det.ordersIdx]);
+    if (!name || isNaN(count)) continue;
+    orderMap.push([name, count]);
+  }
+  if (orderMap.length === 0) { showStatus("No usable rows found in the file.", "error"); return; }
+  const { matched, unmatched } = applyOrdersFromMap(orderMap);
+  const headerInfo = "Detected: '" + det.headers[det.clientIdx] + "' (client), '" + det.headers[det.ordersIdx] + "' (orders).";
+  if (unmatched.length === 0) { showStatus(headerInfo + " Applied " + matched + " rows.", "success"); }
+  else { showStatus(headerInfo + " Applied " + matched + ". Unmatched: " + unmatched.slice(0, 5).join(", ") + (unmatched.length > 5 ? " (+" + (unmatched.length - 5) + " more)" : ""), "info"); }
+}
+document.getElementById("fileUpload").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const ext = file.name.split(".").pop().toLowerCase();
+  showStatus("Reading " + file.name + "...", "info");
+  const reader = new FileReader();
+  if (ext === "csv") {
+    reader.onload = (ev) => {
+      const text = ev.target.result;
+      const rows = text.split(/\r?\n/).filter(l => l.trim()).map(line => {
+        const out = []; let cur = ""; let inQ = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') { if (inQ && line[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+          else if (ch === "," && !inQ) { out.push(cur); cur = ""; }
+          else cur += ch;
+        }
+        out.push(cur);
+        return out.map(v => { const n = parseFloat(v); return (!isNaN(n) && v.trim() !== "" && /^-?\d+(\.\d+)?$/.test(v.trim())) ? n : v.trim(); });
+      });
+      processRows(rows);
+      e.target.value = "";
+    };
+    reader.readAsText(file);
+  } else if (ext === "xlsx" || ext === "xls") {
+    reader.onload = (ev) => {
+      try {
+        const data = new Uint8Array(ev.target.result);
+        const wb = XLSX.read(data, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+        processRows(rows);
+      } catch (err) { showStatus("Error reading Excel file: " + err.message, "error"); }
+      e.target.value = "";
+    };
+    reader.readAsArrayBuffer(file);
+  } else { showStatus("Unsupported file type. Use .xlsx, .xls, or .csv.", "error"); e.target.value = ""; }
 });
 render();
 </script>
