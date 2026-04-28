@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rabot Pack Time Calculator</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #fafaf7;
+    color: #1a1a1a;
+    font-size: 14px;
+  }
+  h1 { font-size: 18px; margin: 0 0 4px; font-weight: 600; }
+  .subtitle { color: #666; font-size: 12px; margin-bottom: 16px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; align-items: end; }
+  .control { display: flex; flex-direction: column; gap: 2px; }
+  .control label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: .03em; font-weight: 600; }
+  .control input { width: 90px; padding: 6px 8px; font-size: 13px; border: 1px solid #d4d4d4; border-radius: 4px; background: #fff; }
+  button { padding: 7px 12px; font-size: 13px; font-weight: 500; border: 1px solid #c4c4c4; border-radius: 4px; background: #fff; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button.primary { background: #2c5282; color: #fff; border-color: #2c5282; }
+  button.primary:hover { background: #234269; }
+  .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat { background: #fff; border: 1px solid #e4e4e4; border-radius: 6px; padding: 10px 12px; }
+  .stat .num { font-size: 20px; font-weight: 600; color: #1a1a1a; }
+  .stat .label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: .03em; font-weight: 600; }
+  .stat.highlight { background: #2c5282; color: #fff; border-color: #2c5282; }
+  .stat.highlight .num, .stat.highlight .label { color: #fff; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e4e4e4; border-radius: 6px; overflow: hidden; font-size: 13px; }
+  th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+  th { background: #f4f4f0; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; font-weight: 600; color: #555; cursor: pointer; user-select: none; }
+  th:hover { background: #ebebe6; }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:hover { background: #fafaf7; }
+  tr.has-volume { background: #fffbeb; }
+  tr.has-volume:hover { background: #fff5d6; }
+  td input.qty { width: 70px; padding: 4px 6px; font-size: 13px; text-align: right; border: 1px solid #d4d4d4; border-radius: 3px; background: #fff; font-variant-numeric: tabular-nums; }
+  td input.qty:focus { outline: 2px solid #2c5282; outline-offset: -1px; border-color: #2c5282; }
+  .muted { color: #999; }
+  .warn-bg { background: #fef2f2; }
+  .warn-bg:hover { background: #fde8e8; }
+  .paste-section { margin-top: 16px; padding: 12px; background: #fff; border: 1px solid #e4e4e4; border-radius: 6px; }
+  .paste-section h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+  .paste-section p { margin: 0 0 8px; color: #666; font-size: 12px; }
+  textarea { width: 100%; min-height: 80px; padding: 8px; font-family: ui-monospace, "SF Mono", Monaco, Consolas, monospace; font-size: 12px; border: 1px solid #d4d4d4; border-radius: 4px; resize: vertical; }
+  .paste-actions { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .feedback { font-size: 12px; color: #666; }
+  .feedback.error { color: #c53030; }
+  .feedback.success { color: #276749; }
+</style>
+</head>
+<body>
+<h1>Rabot Pack Time Calculator</h1>
+<div class="subtitle">Enter today's orders per client. Pack rates baked in from the Rabot weekly client report.</div>
+<div class="controls">
+  <div class="control"><label>Productive Hrs / Person</label><input type="number" id="prodHrs" value="7" step="0.25" min="1"></div>
+  <div class="control"><label>Support Overhead %</label><input type="number" id="supportPct" value="12" step="1" min="0"></div>
+  <button id="resetBtn">Reset volumes</button>
+</div>
+<div class="totals">
+  <div class="stat"><div class="num" id="totalOrders">0</div><div class="label">Total Orders</div></div>
+  <div class="stat"><div class="num" id="totalPackHrs">0.00</div><div class="label">Pack Hours</div></div>
+  <div class="stat"><div class="num" id="totalFinalHrs">0.00</div><div class="label">+ Support Hrs</div></div>
+  <div class="stat highlight"><div class="num" id="recHeads">0</div><div class="label">Recommended Heads</div></div>
+  <div class="stat"><div class="num" id="activeClients">0</div><div class="label">Active Clients</div></div>
+</div>
+<table id="grid"><thead><tr>
+  <th data-sort="name">Client</th>
+  <th class="num" data-sort="oph">Pack OPH</th>
+  <th class="num" data-sort="orders">Today's Orders</th>
+  <th class="num" data-sort="hrs">Pack Hrs</th>
+  <th class="num" data-sort="final">+ Support</th>
+</tr></thead><tbody id="tbody"></tbody></table>
+<div class="paste-section">
+  <h3>Bulk paste volumes</h3>
+  <p>Paste "Client Name, Orders" (one per line). Names are case-insensitive and partial-match.</p>
+  <textarea id="pasteBox" placeholder="Kinders, 320&#10;IQ Bar 280"></textarea>
+  <div class="paste-actions"><button class="primary" id="applyPaste">Apply</button><span class="feedback" id="pasteFeedback"></span></div>
+</div>
+<script>
+const RATES = [["Kinders",53.54],["IQ Bar",53.88],["Stakt",51.07],["Brow Code",40.67],["Ryker Clothing Co",54.02],["Frejanyc",44.22],["Omni",31.49],["Dandylion",26.75],["Teaching Channel",57.81],["Dailies",33.98],["Cleverpup",37.54],["Mart Cobra",25.04],["Breath Death",35.52],["Greenleaf Blends",64.37],["Whereafter",48.45],["Kiwi Lane Designs",33.97],["Veil Garments",59.55],["Covixyl",30.76],["Battle Bars",29.66],["Bindrz",19.86],["Crazy Mountain",14.18],["Nooci",36.24],["MMR Beauty",13.68],["Glumur",57.84],["PJs by PJ",49.02],["XeroStrip",43.09],["Pirooz Co",13.02],["Phoenix Goods",45.00],["Bootsnakes",28.09],["Humantonik",19.61],["Forme",32.62],["Fredbars",48.43],["Ground Luxe",37.59],["DripStick",35.23],["Range Fit",28.00],["Door County Cannabis",32.64],["Guise",26.43],["Kint Cosmetics",28.82],["Stratus",38.37],["Bee Babe Co.",70.00],["Common Sense Ingenuity",45.28],["Liomen",64.86],["Hako",15.25],["Kaimana Productions",20.97],["Desi Paws",15.63],["Magnolia-Star Baking Supply Co.",58.06],["Healthy Cows",14.12],["Yuumei Art",20.57],["Lovet Planners",31.44],["Go Swag",15.86]];
+const state = RATES.map(([name, oph], i) => ({ id: i, name, oph, orders: 0 }));
+let sortKey = "orders"; let sortDir = -1;
+const tbody = document.getElementById("tbody");
+const prodHrsEl = document.getElementById("prodHrs");
+const supportPctEl = document.getElementById("supportPct");
+function fmt(n, d = 2) { if (!isFinite(n)) return "-"; return n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function calcRow(r) { const packHrs = r.oph > 0 ? r.orders / r.oph : 0; const supportMult = 1 + (parseFloat(supportPctEl.value) || 0) / 100; return { packHrs, finalHrs: packHrs * supportMult }; }
+function rowHTML(r) { const c = calcRow(r); const orders = r.orders || ""; const packCell = r.orders ? fmt(c.packHrs) : '<span class="muted">-</span>'; const finalCell = r.orders ? fmt(c.finalHrs) : '<span class="muted">-</span>'; return '<td>' + r.name + '</td><td class="num">' + fmt(r.oph, 2) + '</td><td class="num"><input type="number" class="qty" min="0" step="1" value="' + orders + '" data-id="' + r.id + '" placeholder="0"></td><td class="num">' + packCell + '</td><td class="num">' + finalCell + '</td>'; }
+function render() {
+  const sorted = [...state].sort((a, b) => {
+    let av, bv;
+    if (sortKey === "name") { av = a.name.toLowerCase(); bv = b.name.toLowerCase(); }
+    else if (sortKey === "oph") { av = a.oph; bv = b.oph; }
+    else if (sortKey === "orders") { av = a.orders; bv = b.orders; }
+    else if (sortKey === "hrs") { av = calcRow(a).packHrs; bv = calcRow(b).packHrs; }
+    else if (sortKey === "final") { av = calcRow(a).finalHrs; bv = calcRow(b).finalHrs; }
+    if (av < bv) return -sortDir; if (av > bv) return sortDir; return 0;
+  });
+  tbody.innerHTML = "";
+  for (const r of sorted) {
+    const c = calcRow(r);
+    const tr = document.createElement("tr");
+    if (r.orders > 0) tr.classList.add("has-volume");
+    if (c.finalHrs > 8) tr.classList.add("warn-bg");
+    tr.innerHTML = rowHTML(r);
+    tbody.appendChild(tr);
+  }
+  updateTotals();
+}
+function updateTotals() {
+  let totalOrders = 0, totalPackHrs = 0, totalFinalHrs = 0, activeClients = 0;
+  for (const r of state) { const c = calcRow(r); totalOrders += r.orders; totalPackHrs += c.packHrs; totalFinalHrs += c.finalHrs; if (r.orders > 0) activeClients++; }
+  document.getElementById("totalOrders").textContent = totalOrders.toLocaleString();
+  document.getElementById("totalPackHrs").textContent = fmt(totalPackHrs);
+  document.getElementById("totalFinalHrs").textContent = fmt(totalFinalHrs);
+  document.getElementById("activeClients").textContent = activeClients;
+  const prod = parseFloat(prodHrsEl.value) || 7;
+  document.getElementById("recHeads").textContent = totalFinalHrs > 0 ? Math.ceil(totalFinalHrs / prod) : 0;
+}
+tbody.addEventListener("input", (e) => {
+  if (e.target.classList.contains("qty")) {
+    const id = parseInt(e.target.dataset.id);
+    const v = parseFloat(e.target.value);
+    state[id].orders = isNaN(v) || v < 0 ? 0 : v;
+    const tr = e.target.closest("tr");
+    if (state[id].orders > 0) tr.classList.add("has-volume"); else tr.classList.remove("has-volume");
+    const c = calcRow(state[id]);
+    if (c.finalHrs > 8) tr.classList.add("warn-bg"); else tr.classList.remove("warn-bg");
+    const cells = tr.querySelectorAll("td.num");
+    cells[2].innerHTML = state[id].orders ? fmt(c.packHrs) : '<span class="muted">-</span>';
+    cells[3].innerHTML = state[id].orders ? fmt(c.finalHrs) : '<span class="muted">-</span>';
+    updateTotals();
+  }
+});
+document.querySelectorAll("th[data-sort]").forEach(th => {
+  th.addEventListener("click", () => {
+    const k = th.dataset.sort;
+    if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = (k === "name") ? 1 : -1; }
+    render();
+  });
+});
+prodHrsEl.addEventListener("input", updateTotals);
+supportPctEl.addEventListener("input", render);
+document.getElementById("resetBtn").addEventListener("click", () => { state.forEach(r => r.orders = 0); render(); });
+document.getElementById("applyPaste").addEventListener("click", () => {
+  const txt = document.getElementById("pasteBox").value;
+  const fb = document.getElementById("pasteFeedback");
+  if (!txt.trim()) { fb.textContent = "Paste box is empty."; fb.className = "feedback error"; return; }
+  const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  let matched = 0, unmatched = [];
+  for (const line of lines) {
+    let m = line.match(/^(.+?)[,\t]\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (!m) m = line.match(/^(.+?)\s+(-?\d+(?:\.\d+)?)\s*$/);
+    if (!m) { unmatched.push(line); continue; }
+    const name = m[1].trim().toLowerCase();
+    const orders = parseFloat(m[2]);
+    const target = state.find(r => r.name.toLowerCase() === name) || state.find(r => r.name.toLowerCase().includes(name) || name.includes(r.name.toLowerCase()));
+    if (!target) { unmatched.push(line); continue; }
+    target.orders = isNaN(orders) || orders < 0 ? 0 : orders;
+    matched++;
+  }
+  render();
+  if (unmatched.length === 0) { fb.textContent = "Applied " + matched + " rows."; fb.className = "feedback success"; }
+  else { fb.textContent = "Applied " + matched + ". Unmatched: " + unmatched.slice(0, 3).join(" | ") + (unmatched.length > 3 ? " (+" + (unmatched.length - 3) + " more)" : ""); fb.className = "feedback error"; }
+});
+render();
+</script>
+</body>
+</html>
