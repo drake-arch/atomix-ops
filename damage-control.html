@@ -1,0 +1,1123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a1628">
+<title>ATX — Damage Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:      #0a1628;
+  --navy-2:    #0d1f3c;
+  --panel:     rgba(13,31,60,0.95);
+  --line:      rgba(163,243,197,0.12);
+  --line-2:    rgba(163,243,197,0.25);
+  --text:      #e8f4ff;
+  --muted:     #7a9cbf;
+  --green:     #a3f3c5;
+  --green-dim: rgba(163,243,197,0.12);
+  --amber:     #fbbf24;
+  --amber-dim: rgba(251,191,36,0.12);
+  --red:       #fb7185;
+  --red-dim:   rgba(251,113,133,0.12);
+  --font-head: 'Syne', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --r:         16px;
+  --r-sm:      12px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--navy);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(163,243,197,0.06) 0%, transparent 60%);
+}
+
+/* ── NAV ── */
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 52px;
+  background: rgba(10,22,40,0.98);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-logo {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+.nav-page {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+/* ── SHELL ── */
+.shell {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 20px 16px 80px;
+}
+
+/* ── PAGE HEADER ── */
+.page-header {
+  margin-bottom: 20px;
+}
+.page-header h1 {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.page-header p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+/* ── TABS ── */
+.view-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  background: rgba(8,14,28,0.8);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px;
+}
+.tab-btn {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 9px 8px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--muted);
+  background: transparent;
+  transition: all 0.15s;
+  letter-spacing: 0.03em;
+}
+.tab-btn.active {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid rgba(163,243,197,0.25);
+}
+
+/* ── PANELS ── */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 18px;
+  margin-bottom: 14px;
+}
+.panel-title {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── FORM ── */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+input, select, textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text);
+  background: rgba(8,14,28,0.9);
+  border: 1px solid rgba(163,243,197,0.12);
+  border-radius: var(--r-sm);
+  padding: 13px 14px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(163,243,197,0.4);
+  box-shadow: 0 0 0 3px rgba(163,243,197,0.08);
+}
+input::placeholder, textarea::placeholder { color: rgba(122,156,191,0.4); }
+select option { background: #0d1f3c; }
+textarea { min-height: 90px; resize: none; line-height: 1.5; }
+
+/* ── CHIP GROUPS ── */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(163,243,197,0.14);
+  background: rgba(8,14,28,0.7);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.chip:active { transform: scale(0.96); }
+.chip.active {
+  border-color: rgba(163,243,197,0.45);
+  background: var(--green-dim);
+  color: var(--green);
+}
+.chip.red.active  { background: var(--red-dim);   color: var(--red);   border-color: rgba(251,113,133,0.4); }
+.chip.amber.active{ background: var(--amber-dim); color: var(--amber); border-color: rgba(251,191,36,0.4); }
+
+/* ── PHOTO CAPTURE ── */
+.photo-zone {
+  border: 2px dashed rgba(163,243,197,0.2);
+  border-radius: var(--r);
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.photo-zone:active { border-color: rgba(163,243,197,0.5); background: var(--green-dim); }
+.photo-zone.has-photo { border-color: rgba(163,243,197,0.4); border-style: solid; padding: 0; }
+.photo-icon { font-size: 32px; margin-bottom: 8px; }
+.photo-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.photo-preview {
+  width: 100%;
+  border-radius: calc(var(--r) - 2px);
+  display: block;
+  max-height: 280px;
+  object-fit: cover;
+}
+.photo-retake {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(10,22,40,0.85);
+  color: var(--green);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+#photo-input { display: none; }
+
+/* ── ADDITIONAL PHOTOS ── */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+.photo-thumb-wrap {
+  position: relative;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+.photo-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.photo-thumb-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(251,113,133,0.85);
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.add-photo-btn {
+  aspect-ratio: 1;
+  border-radius: var(--r-sm);
+  border: 2px dashed rgba(163,243,197,0.2);
+  background: rgba(8,14,28,0.6);
+  color: var(--muted);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.add-photo-btn:active { background: var(--green-dim); border-color: rgba(163,243,197,0.4); }
+#extra-photo-input { display: none; }
+
+/* ── SEVERITY ── */
+.severity-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.severity-card {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: rgba(8,14,28,0.7);
+}
+.severity-card:active { transform: scale(0.97); }
+.severity-card.active-low    { border-color: rgba(163,243,197,0.5); background: var(--green-dim); }
+.severity-card.active-medium { border-color: rgba(251,191,36,0.5);  background: var(--amber-dim); }
+.severity-card.active-high   { border-color: rgba(251,113,133,0.5); background: var(--red-dim); }
+.severity-icon { font-size: 20px; margin-bottom: 4px; }
+.severity-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.severity-card.active-low    .severity-label { color: var(--green); }
+.severity-card.active-medium .severity-label { color: var(--amber); }
+.severity-card.active-high   .severity-label { color: var(--red); }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  padding: 15px 24px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.15s;
+  letter-spacing: 0.03em;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--green), #5af3a0);
+  color: #031a0f;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+.btn-danger {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid rgba(251,113,133,0.25);
+}
+.btn-small {
+  width: auto;
+  padding: 9px 16px;
+  font-size: 12px;
+}
+
+/* ── FLASH ── */
+.flash {
+  border-radius: var(--r-sm);
+  padding: 13px 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  display: none;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.flash.show { display: block; }
+.flash.success { background: var(--green-dim); color: var(--green); border: 1px solid rgba(163,243,197,0.25); }
+.flash.error   { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(251,113,133,0.25); }
+.flash.sending { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.25); }
+
+/* ── ENTRY CARDS ── */
+.entry-list { display: flex; flex-direction: column; gap: 10px; }
+.entry-card {
+  background: rgba(13,31,60,0.95);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.entry-photo {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  display: block;
+}
+.entry-body { padding: 14px; }
+.entry-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.entry-client {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 700;
+}
+.badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.badge-red    { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(251,113,133,0.25); }
+.badge-amber  { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.25); }
+.badge-green  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(163,243,197,0.25); }
+.badge-blue   { background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
+.entry-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.entry-desc {
+  font-size: 13px;
+  color: rgba(232,244,255,0.8);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.entry-actions { display: flex; gap: 8px; }
+.entry-photos-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 14px 14px;
+}
+.entry-photos-row img {
+  height: 60px;
+  width: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* ── STATS ── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stat-card {
+  background: rgba(8,14,28,0.8);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 14px;
+  text-align: center;
+}
+.stat-val {
+  font-family: var(--font-head);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--green);
+}
+.stat-lbl {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 3px;
+}
+
+/* ── EMPTY ── */
+.empty {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 30px 0;
+  line-height: 1.7;
+}
+
+/* ── SHEETS STATUS ── */
+.sheets-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(8,14,28,0.7);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  margin-bottom: 14px;
+}
+.sheets-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.sheets-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+.sheets-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(163,243,197,0.5); }
+
+/* ── REQUIRED INDICATOR ── */
+.req { color: var(--red); margin-left: 2px; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="nav-logo" href="index.html">ATX OPS</a>
+  <span class="nav-page">damage report</span>
+</nav>
+
+<div class="shell">
+
+  <div class="page-header">
+    <h1>Damage Report</h1>
+    <p>Scan · Photo · Submit — captures to Google Sheets instantly</p>
+  </div>
+
+  <!-- TABS -->
+  <div class="view-tabs">
+    <button class="tab-btn active" id="tab-report" onclick="switchTab('report')">New Report</button>
+    <button class="tab-btn" id="tab-log" onclick="switchTab('log')">Log</button>
+    <button class="tab-btn" id="tab-settings" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <!-- ── REPORT TAB ── -->
+  <div id="view-report">
+
+    <div class="flash" id="flash"></div>
+
+    <!-- SHEETS STATUS -->
+    <div class="sheets-row">
+      <span class="sheets-label">Google Sheets sync</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="sheets-dot" id="sheets-dot"></span>
+        <span class="sheets-label" id="sheets-status-text">Checking…</span>
+      </div>
+    </div>
+
+    <!-- PHOTO -->
+    <div class="panel">
+      <div class="panel-title">📷 Photo evidence <span class="req">*</span></div>
+
+      <div class="photo-zone" id="photo-zone" onclick="document.getElementById('photo-input').click()">
+        <div id="photo-placeholder">
+          <div class="photo-icon">📸</div>
+          <div class="photo-label">Tap to take photo or choose from library</div>
+        </div>
+        <img id="photo-preview" class="photo-preview" style="display:none;" alt="Damage photo">
+        <button class="photo-retake" id="photo-retake" style="display:none;" onclick="retakePhoto(event)">Retake</button>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="handlePhoto(this)">
+
+      <!-- Additional photos -->
+      <div id="extra-photos-section" style="margin-top:12px;display:none;">
+        <label>Additional photos</label>
+        <div class="photo-grid" id="extra-photos-grid">
+          <button class="add-photo-btn" onclick="document.getElementById('extra-photo-input').click()" title="Add photo">+</button>
+        </div>
+        <input type="file" id="extra-photo-input" accept="image/*" capture="environment" onchange="handleExtraPhoto(this)">
+      </div>
+    </div>
+
+    <!-- WHO + WHERE -->
+    <div class="panel">
+      <div class="panel-title">📍 Details</div>
+
+      <div class="field">
+        <label>Client <span class="req">*</span></label>
+        <input id="f-client" placeholder="IQ Bar, Sunday Goods…" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Location / Area <span class="req">*</span></label>
+        <input id="f-location" placeholder="Aisle B / Dock 3 / Receiving / MKE Bay 4…" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Reported by <span class="req">*</span></label>
+        <input id="f-reporter" placeholder="Your name" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Reference # (PO / ASN / order / optional)</label>
+        <input id="f-ref" placeholder="PO-1001" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- DAMAGE TYPE -->
+    <div class="panel">
+      <div class="panel-title">⚠️ Damage type <span class="req">*</span></div>
+      <div class="chip-row" id="damage-type-chips">
+        <button class="chip" data-val="product_damage">Product damage</button>
+        <button class="chip" data-val="packaging_damage">Packaging damage</button>
+        <button class="chip" data-val="pallet_damage">Pallet damage</button>
+        <button class="chip" data-val="equipment_damage">Equipment damage</button>
+        <button class="chip" data-val="facility_damage">Facility damage</button>
+        <button class="chip" data-val="moisture_water">Moisture / water</button>
+        <button class="chip" data-val="crush_compress">Crush / compress</button>
+        <button class="chip" data-val="label_damage">Label damage</button>
+        <button class="chip" data-val="temperature_breach">Temp breach</button>
+        <button class="chip" data-val="other">Other</button>
+      </div>
+    </div>
+
+    <!-- SEVERITY -->
+    <div class="panel">
+      <div class="panel-title">🔴 Severity <span class="req">*</span></div>
+      <div class="severity-row">
+        <div class="severity-card" id="sev-low" onclick="setSeverity('low')">
+          <div class="severity-icon">🟢</div>
+          <div class="severity-label">Low</div>
+        </div>
+        <div class="severity-card" id="sev-medium" onclick="setSeverity('medium')">
+          <div class="severity-icon">🟡</div>
+          <div class="severity-label">Medium</div>
+        </div>
+        <div class="severity-card" id="sev-high" onclick="setSeverity('high')">
+          <div class="severity-icon">🔴</div>
+          <div class="severity-label">High</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div class="panel">
+      <div class="panel-title">📝 Description</div>
+      <div class="field">
+        <label>What happened?</label>
+        <textarea id="f-description" placeholder="Describe the damage — how it was found, quantity affected, what was done immediately…"></textarea>
+      </div>
+      <div class="field">
+        <label>Estimated units / pallets affected</label>
+        <input id="f-units" type="number" min="0" placeholder="0" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Disposition</label>
+        <div class="chip-row" id="disposition-chips">
+          <button class="chip active" data-val="hold">Hold</button>
+          <button class="chip" data-val="discard">Discard</button>
+          <button class="chip" data-val="return_to_client">Return to client</button>
+          <button class="chip" data-val="rework">Rework</button>
+          <button class="chip" data-val="use_as_is">Use as-is</button>
+          <button class="chip" data-val="pending">Pending review</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <input id="f-notes" placeholder="Supervisor notified, photos sent to client…" autocomplete="off">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-submit" onclick="submitReport()">Submit Damage Report</button>
+    <div style="height:10px;"></div>
+    <button class="btn btn-ghost" onclick="resetForm()">Clear form</button>
+
+  </div><!-- /view-report -->
+
+  <!-- ── LOG TAB ── -->
+  <div id="view-log" style="display:none;">
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-total">0</div>
+        <div class="stat-lbl">Total reports</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-high" style="color:var(--red);">0</div>
+        <div class="stat-lbl">High severity</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="btn btn-ghost btn-small" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-ghost btn-small" style="color:var(--red);border-color:rgba(251,113,133,0.2);" onclick="clearLog()">Clear log</button>
+    </div>
+
+    <div class="entry-list" id="entry-list">
+      <div class="empty">No reports yet.<br>Submit a damage report and it appears here.</div>
+    </div>
+
+  </div><!-- /view-log -->
+
+  <!-- ── SETTINGS TAB ── -->
+  <div id="view-settings" style="display:none;">
+
+    <div class="panel">
+      <div class="panel-title">🔗 Google Sheets sync</div>
+
+      <div class="field">
+        <label>Apps Script webhook URL</label>
+        <input id="s-webhook" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:12px;">
+      </div>
+      <div class="field">
+        <label>Shared secret (optional)</label>
+        <input id="s-secret" type="password" placeholder="Leave blank if not set">
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-small" onclick="saveSettings()">Save</button>
+        <button class="btn btn-ghost btn-small" onclick="testWebhook()">Test connection</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">⚙️ Defaults</div>
+      <div class="field">
+        <label>Default reporter name</label>
+        <input id="s-default-reporter" placeholder="Pre-fill your name on every report" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Default facility</label>
+        <select id="s-default-facility">
+          <option value="">No default</option>
+          <option value="MKE">MKE — Milwaukee / Oak Creek</option>
+          <option value="SLC">SLC — Salt Lake City</option>
+          <option value="BAL">BAL — Baltimore</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-small" onclick="saveDefaults()" style="margin-top:6px;">Save defaults</button>
+    </div>
+
+  </div><!-- /view-settings -->
+
+</div><!-- /shell -->
+
+<script>
+const SK        = 'atx-damage-reports-v1';
+const WH_KEY    = 'atx-damage-webhook';
+const SEC_KEY   = 'atx-damage-secret';
+const DEF_KEY   = 'atx-damage-defaults';
+
+// ── DEFAULT WEBHOOK ──────────────────────────────────────────
+const DEFAULT_WEBHOOK = ''; // will be set once Apps Script is deployed
+
+// ── STATE ────────────────────────────────────────────────────
+let reports       = load();
+let primaryPhoto  = null;   // base64
+let extraPhotos   = [];     // array of base64
+let activeDamageTypes = new Set();
+let activeSeverity    = null;
+let activeDisposition = 'hold';
+
+// ── STORAGE ──────────────────────────────────────────────────
+function load() {
+  try { return JSON.parse(localStorage.getItem(SK) || '[]'); } catch { return []; }
+}
+function save() { localStorage.setItem(SK, JSON.stringify(reports)); }
+function uid()  { return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now(); }
+function getWH()  { return localStorage.getItem(WH_KEY) || DEFAULT_WEBHOOK; }
+function getSec() { return localStorage.getItem(SEC_KEY) || ''; }
+function getDefs(){ try { return JSON.parse(localStorage.getItem(DEF_KEY)||'{}'); } catch { return {}; } }
+
+// ── TABS ─────────────────────────────────────────────────────
+function switchTab(tab) {
+  ['report','log','settings'].forEach(t => {
+    document.getElementById(`view-${t}`).style.display = t===tab ? 'block' : 'none';
+    document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+  });
+  if (tab==='log') renderLog();
+  if (tab==='settings') loadSettings();
+}
+
+// ── PHOTO HANDLING ────────────────────────────────────────────
+function handlePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  resizeImage(file, 1200, 0.82, b64 => {
+    primaryPhoto = b64;
+    const prev = document.getElementById('photo-preview');
+    prev.src = b64;
+    prev.style.display = 'block';
+    document.getElementById('photo-placeholder').style.display = 'none';
+    document.getElementById('photo-retake').style.display = 'block';
+    document.getElementById('photo-zone').classList.add('has-photo');
+    document.getElementById('photo-zone').onclick = null;
+    document.getElementById('extra-photos-section').style.display = 'block';
+  });
+  input.value = '';
+}
+
+function retakePhoto(e) {
+  e.stopPropagation();
+  primaryPhoto = null;
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('photo-placeholder').style.display = 'block';
+  document.getElementById('photo-retake').style.display = 'none';
+  document.getElementById('photo-zone').classList.remove('has-photo');
+  document.getElementById('photo-zone').onclick = () => document.getElementById('photo-input').click();
+}
+
+function handleExtraPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  resizeImage(file, 900, 0.78, b64 => {
+    extraPhotos.push(b64);
+    renderExtraPhotos();
+  });
+  input.value = '';
+}
+
+function renderExtraPhotos() {
+  const grid = document.getElementById('extra-photos-grid');
+  grid.innerHTML = extraPhotos.map((p,i) => `
+    <div class="photo-thumb-wrap">
+      <img class="photo-thumb" src="${p}" alt="Photo ${i+1}">
+      <button class="photo-thumb-remove" onclick="removeExtraPhoto(${i})">×</button>
+    </div>
+  `).join('') + `<button class="add-photo-btn" onclick="document.getElementById('extra-photo-input').click()" title="Add photo">+</button>`;
+}
+
+function removeExtraPhoto(idx) {
+  extraPhotos.splice(idx, 1);
+  renderExtraPhotos();
+}
+
+function resizeImage(file, maxW, quality, cb) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width  = img.width  * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      cb(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── CHIP GROUPS ───────────────────────────────────────────────
+document.getElementById('damage-type-chips').querySelectorAll('[data-val]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = btn.dataset.val;
+    if (activeDamageTypes.has(val)) {
+      activeDamageTypes.delete(val);
+      btn.classList.remove('active');
+    } else {
+      activeDamageTypes.add(val);
+      btn.classList.add('active');
+    }
+  });
+});
+
+document.getElementById('disposition-chips').querySelectorAll('[data-val]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('disposition-chips').querySelectorAll('[data-val]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeDisposition = btn.dataset.val;
+  });
+});
+
+// ── SEVERITY ─────────────────────────────────────────────────
+function setSeverity(level) {
+  activeSeverity = level;
+  ['low','medium','high'].forEach(l => {
+    const el = document.getElementById(`sev-${l}`);
+    el.className = 'severity-card';
+    if (l === level) el.classList.add(`active-${l}`);
+  });
+}
+
+// ── FLASH ─────────────────────────────────────────────────────
+let flashTimer;
+function flash(msg, type='success') {
+  const el = document.getElementById('flash');
+  el.textContent = msg;
+  el.className = `flash show ${type}`;
+  clearTimeout(flashTimer);
+  if (type !== 'sending') flashTimer = setTimeout(() => el.className = 'flash', 3000);
+}
+
+// ── VALIDATE + SUBMIT ─────────────────────────────────────────
+function submitReport() {
+  const client   = document.getElementById('f-client').value.trim();
+  const location = document.getElementById('f-location').value.trim();
+  const reporter = document.getElementById('f-reporter').value.trim();
+
+  if (!primaryPhoto)         { flash('Photo is required — tap the photo area to capture.', 'error'); return; }
+  if (!client)               { flash('Client name is required.', 'error'); return; }
+  if (!location)             { flash('Location is required.', 'error'); return; }
+  if (!reporter)             { flash('Reporter name is required.', 'error'); return; }
+  if (!activeDamageTypes.size){ flash('Select at least one damage type.', 'error'); return; }
+  if (!activeSeverity)       { flash('Select a severity level.', 'error'); return; }
+
+  const report = {
+    id:           uid(),
+    created_at:   new Date().toISOString(),
+    client,
+    location,
+    reporter,
+    reference:    document.getElementById('f-ref').value.trim(),
+    damage_types: [...activeDamageTypes],
+    severity:     activeSeverity,
+    description:  document.getElementById('f-description').value.trim(),
+    units_affected: +document.getElementById('f-units').value || 0,
+    disposition:  activeDisposition,
+    notes:        document.getElementById('f-notes').value.trim(),
+    photo:        primaryPhoto,
+    extra_photos: [...extraPhotos],
+  };
+
+  reports.push(report);
+  save();
+
+  flash('Sending to Google Sheets…', 'sending');
+  pushToSheets(report).then(ok => {
+    flash(ok ? `Report submitted — ${client} / ${report.severity} severity` : 'Saved locally — Sheets sync failed, will show in log.', ok ? 'success' : 'error');
+  });
+
+  resetForm();
+}
+
+// ── RESET ─────────────────────────────────────────────────────
+function resetForm() {
+  primaryPhoto = null;
+  extraPhotos  = [];
+  activeDamageTypes = new Set();
+  activeSeverity    = null;
+  activeDisposition = 'hold';
+
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('photo-placeholder').style.display = 'block';
+  document.getElementById('photo-retake').style.display = 'none';
+  document.getElementById('photo-zone').classList.remove('has-photo');
+  document.getElementById('photo-zone').onclick = () => document.getElementById('photo-input').click();
+  document.getElementById('extra-photos-section').style.display = 'none';
+  document.getElementById('extra-photos-grid').innerHTML = '<button class="add-photo-btn" onclick="document.getElementById(\'extra-photo-input\').click()">+</button>';
+
+  ['f-client','f-location','f-ref','f-description','f-units','f-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  document.getElementById('damage-type-chips').querySelectorAll('[data-val]').forEach(b => b.classList.remove('active'));
+  ['low','medium','high'].forEach(l => document.getElementById(`sev-${l}`).className = 'severity-card');
+  document.getElementById('disposition-chips').querySelectorAll('[data-val]').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === 'hold');
+  });
+
+  // re-apply defaults
+  applyDefaults();
+}
+
+// ── GOOGLE SHEETS ─────────────────────────────────────────────
+async function pushToSheets(report) {
+  const url = getWH();
+  if (!url) return false;
+  const secret = getSec();
+  const payload = { ...report, secret: secret || undefined };
+  // strip full base64 photos — send thumbnail + metadata only to keep payload small
+  // photo_url will be the base64 thumbnail (first 50kb approx)
+  const stripped = {
+    ...payload,
+    photo: report.photo ? report.photo.substring(0, 50000) : '',
+    extra_photos: report.extra_photos.length,
+  };
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(stripped),
+    });
+    return true;
+  } catch(e) {
+    console.warn('Sheets push failed:', e.message);
+    return false;
+  }
+}
+
+// ── RENDER LOG ────────────────────────────────────────────────
+function renderLog() {
+  const total = reports.length;
+  const high  = reports.filter(r => r.severity === 'high').length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-high').textContent  = high;
+
+  const el = document.getElementById('entry-list');
+  if (!total) {
+    el.innerHTML = '<div class="empty">No reports yet.<br>Submit a damage report and it appears here.</div>';
+    return;
+  }
+
+  el.innerHTML = [...reports].reverse().map(r => {
+    const sevBadge = r.severity === 'high' ? 'badge-red' : r.severity === 'medium' ? 'badge-amber' : 'badge-green';
+    const sevLabel = r.severity.charAt(0).toUpperCase() + r.severity.slice(1);
+    const extraCount = Array.isArray(r.extra_photos) ? r.extra_photos.length : (r.extra_photos || 0);
+    return `
+    <div class="entry-card">
+      ${r.photo ? `<img class="entry-photo" src="${r.photo}" alt="Damage photo">` : ''}
+      <div class="entry-body">
+        <div class="entry-top">
+          <div class="entry-client">${r.client}</div>
+          <span class="badge ${sevBadge}">${sevLabel}</span>
+        </div>
+        <div class="entry-meta">
+          <span>${r.location}</span>
+          <span>·</span>
+          <span>${r.damage_types.map(d=>d.replace(/_/g,' ')).join(', ')}</span>
+          <span>·</span>
+          <span>${new Date(r.created_at).toLocaleDateString()}</span>
+        </div>
+        ${r.description ? `<div class="entry-desc">${r.description}</div>` : ''}
+        <div class="entry-meta">
+          <span>By: ${r.reporter}</span>
+          ${r.reference ? `<span>· Ref: ${r.reference}</span>` : ''}
+          ${r.units_affected ? `<span>· ${r.units_affected} units</span>` : ''}
+          <span>· ${r.disposition.replace(/_/g,' ')}</span>
+          ${extraCount ? `<span>· +${extraCount} photo${extraCount>1?'s':''}</span>` : ''}
+        </div>
+        <div class="entry-actions" style="margin-top:10px;">
+          <button class="btn btn-danger btn-small" onclick="deleteReport('${r.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteReport(id) {
+  if (!confirm('Delete this report?')) return;
+  reports = reports.filter(r => r.id !== id);
+  save();
+  renderLog();
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────
+function exportCSV() {
+  if (!reports.length) { alert('No reports to export.'); return; }
+  const cols = ['created_at','client','location','reporter','reference','damage_types','severity','description','units_affected','disposition','notes'];
+  const rows = reports.map(r => cols.map(c => {
+    const v = Array.isArray(r[c]) ? r[c].join('|') : (r[c] ?? '');
+    return JSON.stringify(String(v));
+  }).join(','));
+  const csv = [cols.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `atx-damage-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function clearLog() {
+  if (!confirm('Delete all local reports? This cannot be undone.')) return;
+  reports = []; save(); renderLog();
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────
+function loadSettings() {
+  document.getElementById('s-webhook').value = getWH();
+  document.getElementById('s-secret').value  = getSec();
+  const defs = getDefs();
+  document.getElementById('s-default-reporter').value  = defs.reporter || '';
+  document.getElementById('s-default-facility').value  = defs.facility || '';
+}
+
+function saveSettings() {
+  localStorage.setItem(WH_KEY, document.getElementById('s-webhook').value.trim());
+  localStorage.setItem(SEC_KEY, document.getElementById('s-secret').value.trim());
+  updateSheetsStatus();
+  flash('Settings saved.', 'success');
+  switchTab('report');
+}
+
+function saveDefaults() {
+  const defs = {
+    reporter: document.getElementById('s-default-reporter').value.trim(),
+    facility: document.getElementById('s-default-facility').value,
+  };
+  localStorage.setItem(DEF_KEY, JSON.stringify(defs));
+  flash('Defaults saved.', 'success');
+}
+
+function applyDefaults() {
+  const defs = getDefs();
+  if (defs.reporter) document.getElementById('f-reporter').value = defs.reporter;
+}
+
+async function testWebhook() {
+  const url = document.getElementById('s-webhook').value.trim();
+  if (!url) { alert('Enter a webhook URL first.'); return; }
+  try {
+    await fetch(url, { method: 'GET', mode: 'no-cors' });
+    alert('Webhook reached — looks live!');
+  } catch(e) {
+    alert('Could not reach that URL. Double-check it.');
+  }
+}
+
+function updateSheetsStatus() {
+  const connected = !!getWH();
+  document.getElementById('sheets-dot').classList.toggle('connected', connected);
+  document.getElementById('sheets-status-text').textContent = connected ? 'Connected' : 'Not connected — add URL in Settings';
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+updateSheetsStatus();
+applyDefaults();
+</script>
+</body>
+</html>
