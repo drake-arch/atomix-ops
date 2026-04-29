@@ -734,7 +734,7 @@ button.btn:active { transform: translateY(0); }
         <div class="panel-head">
           <div>
             <div class="panel-title">Month-end rollup</div>
-            <div class="panel-sub">Per-client billing summary for Mitchell.</div>
+            <div class="panel-sub">Per-client billing summary for Hunter.</div>
           </div>
         </div>
         <div class="rollup-list" id="client-rollup">
@@ -756,21 +756,30 @@ button.btn:active { transform: translateY(0); }
         </div>
       </div>
 
-      <!-- EXPORT INFO -->
+      <!-- GOOGLE SHEETS SETTINGS -->
       <div class="panel">
         <div class="panel-head">
           <div>
-            <div class="panel-title">Export + automation</div>
-            <div class="panel-sub">Local-first. Wire to Sheets via Apps Script when ready.</div>
+            <div class="panel-title">Google Sheets sync</div>
+            <div class="panel-sub">Paste your Apps Script webhook URL to push every entry live to the sheet.</div>
           </div>
+          <span class="badge" id="sheets-status-badge" style="font-size:11px;padding:5px 10px;">Not connected</span>
         </div>
-        <div class="export-box">
-          <div class="export-label">CSV column order</div>
-          billing_month · client_name · category · subtype · reference_number · details · reasons · extra_minutes · fee_amount · cost_amount · supplies · quantity · disposition · entered_by · notes · created_at
+        <div class="field" style="margin-bottom:12px;">
+          <label for="webhook-url">Apps Script webhook URL</label>
+          <input id="webhook-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:12px;">
         </div>
-        <div style="margin-top:10px;" class="export-box">
-          <div class="export-label">Apps Script hookup</div>
-          Set GOOGLE_SHEETS_WEBHOOK_URL in your env and each saved entry will auto-append to the matching category tab. See google-apps-script/Code.gs in the source repo.
+        <div class="field" style="margin-bottom:14px;">
+          <label for="webhook-secret">Shared secret (optional)</label>
+          <input id="webhook-secret" type="password" placeholder="Leave blank if not set">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-secondary" id="btn-save-webhook" style="font-size:12px;padding:9px 16px;">Save settings</button>
+          <button class="btn btn-ghost" id="btn-test-webhook" style="font-size:12px;padding:9px 16px;">Test connection</button>
+        </div>
+        <div class="export-box" style="margin-top:14px;">
+          <div class="export-label">Sheet tab structure</div>
+          Master Rollup · Non-Compliant Inbounds · Expedited Work · Specific Purchases · Special Projects · Cold Storage · Other Exceptions · All Entries
         </div>
       </div>
 
@@ -1040,6 +1049,7 @@ document.getElementById('capture-form').addEventListener('submit', e=>{
   entries.push(entry);
   save();
   renderAll();
+  pushToSheets(entry); // fire-and-forget to Google Sheets
   flash(`Entry saved — ${entry.client_name} / ${title(entry.category)}`);
   const client = document.getElementById('clientName').value;
   const month = document.getElementById('billingMonth').value;
@@ -1104,8 +1114,75 @@ document.getElementById('btn-seed').addEventListener('click',()=>{
   save(); renderAll(); flash('Demo entries loaded.');
 });
 
-// init
+// ── GOOGLE SHEETS WEBHOOK ────────────────────────────────────
+const WH_URL_KEY    = 'atx-billing-webhook-url';
+const WH_SECRET_KEY = 'atx-billing-webhook-secret';
+
+const DEFAULT_WEBHOOK = 'https://script.google.com/macros/s/AKfycbz0feqJDN-2VyA6WjnUcHHgN2aPmaP6shW0dLa60pJ92nlwDfWAZf9J7YDZoPw1pdvHeg/exec';
+
+function getWebhookUrl()    { return localStorage.getItem(WH_URL_KEY) || DEFAULT_WEBHOOK; }
+function getWebhookSecret() { return localStorage.getItem(WH_SECRET_KEY) || ''; }
+
+function updateSheetsStatusBadge() {
+  const badge = document.getElementById('sheets-status-badge');
+  const url   = getWebhookUrl();
+  if (url) {
+    badge.textContent = 'Connected';
+    badge.className   = 'badge badge-green';
+  } else {
+    badge.textContent = 'Not connected';
+    badge.className   = 'badge badge-blue';
+  }
+}
+
+function loadWebhookSettings() {
+  document.getElementById('webhook-url').value    = getWebhookUrl();
+  document.getElementById('webhook-secret').value = getWebhookSecret();
+  updateSheetsStatusBadge();
+}
+
+document.getElementById('btn-save-webhook').addEventListener('click', () => {
+  const url    = document.getElementById('webhook-url').value.trim();
+  const secret = document.getElementById('webhook-secret').value.trim();
+  localStorage.setItem(WH_URL_KEY, url);
+  localStorage.setItem(WH_SECRET_KEY, secret);
+  updateSheetsStatusBadge();
+  flash(url ? 'Webhook saved — entries will sync to Google Sheets.' : 'Webhook cleared.');
+});
+
+document.getElementById('btn-test-webhook').addEventListener('click', async () => {
+  const url = getWebhookUrl();
+  if (!url) { flash('Paste a webhook URL first.', 'error'); return; }
+  flash('Testing connection…');
+  try {
+    // Apps Script GET returns {ok:true} — use no-cors as fallback since GAS doesn't send CORS headers on GET
+    const res = await fetch(url, { method: 'GET', mode: 'no-cors' });
+    flash('Connection reached — webhook looks live. Save a test entry to confirm.');
+  } catch (err) {
+    flash('Could not reach webhook URL. Check the URL and try again.', 'error');
+  }
+});
+
+async function pushToSheets(entry) {
+  const url = getWebhookUrl();
+  if (!url) return; // silently skip if not configured
+  const secret = getWebhookSecret();
+  const payload = secret ? { ...entry, secret } : { ...entry };
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors', // Apps Script doesn't return CORS headers; fire-and-forget is fine
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.warn('ATX Billing: Sheets push failed —', err.message);
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────
 document.getElementById('billingMonth').value = new Date().toISOString().slice(0,7);
+loadWebhookSettings();
 renderCats();
 renderForm();
 renderAll();
