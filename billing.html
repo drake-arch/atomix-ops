@@ -1,0 +1,1114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ATX — Billing Capture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:       #0a1628;
+  --navy-2:     #0d1f3c;
+  --navy-3:     #112244;
+  --panel:      rgba(13, 31, 60, 0.88);
+  --panel-2:    rgba(17, 34, 68, 0.95);
+  --line:       rgba(163, 243, 197, 0.12);
+  --line-2:     rgba(163, 243, 197, 0.22);
+  --text:       #e8f4ff;
+  --muted:      #7a9cbf;
+  --green:      #a3f3c5;
+  --green-dim:  rgba(163, 243, 197, 0.14);
+  --green-glow: rgba(163, 243, 197, 0.06);
+  --amber:      #fbbf24;
+  --amber-dim:  rgba(251, 191, 36, 0.14);
+  --red:        #fb7185;
+  --red-dim:    rgba(251, 113, 133, 0.14);
+  --blue:       #60a5fa;
+  --blue-dim:   rgba(96, 165, 250, 0.12);
+  --font-head:  'Syne', sans-serif;
+  --font-mono:  'IBM Plex Mono', monospace;
+  --font-body:  'IBM Plex Sans', sans-serif;
+  --radius:     20px;
+  --radius-sm:  14px;
+  --radius-xs:  10px;
+  --shadow:     0 8px 40px rgba(0,0,0,0.5);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--navy);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 80% 0%, rgba(163,243,197,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 50% at 0% 100%, rgba(96,165,250,0.05) 0%, transparent 50%);
+}
+
+/* ── TOP NAV ── */
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 24px;
+  height: 56px;
+  background: rgba(10,22,40,0.95);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+}
+.nav-logo {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--green);
+}
+.nav-divider { color: var(--muted); opacity: 0.4; }
+.nav-page {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.nav-links {
+  display: flex;
+  gap: 4px;
+}
+.nav-link {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-xs);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.nav-link:hover { color: var(--text); border-color: var(--line); }
+.nav-link.active { color: var(--green); border-color: var(--line-2); background: var(--green-glow); }
+
+/* ── SHELL ── */
+.shell {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+}
+
+/* ── PAGE HEADER ── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.page-header h1 {
+  font-family: var(--font-head);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.page-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── STAT STRIP ── */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.stat-value {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--green);
+  letter-spacing: -0.02em;
+}
+.stat-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ── PILL STRIP ── */
+.pill-strip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.pill {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+}
+.pill strong { color: var(--text); font-weight: 600; }
+.pill.green { border-color: rgba(163,243,197,0.25); background: var(--green-dim); color: var(--green); }
+.pill.amber { border-color: rgba(251,191,36,0.25); background: var(--amber-dim); color: var(--amber); }
+
+/* ── MAIN GRID ── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 18px;
+  align-items: start;
+}
+.left-col { display: flex; flex-direction: column; gap: 18px; }
+.right-col { display: flex; flex-direction: column; gap: 18px; }
+
+/* ── PANELS ── */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+}
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.panel-title {
+  font-family: var(--font-head);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.panel-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* ── CATEGORY GRID ── */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.cat-card {
+  background: rgba(17,34,68,0.7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+.cat-card:hover { border-color: var(--line-2); background: rgba(25,50,90,0.7); }
+.cat-card.active {
+  border-color: rgba(163,243,197,0.4);
+  background: rgba(163,243,197,0.08);
+  box-shadow: 0 0 20px rgba(163,243,197,0.06);
+}
+.cat-icon {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+.cat-name {
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.cat-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.cat-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* ── FORM ── */
+.capture-form { display: grid; gap: 14px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+input, select, textarea {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+  background: rgba(8,14,28,0.8);
+  border: 1px solid rgba(163,243,197,0.12);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(163,243,197,0.4);
+  box-shadow: 0 0 0 3px rgba(163,243,197,0.08);
+}
+input::placeholder, textarea::placeholder { color: rgba(122,156,191,0.5); }
+select option { background: var(--navy-3); }
+textarea { min-height: 100px; resize: vertical; line-height: 1.5; }
+
+/* ── CHIP GROUPS ── */
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(163,243,197,0.14);
+  background: rgba(8,14,28,0.7);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--line-2); color: var(--text); }
+.chip.active {
+  border-color: rgba(163,243,197,0.45);
+  background: var(--green-dim);
+  color: var(--green);
+}
+.chip.amber { border-color: rgba(251,191,36,0.3); }
+.chip.amber.active { background: var(--amber-dim); color: var(--amber); border-color: rgba(251,191,36,0.5); }
+.chip.red { border-color: rgba(251,113,133,0.3); }
+.chip.red.active { background: var(--red-dim); color: var(--red); border-color: rgba(251,113,133,0.5); }
+
+/* ── BUTTONS ── */
+button.btn {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.03em;
+}
+button.btn:hover { transform: translateY(-1px); }
+button.btn:active { transform: translateY(0); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--green), #5af3a0);
+  color: #031a0f;
+}
+.btn-secondary {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid rgba(163,243,197,0.2);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--line-2); }
+.btn-danger {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid rgba(251,113,133,0.25);
+}
+.form-actions { display: flex; gap: 10px; margin-top: 6px; }
+
+/* ── FLASH ── */
+.flash {
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  display: none;
+  margin-bottom: 14px;
+}
+.flash.show { display: block; }
+.flash.success { background: var(--green-dim); color: var(--green); border: 1px solid rgba(163,243,197,0.25); }
+.flash.error { background: var(--red-dim); color: var(--red); border: 1px solid rgba(251,113,133,0.25); }
+
+/* ── ENTRY CARDS ── */
+.entry-list { display: flex; flex-direction: column; gap: 10px; }
+.entry-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+}
+.entry-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.entry-client {
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 700;
+}
+.entry-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.entry-details {
+  font-size: 13px;
+  color: rgba(232,244,255,0.8);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.entry-money {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.entry-actions { display: flex; gap: 8px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+.badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(163,243,197,0.25); }
+.badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.25); }
+.badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.25); }
+.mini-chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(8,14,28,0.6);
+  color: var(--muted);
+}
+
+/* ── ROLLUP CARDS ── */
+.rollup-list { display: flex; flex-direction: column; gap: 10px; }
+.rollup-card {
+  background: rgba(17,34,68,0.7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.rollup-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.rollup-client {
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 700;
+}
+.rollup-month {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.rollup-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.rollup-stat { text-align: center; }
+.rollup-stat-val {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--green);
+}
+.rollup-stat-lbl {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── EXPORT BOX ── */
+.export-box {
+  background: rgba(8,14,28,0.7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.export-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(122,156,191,0.5);
+  margin-bottom: 6px;
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  padding: 20px 0;
+  text-align: center;
+  line-height: 1.7;
+}
+
+/* ── DIVIDER ── */
+.section-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 4px 0;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 780px) {
+  .stat-strip { grid-template-columns: repeat(2, 1fr); }
+  .category-grid { grid-template-columns: repeat(2, 1fr); }
+  .field-row, .field-row-3 { grid-template-columns: 1fr; }
+  .shell { padding: 16px 12px 40px; }
+}
+@media (max-width: 480px) {
+  .stat-strip { grid-template-columns: 1fr; }
+  .category-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <a class="nav-brand" href="index.html">
+    <span class="nav-logo">ATX OPS</span>
+    <span class="nav-divider">|</span>
+    <span class="nav-page">billing capture</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Dashboard</a>
+    <a class="nav-link" href="labor-projection.html">Labor</a>
+    <a class="nav-link active" href="billing.html">Billing</a>
+    <a class="nav-link" href="cycle-count.html">Cycle Count</a>
+    <a class="nav-link" href="error-tracking.html">Errors</a>
+  </div>
+</nav>
+
+<!-- SHELL -->
+<div class="shell">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <h1>Exception Billing</h1>
+      <div class="page-subtitle">Non-compliant inbounds · Expedited work · Client purchases · Special projects</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="btn-seed">Load demo data</button>
+      <button class="btn btn-ghost" id="btn-clear">Clear all</button>
+      <button class="btn btn-secondary" id="btn-csv">Export CSV</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stat-strip">
+    <div class="stat-card">
+      <div class="stat-label">Entries captured</div>
+      <div class="stat-value" id="stat-count">0</div>
+      <div class="stat-sub">this billing period</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Billable fees</div>
+      <div class="stat-value" id="stat-fee">$0</div>
+      <div class="stat-sub">ready to invoice</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tracked cost</div>
+      <div class="stat-value" id="stat-cost">$0</div>
+      <div class="stat-sub">hard costs to recover</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Extra minutes</div>
+      <div class="stat-value" id="stat-minutes">0</div>
+      <div class="stat-sub">unbilled labor time</div>
+    </div>
+  </div>
+
+  <!-- PILL STRIP -->
+  <div class="pill-strip">
+    <div class="pill">Period <strong id="pill-month">—</strong></div>
+    <div class="pill green">Billable <strong id="pill-billable">0</strong></div>
+    <div class="pill amber">Needs review <strong id="pill-review">0</strong></div>
+    <div class="pill">Active clients <strong id="pill-clients">0</strong></div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LEFT: FORM SECTION -->
+    <div class="left-col">
+
+      <!-- CATEGORY PICKER -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">What happened?</div>
+            <div class="panel-sub">Select a billing category — the form adapts to it.</div>
+          </div>
+        </div>
+        <div class="category-grid" id="category-grid"></div>
+      </div>
+
+      <!-- CAPTURE FORM -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Capture billing entry</div>
+            <div class="panel-sub" id="form-subtitle">Pick a category above to load context-aware prompts.</div>
+          </div>
+        </div>
+        <div class="flash" id="flash"></div>
+        <form class="capture-form" id="capture-form" autocomplete="off">
+
+          <div class="field-row">
+            <div class="field">
+              <label for="billingMonth">Billing month</label>
+              <input id="billingMonth" type="month" required>
+            </div>
+            <div class="field">
+              <label for="clientName">Client name</label>
+              <input id="clientName" placeholder="IQ Bar, Sunday Goods…" required>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="referenceNumber">Reference # (PO / ASN / order / ticket)</label>
+              <input id="referenceNumber" placeholder="PO-1001">
+            </div>
+            <div class="field">
+              <label for="enteredBy">Entered by</label>
+              <input id="enteredBy" placeholder="Drake">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Subtype</label>
+            <div class="chip-group" id="subtype-grid"></div>
+          </div>
+
+          <div class="field">
+            <label for="details">What happened / what was purchased / what extra work was done?</label>
+            <textarea id="details" placeholder="Truck arrived mislabeled with mixed SKUs. Team spent 55 min fixing, resorting, rebuilding counts." required></textarea>
+          </div>
+
+          <div class="field">
+            <label>Reason signals (select all that apply)</label>
+            <div class="chip-group" id="reason-grid"></div>
+          </div>
+
+          <div class="field">
+            <label>Billing signal</label>
+            <div class="chip-group" id="disposition-grid">
+              <button type="button" class="chip active" data-disposition="billable">Billable now</button>
+              <button type="button" class="chip amber" data-disposition="review">Needs review</button>
+              <button type="button" class="chip red" data-disposition="internal">Internal only</button>
+            </div>
+          </div>
+
+          <div class="field-row-3">
+            <div class="field">
+              <label for="extraMinutes">Extra minutes</label>
+              <input id="extraMinutes" type="number" min="0" value="0">
+            </div>
+            <div class="field">
+              <label for="feeAmount">Fee amount ($)</label>
+              <input id="feeAmount" type="number" min="0" step="0.01" value="0">
+            </div>
+            <div class="field">
+              <label for="costAmount">Cost amount ($)</label>
+              <input id="costAmount" type="number" min="0" step="0.01" value="0">
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="quantity">Quantity / units</label>
+              <input id="quantity" type="number" min="0" value="1">
+            </div>
+            <div class="field">
+              <label for="supplies">Supplies / purchases</label>
+              <input id="supplies" placeholder="Labels, stretch wrap, Uline bins…">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="notes">Notes (anything finance or ops should remember)</label>
+            <input id="notes" placeholder="Optional — context for Mitchell or the billing review">
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Save entry</button>
+            <button class="btn btn-ghost" type="button" id="btn-reset">Reset form</button>
+          </div>
+
+        </form>
+      </div>
+
+    </div><!-- /left-col -->
+
+    <!-- RIGHT: ROLLUP + ENTRIES -->
+    <div class="right-col">
+
+      <!-- CLIENT ROLLUP -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Month-end rollup</div>
+            <div class="panel-sub">Per-client billing summary for Mitchell.</div>
+          </div>
+        </div>
+        <div class="rollup-list" id="client-rollup">
+          <div class="empty">Client totals appear here once you start logging entries.</div>
+        </div>
+      </div>
+
+      <!-- RECENT ENTRIES -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Recent entries</div>
+            <div class="panel-sub">Editable until exported.</div>
+          </div>
+          <button class="btn btn-ghost" id="btn-copy-json" style="font-size:11px;padding:7px 12px;">Copy JSON</button>
+        </div>
+        <div class="entry-list" id="entry-list">
+          <div class="empty">No entries yet — capture one ugly ops surprise and the tool pays for itself.</div>
+        </div>
+      </div>
+
+      <!-- EXPORT INFO -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Export + automation</div>
+            <div class="panel-sub">Local-first. Wire to Sheets via Apps Script when ready.</div>
+          </div>
+        </div>
+        <div class="export-box">
+          <div class="export-label">CSV column order</div>
+          billing_month · client_name · category · subtype · reference_number · details · reasons · extra_minutes · fee_amount · cost_amount · supplies · quantity · disposition · entered_by · notes · created_at
+        </div>
+        <div style="margin-top:10px;" class="export-box">
+          <div class="export-label">Apps Script hookup</div>
+          Set GOOGLE_SHEETS_WEBHOOK_URL in your env and each saved entry will auto-append to the matching category tab. See google-apps-script/Code.gs in the source repo.
+        </div>
+      </div>
+
+    </div><!-- /right-col -->
+
+  </div><!-- /main-grid -->
+</div><!-- /shell -->
+
+<script>
+const STORAGE_KEY = 'atx-billing-capture-v1';
+
+const CATEGORIES = [
+  {
+    key: 'non_compliant_inbound',
+    icon: '⚠️',
+    name: 'Non-compliant inbound',
+    desc: 'Mislabeled, missing ASN, mixed SKUs, damaged, paperwork issues.',
+    subtypes: ['receiving','label_fix','rework','inventory_research'],
+    reasons: ['mislabeled','mixed_skus','missing_asn','damaged_inbound','paperwork_mismatch','no_pallet_labels']
+  },
+  {
+    key: 'expedited',
+    icon: '⚡',
+    name: 'Expedited work',
+    desc: 'Rush receiving, same-day fire drills, truck-waiting situations.',
+    subtypes: ['expedited_receiving','expedited_special_project','expedited_cycle_count'],
+    reasons: ['same_day_request','customer_escalation','inventory_emergency','dock_priority','truck_waiting','outbound_risk']
+  },
+  {
+    key: 'specific_purchase',
+    icon: '🛒',
+    name: 'Client-specific purchase',
+    desc: 'Packaging, consumables, rush buys, Uline, client-specific supplies.',
+    subtypes: ['packaging_purchase','uline_purchase','rush_buy','client_supply_buy'],
+    reasons: ['uline','packaging','consumable','rush_buy','client_specific_material']
+  },
+  {
+    key: 'special_project',
+    icon: '🔧',
+    name: 'Special project',
+    desc: 'Kitting, relabeling, custom pack-outs, display builds, inventory cleanup.',
+    subtypes: ['special_project','kitting','relabel','inventory_cleanup','custom_packout'],
+    reasons: ['rework','relabel','kitting','inventory_cleanup','custom_request']
+  },
+  {
+    key: 'cold_storage',
+    icon: '❄️',
+    name: 'Cold storage',
+    desc: 'Monthly freezer/cooler fees, temp-controlled handling.',
+    subtypes: ['cold_storage_review','freezer_storage','cooler_storage'],
+    reasons: ['monthly_cold_storage','temperature_handling','special_storage']
+  },
+  {
+    key: 'other_exception',
+    icon: '📋',
+    name: 'Other exception',
+    desc: 'Anything else that deserves a clean trail and a charge.',
+    subtypes: ['other_exception','manual_review','unplanned_labor'],
+    reasons: ['client_request','ops_exception','manual_followup','billing_gap']
+  }
+];
+
+// state
+let activeCategory = CATEGORIES[0].key;
+let activeSubtype = CATEGORIES[0].subtypes[0];
+let activeDisposition = 'billable';
+let activeReasons = new Set();
+let entries = load();
+
+// helpers
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+function fmt(v) { return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(+v||0); }
+function title(s) { return String(s).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
+function preset() { return CATEGORIES.find(c=>c.key===activeCategory)||CATEGORIES[0]; }
+function uid() { return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now(); }
+
+// render categories
+function renderCats() {
+  const el = document.getElementById('category-grid');
+  el.innerHTML = CATEGORIES.map(c=>`
+    <button type="button" class="cat-card${c.key===activeCategory?' active':''}" data-cat="${c.key}">
+      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-name">${c.name}</div>
+      <div class="cat-desc">${c.desc}</div>
+      <div class="cat-meta">${c.subtypes.length} subtypes · ${c.reasons.length} signals</div>
+    </button>
+  `).join('');
+  el.querySelectorAll('[data-cat]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      activeCategory = btn.dataset.cat;
+      activeSubtype = preset().subtypes[0];
+      activeReasons = new Set();
+      renderCats();
+      renderForm();
+    });
+  });
+}
+
+function renderForm() {
+  const p = preset();
+  document.getElementById('form-subtitle').textContent = p.desc;
+
+  // subtypes
+  const sg = document.getElementById('subtype-grid');
+  sg.innerHTML = p.subtypes.map(s=>`<button type="button" class="chip${s===activeSubtype?' active':''}" data-subtype="${s}">${title(s)}</button>`).join('');
+  sg.querySelectorAll('[data-subtype]').forEach(b=>{
+    b.addEventListener('click',()=>{ activeSubtype=b.dataset.subtype; renderForm(); });
+  });
+
+  // reasons
+  const rg = document.getElementById('reason-grid');
+  rg.innerHTML = p.reasons.map(r=>`<button type="button" class="chip${activeReasons.has(r)?' active':''}" data-reason="${r}">${title(r)}</button>`).join('');
+  rg.querySelectorAll('[data-reason]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const r = b.dataset.reason;
+      activeReasons.has(r) ? activeReasons.delete(r) : activeReasons.add(r);
+      renderForm();
+    });
+  });
+
+  // disposition
+  document.querySelectorAll('[data-disposition]').forEach(b=>{
+    b.classList.toggle('active', b.dataset.disposition===activeDisposition);
+    b.onclick=()=>{ activeDisposition=b.dataset.disposition; renderForm(); };
+  });
+}
+
+// flash
+let flashTimer;
+function flash(msg, type='success') {
+  const el = document.getElementById('flash');
+  el.textContent = msg;
+  el.className = `flash show ${type}`;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(()=>{ el.className='flash'; }, 2800);
+}
+
+// summary
+function renderSummary() {
+  const fee = entries.reduce((s,e)=>s+(+e.fee_amount||0),0);
+  const cost = entries.reduce((s,e)=>s+(+e.cost_amount||0),0);
+  const mins = entries.reduce((s,e)=>s+(+e.extra_minutes||0),0);
+  const billable = entries.filter(e=>e.disposition==='billable').length;
+  const review = entries.filter(e=>e.disposition==='review').length;
+  const clients = [...new Set(entries.map(e=>e.client_name).filter(Boolean))];
+  const month = entries[0]?.billing_month || new Date().toISOString().slice(0,7);
+  document.getElementById('stat-count').textContent = entries.length;
+  document.getElementById('stat-fee').textContent = fmt(fee);
+  document.getElementById('stat-cost').textContent = fmt(cost);
+  document.getElementById('stat-minutes').textContent = mins;
+  document.getElementById('pill-month').textContent = month;
+  document.getElementById('pill-billable').textContent = billable;
+  document.getElementById('pill-review').textContent = review;
+  document.getElementById('pill-clients').textContent = clients.length;
+}
+
+// entries
+function renderEntries() {
+  const el = document.getElementById('entry-list');
+  if (!entries.length) { el.innerHTML='<div class="empty">No entries yet — log the first unexpected charge so it doesn\'t disappear.</div>'; return; }
+  el.innerHTML = [...entries].reverse().map(e=>`
+    <div class="entry-card">
+      <div class="entry-top">
+        <div class="entry-client">${e.client_name||'Unknown client'}</div>
+        <span class="badge badge-${e.disposition==='billable'?'green':e.disposition==='review'?'amber':'blue'}">
+          ${e.disposition==='billable'?'Billable':e.disposition==='review'?'Review':'Internal'}
+        </span>
+      </div>
+      <div class="entry-meta">
+        <span>${title(e.category)}</span>
+        <span>·</span>
+        <span>${title(e.subtype)}</span>
+        <span>·</span>
+        <span>${e.billing_month}</span>
+        ${e.reference_number?`<span>· ${e.reference_number}</span>`:''}
+      </div>
+      <div class="entry-details">${e.details||'No details provided.'}</div>
+      <div class="entry-money">
+        <span class="mini-chip">Fee ${fmt(e.fee_amount)}</span>
+        <span class="mini-chip">Cost ${fmt(e.cost_amount)}</span>
+        <span class="mini-chip">${+e.extra_minutes||0} min</span>
+        <span class="mini-chip">Qty ${+e.quantity||0}</span>
+      </div>
+      <div class="entry-actions">
+        <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px;" data-dup="${e.id}">Duplicate</button>
+        <button class="btn btn-danger" style="font-size:11px;padding:6px 12px;" data-del="${e.id}">Delete</button>
+      </div>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('[data-del]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      entries = entries.filter(e=>e.id!==b.dataset.del);
+      save(); renderAll(); flash('Entry deleted.');
+    });
+  });
+  el.querySelectorAll('[data-dup]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const orig = entries.find(e=>e.id===b.dataset.dup);
+      if (!orig) return;
+      entries.push({...orig, id:uid(), created_at:new Date().toISOString()});
+      save(); renderAll(); flash('Entry duplicated.');
+    });
+  });
+}
+
+// rollup
+function renderRollup() {
+  const el = document.getElementById('client-rollup');
+  if (!entries.length) { el.innerHTML='<div class="empty">Per-client totals will appear here once entries are logged.</div>'; return; }
+  const map = new Map();
+  entries.forEach(e=>{
+    const key = `${e.billing_month}||${e.client_name||'Unknown'}`;
+    if (!map.has(key)) map.set(key,{month:e.billing_month,client:e.client_name||'Unknown',fee:0,cost:0,mins:0,count:0,review:0});
+    const b = map.get(key);
+    b.fee += +e.fee_amount||0;
+    b.cost += +e.cost_amount||0;
+    b.mins += +e.extra_minutes||0;
+    b.count++;
+    if (e.disposition==='review') b.review++;
+  });
+  el.innerHTML = [...map.values()].sort((a,b)=>b.fee-a.fee).map(r=>`
+    <div class="rollup-card">
+      <div class="rollup-top">
+        <div>
+          <div class="rollup-client">${r.client}</div>
+          <div class="rollup-month">${r.month} · ${r.count} entr${r.count===1?'y':'ies'}${r.review?` · <span style="color:var(--amber)">${r.review} needs review</span>`:''}</div>
+        </div>
+        <span class="badge badge-green">${fmt(r.fee)}</span>
+      </div>
+      <div class="rollup-stats">
+        <div class="rollup-stat"><div class="rollup-stat-val">${fmt(r.fee)}</div><div class="rollup-stat-lbl">Fees</div></div>
+        <div class="rollup-stat"><div class="rollup-stat-val">${fmt(r.cost)}</div><div class="rollup-stat-lbl">Costs</div></div>
+        <div class="rollup-stat"><div class="rollup-stat-val">${r.mins}</div><div class="rollup-stat-lbl">Mins</div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAll() { renderSummary(); renderEntries(); renderRollup(); }
+
+// form submit
+document.getElementById('capture-form').addEventListener('submit', e=>{
+  e.preventDefault();
+  const entry = {
+    id: uid(),
+    billing_month: document.getElementById('billingMonth').value || new Date().toISOString().slice(0,7),
+    client_name: document.getElementById('clientName').value.trim(),
+    category: activeCategory,
+    subtype: activeSubtype,
+    reference_number: document.getElementById('referenceNumber').value.trim(),
+    details: document.getElementById('details').value.trim(),
+    reasons: [...activeReasons],
+    extra_minutes: +document.getElementById('extraMinutes').value||0,
+    fee_amount: +document.getElementById('feeAmount').value||0,
+    cost_amount: +document.getElementById('costAmount').value||0,
+    supplies: document.getElementById('supplies').value.trim(),
+    quantity: +document.getElementById('quantity').value||1,
+    disposition: activeDisposition,
+    entered_by: document.getElementById('enteredBy').value.trim(),
+    notes: document.getElementById('notes').value.trim(),
+    created_at: new Date().toISOString()
+  };
+  entries.push(entry);
+  save();
+  renderAll();
+  flash(`Entry saved — ${entry.client_name} / ${title(entry.category)}`);
+  const client = document.getElementById('clientName').value;
+  const month = document.getElementById('billingMonth').value;
+  const by = document.getElementById('enteredBy').value;
+  document.getElementById('capture-form').reset();
+  document.getElementById('billingMonth').value = month;
+  document.getElementById('clientName').value = client;
+  document.getElementById('enteredBy').value = by;
+  document.getElementById('quantity').value = 1;
+  activeSubtype = preset().subtypes[0];
+  activeDisposition = 'billable';
+  activeReasons = new Set();
+  renderCats(); renderForm();
+});
+
+// reset
+document.getElementById('btn-reset').addEventListener('click',()=>{
+  document.getElementById('capture-form').reset();
+  document.getElementById('billingMonth').value = new Date().toISOString().slice(0,7);
+  activeCategory = CATEGORIES[0].key;
+  activeSubtype = CATEGORIES[0].subtypes[0];
+  activeDisposition = 'billable';
+  activeReasons = new Set();
+  renderCats(); renderForm();
+});
+
+// CSV export
+document.getElementById('btn-csv').addEventListener('click',()=>{
+  if (!entries.length) { flash('No entries to export.','error'); return; }
+  const cols = ['billing_month','client_name','category','subtype','reference_number','details','reasons','extra_minutes','fee_amount','cost_amount','supplies','quantity','disposition','entered_by','notes','created_at'];
+  const rows = entries.map(e=>cols.map(c=>JSON.stringify(Array.isArray(e[c])?e[c].join('|'):e[c]??'')).join(','));
+  const csv = [cols.join(','),...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = `atx-billing-${new Date().toISOString().slice(0,7)}.csv`;
+  a.click();
+  flash('CSV exported.');
+});
+
+// copy JSON
+document.getElementById('btn-copy-json').addEventListener('click',()=>{
+  navigator.clipboard.writeText(JSON.stringify(entries,null,2)).then(()=>flash('JSON copied to clipboard.')).catch(()=>flash('Copy failed.','error'));
+});
+
+// clear all
+document.getElementById('btn-clear').addEventListener('click',()=>{
+  if (!confirm('Delete all entries? This cannot be undone.')) return;
+  entries = []; save(); renderAll(); flash('All entries cleared.');
+});
+
+// seed demo
+document.getElementById('btn-seed').addEventListener('click',()=>{
+  const month = new Date().toISOString().slice(0,7);
+  const demo = [
+    {id:uid(),billing_month:month,client_name:'IQ Bar',category:'non_compliant_inbound',subtype:'label_fix',reference_number:'ASN-2041',details:'Pallet arrived with no case labels. Team spent 40 min printing and applying labels before putaway.',reasons:['mislabeled','no_pallet_labels'],extra_minutes:40,fee_amount:85,cost_amount:0,supplies:'',quantity:1,disposition:'billable',entered_by:'Drake',notes:'Third time this month.',created_at:new Date().toISOString()},
+    {id:uid(),billing_month:month,client_name:'Sunday Goods',category:'expedited',subtype:'expedited_receiving',reference_number:'PO-3310',details:'Same-day request to receive and putaway full truckload by 3pm. Pulled 2 extra pickers.',reasons:['same_day_request','customer_escalation'],extra_minutes:90,fee_amount:250,cost_amount:0,supplies:'',quantity:1,disposition:'billable',entered_by:'Kody',notes:'Austin approved the overtime.',created_at:new Date().toISOString()},
+    {id:uid(),billing_month:month,client_name:'IQ Bar',category:'specific_purchase',subtype:'uline_purchase',reference_number:'UL-884',details:'Rush Uline order for branded cold packs needed for IQ Bar shipments. 2-day shipping.',reasons:['uline','rush_buy','client_specific_material'],extra_minutes:0,fee_amount:0,cost_amount:142.50,supplies:'Cold packs x48',quantity:48,disposition:'billable',entered_by:'Drake',notes:'Invoice in Mitchell\'s billing folder.',created_at:new Date().toISOString()},
+    {id:uid(),billing_month:month,client_name:'Sunday Goods',category:'special_project',subtype:'kitting',reference_number:'SP-119',details:'Kitting 500 units of promo gift sets. 3 SKUs per kit, custom tissue wrap, sticker application.',reasons:['kitting','custom_request'],extra_minutes:240,fee_amount:375,cost_amount:80,supplies:'Tissue paper, stickers, retail boxes',quantity:500,disposition:'billable',entered_by:'Adam',notes:'',created_at:new Date().toISOString()},
+    {id:uid(),billing_month:month,client_name:'IQ Bar',category:'cold_storage',subtype:'freezer_storage',reference_number:'',details:'Monthly freezer storage fee — 22 pallet positions at $18/position.',reasons:['monthly_cold_storage'],extra_minutes:0,fee_amount:396,cost_amount:0,supplies:'',quantity:22,disposition:'review',entered_by:'Drake',notes:'Confirm pallet count with Luis before invoicing.',created_at:new Date().toISOString()}
+  ];
+  entries = [...entries, ...demo];
+  save(); renderAll(); flash('Demo entries loaded.');
+});
+
+// init
+document.getElementById('billingMonth').value = new Date().toISOString().slice(0,7);
+renderCats();
+renderForm();
+renderAll();
+</script>
+</body>
+</html>
