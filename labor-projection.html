@@ -32,16 +32,7 @@
   --mono:'IBM Plex Mono',monospace;
 }
 html{scroll-behavior:smooth}
-body{
-  font-family:var(--mono);
-  background:var(--bg);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(163,243,197,0.055) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 70% at 100% 100%, rgba(13,45,83,0.8) 0%, transparent 60%);
-  min-height:100vh;
-  color:var(--white);
-  overflow-x:hidden;
-}
+body{font-family:var(--mono);background:var(--bg);background-image:radial-gradient(ellipse 80% 50% at 0% 0%, rgba(163,243,197,0.055) 0%, transparent 60%),radial-gradient(ellipse 60% 70% at 100% 100%, rgba(13,45,83,0.8) 0%, transparent 60%);min-height:100vh;color:var(--white);overflow-x:hidden;}
 .topbar{position:sticky;top:0;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;background:rgba(9,30,56,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 .tl{display:flex;align-items:center;gap:10px}
 .logo{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--green),#3dc47a);display:flex;align-items:center;justify-content:center;font-family:var(--ui);font-weight:800;font-size:12px;color:#091e38;}
@@ -164,7 +155,6 @@ body{
 </style>
 </head>
 <body>
-
 <header class="topbar">
   <div class="tl">
     <div class="logo">A</div>
@@ -178,7 +168,6 @@ body{
     <button class="tab" onclick="setTab('history')">History</button>
   </div>
 </header>
-
 <div class="page active" id="page-analyzer">
   <div class="sh">Labor Analyzer</div>
   <div class="sd">Enter a week's actuals. All metrics compute automatically from spend, hours, and orders.</div>
@@ -278,7 +267,6 @@ body{
     </div>
   </div>
 </div>
-
 <div class="page" id="page-projector">
   <div class="sh">Labor Projector</div>
   <div class="sd">Set your parameters. Dial in OPH to see exactly what happens to your staffing, spend, and CPO.</div>
@@ -382,7 +370,6 @@ body{
     <div style="margin-top:10px;font-size:10px;color:var(--slate);line-height:1.6" id="deptHint">Enter % of total hours allocated to each department. Hours, bodies (hrs ÷ 40), and spend calculate automatically from your OPH projection above.</div>
   </div>
 </div>
-
 <div class="page" id="page-history">
   <div class="sh">Weekly History</div>
   <div class="sd">All logged weeks. Loaded from your CPO Master file + any manually saved weeks.</div>
@@ -408,7 +395,6 @@ body{
   </div>
   <div class="card"><div id="histTableWrap"></div></div>
 </div>
-
 <div id="chartModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(9,30,56,0.92);backdrop-filter:blur(20px);padding:24px;box-sizing:border-box;animation:fadeIn .18s ease;" onclick="closeModal(event)">
   <div style="width:100%;height:100%;background:rgba(13,36,64,0.98);border:1px solid rgba(255,255,255,.1);border-radius:16px;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.5);overflow:hidden;position:relative;" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;">
@@ -418,15 +404,12 @@ body{
     <div style="flex:1;padding:20px;position:relative;min-height:0"><canvas id="modalCanvas" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas><div id="modalCrosshair" style="display:none;position:absolute;top:20px;bottom:20px;width:1px;background:rgba(255,255,255,.2);pointer-events:none;"></div></div>
   </div>
 </div>
-
 <style>
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .chart-card:hover{border-color:rgba(255,255,255,.14)!important}
 .chart-card:hover canvas{opacity:.85}
 </style>
-
 <div class="toast" id="toast"></div>
-
 <script>
 // ══════════════════════════════════════════════════════════════
 // HISTORICAL DATA
@@ -504,7 +487,6 @@ const HIST_DATA = [
   const oph=orders>0?orders/(total_spend/17.5):null;
   return{...r,spend:total_spend,mke_spend,orders,cpo,cpo_12,spend_12,oph};
 }).sort((a,b)=>a.week.localeCompare(b.week));
-
 const hist_cpos=HIST_DATA.filter(r=>r.cpo!=null).map(r=>r.cpo);
 const H_AVG_CPO=hist_cpos.length?hist_cpos.reduce((s,v)=>s+v,0)/hist_cpos.length:0;
 const H_BEST_CPO=hist_cpos.length?Math.min(...hist_cpos):0;
@@ -516,8 +498,7 @@ const H_AVG_SPEND=Math.round(HIST_DATA.map(r=>r.spend).reduce((s,v)=>s+v,0)/HIST
 const LAST8_ORDERS=Math.round(LAST8.reduce((s,r)=>s+r.orders,0)/LAST8.length);
 const LAST8_SPEND=Math.round(LAST8.reduce((s,r)=>s+r.spend,0)/LAST8.length);
 
-// ── PATCH 1: localStorage key migration ──────────────────────
-// Supports both old key ('laborHistory') and new key ('atx_proj_weeks')
+// ── localStorage key migration ──
 let userWeeks = [];
 try {
   const _newKey = localStorage.getItem('atx_proj_weeks');
@@ -528,25 +509,32 @@ try {
   }
 } catch(e){}
 
+// ══════════════════════════════════════════════════════════════
+// allWeeks() — FIXED
+// HIST_DATA shape: r.spend = MKE-only, r.slc_spend = SLC separately
+// User weeks (saved): r.mke_spend = MKE-only, r.slc_spend = SLC separately
+// We prefer r.mke_spend when present so old buggy rows reconstruct correctly.
+// ══════════════════════════════════════════════════════════════
 function allWeeks(){
   const ids=new Set(HIST_DATA.map(r=>r.week));
   const extra=userWeeks.filter(r=>!ids.has(r.week)).map(r=>{
     const mke_orders=r.mke_orders||r.orders||0;
     const slc_orders=r.slc_orders||0;
-    const orders=r.orders||(mke_orders+slc_orders);
-    const spend=r.spend||0;
-    const slc_spend=r.slc_spend||0;
-    const total_spend=spend+slc_spend;
-    const spend_12=r.spend_12||total_spend*1.12;
-    const cpo=orders>0?total_spend/orders:null;
-    const cpo_12=orders>0?spend_12/orders:null;
-    const oph=r.hours&&orders?orders/r.hours:total_spend>0?orders/(total_spend/17.5):null;
-    return{...r,mke_orders,slc_orders,orders,spend:total_spend,mke_spend:spend,spend_12,cpo,cpo_12,oph,temp:r.temp||0};
+    const orders=(typeof r.orders==='number'?r.orders:(mke_orders+slc_orders));
+    // Prefer mke_spend (MKE-only) for the MKE component. Fall back to spend
+    // only if mke_spend isn't available (legacy rows from before split mode existed).
+    const mke_spend = (typeof r.mke_spend === 'number') ? r.mke_spend : (r.spend || 0);
+    const slc_spend = r.slc_spend || 0;
+    const total_spend = mke_spend + slc_spend;
+    const spend_12 = r.spend_12 || total_spend * 1.12;
+    const cpo = orders > 0 ? total_spend / orders : null;
+    const cpo_12 = orders > 0 ? spend_12 / orders : null;
+    const oph = r.hours && orders ? orders / r.hours : (total_spend > 0 ? orders / (total_spend / 17.5) : null);
+    return { ...r, mke_orders, slc_orders, orders, spend: total_spend, mke_spend, slc_spend, spend_12, cpo, cpo_12, oph, temp: r.temp || 0 };
   });
-  return[...HIST_DATA,...extra].sort((a,b)=>a.week.localeCompare(b.week));
+  return [...HIST_DATA, ...extra].sort((a,b)=>a.week.localeCompare(b.week));
 }
 
-// ── PATCH 3: setTab with 60ms delay for History tab ──────────
 function setTab(t){
   document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
@@ -554,7 +542,6 @@ function setTab(t){
   document.getElementById(`page-${t}`).classList.add('active');
   if(t==='history'){ setTimeout(function(){ renderHistory(); }, 60); }
 }
-
 const $=id=>document.getElementById(id);
 const fv=id=>parseFloat($(id).value)||null;
 const fmt=n=>n==null?'—':Math.round(n).toLocaleString();
@@ -567,7 +554,6 @@ function tcv(id,v,cls){const e=$(id);if(!e)return;e.textContent=v;e.className='t
 function prv(id,v,cls){const e=$(id);if(!e)return;e.textContent=v;e.className='pr-v'+(cls?' '+cls:'')}
 function toast(msg,err){const t=$('toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
 function cpoBadge(cpo){if(cpo==null)return'<span class="badge badge-s">—</span>';if(cpo<1.2)return`<span class="badge badge-g">$${cpo.toFixed(2)}</span>`;if(cpo<1.7)return`<span class="badge badge-a">$${cpo.toFixed(2)}</span>`;return`<span class="badge badge-r">$${cpo.toFixed(2)}</span>`;}
-
 function analyzeCalc(){
   const spend=fv('aSpend'),hours=fv('aHours'),orders=fv('aOrders'),heads=fv('aHeads'),rev=fv('aRev');
   const cpo=(spend&&orders)?spend/orders:null;
@@ -610,32 +596,56 @@ function analyzeCalc(){
   const dialHistEl=$('ophHistAvg');
   if(dialHistEl){dialHistEl.textContent=histOphAvg?histOphAvg.toFixed(1):'—';dialHistEl.style.color=histOphAvg?'var(--blue)':'var(--slate)';}
 }
-
 function cpoColor(cpo){if(!cpo)return'';if(cpo<1.2)return'g';if(cpo<1.7)return'a';return'r';}
 
+// ══════════════════════════════════════════════════════════════
+// saveWeek() — FIXED
+// In split mode we now write spend = MKE-only (mke_spend). In combined mode
+// SLC defaults to 0 so total = MKE = spend. allWeeks() reads back via
+// (mke_spend) + (slc_spend) and produces the correct total.
+// ══════════════════════════════════════════════════════════════
 function saveWeek(){
   const spend=fv('aSpend'),hours=fv('aHours'),orders=fv('aOrders'),heads=fv('aHeads'),rev=fv('aRev'),date=$('aDate').value;
   if(!spend||!orders||!date){toast('Need spend, orders + date.',true);return;}
-  const mkeOrders=siteMode==='split'?(parseFloat($('aMkeOrders').value)||orders):orders;
-  const slcOrders=siteMode==='split'?(parseFloat($('aSlcOrders').value)||0):0;
-  const mkeSpend=siteMode==='split'?(parseFloat($('aMkeSpend').value)||spend):spend;
-  const slcSpend=siteMode==='split'?(parseFloat($('aSlcSpend').value)||0):0;
-  const mkeHours=siteMode==='split'?(parseFloat($('aMkeHours').value)||null):null;
-  const slcHours=siteMode==='split'?(parseFloat($('aSlcHours').value)||null):null;
-  const mkeHeads=siteMode==='split'?(parseFloat($('aMkeHeads').value)||null):null;
-  const slcHeads=siteMode==='split'?(parseFloat($('aSlcHeads').value)||null):null;
-  const wk={week:date,spend,hours:hours||null,orders,mke_orders:mkeOrders,slc_orders:slcOrders,mke_spend:mkeSpend,slc_spend:slcSpend,mke_hours:mkeHours,slc_hours:slcHours,mke_heads:mkeHeads,slc_heads:slcHeads,heads:heads||null,rev:rev||null,temp:0,cpo:spend/orders,oph:hours?orders/hours:orders/(spend/17.5),source:'manual'};
-  userWeeks=userWeeks.filter(r=>r.week!==date);
+  const mkeOrders = siteMode==='split' ? (parseFloat($('aMkeOrders').value)||orders) : orders;
+  const slcOrders = siteMode==='split' ? (parseFloat($('aSlcOrders').value)||0) : 0;
+  const mkeSpend  = siteMode==='split' ? (parseFloat($('aMkeSpend').value)||spend) : spend;
+  const slcSpend  = siteMode==='split' ? (parseFloat($('aSlcSpend').value)||0) : 0;
+  const mkeHours  = siteMode==='split' ? (parseFloat($('aMkeHours').value)||null) : null;
+  const slcHours  = siteMode==='split' ? (parseFloat($('aSlcHours').value)||null) : null;
+  const mkeHeads  = siteMode==='split' ? (parseFloat($('aMkeHeads').value)||null) : null;
+  const slcHeads  = siteMode==='split' ? (parseFloat($('aSlcHeads').value)||null) : null;
+  const totalSpend = mkeSpend + slcSpend;       // single source of truth
+  const wk = {
+    week: date,
+    spend: mkeSpend,                            // ← MKE-only, matches HIST_DATA shape
+    hours: hours||null,
+    orders: orders,
+    mke_orders: mkeOrders,
+    slc_orders: slcOrders,
+    mke_spend: mkeSpend,
+    slc_spend: slcSpend,
+    mke_hours: mkeHours,
+    slc_hours: slcHours,
+    mke_heads: mkeHeads,
+    slc_heads: slcHeads,
+    heads: heads||null,
+    rev: rev||null,
+    temp: 0,
+    cpo: totalSpend/orders,                     // computed off the correct total
+    oph: hours ? orders/hours : orders/(totalSpend/17.5),
+    source: 'manual'
+  };
+  userWeeks = userWeeks.filter(r=>r.week!==date);
   userWeeks.push(wk);
   try{localStorage.setItem('atx_proj_weeks',JSON.stringify(userWeeks));}catch(e){}
-  toast('Week saved ✓');
+  toast('Week saved ✓ ($'+Math.round(totalSpend).toLocaleString()+' / $'+(totalSpend/orders).toFixed(2)+' CPO)');
   renderHistory();
 }
 
 let currentOph=10,requiredOph=null;
 function ophSlide(v){currentOph=parseFloat(v);$('ophDialVal').textContent=parseFloat(v).toFixed(1);saveProjectorState();projectCalc();}
 function setOph(v){currentOph=v;$('pOphSlider').value=v;$('ophDialVal').textContent=v.toFixed(1);saveProjectorState();projectCalc();}
-
 function projectCalc(){
   const orders=fv('pOrders'),cplh=fv('pCplh'),oph=currentOph,rev=fv('pRev');
   if(!orders){clearProjection();return;}
@@ -682,7 +692,6 @@ function projectCalc(){
   renderRecs(orders,bodies,hrsNeeded,projSpend,projCpo,projLpct,requiredOph,oph,delta);
   deptCalc();
 }
-
 function clearProjection(){
   requiredOph=null;$('ophRequired').textContent='—';$('ophDialVal').textContent=currentOph.toFixed(1);$('ophDialVal').style.color='var(--green)';$('ophDeltaBadge').innerHTML='';
   $('ophDialSub').textContent='Enter orders above to see your required OPH.';
@@ -693,7 +702,6 @@ function clearProjection(){
   $('recList').innerHTML='<div class="no-data">Configure inputs to generate recommendations.</div>';
   deptCalc();
 }
-
 function renderOphSensitivity(orders,cplh,rev){
   if(!orders||!cplh){$('ophSensBody').innerHTML='<tr><td colspan="7" class="no-data">Set orders + CPLH to generate table.</td></tr>';return;}
   const ref=requiredOph||currentOph;
@@ -711,7 +719,6 @@ function renderOphSensitivity(orders,cplh,rev){
   }).join('');
   $('ophSensBody').innerHTML=rows;
 }
-
 function renderRecs(orders,bodies,hrs,spend,cpo,lpct,reqOph,oph,delta){
   const items=[];
   if(cpo!=null){if(cpo<1.2)items.push({icon:'✅',txt:`CPO <b>$${cpo.toFixed(2)}</b> — solid. Hold pace.`});else if(cpo<1.7)items.push({icon:'⚠️',txt:`CPO <b>$${cpo.toFixed(2)}</b> — watch overtime creep.`});else items.push({icon:'🔴',txt:`CPO <b>$${cpo.toFixed(2)}</b> — push OPH up or reduce headcount.`});}
@@ -721,10 +728,8 @@ function renderRecs(orders,bodies,hrs,spend,cpo,lpct,reqOph,oph,delta){
   if(cpo!=null&&H_LAST8_CPO&&cpo<H_LAST8_CPO)items.push({icon:'🏆',txt:`Projecting <b>$${(H_LAST8_CPO-cpo).toFixed(2)}/order better</b> than recent avg ($${H_LAST8_CPO.toFixed(2)}).`});
   $('recList').innerHTML=items.length?items.map((r,i)=>`<div style="display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:8px;animation:rise .3s ${i*.06}s both"><span style="font-size:13px;flex-shrink:0;margin-top:1px">${r.icon}</span><span style="font-size:11px;line-height:1.55;color:var(--white)">${r.txt}</span></div>`).join(''):'<div class="no-data">No alerts.</div>';
 }
-
 let histFilter='all';
 function filterHist(f,el){histFilter=f;document.querySelectorAll('#filterPills .pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderHistory();}
-
 function renderHistory(){
   const all=allWeeks();
   let data=[...all];
@@ -763,8 +768,6 @@ function renderHistory(){
     return`<tr><td class="m">${r.week}${isManual?'<span class="badge badge-s" style="margin-left:6px">manual</span>':''}</td><td>${r.orders.toLocaleString()}</td><td class="a">$${Math.round(r.spend).toLocaleString()}</td><td style="color:var(--amber)">$${Math.round(spend12).toLocaleString()} ${delta12}</td><td>${cpoBadge(r.cpo)}</td><td class="${cpo12?cpo12<1.5?'g':cpo12<2.2?'a':'r':''}" style="font-family:var(--ui);font-weight:700">${cpo12?'$'+cpo12.toFixed(2):'—'}</td><td style="min-width:120px">${ophCell}</td><td class="m" style="font-size:10px">${r.mke_orders>0?`<span style="color:var(--green)">${r.mke_orders.toLocaleString()}</span>`:'—'}${r.slc_orders>0?` / <span style="color:var(--blue)">${r.slc_orders.toLocaleString()}</span>`:''}</td><td class="m">${temp_pct}</td><td>${dbtn}</td></tr>`;
   }).join('');
   $('histTableWrap').innerHTML=`<table class="htbl"><thead><tr><th>Week</th><th>Total Orders</th><th>Raw Spend</th><th style="color:rgba(255,181,71,.8)">Loaded +12%</th><th>CPO Raw</th><th style="color:rgba(255,181,71,.8)">CPO +12%</th><th>OPH <span style="color:rgba(139,155,170,.4);font-weight:400">│ avg ${avgOph.toFixed(1)}~</span></th><th>MKE / SLC</th><th>Temp %</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
-
-  // ── PATCH 2: Force canvas width + double rAF before drawing charts ──
   const chartData=[...dataWithOph].sort((a,b)=>a.week.localeCompare(b.week));
   ['chartSpendOrders','chartCpo','chartSites','chartOph'].forEach(function(cid){
     var c=document.getElementById(cid);
@@ -772,9 +775,7 @@ function renderHistory(){
   });
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ drawCharts(chartData); }); });
 }
-
 function deleteWeek(wk){userWeeks=userWeeks.filter(r=>r.week!==wk);try{localStorage.setItem('atx_proj_weeks',JSON.stringify(userWeeks));}catch(e){}renderHistory();toast('Week removed.');}
-
 function renderTrendChart(){
   const data=allWeeks().filter(r=>r.cpo).slice(-20);
   if(!data.length){$('trendChart').innerHTML='<div class="no-data">No historical data.</div>';return;}
@@ -786,7 +787,6 @@ function renderTrendChart(){
   }).join('');
   $('trendChart').innerHTML=`<div style="display:flex;align-items:stretch;height:80px;gap:2px">${bars}</div><div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(139,155,170,.4);margin-top:2px"><span>$${min.toFixed(2)} min</span><span>Last 20 weeks · hover for details</span><span>$${max.toFixed(2)} max</span></div>`;
 }
-
 const DEPTS=['outbound','inbound','special','kitting','inventory','returns'];
 function deptCalc(){
   const orders=fv('pOrders'),cplh=fv('pCplh'),oph=currentOph;
@@ -817,7 +817,6 @@ function deptCalc(){
   const hint=$('deptHint');
   if(hint){if(!totalHrs)hint.textContent='Set Orders + OPH in the projector above to populate department hours.';else if(!totalSpend)hint.textContent='Set CPLH above to unlock department spend.';else if(totalPct===100)hint.textContent=`Total: ${Math.round(totalHrs).toLocaleString()} hrs · $${Math.round(totalSpend).toLocaleString()} fully allocated across departments.`;else hint.textContent='Enter % of total hours allocated to each department. Must total 100%.';}
 }
-
 let siteMode='combined';
 function setSiteTab(mode){
   siteMode=mode;const isSplit=mode==='split';
@@ -829,7 +828,6 @@ function setSiteTab(mode){
   btnCombined.setAttribute('style',isSplit?off:on);btnSplit.setAttribute('style',isSplit?on:off);
   if(isSplit)splitCalc();else analyzeCalc();
 }
-
 function splitCalc(){
   const mkeS=parseFloat($('aMkeSpend').value)||0,mkeH=parseFloat($('aMkeHours').value)||0,mkeO=parseFloat($('aMkeOrders').value)||0;
   const slcS=parseFloat($('aSlcSpend').value)||0,slcH=parseFloat($('aSlcHours').value)||0,slcO=parseFloat($('aSlcOrders').value)||0;
@@ -840,7 +838,6 @@ function splitCalc(){
   if(totSpend)$('aSpend').value=totSpend;if(totHours)$('aHours').value=totHours;if(totOrders)$('aOrders').value=totOrders;
   analyzeCalc();
 }
-
 function exportCSV(){
   const weeks=allWeeks();
   const headers=['week','mke_orders','slc_orders','total_orders','spend','temp','cpo','oph_implied','source'];
@@ -849,7 +846,6 @@ function exportCSV(){
   const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`atomix-labor-history-${new Date().toISOString().slice(0,10)}.csv`;a.click();toast('CSV exported ✓');
 }
-
 function drawCharts(data){
   if(!data||!data.length)return;
   const d=[...data].sort((a,b)=>a.week.localeCompare(b.week));
@@ -896,7 +892,6 @@ function drawCharts(data){
   const avgOphV2=ophVals2.filter(Boolean).reduce((s,v)=>s+v,0)/(ophVals2.filter(Boolean).length||1);
   lineChart('chartOph',[{values:ophVals2,color:GREEN,width:2,fill:true}],{yFmt:v=>v.toFixed(1),leftPad:38,decimals:1,refLines:[{value:avgOphV2,color:'rgba(255,255,255,.22)',dash:[4,4]}]});
 }
-
 let _modalChartId=null,_modalChartData=null;
 const CHART_META={
   chartSpendOrders:{title:'Labor Spend vs Order Volume',legend:[{label:'Spend',color:'#FFB547'},{label:'Orders',color:'#A3F3C5'}],build:(d)=>({series:[{label:'Spend',values:d.map(r=>r.spend||null),color:'#FFB547',width:2.5,fill:true},{label:'Orders',values:d.map(r=>r.orders||null),color:'#A3F3C5',width:2.5}],opts:{yFmt:v=>'$'+Math.round(v/1000)+'k',leftPad:56,decimals:0}})},
@@ -904,7 +899,6 @@ const CHART_META={
   chartSites:{title:'MKE vs SLC — Order Volume',legend:[{label:'MKE',color:'#A3F3C5'},{label:'SLC',color:'#60A5FA'}],build:(d)=>({series:[{label:'MKE',values:d.map(r=>r.mke_orders||null),color:'#A3F3C5',width:2.5,fill:true},{label:'SLC',values:d.map(r=>r.slc_orders>0?r.slc_orders:null),color:'#60A5FA',width:2.5}],opts:{yFmt:v=>v>=1000?Math.round(v/1000)+'k':v.toFixed(0),leftPad:48,decimals:0}})},
   chartOph:{title:'OPH Trend (Implied @ $17.50)',legend:[{label:'OPH',color:'#A3F3C5'}],build:(d)=>{const avg=d.filter(r=>r.oph).reduce((s,r)=>s+r.oph,0)/(d.filter(r=>r.oph).length||1);return{series:[{label:'OPH',values:d.map(r=>r.oph||null),color:'#A3F3C5',width:2.5,fill:true}],opts:{yFmt:v=>v.toFixed(1),leftPad:44,decimals:1,refLines:[{value:avg,color:'rgba(255,255,255,.22)',dash:[4,4]}]}}}}
 };
-
 function expandChart(id){
   const meta=CHART_META[id];if(!meta)return;
   _modalChartId=id;
@@ -917,7 +911,6 @@ function expandChart(id){
   $('modalLegend').innerHTML=meta.legend.map(l=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:2px;background:${l.color};display:inline-block;border-radius:1px${l.dash?';border-top:2px dashed '+l.color+';background:none':''}"></span>${l.label}</span>`).join('');
   requestAnimationFrame(()=>{const canvas=$('modalCanvas');if(!canvas)return;drawModalChart(canvas,series,opts,data);setupModalInteraction(canvas,series,opts,data);});
 }
-
 function drawModalChart(canvas,series,opts,data,hoverIdx=null){
   const dpr=window.devicePixelRatio||1,rect=canvas.getBoundingClientRect(),W=rect.width,H=rect.height;
   canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
@@ -944,7 +937,6 @@ function drawModalChart(canvas,series,opts,data,hoverIdx=null){
   });
   ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+cH);ctx.stroke();ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+cH);ctx.lineTo(PAD.left+cW,PAD.top+cH);ctx.stroke();
 }
-
 function setupModalInteraction(canvas,series,opts,data){
   const n=data.length,PAD={top:20,right:24,bottom:36,left:opts.leftPad||52};
   function getHoverIdx(e){const rect=canvas.getBoundingClientRect(),mx=e.clientX-rect.left,cW=rect.width-PAD.left-PAD.right;return Math.max(0,Math.min(n-1,Math.round(((mx-PAD.left)/cW)*(n-1))));}
@@ -958,10 +950,8 @@ function setupModalInteraction(canvas,series,opts,data){
   };
   canvas.onmouseleave=()=>{drawModalChart(canvas,series,opts,data,null);$('modalTooltip').innerHTML='';$('modalCrosshair').style.display='none';};
 }
-
 function closeModal(e){if(e&&e.target!==$('chartModal'))return;$('chartModal').style.display='none';const canvas=$('modalCanvas');if(canvas){canvas.onmousemove=null;canvas.onmouseleave=null;}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('chartModal').style.display='none';});
-
 const PROJ_FIELDS=['pOrders','pCplh','pRev'];
 function saveProjectorState(){
   const state={oph:currentOph,fields:Object.fromEntries(PROJ_FIELDS.map(id=>[id,$(id)?.value||''])),depts:Object.fromEntries(DEPTS.map(d=>{const el=document.querySelector(`.dept-pct[data-dept="${d}"]`);return[d,el?(el.value||''):''];}))};
@@ -975,7 +965,6 @@ function loadProjectorState(){
     if(s.depts){DEPTS.forEach(d=>{const el=document.querySelector(`.dept-pct[data-dept="${d}"]`);if(el&&s.depts[d]!==undefined&&s.depts[d]!==''){el.value=s.depts[d];}});deptCalc();}
   }catch(e){}
 }
-
 window.addEventListener('load',()=>{
   const d=new Date();d.setDate(d.getDate()-7);$('aDate').value=d.toISOString().slice(0,10);
   $('aSpend').placeholder=`avg $${H_AVG_SPEND.toLocaleString()}`;
@@ -990,7 +979,6 @@ window.addEventListener('load',()=>{
   const g=$('ophGhostAvg'),gl=$('ophGhostLbl');
   if(g)g.textContent=gVal.toFixed(1);if(gl)gl.textContent=ophA?`avg ${ophA.toFixed(1)} (logged)`:`avg ${gVal.toFixed(1)} (implied)`;
 });
-
 const styleEl=document.createElement('style');
 styleEl.textContent='@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}';
 document.head.appendChild(styleEl);
