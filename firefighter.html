@@ -56,10 +56,28 @@
     .toast { position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(163,243,197,0.12);backdrop-filter:blur(20px);border:1px solid rgba(163,243,197,0.35);color:#A3F3C5;padding:14px 28px;border-radius:50px;font-size:15px;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease;opacity:0;z-index:100;white-space:nowrap; }
     .toast.show { transform:translateX(-50%) translateY(0);opacity:1; }
     .toast.error { background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.35);color:#f87171; }
+
+    /* ── Add Issue modal ──────────────────────────────────────── */
+    .modal-bg { position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:200; }
+    .modal-bg.show { display:flex; }
+    .modal { background:#0e1214;border:1px solid rgba(246,173,85,0.25);border-radius:20px;padding:28px;width:92%;max-width:560px;box-shadow:0 0 80px rgba(246,173,85,0.12); }
+    .modal h3 { color:#F6AD55;font-weight:300;font-size:24px;margin-bottom:18px;letter-spacing:-0.01em; }
+    .modal label { display:block;font-size:11px;color:#6b7280;margin:14px 0 6px;letter-spacing:0.04em;text-transform:uppercase; }
+    .modal input, .modal select, .modal textarea {
+      width:100%;padding:11px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-family:inherit;font-size:14px;
+    }
+    .modal textarea { min-height:74px;resize:vertical; }
+    .modal input:focus, .modal select:focus, .modal textarea:focus { outline:none;border-color:rgba(246,173,85,0.5); }
+    .modal-row { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+    .actions-row { display:flex;gap:10px;justify-content:flex-end;margin-top:24px; }
+    .btn { padding:11px 22px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#fff;cursor:pointer;font-family:inherit;font-size:13px;transition:all 0.15s; }
+    .btn:hover { border-color:rgba(255,255,255,0.2); }
+    .btn.primary { background:rgba(246,173,85,0.85);color:#1a1a1a;border-color:rgba(246,173,85,0.85);font-weight:500; }
+    .btn.primary:hover { background:#F6AD55; }
+    .btn.primary:disabled { opacity:0.5;cursor:not-allowed; }
   </style>
 </head>
 <body class="grid-bg">
-
   <!-- Tab config: emojis live here in HTML, JS reads via data attrs -->
   <div id="tab-config" style="display:none">
     <span data-tab="CX"         data-emoji="&#129309;" data-label="CX"></span>
@@ -68,19 +86,15 @@
     <span data-tab="Tech"       data-emoji="&#9881;&#65039;"  data-label="Tech"></span>
     <span data-tab="HR"         data-emoji="&#128101;" data-label="HR"></span>
   </div>
-
   <div class="fixed top-20 left-10 w-96 h-96 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.06);"></div>
   <div class="fixed bottom-20 right-10 w-80 h-80 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.04);animation-delay:-3s;"></div>
-
   <div class="relative z-10 min-h-screen flex flex-col items-center justify-start px-6 py-20">
     <div class="w-full" style="max-width:1200px;">
-
       <div class="mb-12 fade-in-up">
         <a href="./index.html" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#F6AD55] transition-colors tracking-wider uppercase">
           <span>&#85927;</span><span>Atomix OPS</span>
         </a>
       </div>
-
       <div class="text-center mb-12 fade-in-up">
         <div class="inline-block px-6 py-2 glass-amber rounded-full text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-6">
           <span class="status-dot"></span>Cowork Intelligence
@@ -92,12 +106,9 @@
         </h1>
         <p class="text-lg text-gray-400 max-w-xl mx-auto font-light">Click an action. Cowork handles it automatically.</p>
       </div>
-
       <div class="flex flex-col lg:flex-row gap-6 scale-in">
-
         <!-- LEFT COLUMN -->
         <div class="flex-1 min-w-0">
-
           <div class="issues-tile mb-6">
             <div class="flex items-center justify-between mb-5">
               <div class="flex items-center gap-3">
@@ -119,31 +130,27 @@
               <div class="shimmer h-20 rounded-xl"></div>
             </div>
           </div>
-
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
             <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-add" onclick="runAction('add')">
               <div class="text-3xl mb-4">&#127897;&#65039;</div>
               <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 1</div>
               <div class="text-xl font-light text-white mb-3">Add Issues</div>
-              <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Talk it out &#8212; Cowork captures and drops it into the right tab automatically.</div>
+              <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Type it out &#8212; logs straight into the right tab of the tracker.</div>
               <div class="flex items-center justify-between" id="status-add">
                 <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
                 <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
               </div>
             </div>
-
             <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-pull" onclick="runAction('pull')">
               <div class="text-3xl mb-4">&#128225;</div>
               <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 2</div>
               <div class="text-xl font-light text-white mb-3">Pull</div>
-              <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Scrubs the last 48 hours of Slack + Gmail and logs everything to the tracker.</div>
+              <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Scrubs the last 48 hours of Slack + Gmail + ClickUp into the tracker.</div>
               <div class="flex items-center justify-between" id="status-pull">
                 <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
                 <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
               </div>
             </div>
-
             <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-recap" onclick="runAction('recap')">
               <div class="text-3xl mb-4">&#128202;</div>
               <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 3</div>
@@ -154,10 +161,8 @@
                 <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
               </div>
             </div>
-
           </div>
         </div>
-
         <!-- SIDEBAR -->
         <div class="lg:w-72 flex-shrink-0">
           <div class="sidebar sticky top-8">
@@ -175,23 +180,83 @@
             </div>
           </div>
         </div>
-
       </div>
-
       <div class="mt-8 text-center fade-in-up">
         <div class="inline-flex items-center gap-3 text-xs text-gray-700">
           <span class="status-dot" style="width:6px;height:6px;"></span>
           <span>Auto-pull at 9:00 AM daily &#183; Refreshes every 30s &#183; Click any tab to expand</span>
         </div>
       </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
 
+  <!-- Add Issue modal -->
+  <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <h3>Add Issue</h3>
+      <div class="modal-row">
+        <div>
+          <label>Folder</label>
+          <select id="m-folder">
+            <option value="Operations">📦 Operations</option>
+            <option value="CX">🤝 CX</option>
+            <option value="Tech">⚙️ Tech</option>
+            <option value="HR">👥 HR</option>
+            <option value="Finance">💰 Finance</option>
+          </select>
+        </div>
+        <div>
+          <label>Sub-Folder</label>
+          <input id="m-sub" type="text" placeholder="Outbound, SLA, Carrier…">
+        </div>
+      </div>
+      <label>Summary</label>
+      <textarea id="m-summary" placeholder="What happened?"></textarea>
+      <label>Action Items</label>
+      <textarea id="m-actions" placeholder="What needs to happen next?"></textarea>
+      <div class="modal-row">
+        <div>
+          <label>Priority</label>
+          <select id="m-priority">
+            <option>🟢 Low</option>
+            <option selected>🟡 Medium</option>
+            <option>🔴 High</option>
+          </select>
+        </div>
+        <div>
+          <label>Status</label>
+          <select id="m-status">
+            <option>Open</option>
+            <option>Win</option>
+            <option>Closed</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-row">
+        <div>
+          <label>Deadline (optional)</label>
+          <input id="m-deadline" type="date">
+        </div>
+        <div>
+          <label>Source</label>
+          <input id="m-source" type="text" value="Firefighter">
+        </div>
+      </div>
+      <label>Notes / Links (optional)</label>
+      <input id="m-notes" type="text" placeholder="Channel, ticket #, thread URL…">
+      <div class="actions-row">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn primary" id="m-save" onclick="saveIssue()">Log entry</button>
+      </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
-
   <script>
-  // ---- Read tab config from HTML (no non-ASCII in this script) ----
+  // ─── Config ───────────────────────────────────────────────────────────────
+  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYJpbpshSZbZ4PySi3JOVv4sjvG5HW1FCD8_-CdsD-JrtIm_luaMjxHA-ZbuFJBNiP/exec";
+
+  // ─── Read tab config from HTML (no non-ASCII in this script) ──────────────
   var TAB_CFG = {};
   var cfgNodes = document.querySelectorAll('#tab-config [data-tab]');
   for (var i = 0; i < cfgNodes.length; i++) {
@@ -201,25 +266,20 @@
       label: n.getAttribute('data-label')
     };
   }
-
   var expandedTabs = {};
 
-  // ---- Data fetch ----
+  // ─── Data fetch ───────────────────────────────────────────────────────────
   function loadIssues() {
-    fetch('https://raw.githubusercontent.com/drake-arch/atomix-ops/main/firefighter-data.json?cb=' + Date.now())
+    fetch(APPS_SCRIPT_URL + '?route=stats&cb=' + Date.now())
       .then(function(r) { return r.json(); })
       .then(function(data) { renderIssues(data); })
       .catch(function() { document.getElementById('last-updated').textContent = 'Could not load data'; });
   }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // ---- Render issues tile ----
+  // ─── Render issues tile ───────────────────────────────────────────────────
   function renderIssues(data) {
     var t = data.totals;
-
     document.getElementById('summary-row').innerHTML =
       '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light text-white">' + t.open + '</span><span class="text-xs text-gray-500 leading-tight">open<br>issues</span></div>' +
       '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light" style="color:#f87171">' + t.high + '</span><span class="text-xs text-gray-500 leading-tight">high<br>priority</span></div>' +
@@ -233,7 +293,6 @@
       if (!info) continue;
       var cfg = TAB_CFG[name] || { emoji: '', label: name };
       var isOpen = !!expandedTabs[name];
-
       var items = '';
       if (info.recent && info.recent.length) {
         for (var j = 0; j < info.recent.length; j++) {
@@ -242,7 +301,6 @@
       } else {
         items = '<div class="tab-item" style="color:#4b5563;">No recent items</div>';
       }
-
       html +=
         '<div class="tab-pill' + (isOpen ? ' open' : '') + '" onclick="toggleTab(\'' + name + '\', this)">' +
           '<div style="display:flex;align-items:center;justify-content:space-between;">' +
@@ -259,27 +317,19 @@
           '<div class="tab-body"><div style="padding-top:12px;">' + items + '</div></div>' +
         '</div>';
     }
-
     document.getElementById('tab-grid').innerHTML = html;
     document.getElementById('last-updated').textContent = 'Updated ' + data.last_updated;
     renderPriorities(data);
   }
-
   function toggleTab(name, el) {
-    if (expandedTabs[name]) {
-      delete expandedTabs[name];
-      el.classList.remove('open');
-    } else {
-      expandedTabs[name] = true;
-      el.classList.add('open');
-    }
+    if (expandedTabs[name]) { delete expandedTabs[name]; el.classList.remove('open'); }
+    else { expandedTabs[name] = true; el.classList.add('open'); }
   }
 
-  // ---- Priorities sidebar ----
+  // ─── Priorities sidebar ──────────────────────────────────────────────────
   function renderPriorities(data) {
     var order = ['CX', 'Operations', 'Finance', 'Tech', 'HR'];
     var picks = [];
-
     for (var i = 0; i < order.length; i++) {
       var info = data.tabs[order[i]];
       if (!info) continue;
@@ -290,7 +340,6 @@
         }
       }
     }
-
     if (picks.length < 3) {
       for (var i = 0; i < order.length; i++) {
         var info = data.tabs[order[i]];
@@ -300,14 +349,12 @@
         }
       }
     }
-
     var top3 = picks.slice(0, 3);
     if (!top3.length) {
       document.getElementById('priorities-list').innerHTML =
         '<div style="font-size:12px;color:#4b5563;text-align:center;padding:16px;">No open issues right now!</div>';
       return;
     }
-
     var rankCls = ['n1', 'n2', 'n3'];
     var html = '';
     for (var i = 0; i < top3.length; i++) {
@@ -332,55 +379,55 @@
   loadIssues();
   setInterval(loadIssues, 30000);
 
-  // ---- Actions ----
-  var ACTIONS = {
-    add:   { cardId:'card-add',   statusId:'status-add',   phrase:'add issues',         msg:'Cowork is listening - tell it what is on fire' },
-    pull:  { cardId:'card-pull',  statusId:'status-pull',  phrase:'pull last 48 hours', msg:'Pull started - tracker updating now' },
-    recap: { cardId:'card-recap', statusId:'status-recap', phrase:'weekly standup',      msg:'Recap running - check Cowork for the report' }
-  };
-
-  var running = null;
-
-  function runAction(key) {
-    if (running) return;
-    var a = ACTIONS[key];
-    if (!a) return;
-    var card = document.getElementById(a.cardId);
-    var status = document.getElementById(a.statusId);
-
-    running = key;
-    card.classList.add('running');
-    status.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:#F6AD55;font-size:12px;"><span class="spinner"></span><span>Starting...</span></div>';
-
-    navigator.clipboard.writeText(a.phrase).catch(function() {});
-    window.__firefighterAction = { key: key, phrase: a.phrase, ts: Date.now() };
-    window.dispatchEvent(new CustomEvent('firefighter-action', { detail: { action: key, phrase: a.phrase } }));
-    sessionStorage.setItem('firefighter-pending', JSON.stringify({ action: key, phrase: a.phrase, time: new Date().toISOString() }));
-
-    setTimeout(function() {
-      status.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:#F6AD55;font-size:12px;"><span class="spinner"></span><span>Running in Cowork...</span></div>';
-    }, 800);
-
-    setTimeout(function() {
-      card.classList.remove('running');
-      status.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:#A3F3C5;font-family:monospace;background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;">Done</span></div>';
-      toast('Done - ' + a.msg);
-      running = null;
-      setTimeout(loadIssues, 2000);
-      setTimeout(function() {
-        status.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;"><span style="font-size:12px;color:#4b5563;font-family:monospace;background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;">Ready</span><span style="color:#F6AD55;opacity:0.6;">&#8594;</span></div>';
-      }, 5000);
-    }, 4000);
+  // ─── Modal ──────────────────────────────────────────────────────────────
+  function openModal()  { document.getElementById('modal-bg').classList.add('show'); setTimeout(function(){document.getElementById('m-summary').focus();}, 50); }
+  function closeModal() {
+    document.getElementById('modal-bg').classList.remove('show');
+    ['m-sub','m-summary','m-actions','m-deadline','m-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
+  }
+  function saveIssue() {
+    var btn = document.getElementById('m-save'); btn.disabled = true; btn.textContent = 'Saving…';
+    var payload = {
+      folder:    document.getElementById('m-folder').value,
+      subfolder: document.getElementById('m-sub').value,
+      summary:   document.getElementById('m-summary').value,
+      actions:   document.getElementById('m-actions').value,
+      priority:  document.getElementById('m-priority').value,
+      status:    document.getElementById('m-status').value,
+      deadline:  document.getElementById('m-deadline').value,
+      source:    document.getElementById('m-source').value || 'Firefighter',
+      notes:     document.getElementById('m-notes').value
+    };
+    if (!payload.summary.trim()) { toast('Summary required', true); btn.disabled = false; btn.textContent = 'Log entry'; return; }
+    fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j.status !== 'ok') throw new Error(j.message || 'post failed');
+        toast('Logged to ' + (j.written && j.written[0] || ''));
+        closeModal();
+        setTimeout(loadIssues, 800);
+      })
+      .catch(function(e){ toast('Failed: ' + e.message, true); })
+      .finally(function(){ btn.disabled = false; btn.textContent = 'Log entry'; });
   }
 
-  function toast(msg) {
+  // ─── Actions ─────────────────────────────────────────────────────────────
+  function runAction(key) {
+    if (key === 'add') { openModal(); return; }
+    var phrase = key === 'pull' ? 'run the daily pull' : 'weekly standup';
+    var msg    = key === 'pull' ? 'Open Cowork and paste:\n\n  run the daily pull\n\n(or wait for the 9 AM auto-pull)'
+                                 : 'Open Cowork and paste:\n\n  weekly standup';
+    if (navigator.clipboard) navigator.clipboard.writeText(phrase).catch(function(){});
+    alert(msg + '\n\n(copied to clipboard)');
+  }
+
+  function toast(msg, isErr) {
     var t = document.getElementById('toast');
     t.textContent = msg;
-    t.className = 'toast';
+    t.className = 'toast' + (isErr ? ' error' : '');
     t.classList.add('show');
-    setTimeout(function() { t.classList.remove('show'); }, 4000);
+    setTimeout(function(){ t.classList.remove('show'); }, 3500);
   }
   </script>
-
 </body>
 </html>
