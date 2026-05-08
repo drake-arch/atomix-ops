@@ -288,8 +288,8 @@
     <div class="stat-divider"></div>
     <div class="stat-pill"><span class="val" id="statUnassigned">0</span><span class="lbl">Unassigned</span></div>
     <div class="stat-divider"></div>
-    <div class="stat-pill" id="backendPill" onclick="promptScriptUrl()" title="Click to set backend URL" style="cursor:pointer;">
-      <span class="val" id="backendDot">⚫</span>
+    <div class="stat-pill" id="backendPill" title="Backend connected" style="cursor:default;">
+      <span class="val" id="backendDot">🟢</span>
       <span class="lbl">Backend</span>
     </div>
     <div class="stat-divider"></div>
@@ -399,26 +399,15 @@
 
 <script>
 // ═══════════════════════════════════════════════
-// CONFIG
+// CONFIG — URL hardcoded, no localStorage needed
 // ═══════════════════════════════════════════════
-const COLORS = [
-  { bg:'rgba(163,243,197,0.18)', border:'#A3F3C5', glow:'rgba(163,243,197,0.3)' },
-  { bg:'rgba(99,179,237,0.18)',  border:'#63B3ED', glow:'rgba(99,179,237,0.3)' },
-  { bg:'rgba(246,173,85,0.18)',  border:'#F6AD55', glow:'rgba(246,173,85,0.3)' },
-  { bg:'rgba(159,122,234,0.18)', border:'#9F7AEA', glow:'rgba(159,122,234,0.3)' },
-  { bg:'rgba(252,129,74,0.18)',  border:'#FC814A', glow:'rgba(252,129,74,0.3)' },
-  { bg:'rgba(237,100,166,0.18)', border:'#ED64A6', glow:'rgba(237,100,166,0.3)' },
-  { bg:'rgba(72,187,120,0.18)',  border:'#48BB78', glow:'rgba(72,187,120,0.3)' },
-];
-
-const SCRIPT_URL = localStorage.getItem('atomix_script_url') || '';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7H96kol1X1Q-7K0_aXpXnTMHjwzfargHqf7YqvFWMzRJcaaek06JxZNSIZysGgNJ1bw/exec';
 const DEVICE_ID  = 'floor-tablet-' + (Math.random().toString(36).slice(2,6));
 
 // ═══════════════════════════════════════════════
 // BACKEND LOGGING
 // ═══════════════════════════════════════════════
 async function logEvent(type, data = {}) {
-  if (!SCRIPT_URL) return;
   try {
     const url = new URL(SCRIPT_URL);
     url.searchParams.set('method',      'post');
@@ -435,6 +424,19 @@ async function logEvent(type, data = {}) {
     fetch(url.toString(), { method:'GET', mode:'no-cors' });
   } catch(e) { /* offline */ }
 }
+
+// ═══════════════════════════════════════════════
+// COLORS
+// ═══════════════════════════════════════════════
+const COLORS = [
+  { bg:'rgba(163,243,197,0.18)', border:'#A3F3C5', glow:'rgba(163,243,197,0.3)' },
+  { bg:'rgba(99,179,237,0.18)',  border:'#63B3ED', glow:'rgba(99,179,237,0.3)' },
+  { bg:'rgba(246,173,85,0.18)',  border:'#F6AD55', glow:'rgba(246,173,85,0.3)' },
+  { bg:'rgba(159,122,234,0.18)', border:'#9F7AEA', glow:'rgba(159,122,234,0.3)' },
+  { bg:'rgba(252,129,74,0.18)',  border:'#FC814A', glow:'rgba(252,129,74,0.3)' },
+  { bg:'rgba(237,100,166,0.18)', border:'#ED64A6', glow:'rgba(237,100,166,0.3)' },
+  { bg:'rgba(72,187,120,0.18)',  border:'#48BB78', glow:'rgba(72,187,120,0.3)' },
+];
 
 // ═══════════════════════════════════════════════
 // EMPLOYEES
@@ -851,7 +853,7 @@ function unassignEmployee(empId){
 }
 
 // ═══════════════════════════════════════════════
-// BREAK / LUNCH  ← FIXED: logEvent calls added
+// BREAK / LUNCH
 // ═══════════════════════════════════════════════
 const BREAK_DURATION  = 15*60*1000;
 const LUNCH_DURATION  = 30*60*1000;
@@ -860,35 +862,21 @@ function handleDropOnBreakZone(empId, zoneType) {
   const emp = EMPLOYEES.find(e => e.id === empId);
   if (!emp) return;
   if (emp.breakStatus) return;
-
   emp.breakReturnBubble = emp.dept || null;
-
-  // Capture dept name BEFORE removing from bubble
   const fromBubble   = emp.dept ? bubbles.find(x => x.id === emp.dept) : null;
   const fromDeptName = fromBubble ? fromBubble.name : '';
-
   if (emp.dept) {
     const b = bubbles.find(x => x.id === emp.dept);
     if (b) b.employees = b.employees.filter(id => id !== emp.id);
     emp.dept = null;
   }
-
   emp.breakStatus = zoneType;
   emp.breakStart  = Date.now();
-
   const duration  = zoneType === 'break' ? BREAK_DURATION : LUNCH_DURATION;
   const label     = zoneType === 'break' ? 'Break' : 'Lunch';
   const eventType = zoneType === 'break' ? 'BREAK_START' : 'LUNCH_START';
-
   addLog(`${emp.name} on ${label}`, zoneType === 'break' ? 'brk' : 'lunch');
-
-  // ✅ Log break/lunch start to backend
-  logEvent(eventType, {
-    empId:    emp.id,
-    empName:  emp.fullName || emp.name,
-    fromDept: fromDeptName,
-  });
-
+  logEvent(eventType, { empId: emp.id, empName: emp.fullName || emp.name, fromDept: fromDeptName });
   emp._breakTimer = setTimeout(() => returnFromBreak(emp.id), duration);
   renderAll();
 }
@@ -897,31 +885,15 @@ function returnFromBreak(empId) {
   const emp = EMPLOYEES.find(e => e.id === empId);
   if (!emp || !emp.breakStatus) return;
   clearTimeout(emp._breakTimer);
-
   const label     = emp.breakStatus === 'break' ? 'Break' : 'Lunch';
   const eventType = emp.breakStatus === 'break' ? 'BREAK_END' : 'LUNCH_END';
-
-  // Capture return bubble name BEFORE clearing state
-  const returnBubble = emp.breakReturnBubble
-    ? bubbles.find(x => x.id === emp.breakReturnBubble)
-    : null;
-
+  const returnBubble = emp.breakReturnBubble ? bubbles.find(x => x.id === emp.breakReturnBubble) : null;
   if (returnBubble) {
     returnBubble.employees.push(emp.id);
     emp.dept = emp.breakReturnBubble;
   }
-
-  // ✅ Log break/lunch end to backend
-  logEvent(eventType, {
-    empId:   emp.id,
-    empName: emp.fullName || emp.name,
-    toDept:  returnBubble ? returnBubble.name : '',
-  });
-
-  emp.breakStatus       = null;
-  emp.breakStart        = null;
-  emp.breakReturnBubble = null;
-  emp._breakTimer       = null;
+  logEvent(eventType, { empId: emp.id, empName: emp.fullName || emp.name, toDept: returnBubble ? returnBubble.name : '' });
+  emp.breakStatus = null; emp.breakStart = null; emp.breakReturnBubble = null; emp._breakTimer = null;
   addLog(`${emp.name} back from ${label}`, 'in');
   renderAll();
 }
@@ -1095,7 +1067,7 @@ function zoomAroundPoint(cx,cy,newZoom){
   const ca=document.getElementById('canvasArea');const rect=ca.getBoundingClientRect();
   const mx=cx-rect.left,my=cy-rect.top;
   panX=mx-(mx-panX)*(zoomLevel/oldZoom);panY=my-(my-panY)*(zoomLevel/oldZoom);
-  applyTransform(false);updateBackendStatus();
+  applyTransform(false);
 }
 function fitAll(){
   if(!bubbles.length)return;
@@ -1120,7 +1092,7 @@ ca.addEventListener('mousedown',e=>{
     isPanning=true;panStart={x:e.clientX-panX,y:e.clientY-panY};ca.classList.add('panning');e.preventDefault();
   }
 });
-document.addEventListener('mousemove',e=>{if(!isPanning)return;panX=e.clientX-panStart.x;panY=e.clientY-panStart.y;applyTransform(false);updateBackendStatus();});
+document.addEventListener('mousemove',e=>{if(!isPanning)return;panX=e.clientX-panStart.x;panY=e.clientY-panStart.y;applyTransform(false);});
 document.addEventListener('mouseup',e=>{if(isPanning){isPanning=false;ca.classList.remove('panning');}});
 
 // ═══════════════════════════════════════════════
@@ -1246,7 +1218,6 @@ function saveSpModal(){
 // ROSTER
 // ═══════════════════════════════════════════════
 const DEPT_COLORS_HEX=['#A3F3C5','#63B3ED','#F6AD55','#9F7AEA','#FC814A','#ED64A6','#48BB78'];
-const BUBBLE_COLORS=DEPT_COLORS_HEX;
 let rosterCollapsed={};
 
 function renderRoster(){
@@ -1307,10 +1278,9 @@ function makeMemberRow(emp,accentColor){
 function toggleRoster(){document.getElementById('rosterPanel').classList.toggle('open');renderRoster();}
 
 // ═══════════════════════════════════════════════
-// BACKEND SYNC
+// BACKEND SYNC (read-back from sheet for multi-tablet support)
 // ═══════════════════════════════════════════════
 async function fetchLive(){
-  if(!SCRIPT_URL)return null;
   try{const url=new URL(SCRIPT_URL);url.searchParams.set('action','live');return await(await fetch(url.toString())).json();}catch(e){return null;}
 }
 async function syncFromBackend(){
@@ -1328,7 +1298,7 @@ async function syncFromBackend(){
       const angle=(bubbles.length*137.5)*Math.PI/180;const radius=250+bubbles.length*30;
       const canvasW=(document.getElementById('canvasArea')?.clientWidth||1200)/zoomLevel;
       const canvasH=(document.getElementById('canvasArea')?.clientHeight||700)/zoomLevel;
-      bubble={id:'b_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),name:s.dept,bx:Math.max(100,Math.min(500+Math.cos(angle)*radius,canvasW-100)),by:Math.max(100,Math.min(400+Math.sin(angle)*radius,canvasH-100)),colorIdx:bubbles.length%BUBBLE_COLORS.length,size:90,employees:[],parentId:null};
+      bubble={id:'b_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),name:s.dept,bx:Math.max(100,Math.min(500+Math.cos(angle)*radius,canvasW-100)),by:Math.max(100,Math.min(400+Math.sin(angle)*radius,canvasH-100)),colorIdx:bubbles.length%7,size:90,employees:[],parentId:null};
       bubbles.push(bubble);
     }
     if(bubble&&!bubble.employees.includes(emp.id)){bubble.employees.push(emp.id);emp.dept=bubble.id;emp.clockIn=emp.clockIn||Date.now();}
@@ -1336,20 +1306,13 @@ async function syncFromBackend(){
   renderAll();
 }
 
-function promptScriptUrl(){
-  const url=prompt('Enter Google Apps Script Web App URL:',SCRIPT_URL||'');
-  if(url!==null){localStorage.setItem('atomix_script_url',url.trim());location.reload();}
-}
-function updateBackendStatus(){
-  const dot=document.getElementById('backendDot');if(!dot)return;
-  dot.textContent=SCRIPT_URL?'🟢':'⚫';
-}
-
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
 window.addEventListener('load',()=>{
-  drawBg();setupBreakZones();setupCreator();renderAll();applyTransform(false);updateBackendStatus();
+  drawBg();setupBreakZones();setupCreator();renderAll();applyTransform(false);
+  // Show green dot since URL is hardcoded
+  document.getElementById('backendDot').textContent = '🟢';
   ['tubeDayInput','tubeWeekInput'].forEach(id=>document.getElementById(id).addEventListener('change',updateTubes));
   const empPool=document.getElementById('empPool');
   empPool.addEventListener('dragover',e=>{e.preventDefault();empPool.classList.add('drag-over-pool');});
@@ -1372,11 +1335,13 @@ window.addEventListener('load',()=>{
   ['spQuotedHrs','spBillRate','spSupplyCost'].forEach(id=>document.getElementById(id).addEventListener('input',updateSpTotal));
   window.addEventListener('resize',()=>{drawBg();renderAll();});
   addLog('System started','');
+  // Start backend sync
+  syncFromBackend();
+  setInterval(syncFromBackend,20000);
 });
 
 setInterval(renderAll,30000);
 setInterval(renderBreakZones,60000);
-if(SCRIPT_URL){syncFromBackend();setInterval(syncFromBackend,20000);}
 </script>
 
 <!-- EMPLOYEE PROFILE MODAL -->
