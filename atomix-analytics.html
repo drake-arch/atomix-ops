@@ -30,11 +30,11 @@ header{height:56px;background:var(--s1);border-bottom:1px solid var(--border);di
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
 .live-label{font-size:11px;color:var(--green);font-family:var(--font-mono);letter-spacing:0.06em;}
-.script-url-btn{background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font-mono);transition:all 0.15s;}
-.script-url-btn:hover{border-color:var(--green);color:var(--green);}
 .refresh-btn{background:var(--green);color:var(--navy);border:none;border-radius:6px;padding:5px 14px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity 0.15s;}
 .refresh-btn:hover{opacity:0.85;}
 .last-refresh{font-size:10px;color:var(--muted);font-family:var(--font-mono);}
+.rebuild-btn{background:none;border:1px solid var(--border2);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--amber);cursor:pointer;font-family:var(--font-mono);transition:all 0.15s;display:none;}
+.rebuild-btn:hover{background:rgba(246,173,85,0.08);}
 
 nav{height:42px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:4px;flex-shrink:0;}
 .tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border:none;background:none;transition:all 0.15s;letter-spacing:0.03em;}
@@ -131,15 +131,6 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
 .export-btn{background:none;border:1px solid var(--border2);border-radius:5px;padding:4px 12px;font-size:11px;color:var(--green);cursor:pointer;font-family:var(--font-mono);transition:all 0.15s;margin-left:auto;}
 .export-btn:hover{background:rgba(163,243,197,0.08);}
 
-.config-panel{background:var(--s2);border:1px solid var(--amber);border-radius:10px;padding:16px;}
-.config-title{font-size:12px;font-weight:600;color:var(--amber);margin-bottom:12px;letter-spacing:0.04em;}
-.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.config-field{display:flex;flex-direction:column;gap:4px;}
-.config-field label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;}
-.config-field input{background:var(--s1);border:1px solid var(--border2);border-radius:5px;padding:6px 10px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;transition:border-color 0.15s;}
-.config-field input:focus{border-color:var(--amber);}
-.config-save{margin-top:10px;background:var(--amber);color:#1a1000;border:none;border-radius:6px;padding:7px 18px;font-size:12px;font-weight:600;cursor:pointer;}
-
 .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
 .empty-icon{font-size:32px;margin-bottom:10px;opacity:0.4;}
 .toast{position:fixed;bottom:20px;right:20px;z-index:1000;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,0.4);display:none;animation:fadeUp 0.2s ease;}
@@ -155,8 +146,7 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     <div class="live-dot"></div>
     <div class="live-label">LIVE</div>
     <span class="last-refresh" id="lastRefresh">—</span>
-    <button class="script-url-btn" onclick="showConfig()">⚙ Configure</button>
-    <button class="script-url-btn" id="rebuildBtn" onclick="rebuildSummary()" style="display:none;">⟳ Rebuild Summary</button>
+    <button class="rebuild-btn" id="rebuildBtn" onclick="rebuildSummary()">⟳ Rebuild Summary</button>
     <button class="refresh-btn" onclick="doRefresh()">↻ Refresh</button>
   </div>
 </header>
@@ -360,64 +350,22 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
   </div>
 </div>
 
-<!-- CONFIG MODAL -->
-<div class="modal-overlay" id="configModal" onclick="if(event.target===this)closeModal('configModal')">
-  <div class="modal" style="width:500px;">
-    <div class="modal-header">
-      <div><div class="modal-title">⚙ Configuration</div><div class="modal-sub">Connect to Google Apps Script backend</div></div>
-      <button class="modal-close" onclick="closeModal('configModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="config-panel">
-        <div class="config-title">▸ Google Apps Script URL</div>
-        <div class="config-field">
-          <label>Script Web App URL</label>
-          <input type="text" id="cfgScriptUrl" placeholder="https://script.google.com/macros/s/YOUR_ID/exec" style="width:100%;">
-        </div>
-        <div style="margin-top:8px;font-size:10px;color:var(--muted);">Deploy as Web App → Execute as: Me → Access: Anyone</div>
-      </div>
-      <div class="config-panel" style="border-color:var(--border2);">
-        <div class="config-title" style="color:var(--green);">▸ KPI Targets</div>
-        <div class="config-grid">
-          <div class="config-field"><label>Default Hourly Rate ($)</label><input type="number" id="cfgHourlyRate" value="18.50"></div>
-          <div class="config-field"><label>Labor % Target</label><input type="number" id="cfgLaborPct" value="30" step="0.1"></div>
-          <div class="config-field"><label>CPO Target ($)</label><input type="number" id="cfgCPO" value="4.00" step="0.01"></div>
-          <div class="config-field"><label>OT % Target</label><input type="number" id="cfgOTPct" value="10" step="0.1"></div>
-          <div class="config-field"><label>Pick Accuracy Target (%)</label><input type="number" id="cfgAccuracy" value="99.9" step="0.1"></div>
-          <div class="config-field"><label>Auto-refresh (seconds)</label><input type="number" id="cfgRefresh" value="30"></div>
-        </div>
-        <button class="config-save" onclick="saveConfig()">Save & Connect</button>
-      </div>
-      <div style="background:var(--s2);border-radius:8px;padding:12px;">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Labor Clock → Backend Setup</div>
-        <div style="font-size:11px;color:var(--text);line-height:1.7;">
-          1. In <strong style="color:var(--green);">atomix-labor-clock.html</strong>, find <code style="background:var(--s3);padding:1px 5px;border-radius:3px;font-size:10px;">SCRIPT_URL</code> near the top<br>
-          2. Paste your Apps Script URL there<br>
-          3. The Labor Clock will start POSTing events automatically<br>
-          4. This dashboard reads from the same script via GET requests
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 // ═══════════════════════════════════════════════
-// CONFIG & STATE
+// CONFIG — URL hardcoded, no localStorage needed
 // ═══════════════════════════════════════════════
-Chart.defaults.animation = false; // prevent sizing race on first render
-Chart.defaults.responsive = true;
-Chart.defaults.maintainAspectRatio = false;
-let CONFIG = {
-  scriptUrl:  localStorage.getItem('atomix_script_url') || '',
-  hourlyRate: parseFloat(localStorage.getItem('atomix_rate')      || '18.50'),
-  laborPct:   parseFloat(localStorage.getItem('atomix_labor_pct') || '30'),
-  cpo:        parseFloat(localStorage.getItem('atomix_cpo')       || '4.00'),
-  otPct:      parseFloat(localStorage.getItem('atomix_ot_pct')    || '10'),
-  accuracy:   parseFloat(localStorage.getItem('atomix_accuracy')  || '99.9'),
-  refresh:    parseInt(  localStorage.getItem('atomix_refresh')   || '30'),
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7H96kol1X1Q-7K0_aXpXnTMHjwzfargHqf7YqvFWMzRJcaaek06JxZNSIZysGgNJ1bw/exec';
+
+const CONFIG = {
+  scriptUrl:   SCRIPT_URL,
+  hourlyRate:  18.50,
+  laborPct:    30,
+  cpo:         4.00,
+  otPct:       10,
+  accuracy:    99.9,
+  refresh:     30,
 };
 
 let LIVE_DATA  = null;
@@ -425,24 +373,20 @@ let DAILY_DATA = [];
 let EMP_DATA   = [];
 let PROJ_DATA  = [];
 let EVENT_DATA = [];
-let ORDERS_TODAY = 0; // live from Metabase card 16930
+let ORDERS_TODAY = 0;
 let refreshTimer = null;
 const CHARTS = {};
 const DEPT_COLORS = ['#A3F3C5','#63B3ED','#F6AD55','#B794F4','#FC814A','#ED64A6','#68D391'];
 
 // ═══════════════════════════════════════════════
 // TAB NAVIGATION
-// Key fix: always re-render on tab click using requestAnimationFrame
-// so charts draw into visible (non-zero-size) canvases
 // ═══════════════════════════════════════════════
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('view-' + id).classList.add('active');
   document.querySelector(`.tab[data-view="${id}"]`).classList.add('active');
-  // setTimeout gives the browser a full paint cycle so canvases have real dimensions
   setTimeout(() => {
-    console.log('showView:', id, '| DAILY_DATA:', DAILY_DATA.length, '| EMP_DATA:', EMP_DATA.length);
     if (id === 'overview')     renderOverview();
     if (id === 'labor')        renderLaborView();
     if (id === 'productivity') renderProductivity();
@@ -456,8 +400,7 @@ function showView(id) {
 // API FETCH
 // ═══════════════════════════════════════════════
 async function apiFetch(action, params={}) {
-  if (!CONFIG.scriptUrl) return null;
-  const url = new URL(CONFIG.scriptUrl);
+  const url = new URL(SCRIPT_URL);
   url.searchParams.set('action', action);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
   try { return await (await fetch(url.toString())).json(); }
@@ -476,7 +419,6 @@ async function doRefresh() {
       apiFetch('orders'),
     ]);
 
-    // Only replace data if we actually got valid responses back
     const gotLive   = live   && live.active  !== undefined;
     const gotDaily  = daily  && Array.isArray(daily.data) && daily.data.length > 0;
     const gotEmps   = emps   && Array.isArray(emps.employees) && emps.employees.length > 0;
@@ -491,18 +433,17 @@ async function doRefresh() {
     if (gotEvents) EVENT_DATA   = events.events;
     if (gotOrders) ORDERS_TODAY = orders.ordersToday;
 
-    // If backend returned nothing useful, fall back to demo data
     if (!gotLive && !gotDaily && !gotEmps) {
       loadDemoData();
       document.getElementById('lastRefresh').textContent = 'backend unreachable — showing demo data';
     } else {
-      document.getElementById('lastRefresh').textContent = 'updated '+new Date().toLocaleTimeString();
+      document.getElementById('lastRefresh').textContent = 'updated ' + new Date().toLocaleTimeString();
+      document.getElementById('rebuildBtn').style.display = 'block';
     }
   } catch(e) {
     loadDemoData();
     document.getElementById('lastRefresh').textContent = 'error — showing demo data';
   }
-  // Destroy all charts and re-render active tab
   Object.keys(CHARTS).forEach(k=>{if(CHARTS[k]){CHARTS[k].destroy();delete CHARTS[k];}});
   const active = document.querySelector('.view.active')?.id?.replace('view-','');
   if (active) {
@@ -518,7 +459,7 @@ async function doRefresh() {
 }
 
 // ═══════════════════════════════════════════════
-// DEMO DATA
+// DEMO DATA (fallback when backend unreachable)
 // ═══════════════════════════════════════════════
 function loadDemoData() {
   const depts = ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
@@ -687,18 +628,14 @@ function renderLaborView() {
   const total=depts.reduce((s,d)=>s+bydept[d].cost,0);
   document.getElementById('laborTotalCost').textContent='$'+fmt(total);
 
-  // CPO: use live Metabase order count if available, else show target
   if (ORDERS_TODAY > 0) {
     const cpo = total / ORDERS_TODAY;
     const cpoEl = document.getElementById('laborCPO');
     cpoEl.textContent = '$'+cpo.toFixed(2);
-    // Color red if over target
-    cpoEl.style.color = cpo > CONFIG.cpo ? 'var(--red)' : 'var(--accent, var(--green))';
-    document.getElementById('laborCPOTarget').textContent =
-      ORDERS_TODAY.toLocaleString()+' orders · target <$'+CONFIG.cpo.toFixed(2);
+    cpoEl.style.color = cpo > CONFIG.cpo ? 'var(--red)' : '';
+    document.getElementById('laborCPOTarget').textContent = ORDERS_TODAY.toLocaleString()+' orders · target <$'+CONFIG.cpo.toFixed(2);
   } else {
-    document.getElementById('laborCPO').textContent = CONFIG.scriptUrl ? '—' : '$'+CONFIG.cpo.toFixed(2);
-    document.getElementById('laborCPO').style.color = '';
+    document.getElementById('laborCPO').textContent = '—';
     document.getElementById('laborCPOTarget').textContent = 'target <$'+CONFIG.cpo.toFixed(2);
   }
   document.getElementById('laborRevPct').textContent='—';
@@ -885,7 +822,6 @@ function renderHistory() {
   const totalHours=DAILY_DATA.reduce((s,r)=>s+parseFloat(r['Hours Worked']||0),0);
   const totalCost =DAILY_DATA.reduce((s,r)=>s+parseFloat(r['Labor Cost']||0),0);
   const avgHC     =DAILY_DATA.reduce((s,r)=>s+parseFloat(r.Headcount||0),0)/Math.max(1,DAILY_DATA.length);
-  document.getElementById('histHours').textContent='$'!=='$'?totalHours.toFixed(0)+'h':totalHours.toFixed(0)+'h';
   document.getElementById('histHours').textContent=totalHours.toFixed(0)+'h';
   document.getElementById('histCost').textContent ='$'+fmt(totalCost);
   document.getElementById('histHC').textContent   =avgHC.toFixed(0);
@@ -953,33 +889,15 @@ function openEmpDrill(empId) {
 function closeModal(id){document.getElementById(id)?.classList.remove('open');}
 
 // ═══════════════════════════════════════════════
-// CONFIG
+// REBUILD SUMMARY
 // ═══════════════════════════════════════════════
-function showConfig() {
-  document.getElementById('cfgScriptUrl').value =CONFIG.scriptUrl;
-  document.getElementById('cfgHourlyRate').value=CONFIG.hourlyRate;
-  document.getElementById('cfgLaborPct').value  =CONFIG.laborPct;
-  document.getElementById('cfgCPO').value       =CONFIG.cpo;
-  document.getElementById('cfgOTPct').value     =CONFIG.otPct;
-  document.getElementById('cfgAccuracy').value  =CONFIG.accuracy;
-  document.getElementById('cfgRefresh').value   =CONFIG.refresh;
-  document.getElementById('configModal').classList.add('open');
-}
-function saveConfig() {
-  CONFIG.scriptUrl  =document.getElementById('cfgScriptUrl').value.trim();
-  CONFIG.hourlyRate =parseFloat(document.getElementById('cfgHourlyRate').value);
-  CONFIG.laborPct   =parseFloat(document.getElementById('cfgLaborPct').value);
-  CONFIG.cpo        =parseFloat(document.getElementById('cfgCPO').value);
-  CONFIG.otPct      =parseFloat(document.getElementById('cfgOTPct').value);
-  CONFIG.accuracy   =parseFloat(document.getElementById('cfgAccuracy').value);
-  CONFIG.refresh    =parseInt(document.getElementById('cfgRefresh').value);
-  Object.entries({atomix_script_url:CONFIG.scriptUrl,atomix_rate:CONFIG.hourlyRate,atomix_labor_pct:CONFIG.laborPct,atomix_cpo:CONFIG.cpo,atomix_ot_pct:CONFIG.otPct,atomix_accuracy:CONFIG.accuracy,atomix_refresh:CONFIG.refresh})
-    .forEach(([k,v])=>localStorage.setItem(k,v));
-  closeModal('configModal');
-  toast('Config saved. Connecting…');
-  document.getElementById('rebuildBtn').style.display = CONFIG.scriptUrl ? 'block' : 'none';
-  startAutoRefresh();
-  doRefresh();
+async function rebuildSummary() {
+  const btn = document.getElementById('rebuildBtn');
+  btn.textContent = '⟳ Rebuilding…';
+  await apiFetch('rebuild_summary');
+  btn.textContent = '⟳ Rebuild Summary';
+  toast('Daily summary rebuilt — refreshing…');
+  await doRefresh();
 }
 
 // ═══════════════════════════════════════════════
@@ -999,6 +917,10 @@ function exportCSV(type) {
 // ═══════════════════════════════════════════════
 // CHART HELPERS
 // ═══════════════════════════════════════════════
+Chart.defaults.animation = false;
+Chart.defaults.responsive = true;
+Chart.defaults.maintainAspectRatio = false;
+
 function darkScales(){return{
   x:{grid:{color:'rgba(163,243,197,0.04)',drawBorder:false},ticks:{color:'#4a6a84',font:{size:9},maxRotation:0},border:{display:false}},
   y:{grid:{color:'rgba(163,243,197,0.06)',drawBorder:false},ticks:{color:'#4a6a84',font:{size:9}},border:{display:false}},
@@ -1020,39 +942,24 @@ function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOSt
 function today(){return new Date().toISOString().split('T')[0];}
 function last7Days(){return Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return d.toLocaleDateString('en',{month:'short',day:'numeric'});});}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
-function startAutoRefresh(){clearInterval(refreshTimer);if(CONFIG.scriptUrl&&CONFIG.refresh>0){refreshTimer=setInterval(doRefresh,CONFIG.refresh*1000);}}
-
-async function rebuildSummary() {
-  const btn = document.getElementById('rebuildBtn');
-  btn.textContent = '⟳ Rebuilding…';
-  btn.style.color = 'var(--amber)';
-  await apiFetch('rebuild_summary');
-  btn.textContent = '⟳ Rebuild Summary';
-  btn.style.color = '';
-  toast('Daily summary rebuilt — refreshing…');
-  await doRefresh();
-}
+function startAutoRefresh(){clearInterval(refreshTimer);refreshTimer=setInterval(doRefresh,CONFIG.refresh*1000);}
 
 // ═══════════════════════════════════════════════
-// INIT — render overview only; all other tabs
-// render lazily on first click via showView()
+// INIT
 // ═══════════════════════════════════════════════
 window.addEventListener('load',()=>{
   const t=new Date(),w=new Date(); w.setDate(w.getDate()-7);
   document.getElementById('histFrom').value=w.toISOString().split('T')[0];
   document.getElementById('histTo').value  =t.toISOString().split('T')[0];
 
-  // Always seed with demo data first so the UI is never blank
+  // Seed with demo data first so UI is never blank
   loadDemoData();
   renderOverview();
-  document.getElementById('lastRefresh').textContent='demo data loaded';
+  document.getElementById('lastRefresh').textContent='connecting…';
 
-  // Show rebuild button only when connected to backend
-  if (CONFIG.scriptUrl) {
-    document.getElementById('rebuildBtn').style.display = 'block';
-    doRefresh();
-    startAutoRefresh();
-  }
+  // Immediately connect to real backend
+  doRefresh();
+  startAutoRefresh();
 });
 </script>
 </body>
