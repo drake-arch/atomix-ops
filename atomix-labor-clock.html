@@ -143,6 +143,26 @@
   .color-dot:hover, .color-dot.selected { transform: scale(1.2); border-color: white; }
   .nb-btn { padding: 6px; background: var(--green); border: none; border-radius: 5px; color: var(--navy); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
   .nb-btn:hover { opacity: 0.85; }
+  .nb-btn.danger { background: rgba(255,90,90,0.15); color: #ff7a7a; border: 1px solid rgba(255,90,90,0.3); }
+  .nb-btn.danger:hover { background: rgba(255,90,90,0.25); }
+  /* Employee creator */
+  .new-emp-form { display: none; flex-direction: column; gap: 6px; padding: 10px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); }
+  .new-emp-form.show { display: flex; }
+  .ne-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  /* OT alert on emp cards */
+  .emp-card.ot-daily img { border-color: #ff7a7a !important; box-shadow: 0 0 8px rgba(255,90,90,0.5); }
+  .emp-card.ot-daily span { color: #ff7a7a !important; }
+  .emp-card.ot-weekly img { border-color: #ff4444 !important; box-shadow: 0 0 12px rgba(255,40,40,0.6); }
+  .emp-card.ot-weekly span { color: #ff4444 !important; }
+  /* OT on bubble avatars */
+  .emp-float.ot-daily .emp-float-img-wrap { border-color: #ff7a7a !important; box-shadow: 0 0 8px rgba(255,90,90,0.6) !important; }
+  .emp-float.ot-weekly .emp-float-img-wrap { border-color: #ff4444 !important; box-shadow: 0 0 12px rgba(255,40,40,0.7) !important; }
+  /* OT header alert */
+  .ot-alert { display: none; background: rgba(255,90,90,0.12); border: 1px solid rgba(255,90,90,0.3); border-radius: 6px; padding: 4px 10px; font-size: 10px; color: #ff7a7a; font-family: 'DM Mono', monospace; letter-spacing: 0.04em; cursor: pointer; }
+  .ot-alert.show { display: flex; align-items: center; gap: 6px; }
+  /* Remove emp button inside modal */
+  .emp-modal-btn.remove { background: rgba(255,90,90,0.12); color: #ff7a7a; border: 1px solid rgba(255,90,90,0.25); margin-right: auto; }
+  .emp-modal-btn.remove:hover { background: rgba(255,90,90,0.22); }
   .emp-pool { flex: 1; overflow-y: auto; padding: 8px; }
   .emp-pool::-webkit-scrollbar { width: 4px; }
   .emp-pool::-webkit-scrollbar-track { background: transparent; }
@@ -288,6 +308,8 @@
     <div class="stat-divider"></div>
     <div class="stat-pill"><span class="val" id="statUnassigned">0</span><span class="lbl">Unassigned</span></div>
     <div class="stat-divider"></div>
+    <div class="ot-alert" id="otAlert" title="Click to see OT employees">⚠ <span id="otAlertText">0 OT</span></div>
+    <div class="stat-divider"></div>
     <div class="stat-pill" id="backendPill" title="Backend connected" style="cursor:default;">
       <span class="val" id="backendDot">🟢</span>
       <span class="lbl">Backend</span>
@@ -378,6 +400,27 @@
     </div>
     <div class="panel-section" style="flex:1; overflow:hidden; display:flex; flex-direction:column;" id="poolPanel">
       <div class="panel-title" id="poolTitle">Employees — Unassigned</div>
+      <div style="padding: 0 0 6px 0;">
+        <button class="creator-btn" id="showEmpCreatorBtn" style="width:100%;">
+          <div class="btn-icon">+</div>
+          Add Employee
+        </button>
+        <div class="new-emp-form" id="newEmpForm">
+          <input class="nb-input" id="neName" placeholder="Full name" maxlength="30">
+          <div class="ne-row">
+            <input class="nb-input" id="neShiftStart" type="time" value="06:00" title="Shift start">
+            <input class="nb-input" id="neShiftEnd" type="time" value="14:30" title="Shift end">
+          </div>
+          <select class="nb-input" id="neRole">
+            <option value="false">Associate</option>
+            <option value="true">Manager ★</option>
+          </select>
+          <div style="display:flex;gap:5px;">
+            <button class="nb-btn" id="neCreate" style="flex:1;">Add</button>
+            <button class="nb-btn danger" id="neCancel" style="flex:1;">Cancel</button>
+          </div>
+        </div>
+      </div>
       <div class="emp-pool" id="empPool">
         <div class="pool-drop-hint" id="poolDropHint">&#8617; Drop here to unassign</div>
         <div class="pool-grid" id="poolGrid"></div>
@@ -533,8 +576,115 @@ function avatarUrl(emp) {
 }
 
 // ═══════════════════════════════════════════════
-// CLOCK
+// OT DETECTION HELPERS
 // ═══════════════════════════════════════════════
+const OT_DAILY_HRS  = 8;
+const OT_WEEKLY_HRS = 40;
+
+function getEmpHours(emp) {
+  const nowMs = Date.now();
+  const today = emp.totalHrs + (emp.clockIn ? (nowMs - emp.clockIn) / 3600000 : 0);
+  const week  = (emp.weeklyHrs || 0) + today;
+  return { today, week };
+}
+
+function getOTClass(emp) {
+  const { today, week } = getEmpHours(emp);
+  if (week  >= OT_WEEKLY_HRS) return 'ot-weekly';
+  if (today >= OT_DAILY_HRS)  return 'ot-daily';
+  return '';
+}
+
+function updateOTAlert() {
+  const dailyOT  = EMPLOYEES.filter(e => getEmpHours(e).today >= OT_DAILY_HRS);
+  const weeklyOT = EMPLOYEES.filter(e => getEmpHours(e).week  >= OT_WEEKLY_HRS);
+  const total = new Set([...dailyOT, ...weeklyOT]).size;
+  const alert = document.getElementById('otAlert');
+  const text  = document.getElementById('otAlertText');
+  if (total > 0) {
+    alert.classList.add('show');
+    const wk = weeklyOT.length;
+    const dy = dailyOT.filter(e => getEmpHours(e).week < OT_WEEKLY_HRS).length;
+    text.textContent = (wk ? `${wk} weekly OT` : '') + (wk && dy ? ' · ' : '') + (dy ? `${dy} daily OT` : '');
+  } else {
+    alert.classList.remove('show');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// EMPLOYEE CREATOR
+// ═══════════════════════════════════════════════
+let empIdCounter = 100;
+
+function setupEmpCreator() {
+  const btn    = document.getElementById('showEmpCreatorBtn');
+  const form   = document.getElementById('newEmpForm');
+  const cancel = document.getElementById('neCancel');
+
+  btn.addEventListener('click', () => {
+    form.classList.toggle('show');
+    if (form.classList.contains('show')) document.getElementById('neName').focus();
+  });
+
+  cancel.addEventListener('click', () => {
+    form.classList.remove('show');
+    document.getElementById('neName').value = '';
+  });
+
+  document.getElementById('neCreate').addEventListener('click', () => {
+    const name = document.getElementById('neName').value.trim();
+    if (!name) { document.getElementById('neName').focus(); return; }
+    const shiftStart  = document.getElementById('neShiftStart').value || '06:00';
+    const shiftEnd    = document.getElementById('neShiftEnd').value   || '14:30';
+    const isManager   = document.getElementById('neRole').value === 'true';
+
+    // Pick a color cycling through palette
+    const colors = ['#e89b6e','#6eb5e8','#7be87a','#e86eae','#b56ee8','#e8c56e','#6ee8d8','#e86e6e','#6e8ee8','#8ee86e'];
+    const color = colors[EMPLOYEES.length % colors.length];
+
+    const newEmp = {
+      id:         'e_' + (++empIdCounter),
+      name:       name.length > 12 ? name.split(' ')[0] + ' ' + (name.split(' ')[1]?.[0] || '') + '.' : name,
+      fullName:   name,
+      dept:       null,
+      clockIn:    null,
+      totalHrs:   0,
+      weeklyHrs:  0,
+      color,
+      shiftStart,
+      shiftEnd,
+      isManager,
+    };
+
+    EMPLOYEES.push(newEmp);
+    document.getElementById('neName').value = '';
+    form.classList.remove('show');
+    addLog(`${newEmp.name} added to roster`, '');
+    renderAll();
+  });
+
+  // Allow Enter key to submit
+  document.getElementById('neName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('neCreate').click();
+  });
+}
+
+function removeEmployee(empId) {
+  const emp = EMPLOYEES.find(e => e.id === empId);
+  if (!emp) return;
+  if (!confirm(`Remove ${emp.fullName || emp.name} from the roster? This cannot be undone.`)) return;
+
+  // Clock them out first if active
+  if (emp.clockIn || emp.dept) unassignEmployee(empId);
+
+  // Remove from array
+  const idx = EMPLOYEES.findIndex(e => e.id === empId);
+  if (idx !== -1) EMPLOYEES.splice(idx, 1);
+
+  addLog(`${emp.name} removed from roster`, 'out');
+  closeEmpModal();
+  renderAll();
+}
 function updateClock() {
   document.getElementById('clockDisplay').textContent =
     new Date().toLocaleTimeString('en-US', { hour12:false });
@@ -690,6 +840,9 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
     nameTag.textContent=emp.name.length>10?emp.name.slice(0,9)+'…':emp.name;
     empEl.appendChild(nameTag);
     empEl.addEventListener('dragstart',e=>onEmpDragStart(e,eid,b.id));
+    // OT highlight on bubble avatar
+    const otClass = getOTClass(emp);
+    if (otClass) empEl.classList.add(otClass);
     el.appendChild(empEl);
   });
 
@@ -842,7 +995,9 @@ function unassignEmployee(empId){
   }
   if(emp.clockIn){
     const hrs=(Date.now()-emp.clockIn)/3600000;
-    emp.totalHrs+=hrs;emp.clockIn=null;
+    emp.totalHrs+=hrs;
+    emp.weeklyHrs=(emp.weeklyHrs||0)+hrs;
+    emp.clockIn=null;
     addLog(`${emp.name} clocked out (${hrs.toFixed(2)}h)`,'out');
     logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fromDeptName,hoursLogged:hrs.toFixed(2)});
   } else {
@@ -949,14 +1104,19 @@ function renderPool(){
   if(titleEl)titleEl.textContent=`Employees — Unassigned (${unassigned.length}/${EMPLOYEES.length})`;
   grid.innerHTML='';
   unassigned.forEach(emp=>{
+    const otClass = getOTClass(emp);
+    const { today } = getEmpHours(emp);
     const card=document.createElement('div');
-    card.className='emp-card'+(emp.clockIn?' active':'');
+    card.className='emp-card'+(emp.clockIn?' active':'')+( otClass ? ' '+otClass : '');
     card.draggable=true;card.setAttribute('data-empid',emp.id);card.title=emp.fullName||emp.name;
-    card.innerHTML=`<img src="${avatarUrl(emp)}" alt="${emp.name}" draggable="false"><span>${emp.name}${emp.isManager?' ★':''}${emp.clockIn?' ●':''}</span>`;
+    const hrsLabel = today > 0 ? ` ${today.toFixed(1)}h` : '';
+    const otIcon   = otClass === 'ot-weekly' ? ' 🔴' : otClass === 'ot-daily' ? ' 🟠' : '';
+    card.innerHTML=`<img src="${avatarUrl(emp)}" alt="${emp.name}" draggable="false"><span>${emp.name}${emp.isManager?' ★':''}${emp.clockIn?' ●':''}${hrsLabel}${otIcon}</span>`;
     card.addEventListener('dragstart',e=>onEmpDragStart(e,emp.id,'pool'));
     card.addEventListener('click',e=>{if(!e.defaultPrevented)openEmpModal(emp.id);});
     grid.appendChild(card);
   });
+  updateOTAlert();
 }
 
 // ═══════════════════════════════════════════════
@@ -1046,7 +1206,7 @@ function drawBg(){
 function renderAll(){
   renderBubbles();renderPool();renderBreakZones();
   if(document.getElementById('rosterPanel')?.classList.contains('open'))renderRoster();
-  updateStats();updateTubes();
+  updateStats();updateTubes();updateOTAlert();
 }
 
 // ═══════════════════════════════════════════════
@@ -1109,6 +1269,10 @@ function openEmpModal(empId){
   else if(emp.breakStatus==='lunch')status='On Lunch';
   else if(emp.dept){const b=bubbles.find(x=>x.id===emp.dept);status=b?`In: ${b.name}`:'Assigned';}
   if(emp.clockIn)status+=' · Clocked in '+new Date(emp.clockIn).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  // OT status
+  const { today, week } = getEmpHours(emp);
+  if (week >= OT_WEEKLY_HRS)       status += ` · 🔴 WEEKLY OT (${week.toFixed(1)}h)`;
+  else if (today >= OT_DAILY_HRS)  status += ` · 🟠 Daily OT (${today.toFixed(1)}h today)`;
   document.getElementById('empModalStatus').textContent=status;
   const deptSel=document.getElementById('empModalDept');
   deptSel.innerHTML='<option value="">— Unassigned —</option>';
@@ -1122,7 +1286,7 @@ function openEmpModal(empId){
   document.getElementById('empModalStart').value=emp.shiftStart||'07:00';
   document.getElementById('empModalEnd').value=emp.shiftEnd||'15:30';
   let hrs=emp.totalHrs;if(emp.clockIn)hrs+=(Date.now()-emp.clockIn)/3600000;
-  document.getElementById('empModalHrs').textContent=hrs.toFixed(2)+'h';
+  document.getElementById('empModalHrs').textContent=hrs.toFixed(2)+'h today · '+(( (emp.weeklyHrs||0)+hrs).toFixed(1))+'h week';
   document.getElementById('empModalOverlay').classList.add('show');
 }
 function closeEmpModal(){document.getElementById('empModalOverlay').classList.remove('show');modalEmpId=null;}
@@ -1310,7 +1474,7 @@ async function syncFromBackend(){
 // INIT
 // ═══════════════════════════════════════════════
 window.addEventListener('load',()=>{
-  drawBg();setupBreakZones();setupCreator();renderAll();applyTransform(false);
+  drawBg();setupBreakZones();setupCreator();setupEmpCreator();renderAll();applyTransform(false);
   // Show green dot since URL is hardcoded
   document.getElementById('backendDot').textContent = '🟢';
   ['tubeDayInput','tubeWeekInput'].forEach(id=>document.getElementById(id).addEventListener('change',updateTubes));
@@ -1327,7 +1491,12 @@ window.addEventListener('load',()=>{
   document.getElementById('empModalClose').addEventListener('click',closeEmpModal);
   document.getElementById('empModalCancel').addEventListener('click',closeEmpModal);
   document.getElementById('empModalSave').addEventListener('click',saveEmpModal);
+  document.getElementById('empModalRemove').addEventListener('click',()=>{ if(modalEmpId) removeEmployee(modalEmpId); });
   document.getElementById('empModalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('empModalOverlay'))closeEmpModal();});
+  document.getElementById('otAlert').addEventListener('click',()=>{
+    // scroll pool into view and flash OT employees
+    document.getElementById('empPool').scrollIntoView({behavior:'smooth'});
+  });
   document.getElementById('spModalClose').addEventListener('click',closeSpModal);
   document.getElementById('spModalCancel').addEventListener('click',closeSpModal);
   document.getElementById('spModalSave').addEventListener('click',saveSpModal);
@@ -1380,6 +1549,7 @@ setInterval(renderBreakZones,60000);
       </div>
     </div>
     <div class="emp-modal-footer">
+      <button class="emp-modal-btn remove" id="empModalRemove">✕ Remove</button>
       <button class="emp-modal-btn cancel" id="empModalCancel">Cancel</button>
       <button class="emp-modal-btn save" id="empModalSave">Save</button>
     </div>
