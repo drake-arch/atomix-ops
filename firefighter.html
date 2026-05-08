@@ -1,433 +1,486 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Firefighter - Atomix OPS</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&display=swap');
-    * { font-family: 'Inter', sans-serif; }
-    body { background: #0a0c0d; color: #fff; min-height: 100vh; margin: 0; }
-    .grid-bg { background-image: linear-gradient(rgba(163,243,197,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(163,243,197,0.03) 1px, transparent 1px); background-size: 60px 60px; }
-    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; }
-    .glass-amber { background: rgba(246,173,85,0.07); backdrop-filter: blur(20px); border: 1px solid rgba(246,173,85,0.2); }
-    .glass-amber:hover { background: rgba(246,173,85,0.12); border-color: rgba(246,173,85,0.45); }
-    .glow-amber { box-shadow: 0 0 40px rgba(246,173,85,0.08); }
-    .glow-amber:hover { box-shadow: 0 0 60px rgba(246,173,85,0.18); }
-    .floating { animation: float 6s ease-in-out infinite; }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
-    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
-    @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-    .scale-in { animation: scaleIn 0.6s ease-out 0.3s both; }
-    @keyframes scaleIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
-    .fire-pulse { animation: firePulse 2s ease-in-out infinite; }
-    @keyframes firePulse { 0%,100%{filter:drop-shadow(0 0 8px rgba(246,173,85,0.6))} 50%{filter:drop-shadow(0 0 20px rgba(246,173,85,1))} }
-    .status-dot { width:8px;height:8px;border-radius:50%;background:#F6AD55;animation:sdpulse 2s ease-in-out infinite;display:inline-block;margin-right:8px; }
-    @keyframes sdpulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
-    .action-card { transition:all 0.25s cubic-bezier(0.34,1.2,0.64,1);cursor:pointer;position:relative;overflow:hidden; }
-    .action-card:hover { transform:scale(1.02) translateY(-2px); }
-    .action-card:active { transform:scale(0.98); }
-    .action-card.running { pointer-events:none;border-color:rgba(246,173,85,0.6)!important;background:rgba(246,173,85,0.14)!important; }
-    .spinner { width:20px;height:20px;border:2px solid rgba(246,173,85,0.3);border-top-color:#F6AD55;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block; }
-    @keyframes spin { to{transform:rotate(360deg)} }
-    .issues-tile { background:rgba(246,173,85,0.05);border:1px solid rgba(246,173,85,0.15);border-radius:24px;padding:28px 32px;backdrop-filter:blur(20px); }
-    .tab-pill { background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;transition:all 0.2s ease;cursor:pointer;user-select:none; }
-    .tab-pill:hover { background:rgba(246,173,85,0.1);border-color:rgba(246,173,85,0.3); }
-    .tab-pill.open { background:rgba(246,173,85,0.1);border-color:rgba(246,173,85,0.4); }
-    .tab-chevron { font-size:10px;color:#6b7280;transition:transform 0.25s ease;line-height:1;display:inline-block; }
-    .tab-pill.open .tab-chevron { transform:rotate(180deg);color:#F6AD55; }
-    .tab-body { max-height:0;overflow:hidden;transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1),opacity 0.25s ease;opacity:0; }
-    .tab-pill.open .tab-body { max-height:300px;opacity:1; }
-    .tab-item { font-size:11px;color:#9ca3af;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);line-height:1.4; }
-    .tab-item:last-child { border-bottom:none; }
-    .badge-high { background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;font-size:10px;padding:2px 7px;border-radius:20px; }
-    .badge-win { background:rgba(163,243,197,0.12);border:1px solid rgba(163,243,197,0.25);color:#A3F3C5;font-size:10px;padding:2px 7px;border-radius:20px; }
-    .shimmer { background:linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.07) 50%,rgba(255,255,255,0.03) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px; }
-    @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-    .sidebar { background:rgba(163,243,197,0.04);border:1px solid rgba(163,243,197,0.12);border-radius:20px;padding:22px 20px;backdrop-filter:blur(20px); }
-    .pri-item { padding:12px 14px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;transition:all 0.2s ease; }
-    .pri-item:last-child { margin-bottom:0; }
-    .pri-item:hover { background:rgba(163,243,197,0.06);border-color:rgba(163,243,197,0.2); }
-    .pri-rank { width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0; }
-    .pri-rank.n1 { background:rgba(239,68,68,0.25);color:#f87171; }
-    .pri-rank.n2 { background:rgba(246,173,85,0.25);color:#F6AD55; }
-    .pri-rank.n3 { background:rgba(163,243,197,0.15);color:#A3F3C5; }
-    .toast { position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(163,243,197,0.12);backdrop-filter:blur(20px);border:1px solid rgba(163,243,197,0.35);color:#A3F3C5;padding:14px 28px;border-radius:50px;font-size:15px;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease;opacity:0;z-index:100;white-space:nowrap; }
-    .toast.show { transform:translateX(-50%) translateY(0);opacity:1; }
-    .toast.error { background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.35);color:#f87171; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firefighter — Atomix OPS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #A3F3C5;
+  --navy: #0A1628;
+  --navy3: #162640;
+  --card: rgba(255,255,255,0.03);
+  --border: rgba(163,243,197,0.12);
+  --text: #e8f0f7;
+  --muted: #6a8aaa;
+  --red: #ff6b6b;
+  --yellow: #ffd166;
+  --blue: #74b9ff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
 
-    /* ── Add Issue modal ──────────────────────────────────────── */
-    .modal-bg { position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:200; }
-    .modal-bg.show { display:flex; }
-    .modal { background:#0e1214;border:1px solid rgba(246,173,85,0.25);border-radius:20px;padding:28px;width:92%;max-width:560px;box-shadow:0 0 80px rgba(246,173,85,0.12); }
-    .modal h3 { color:#F6AD55;font-weight:300;font-size:24px;margin-bottom:18px;letter-spacing:-0.01em; }
-    .modal label { display:block;font-size:11px;color:#6b7280;margin:14px 0 6px;letter-spacing:0.04em;text-transform:uppercase; }
-    .modal input, .modal select, .modal textarea {
-      width:100%;padding:11px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-family:inherit;font-size:14px;
-    }
-    .modal textarea { min-height:74px;resize:vertical; }
-    .modal input:focus, .modal select:focus, .modal textarea:focus { outline:none;border-color:rgba(246,173,85,0.5); }
-    .modal-row { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
-    .actions-row { display:flex;gap:10px;justify-content:flex-end;margin-top:24px; }
-    .btn { padding:11px 22px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#fff;cursor:pointer;font-family:inherit;font-size:13px;transition:all 0.15s; }
-    .btn:hover { border-color:rgba(255,255,255,0.2); }
-    .btn.primary { background:rgba(246,173,85,0.85);color:#1a1a1a;border-color:rgba(246,173,85,0.85);font-weight:500; }
-    .btn.primary:hover { background:#F6AD55; }
-    .btn.primary:disabled { opacity:0.5;cursor:not-allowed; }
-  </style>
+body {
+  background: var(--navy);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(163,243,197,0.06) 0%, transparent 60%),
+    linear-gradient(rgba(163,243,197,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(163,243,197,0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 48px 48px, 48px 48px;
+  pointer-events: none; z-index: 0;
+}
+
+nav {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+}
+.nav-home {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; letter-spacing: 0.1em;
+  color: var(--muted); text-decoration: none;
+  text-transform: uppercase; transition: color 0.2s;
+}
+.nav-home:hover { color: var(--green); }
+.nav-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); transition: background 0.3s; }
+.dot.live { background: var(--green); animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── IDLE ── */
+#idle-screen {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: calc(100vh - 65px);
+  padding: 40px 20px;
+  gap: 0;
+}
+
+.title-block { text-align: center; margin-bottom: 72px; }
+.title-block h1 {
+  font-size: clamp(56px, 10vw, 100px);
+  font-weight: 800; letter-spacing: -0.04em; line-height: 0.9;
+}
+.title-block h1 em { font-style: normal; color: var(--green); }
+.title-block p {
+  margin-top: 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; color: var(--muted); letter-spacing: 0.06em;
+}
+
+.flame-wrap { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+
+.flame-btn {
+  width: 128px; height: 128px; border-radius: 50%;
+  border: 1.5px solid rgba(163,243,197,0.2);
+  background: rgba(163,243,197,0.035);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative; outline: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 0 0 rgba(163,243,197,0);
+}
+.flame-btn::before {
+  content: ''; position: absolute; inset: -10px; border-radius: 50%;
+  border: 1px solid rgba(163,243,197,0.07); transition: all 0.3s;
+}
+.flame-btn::after {
+  content: ''; position: absolute; inset: -22px; border-radius: 50%;
+  border: 1px solid rgba(163,243,197,0.03); transition: all 0.3s;
+}
+.flame-btn:hover {
+  transform: scale(1.09);
+  border-color: rgba(163,243,197,0.55);
+  background: rgba(163,243,197,0.08);
+  box-shadow: 0 0 50px rgba(163,243,197,0.18), 0 0 100px rgba(163,243,197,0.07);
+}
+.flame-btn:hover::before { inset: -16px; border-color: rgba(163,243,197,0.14); }
+.flame-btn:hover::after  { inset: -30px; border-color: rgba(163,243,197,0.05); }
+.flame-btn:active { transform: scale(0.96); }
+.flame-btn.loading {
+  animation: flame-pulse 1.1s ease-in-out infinite;
+  pointer-events: none;
+  border-color: rgba(163,243,197,0.45);
+}
+@keyframes flame-pulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 30px rgba(163,243,197,0.08); }
+  50%      { transform: scale(1.06); box-shadow: 0 0 70px rgba(163,243,197,0.22); }
+}
+
+.flame-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; text-align: center; }
+.flame-label strong { display: block; color: var(--text); font-size: 13px; margin-bottom: 5px; letter-spacing: 0.04em; text-transform: none; }
+
+/* PROGRESS */
+#progress-wrap { display: none; margin-top: 44px; width: min(400px, 88vw); text-align: center; }
+#progress-wrap.show { display: block; }
+.progress-step { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); margin-bottom: 16px; min-height: 18px; }
+.progress-bar-track { height: 2px; background: rgba(163,243,197,0.08); border-radius: 2px; overflow: hidden; }
+.progress-bar-fill { height: 100%; width: 0%; background: var(--green); border-radius: 2px; transition: width 0.5s ease; box-shadow: 0 0 8px rgba(163,243,197,0.5); }
+
+.error-box { display: none; background: rgba(255,107,107,0.06); border: 1px solid rgba(255,107,107,0.2); border-radius: 10px; padding: 14px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--red); margin-top: 24px; text-align: center; max-width: 400px; }
+#error-box.show { display: block; }
+
+/* ── RESULTS ── */
+#results-screen { display: none; position: relative; z-index: 1; padding: 32px; max-width: 1280px; margin: 0 auto; }
+#results-screen.show { display: block; }
+
+.results-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; }
+.results-title { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+.results-title span { color: var(--green); }
+.results-meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 5px; }
+.btn-repull { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(163,243,197,0.05); border: 1px solid var(--border); color: var(--green); padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.btn-repull:hover { background: rgba(163,243,197,0.1); border-color: rgba(163,243,197,0.3); }
+
+.summary-banner { background: rgba(163,243,197,0.04); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin-bottom: 36px; font-size: 14px; line-height: 1.65; color: var(--text); }
+.summary-banner strong { color: var(--green); }
+
+.area-section { margin-bottom: 44px; }
+.area-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.area-icon { font-size: 17px; }
+.area-name { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text); }
+.area-count { font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: rgba(163,243,197,0.07); color: var(--green); border: 1px solid rgba(163,243,197,0.15); border-radius: 4px; padding: 2px 8px; }
+
+.tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+
+.tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden; animation: tile-in 0.35s ease both; }
+@keyframes tile-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.tile::before { content: ''; position: absolute; top:0; left:0; right:0; height:3px; }
+.tile[data-prio="🔴"]::before { background: var(--red); }
+.tile[data-prio="🟡"]::before { background: var(--yellow); }
+.tile[data-prio="🟢"]::before { background: var(--green); }
+.tile[data-prio="ℹ️"]::before { background: var(--blue); }
+.tile:hover { border-color: rgba(163,243,197,0.28); background: rgba(255,255,255,0.05); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.22); }
+
+.tile-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.tile-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.prio-pill { font-family: 'IBM Plex Mono', monospace; font-size: 10px; border-radius: 4px; padding: 2px 8px; font-weight: 500; }
+.prio-pill.red    { background:rgba(255,107,107,0.12); color:var(--red);    border:1px solid rgba(255,107,107,0.25); }
+.prio-pill.yellow { background:rgba(255,209,102,0.1);  color:var(--yellow); border:1px solid rgba(255,209,102,0.22); }
+.prio-pill.green  { background:rgba(163,243,197,0.08); color:var(--green);  border:1px solid rgba(163,243,197,0.2); }
+.prio-pill.blue   { background:rgba(116,185,255,0.08); color:var(--blue);   border:1px solid rgba(116,185,255,0.2); }
+
+.tile-title { font-size: 14px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
+.tile-body  { font-size: 13px; color: var(--muted); line-height: 1.55; }
+.tile-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04); gap: 8px; flex-wrap: wrap; }
+.tile-time { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); opacity: 0.6; }
+.tile-tag  { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 4px; padding: 2px 7px; }
+
+.tile-expanded { display: none; }
+.tile.open .tile-expanded { display: block; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); animation: fade-in 0.2s ease; }
+@keyframes fade-in { from{opacity:0} to{opacity:1} }
+.actions-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--green); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; margin-top: 2px; }
+.action-list { list-style: none; }
+.action-list li { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; color: var(--muted); align-items: flex-start; }
+.action-list li:last-child { border: none; }
+.action-list li::before { content: '→'; color: var(--green); font-family: monospace; flex-shrink: 0; }
+.ext-link { display: inline-flex; align-items: center; gap: 4px; color: var(--green); text-decoration: none; font-family: 'IBM Plex Mono', monospace; font-size: 11px; margin-top: 10px; opacity: 0.75; transition: opacity 0.15s; }
+.ext-link:hover { opacity: 1; }
+
+.no-issues { text-align: center; padding: 40px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); opacity: 0.5; }
+
+@media (max-width: 600px) {
+  nav { padding: 16px 20px; }
+  #results-screen { padding: 20px 16px; }
+  .tile-grid { grid-template-columns: 1fr; }
+  .results-title { font-size: 22px; }
+}
+</style>
 </head>
-<body class="grid-bg">
-  <!-- Tab config: emojis live here in HTML, JS reads via data attrs -->
-  <div id="tab-config" style="display:none">
-    <span data-tab="CX"         data-emoji="&#129309;" data-label="CX"></span>
-    <span data-tab="Operations" data-emoji="&#128230;" data-label="Ops"></span>
-    <span data-tab="Finance"    data-emoji="&#128176;" data-label="Finance"></span>
-    <span data-tab="Tech"       data-emoji="&#9881;&#65039;"  data-label="Tech"></span>
-    <span data-tab="HR"         data-emoji="&#128101;" data-label="HR"></span>
-  </div>
-  <div class="fixed top-20 left-10 w-96 h-96 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.06);"></div>
-  <div class="fixed bottom-20 right-10 w-80 h-80 rounded-full blur-3xl floating pointer-events-none" style="background:rgba(246,173,85,0.04);animation-delay:-3s;"></div>
-  <div class="relative z-10 min-h-screen flex flex-col items-center justify-start px-6 py-20">
-    <div class="w-full" style="max-width:1200px;">
-      <div class="mb-12 fade-in-up">
-        <a href="./index.html" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#F6AD55] transition-colors tracking-wider uppercase">
-          <span>&#85927;</span><span>Atomix OPS</span>
-        </a>
-      </div>
-      <div class="text-center mb-12 fade-in-up">
-        <div class="inline-block px-6 py-2 glass-amber rounded-full text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-6">
-          <span class="status-dot"></span>Cowork Intelligence
-        </div>
-        <div class="text-8xl mb-6 fire-pulse">&#128293;</div>
-        <h1 class="text-6xl md:text-7xl font-extralight leading-none tracking-tight mb-4"
-            style="background:linear-gradient(135deg,#fff 0%,#F6AD55 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-          Firefighter
-        </h1>
-        <p class="text-lg text-gray-400 max-w-xl mx-auto font-light">Click an action. Cowork handles it automatically.</p>
-      </div>
-      <div class="flex flex-col lg:flex-row gap-6 scale-in">
-        <!-- LEFT COLUMN -->
-        <div class="flex-1 min-w-0">
-          <div class="issues-tile mb-6">
-            <div class="flex items-center justify-between mb-5">
-              <div class="flex items-center gap-3">
-                <span class="text-xl">&#128202;</span>
-                <span class="text-sm font-medium tracking-widest uppercase text-gray-400">Live Issues</span>
-              </div>
-              <div id="last-updated" class="text-xs text-gray-600 font-light"></div>
-            </div>
-            <div id="summary-row" class="flex items-center gap-3 mb-5 flex-wrap">
-              <div class="shimmer h-12 w-28 rounded-xl"></div>
-              <div class="shimmer h-12 w-28 rounded-xl"></div>
-              <div class="shimmer h-12 w-28 rounded-xl"></div>
-            </div>
-            <div id="tab-grid" class="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <div class="shimmer h-20 rounded-xl"></div>
-              <div class="shimmer h-20 rounded-xl"></div>
-              <div class="shimmer h-20 rounded-xl"></div>
-              <div class="shimmer h-20 rounded-xl"></div>
-              <div class="shimmer h-20 rounded-xl"></div>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-add" onclick="runAction('add')">
-              <div class="text-3xl mb-4">&#127897;&#65039;</div>
-              <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 1</div>
-              <div class="text-xl font-light text-white mb-3">Add Issues</div>
-              <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Type it out &#8212; logs straight into the right tab of the tracker.</div>
-              <div class="flex items-center justify-between" id="status-add">
-                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
-                <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
-              </div>
-            </div>
-            <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-pull" onclick="runAction('pull')">
-              <div class="text-3xl mb-4">&#128225;</div>
-              <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 2</div>
-              <div class="text-xl font-light text-white mb-3">Pull</div>
-              <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Scrubs the last 48 hours of Slack + Gmail + ClickUp into the tracker.</div>
-              <div class="flex items-center justify-between" id="status-pull">
-                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
-                <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
-              </div>
-            </div>
-            <div class="action-card glass-amber glow-amber rounded-3xl p-7 text-left" id="card-recap" onclick="runAction('recap')">
-              <div class="text-3xl mb-4">&#128202;</div>
-              <div class="text-[#F6AD55] text-xs font-medium tracking-widest uppercase mb-2">Action 3</div>
-              <div class="text-xl font-light text-white mb-3">Weekly Recap</div>
-              <div class="text-gray-400 text-sm font-light leading-relaxed mb-5">Slack + Gmail + tracker entries into a clean status report for the team.</div>
-              <div class="flex items-center justify-between" id="status-recap">
-                <div class="text-xs text-gray-600 font-mono bg-black/30 px-3 py-1.5 rounded-lg">Ready</div>
-                <div class="text-[#F6AD55] text-lg opacity-60">&#8594;</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- SIDEBAR -->
-        <div class="lg:w-72 flex-shrink-0">
-          <div class="sidebar sticky top-8">
-            <div class="flex items-center gap-2 mb-5">
-              <span class="text-base">&#127919;</span>
-              <span class="text-sm font-medium tracking-widest uppercase text-gray-400">Top 3 This Week</span>
-            </div>
-            <div id="priorities-list">
-              <div class="shimmer h-16 rounded-xl mb-3"></div>
-              <div class="shimmer h-16 rounded-xl mb-3"></div>
-              <div class="shimmer h-16 rounded-xl"></div>
-            </div>
-            <div class="mt-5 pt-4" style="border-top:1px solid rgba(255,255,255,0.06);">
-              <div class="text-xs text-gray-700 text-center">Based on open high-priority items</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="mt-8 text-center fade-in-up">
-        <div class="inline-flex items-center gap-3 text-xs text-gray-700">
-          <span class="status-dot" style="width:6px;height:6px;"></span>
-          <span>Auto-pull at 9:00 AM daily &#183; Refreshes every 30s &#183; Click any tab to expand</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="toast" id="toast"></div>
+<body>
 
-  <!-- Add Issue modal -->
-  <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
-    <div class="modal">
-      <h3>Add Issue</h3>
-      <div class="modal-row">
-        <div>
-          <label>Folder</label>
-          <select id="m-folder">
-            <option value="Operations">📦 Operations</option>
-            <option value="CX">🤝 CX</option>
-            <option value="Tech">⚙️ Tech</option>
-            <option value="HR">👥 HR</option>
-            <option value="Finance">💰 Finance</option>
-          </select>
-        </div>
-        <div>
-          <label>Sub-Folder</label>
-          <input id="m-sub" type="text" placeholder="Outbound, SLA, Carrier…">
-        </div>
-      </div>
-      <label>Summary</label>
-      <textarea id="m-summary" placeholder="What happened?"></textarea>
-      <label>Action Items</label>
-      <textarea id="m-actions" placeholder="What needs to happen next?"></textarea>
-      <div class="modal-row">
-        <div>
-          <label>Priority</label>
-          <select id="m-priority">
-            <option>🟢 Low</option>
-            <option selected>🟡 Medium</option>
-            <option>🔴 High</option>
-          </select>
-        </div>
-        <div>
-          <label>Status</label>
-          <select id="m-status">
-            <option>Open</option>
-            <option>Win</option>
-            <option>Closed</option>
-          </select>
-        </div>
-      </div>
-      <div class="modal-row">
-        <div>
-          <label>Deadline (optional)</label>
-          <input id="m-deadline" type="date">
-        </div>
-        <div>
-          <label>Source</label>
-          <input id="m-source" type="text" value="Firefighter">
-        </div>
-      </div>
-      <label>Notes / Links (optional)</label>
-      <input id="m-notes" type="text" placeholder="Channel, ticket #, thread URL…">
-      <div class="actions-row">
-        <button class="btn" onclick="closeModal()">Cancel</button>
-        <button class="btn primary" id="m-save" onclick="saveIssue()">Log entry</button>
-      </div>
+<nav>
+  <a class="nav-home" href="https://drake-arch.github.io/atomix-ops/">← Atomix OPS</a>
+  <div class="nav-status">
+    <div class="dot" id="status-dot"></div>
+    <span id="status-text">idle</span>
+  </div>
+</nav>
+
+<!-- IDLE -->
+<div id="idle-screen">
+  <div class="title-block">
+    <h1>Fire<em>fighter</em></h1>
+    <p>Slack · Gmail · ClickUp — pulled by Claude, sorted by area</p>
+  </div>
+
+  <div class="flame-wrap">
+    <button class="flame-btn" id="flame-btn" onclick="startPull()" title="Pull current issues">🔥</button>
+    <div class="flame-label">
+      <strong>Tap to pull</strong>
+      Slack · Email · ClickUp → Right Now
     </div>
   </div>
 
-  <script>
-  // ─── Config ───────────────────────────────────────────────────────────────
-  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYJpbpshSZbZ4PySi3JOVv4sjvG5HW1FCD8_-CdsD-JrtIm_luaMjxHA-ZbuFJBNiP/exec";
+  <div id="progress-wrap">
+    <div class="progress-step" id="progress-step">Initializing...</div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+  </div>
 
-  // ─── Read tab config from HTML (no non-ASCII in this script) ──────────────
-  var TAB_CFG = {};
-  var cfgNodes = document.querySelectorAll('#tab-config [data-tab]');
-  for (var i = 0; i < cfgNodes.length; i++) {
-    var n = cfgNodes[i];
-    TAB_CFG[n.getAttribute('data-tab')] = {
-      emoji: n.getAttribute('data-emoji'),
-      label: n.getAttribute('data-label')
-    };
+  <div class="error-box" id="error-box"></div>
+</div>
+
+<!-- RESULTS -->
+<div id="results-screen">
+  <div class="results-header">
+    <div>
+      <div class="results-title">Fire<span>fighter</span></div>
+      <div class="results-meta" id="results-meta"></div>
+    </div>
+    <button class="btn-repull" onclick="resetToIdle()">🔥 Re-pull</button>
+  </div>
+  <div class="summary-banner" id="summary-banner"></div>
+  <div id="areas-container"></div>
+</div>
+
+<script>
+const AREAS = [
+  { key:'operations', label:'Operations', icon:'📦' },
+  { key:'cx',         label:'Customer',   icon:'🤝' },
+  { key:'tech',       label:'Tech',       icon:'⚙️' },
+  { key:'hr',         label:'HR',         icon:'👥' },
+  { key:'finance',    label:'Finance',    icon:'💰' },
+  { key:'other',      label:'Other',      icon:'📌' },
+];
+
+const STEPS = [
+  { msg:'Connecting to Slack...',               pct:12 },
+  { msg:'Reading #operations-management...',    pct:25 },
+  { msg:'Scanning your Slack mentions...',      pct:38 },
+  { msg:'Pulling Gmail...',                     pct:52 },
+  { msg:'Fetching open ClickUp tasks...',       pct:65 },
+  { msg:'Sending to Claude for analysis...',    pct:80 },
+  { msg:'Organizing by area...',                pct:92 },
+  { msg:'Almost there...',                      pct:97 },
+];
+
+let stepTimer = null;
+
+function animateSteps(steps) {
+  let i = 0;
+  const prog  = document.getElementById('progress-wrap');
+  const label = document.getElementById('progress-step');
+  const fill  = document.getElementById('progress-fill');
+  prog.classList.add('show');
+  function next() {
+    if (i >= steps.length) return;
+    const s = steps[i++];
+    label.textContent = s.msg;
+    fill.style.width  = s.pct + '%';
+    stepTimer = setTimeout(next, 550 + Math.random() * 350);
   }
-  var expandedTabs = {};
+  next();
+}
 
-  // ─── Data fetch ───────────────────────────────────────────────────────────
-  function loadIssues() {
-    fetch(APPS_SCRIPT_URL + '?route=stats&cb=' + Date.now())
-      .then(function(r) { return r.json(); })
-      .then(function(data) { renderIssues(data); })
-      .catch(function() { document.getElementById('last-updated').textContent = 'Could not load data'; });
+async function startPull() {
+  const btn    = document.getElementById('flame-btn');
+  const dot    = document.getElementById('status-dot');
+  const stxt   = document.getElementById('status-text');
+  const errBox = document.getElementById('error-box');
+
+  btn.classList.add('loading');
+  errBox.classList.remove('show');
+  dot.classList.add('live');
+  stxt.textContent = 'pulling...';
+
+  animateSteps(STEPS);
+
+  try {
+    const data = await fetchWithClaude();
+    showResults(data);
+  } catch(err) {
+    errBox.textContent = '⚠ ' + (err.message || 'Pull failed.');
+    errBox.classList.add('show');
+    btn.classList.remove('loading');
+    dot.classList.remove('live');
+    stxt.textContent = 'error';
+    clearTimeout(stepTimer);
+    document.getElementById('progress-step').textContent = 'Failed. Tap to retry.';
   }
-  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+}
 
-  // ─── Render issues tile ───────────────────────────────────────────────────
-  function renderIssues(data) {
-    var t = data.totals;
-    document.getElementById('summary-row').innerHTML =
-      '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light text-white">' + t.open + '</span><span class="text-xs text-gray-500 leading-tight">open<br>issues</span></div>' +
-      '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light" style="color:#f87171">' + t.high + '</span><span class="text-xs text-gray-500 leading-tight">high<br>priority</span></div>' +
-      '<div class="flex items-center gap-2 glass px-4 py-3"><span class="text-2xl font-light" style="color:#A3F3C5">' + t.wins + '</span><span class="text-xs text-gray-500 leading-tight">wins<br>today</span></div>';
+async function fetchWithClaude() {
+  const today = new Date().toLocaleDateString('en-US',{ weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  const now   = new Date().toLocaleTimeString('en-US',{ hour:'2-digit', minute:'2-digit' });
 
-    var tabOrder = ['CX', 'Operations', 'Finance', 'Tech', 'HR'];
-    var html = '';
-    for (var i = 0; i < tabOrder.length; i++) {
-      var name = tabOrder[i];
-      var info = data.tabs[name];
-      if (!info) continue;
-      var cfg = TAB_CFG[name] || { emoji: '', label: name };
-      var isOpen = !!expandedTabs[name];
-      var items = '';
-      if (info.recent && info.recent.length) {
-        for (var j = 0; j < info.recent.length; j++) {
-          items += '<div class="tab-item">&#8226; ' + esc(info.recent[j]) + '</div>';
-        }
-      } else {
-        items = '<div class="tab-item" style="color:#4b5563;">No recent items</div>';
-      }
-      html +=
-        '<div class="tab-pill' + (isOpen ? ' open' : '') + '" onclick="toggleTab(\'' + name + '\', this)">' +
-          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
-            '<div>' +
-              '<div style="font-size:14px;margin-bottom:4px;">' + cfg.emoji + ' <span style="font-size:11px;color:#6b7280;">' + cfg.label + '</span></div>' +
-              '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">' +
-                '<span style="font-size:18px;font-weight:300;color:#fff;">' + info.total_open + '</span>' +
-                (info.high > 0 ? '<span class="badge-high">' + info.high + ' high</span>' : '') +
-                (info.wins > 0 ? '<span class="badge-win">' + info.wins + 'W</span>' : '') +
-              '</div>' +
-            '</div>' +
-            '<span class="tab-chevron">&#9660;</span>' +
-          '</div>' +
-          '<div class="tab-body"><div style="padding-top:12px;">' + items + '</div></div>' +
-        '</div>';
-    }
-    document.getElementById('tab-grid').innerHTML = html;
-    document.getElementById('last-updated').textContent = 'Updated ' + data.last_updated;
-    renderPriorities(data);
+  const systemPrompt = `You are Firefighter AI for Atomix Logistics (ATX), a 3PL warehouse with facilities in Milwaukee/Oak Creek (MKE), Salt Lake City (SLC), and Baltimore (BAL).
+
+Drake = Operations Lead. Team: Kody Malas (AM Outbound), Hugh Myers (PM Outbound), Adam Gronowski (Special Projects), Emyly Herrera-Vera (Inbound), Luis Gumucio (Inventory).
+Active clients: Omni, Peruse, Brow Code, IQ (cold chain ~6k orders/wk), Goose Swag. Offboarding: Lights Lacquer.
+Standing concerns: FIFO/lot traceability (iQ), cycle count cadence, SLA on received inventory, Wisconsin DATCP inspection prep.
+
+Pull Slack (Drake's user ID U08C7AF906L, channels: #operations-management C08BGRBT2TX, #reported-errors C0AHZCMSHBQ), Gmail (unread/flagged last 48h), and ClickUp (open/overdue tasks).
+
+RESPOND ONLY WITH VALID JSON — no markdown fences, no explanation:
+{
+  "pulled_at": "ISO timestamp",
+  "summary": "2-3 sentence plain-English ops snapshot. Direct. Specific. Name what is actually on fire.",
+  "areas": {
+    "operations": [ { "title":"...", "body":"2-3 sentences, factual", "priority":"🔴|🟡|🟢|ℹ️", "source":"slack|gmail|clickup|combined", "time":"e.g. 2h ago", "actions":["action 1"], "link":"url or null", "tag":"e.g. MKE or IQ" } ],
+    "cx": [], "tech": [], "hr": [], "finance": [], "other": []
   }
-  function toggleTab(name, el) {
-    if (expandedTabs[name]) { delete expandedTabs[name]; el.classList.remove('open'); }
-    else { expandedTabs[name] = true; el.classList.add('open'); }
-  }
+}
+Priority: 🔴 blocking, 🟡 needs attention today, 🟢 FYI, ℹ️ info. Sort each area high→low, newest first.
+Today: ${today}, ${now}.`;
 
-  // ─── Priorities sidebar ──────────────────────────────────────────────────
-  function renderPriorities(data) {
-    var order = ['CX', 'Operations', 'Finance', 'Tech', 'HR'];
-    var picks = [];
-    for (var i = 0; i < order.length; i++) {
-      var info = data.tabs[order[i]];
-      if (!info) continue;
-      if (info.high > 0 && info.recent && info.recent.length) {
-        var count = Math.min(info.high, info.recent.length);
-        for (var j = 0; j < count; j++) {
-          picks.push({ tab: order[i], text: info.recent[j] });
-        }
-      }
-    }
-    if (picks.length < 3) {
-      for (var i = 0; i < order.length; i++) {
-        var info = data.tabs[order[i]];
-        if (!info || info.high > 0) continue;
-        if (info.total_open > 0 && info.recent && info.recent.length) {
-          picks.push({ tab: order[i], text: info.recent[0] });
-        }
-      }
-    }
-    var top3 = picks.slice(0, 3);
-    if (!top3.length) {
-      document.getElementById('priorities-list').innerHTML =
-        '<div style="font-size:12px;color:#4b5563;text-align:center;padding:16px;">No open issues right now!</div>';
-      return;
-    }
-    var rankCls = ['n1', 'n2', 'n3'];
-    var html = '';
-    for (var i = 0; i < top3.length; i++) {
-      var item = top3[i];
-      var cfg = TAB_CFG[item.tab] || { emoji: '', label: item.tab };
-      html +=
-        '<div class="pri-item">' +
-          '<div style="display:flex;align-items:flex-start;gap:12px;">' +
-            '<div class="pri-rank ' + rankCls[i] + '">' + (i + 1) + '</div>' +
-            '<div style="flex:1;min-width:0;">' +
-              '<div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">' + cfg.emoji + ' ' + item.tab + '</div>' +
-              '<div style="font-size:13px;color:#fff;font-weight:300;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' +
-                esc(item.text) +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-        '</div>';
-    }
-    document.getElementById('priorities-list').innerHTML = html;
-  }
+  const userPrompt = `Pull the current state of Atomix Logistics ops right now. Check:
+1. Slack: My mentions (<@U08C7AF906L>) last 48h. Scan #operations-management (C08BGRBT2TX) and #reported-errors (C0AHZCMSHBQ) for active issues and unresolved threads.
+2. Gmail: Unread or flagged threads from last 48h related to ops, clients, or escalations.
+3. ClickUp: All open/in-progress tasks in the Operations space. Flag anything overdue or due today.
 
-  loadIssues();
-  setInterval(loadIssues, 30000);
+Synthesize everything into the JSON report. Prioritize anything blocking, overdue, or client-facing. Sort newest/highest priority first within each area.`;
 
-  // ─── Modal ──────────────────────────────────────────────────────────────
-  function openModal()  { document.getElementById('modal-bg').classList.add('show'); setTimeout(function(){document.getElementById('m-summary').focus();}, 50); }
-  function closeModal() {
-    document.getElementById('modal-bg').classList.remove('show');
-    ['m-sub','m-summary','m-actions','m-deadline','m-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
-  }
-  function saveIssue() {
-    var btn = document.getElementById('m-save'); btn.disabled = true; btn.textContent = 'Saving…';
-    var payload = {
-      folder:    document.getElementById('m-folder').value,
-      subfolder: document.getElementById('m-sub').value,
-      summary:   document.getElementById('m-summary').value,
-      actions:   document.getElementById('m-actions').value,
-      priority:  document.getElementById('m-priority').value,
-      status:    document.getElementById('m-status').value,
-      deadline:  document.getElementById('m-deadline').value,
-      source:    document.getElementById('m-source').value || 'Firefighter',
-      notes:     document.getElementById('m-notes').value
-    };
-    if (!payload.summary.trim()) { toast('Summary required', true); btn.disabled = false; btn.textContent = 'Log entry'; return; }
-    fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) })
-      .then(function(r){ return r.json(); })
-      .then(function(j){
-        if (j.status !== 'ok') throw new Error(j.message || 'post failed');
-        toast('Logged to ' + (j.written && j.written[0] || ''));
-        closeModal();
-        setTimeout(loadIssues, 800);
-      })
-      .catch(function(e){ toast('Failed: ' + e.message, true); })
-      .finally(function(){ btn.disabled = false; btn.textContent = 'Log entry'; });
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      system: systemPrompt,
+      mcp_servers: [
+        { type:'url', url:'https://mcp.slack.com/mcp',             name:'slack'   },
+        { type:'url', url:'https://gmailmcp.googleapis.com/mcp/v1', name:'gmail'   },
+        { type:'url', url:'https://mcp.clickup.com/mcp',            name:'clickup' },
+      ],
+      messages: [{ role:'user', content: userPrompt }],
+    })
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(()=>({}));
+    throw new Error(e?.error?.message || `API ${res.status}`);
   }
 
-  // ─── Actions ─────────────────────────────────────────────────────────────
-  function runAction(key) {
-    if (key === 'add') { openModal(); return; }
-    var phrase = key === 'pull' ? 'run the daily pull' : 'weekly standup';
-    var msg    = key === 'pull' ? 'Open Cowork and paste:\n\n  run the daily pull\n\n(or wait for the 9 AM auto-pull)'
-                                 : 'Open Cowork and paste:\n\n  weekly standup';
-    if (navigator.clipboard) navigator.clipboard.writeText(phrase).catch(function(){});
-    alert(msg + '\n\n(copied to clipboard)');
-  }
+  const raw = await res.json();
+  const text = raw.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+  const clean = text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```\s*$/i,'').trim();
 
-  function toast(msg, isErr) {
-    var t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast' + (isErr ? ' error' : '');
-    t.classList.add('show');
-    setTimeout(function(){ t.classList.remove('show'); }, 3500);
+  try { return JSON.parse(clean); }
+  catch { throw new Error('Claude returned invalid JSON. Try again.'); }
+}
+
+function showResults(data) {
+  clearTimeout(stepTimer);
+  document.getElementById('idle-screen').style.display = 'none';
+  const rs = document.getElementById('results-screen');
+  rs.classList.add('show');
+  document.getElementById('status-dot').classList.add('live');
+  document.getElementById('status-text').textContent = 'live';
+
+  const pulledAt = data.pulled_at
+    ? new Date(data.pulled_at).toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',month:'short',day:'numeric'})
+    : new Date().toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',month:'short',day:'numeric'});
+  document.getElementById('results-meta').textContent = `Pulled ${pulledAt} · Slack · Gmail · ClickUp`;
+
+  document.getElementById('summary-banner').innerHTML = data.summary
+    ? data.summary.replace(/\b(urgent|blocking|overdue|ASAP|critical)\b/gi,'<strong>$1</strong>')
+    : '<em style="color:var(--muted)">No summary.</em>';
+
+  const container = document.getElementById('areas-container');
+  container.innerHTML = '';
+
+  let totalIssues = 0;
+  AREAS.forEach((area, ai) => {
+    const items = (data.areas||{})[area.key] || [];
+    if (!items.length) return;
+    totalIssues += items.length;
+
+    const section = document.createElement('div');
+    section.className = 'area-section';
+    section.innerHTML = `
+      <div class="area-header">
+        <span class="area-icon">${area.icon}</span>
+        <span class="area-name">${area.label}</span>
+        <span class="area-count">${items.length}</span>
+      </div>
+      <div class="tile-grid" id="grid-${area.key}"></div>`;
+    container.appendChild(section);
+
+    const grid = section.querySelector(`#grid-${area.key}`);
+    items.forEach((item, idx) => {
+      const t = buildTile(item, idx + ai * 5);
+      grid.appendChild(t);
+    });
+  });
+
+  if (!totalIssues) {
+    container.innerHTML = '<div class="no-issues">✓ No active issues found across Slack, Gmail, and ClickUp.</div>';
   }
-  </script>
+}
+
+function buildTile(item, delay) {
+  const prioMap = {
+    '🔴':{ cls:'red',    label:'HIGH' },
+    '🟡':{ cls:'yellow', label:'MED'  },
+    '🟢':{ cls:'green',  label:'LOW'  },
+    'ℹ️':{ cls:'blue',   label:'INFO' },
+  };
+  const prio = prioMap[item.priority] || { cls:'blue', label:'INFO' };
+  const srcLabel = { slack:'◈ Slack', gmail:'✉ Gmail', clickup:'✦ ClickUp', combined:'⊕ Multi' }[item.source] || '◈ ' + (item.source||'Source');
+
+  const t = document.createElement('div');
+  t.className = 'tile';
+  t.dataset.prio = item.priority || 'ℹ️';
+  t.style.animationDelay = (delay * 55) + 'ms';
+
+  const actHTML = (item.actions||[]).length
+    ? `<div class="actions-label">Action Items</div><ul class="action-list">${item.actions.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>`
+    : '';
+  const linkHTML = item.link
+    ? `<a class="ext-link" href="${esc(item.link)}" target="_blank" rel="noopener">↗ Open in source</a>`
+    : '';
+
+  t.innerHTML = `
+    <div class="tile-top">
+      <span class="tile-source">${srcLabel}</span>
+      <span class="prio-pill ${prio.cls}">${prio.label}</span>
+    </div>
+    <div class="tile-title">${esc(item.title||'Untitled')}</div>
+    <div class="tile-body">${esc(item.body||'')}</div>
+    <div class="tile-footer">
+      <span class="tile-time">${esc(item.time||'')}</span>
+      ${item.tag?`<span class="tile-tag">${esc(item.tag)}</span>`:''}
+    </div>
+    <div class="tile-expanded">${actHTML}${linkHTML}</div>`;
+
+  t.addEventListener('click', () => t.classList.toggle('open'));
+  return t;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function resetToIdle() {
+  document.getElementById('idle-screen').style.display = '';
+  document.getElementById('results-screen').classList.remove('show');
+  document.getElementById('areas-container').innerHTML = '';
+  document.getElementById('progress-wrap').classList.remove('show');
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('progress-step').textContent = 'Initializing...';
+  document.getElementById('flame-btn').classList.remove('loading');
+  document.getElementById('error-box').classList.remove('show');
+  document.getElementById('status-dot').classList.remove('live');
+  document.getElementById('status-text').textContent = 'idle';
+}
+</script>
 </body>
 </html>
