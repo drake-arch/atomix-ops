@@ -168,9 +168,10 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     <div class="chart-card"><div class="chart-card-title">Labor Cost by Department</div><div class="chart-wrap"><canvas id="laborPieChart"></canvas></div></div>
     <div class="chart-card"><div class="chart-card-title">Labor Cost by Facility</div><div class="chart-wrap"><canvas id="laborByFacChart"></canvas></div></div>
   </div>
-  <div class="grid-3">
-    <div class="stat-card" style="--accent:var(--amber)"><div class="stat-label">Total Labor Cost</div><div class="stat-val" id="laborTotalCost">&mdash;</div><div class="stat-sub">this week</div></div>
-    <div class="stat-card" style="--accent:var(--green)"><div class="stat-label">Cost Per Order (CPO)</div><div class="stat-val" id="laborCPO">&mdash;</div><div class="stat-sub" id="laborCPOTarget">target &lt;$4.00</div></div>
+  <div class="stat-row">
+    <div class="stat-card" style="--accent:var(--amber)"><div class="stat-label">Total Labor Cost</div><div class="stat-val" id="laborTotalCost">&mdash;</div><div class="stat-sub">all hours, this week</div></div>
+    <div class="stat-card" style="--accent:#F6E05E"><div class="stat-label">💲 Billable Labor</div><div class="stat-val" id="laborBillable" style="color:#F6E05E">&mdash;</div><div class="stat-sub" id="laborBillableSub">excluded from CPO</div></div>
+    <div class="stat-card" style="--accent:var(--green)"><div class="stat-label">CPO (non-billable)</div><div class="stat-val" id="laborCPO">&mdash;</div><div class="stat-sub" id="laborCPOTarget">target &lt;$4.00</div></div>
     <div class="stat-card" style="--accent:var(--blue)"><div class="stat-label">Labor % of Revenue</div><div class="stat-val" id="laborRevPct">&mdash;</div><div class="stat-sub" id="laborPctTarget">target &lt;30%</div></div>
   </div>
   <div class="chart-card">
@@ -604,6 +605,8 @@ function renderLaborView() {
       if (CHARTS[k]) { CHARTS[k].destroy(); delete CHARTS[k]; }
     });
     document.getElementById('laborTotalCost').textContent = '$0.00';
+    document.getElementById('laborBillable').textContent = '$0.00';
+    document.getElementById('laborBillableSub').textContent = 'no shifts completed yet';
     document.getElementById('laborCPO').textContent = DASH;
     document.getElementById('laborCPOTarget').textContent = 'no shifts completed yet — target <$' + CONFIG.cpo.toFixed(2);
     document.getElementById('laborRevPct').textContent = DASH;
@@ -635,6 +638,20 @@ function renderLaborView() {
   });
   const depts = Object.keys(bydept);
   document.getElementById('laborTotalCost').textContent = '$' + fmt(totalCost);
+
+  // PATCH v6: billable labor card
+  const billableEl = document.getElementById('laborBillable');
+  const billableSubEl = document.getElementById('laborBillableSub');
+  if (billableEl) {
+    if (billCost > 0) {
+      billableEl.textContent = '$' + fmt(billCost);
+      const pct = totalCost > 0 ? (billCost / totalCost * 100).toFixed(0) : 0;
+      billableSubEl.textContent = pct + '% of total ' + MIDDOT + ' excluded from CPO';
+    } else {
+      billableEl.textContent = '$0';
+      billableSubEl.textContent = 'no billable hours this period';
+    }
+  }
 
   if (ORDERS_TODAY > 0 && nonBillCost > 0) {
     const cpo = nonBillCost / ORDERS_TODAY;
