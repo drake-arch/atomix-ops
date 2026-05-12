@@ -314,6 +314,14 @@
   .fac-modal-btn.confirm { background:var(--green); color:var(--navy); }
   .fac-modal-btn.confirm:disabled { opacity:0.4; cursor:not-allowed; }
   .fac-modal-btn.cancel { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+  /* PATCH v6: Billable bubble indicator */
+  .bubble.billable { border-style: dashed !important; border-color: #F6E05E !important; box-shadow: 0 0 30px rgba(246,224,94,0.35), inset 0 1px 0 rgba(255,255,255,0.1) !important; }
+  .bubble-bill-badge { position: absolute; top: 6px; left: 6px; background: linear-gradient(135deg, #F6E05E, #D4A017); color: #1A1410; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 10px; display: flex; align-items: center; gap: 3px; z-index: 18; box-shadow: 0 2px 6px rgba(0,0,0,0.5); pointer-events: none; }
+  .bubble.child-bubble .bubble-bill-badge { font-size: 7px; padding: 1px 5px; top: 3px; left: 3px; }
+  .nb-billable-row { display: flex; align-items: center; gap: 7px; padding: 6px 0; margin-top: 2px; cursor: pointer; user-select: none; }
+  .nb-billable-row input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: #F6E05E; }
+  .nb-billable-row label { font-size: 11px; color: var(--text); cursor: pointer; flex: 1; }
+  .nb-billable-row .nb-bill-hint { font-size: 9px; color: var(--muted); margin-top: 2px; }
   /* PATCH v3: Heat map overlay */
   .heat-toggle { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 10px; font-family: 'DM Mono', monospace; cursor: pointer; letter-spacing: 0.04em; transition: all 0.15s; height: 26px; }
   .heat-toggle:hover { color: var(--text); border-color: var(--text); }
@@ -441,6 +449,13 @@
             <option value="">— Standalone bubble —</option>
           </select>
           <div class="color-row" id="colorRow"></div>
+          <div class="nb-billable-row">
+            <input type="checkbox" id="nbBillable">
+            <label for="nbBillable">
+              💲 Billable hours
+              <div class="nb-bill-hint">Hours here are excluded from CPO</div>
+            </label>
+          </div>
           <button class="nb-btn" id="nbCreate">Create</button>
         </div>
       </div>
@@ -481,6 +496,7 @@
 </div>
 <div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item" id="ctxRename">&#9999;&#65039; Rename</div>
+  <div class="ctx-item" id="ctxBillable">💲 Toggle Billable</div>
   <div class="ctx-item" id="ctxSP">&#128196; Special Project Details</div>
   <div class="ctx-item" id="ctxRemoveAll">&#128260; Clear employees</div>
   <div class="ctx-item danger" id="ctxDelete">&#10005; Delete bubble</div>
@@ -533,12 +549,24 @@ function genEventId() {
 // BACKEND LOGGING (queue + retry)
 // ═══════════════════════════════════════════════
 async function logEvent(type, data = {}) {
+  // PATCH v6: auto-derive billable flag from the destination bubble if not explicitly passed
+  let billable = data.billable;
+  if (typeof billable === 'undefined') {
+    const targetName = data.toDept || data.fromDept;
+    if (targetName) {
+      const b = bubbles.find(x => x.name === targetName);
+      billable = b ? !!b.billable : false;
+    } else {
+      billable = false;
+    }
+  }
   const event = {
     eventId:     genEventId(),
     type,
     timestamp:   new Date().toISOString(),
     deviceId:    DEVICE_ID,
     facility:    CURRENT_FACILITY || '',
+    billable:    billable ? 'true' : 'false',
     empId:       data.empId       || '',
     empName:     data.empName     || '',
     fromDept:    data.fromDept    || '',
@@ -722,12 +750,14 @@ const DEFAULT_EMPLOYEES_MKE = [
   { id:'e55', name:'Ofelia P.',    fullName:'Ofelia Cansino Pena',       dept:null, clockIn:null, totalHrs:0, color:'#e8c56e', shiftStart:'08:00', shiftEnd:'16:30', isManager:false },
   { id:'e56', name:'Ramar W.',     fullName:'Ramar Washington',          dept:null, clockIn:null, totalHrs:0, color:'#6ee8d8', shiftStart:'08:00', shiftEnd:'16:30', isManager:false },
 ];
+// PATCH v6: each bubble carries a `billable` flag. Hours logged in
+// billable bubbles are tracked separately and EXCLUDED from CPO.
 const DEPTS_DEFAULT = [
-  { id:'b1', name:'AM Shift',         colorIdx:0, bx:300,  by:280, size:150, employees:[], parentId:null },
-  { id:'b2', name:'PM Shift',         colorIdx:1, bx:750,  by:220, size:130, employees:[], parentId:null },
-  { id:'b3', name:'Special Projects', colorIdx:2, bx:1100, by:380, size:110, employees:[], parentId:null },
-  { id:'b4', name:'Inbound',          colorIdx:3, bx:520,  by:560, size:95,  employees:[], parentId:null },
-  { id:'b5', name:'Inventory',        colorIdx:5, bx:880,  by:540, size:88,  employees:[], parentId:null },
+  { id:'b1', name:'AM Shift',         colorIdx:0, bx:300,  by:280, size:150, employees:[], parentId:null, billable:false },
+  { id:'b2', name:'PM Shift',         colorIdx:1, bx:750,  by:220, size:130, employees:[], parentId:null, billable:false },
+  { id:'b3', name:'Special Projects', colorIdx:2, bx:1100, by:380, size:110, employees:[], parentId:null, billable:true  },
+  { id:'b4', name:'Inbound',          colorIdx:3, bx:520,  by:560, size:95,  employees:[], parentId:null, billable:false },
+  { id:'b5', name:'Inventory',        colorIdx:5, bx:880,  by:540, size:88,  employees:[], parentId:null, billable:false },
 ];
 // PATCH v5: facility-isolated state loaders
 function rosterKey(f)   { return 'atomix_roster_v1_'   + (f || 'NONE'); }
@@ -982,7 +1012,7 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
   const color = COLORS[b.colorIdx%COLORS.length];
   const size  = getBubbleSize(b);
   const el    = document.createElement('div');
-  el.className = 'bubble'+(isChild?' child-bubble':'');
+  el.className = 'bubble'+(isChild?' child-bubble':'')+(b.billable?' billable':'');
   el.id = 'bubble-'+b.id;
   if (isChild) {
     const cx = b.cx!==undefined?b.cx:0.5+(Math.random()-0.5)*0.35;
@@ -1020,6 +1050,14 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
     inner.appendChild(hrsEl);
   }
   el.appendChild(inner);
+  // PATCH v6: billable badge — visible flag that this bubble's hours don't count toward CPO
+  if (b.billable) {
+    const billBadge = document.createElement('div');
+    billBadge.className = 'bubble-bill-badge';
+    billBadge.innerHTML = '💲 BILL';
+    billBadge.title = 'Billable hours — excluded from CPO';
+    el.appendChild(billBadge);
+  }
   const hcBadge = document.createElement('div');
   hcBadge.className = 'bubble-hc';
   const total = getTotalEmpCount(b.id);
@@ -1356,12 +1394,15 @@ function setupCreator(){
   document.getElementById('nbCreate').addEventListener('click',()=>{
     const name=document.getElementById('nbName').value.trim();if(!name)return;
     const parentId=document.getElementById('nbParent').value||null;
+    const billable=document.getElementById('nbBillable').checked;
     const canvasEl=document.getElementById('canvasArea');
-    const newBubble={id:'b'+(++bubbleIdCounter),name,colorIdx:selectedColorIdx,bx:(canvasEl.clientWidth/2-panX)/zoomLevel,by:(canvasEl.clientHeight/2-panY)/zoomLevel,cx:0.4+Math.random()*0.2,cy:0.4+Math.random()*0.2,size:parentId?55:90,employees:[],parentId:parentId||null};
+    const newBubble={id:'b'+(++bubbleIdCounter),name,colorIdx:selectedColorIdx,bx:(canvasEl.clientWidth/2-panX)/zoomLevel,by:(canvasEl.clientHeight/2-panY)/zoomLevel,cx:0.4+Math.random()*0.2,cy:0.4+Math.random()*0.2,size:parentId?55:90,employees:[],parentId:parentId||null,billable:billable};
     bubbles.push(newBubble);
-    document.getElementById('nbName').value='';document.getElementById('nbParent').value='';
+    document.getElementById('nbName').value='';
+    document.getElementById('nbParent').value='';
+    document.getElementById('nbBillable').checked=false;
     form.classList.remove('show');
-    addLog(`"${name}" created${parentId?' inside '+bubbles.find(b=>b.id===parentId)?.name:''}`, '');
+    addLog(`"${name}" created${billable?' (BILLABLE)':''}${parentId?' inside '+bubbles.find(b=>b.id===parentId)?.name:''}`, '');
     renderAll();
   });
 }
@@ -1384,6 +1425,15 @@ document.getElementById('ctxSP').addEventListener('click',()=>{if(ctxTarget)open
 document.getElementById('ctxRename').addEventListener('click',()=>{
   if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);if(!b)return;
   const n=prompt('Rename department:',b.name);if(n){b.name=n.trim();renderAll();}
+});
+// PATCH v6: toggle billable on/off via context menu
+document.getElementById('ctxBillable').addEventListener('click',()=>{
+  if(!ctxTarget)return;
+  const b=bubbles.find(x=>x.id===ctxTarget);
+  if(!b)return;
+  b.billable=!b.billable;
+  addLog(`"${b.name}" marked as ${b.billable?'BILLABLE (excluded from CPO)':'non-billable'}`, '');
+  renderAll();
 });
 document.getElementById('ctxRemoveAll').addEventListener('click',()=>{
   if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);if(!b)return;
@@ -1678,14 +1728,26 @@ async function fetchOrdersToday(){
     const statOrdersEl = document.getElementById('statOrders');
     const statCPOEl    = document.getElementById('statCPO');
     if (statOrdersEl) statOrdersEl.textContent = orders > 0 ? orders.toLocaleString() : '—';
-    // Compute CPO from current labor cost (from statCost) / orders
+    // PATCH v6: CPO = NON-BILLABLE labor cost only / orders.
+    // Sum up live hours, splitting by the bubble's billable flag.
     if (orders > 0 && statCPOEl) {
-      const costText = (document.getElementById('statCost').textContent || '$0').replace(/[$,]/g,'');
-      const labor = parseFloat(costText) || 0;
+      const nowMs = Date.now();
+      let nonBillableHrs = 0;
+      EMPLOYEES.forEach(emp => {
+        if (emp.dept) {
+          const b = bubbles.find(x => x.id === emp.dept);
+          if (b && b.billable) return; // skip billable
+        }
+        // Accumulate hours for this emp
+        let h = emp.totalHrs || 0;
+        if (emp.clockIn) h += (nowMs - emp.clockIn) / 3600000;
+        nonBillableHrs += h;
+      });
+      const labor = nonBillableHrs * 18.50;
       const cpo = labor / orders;
       statCPOEl.textContent = '$' + cpo.toFixed(2);
-      // Color red if over $4 target
       statCPOEl.style.color = cpo > 4.00 ? '#FC8181' : '#A3F3C5';
+      statCPOEl.title = 'Non-billable labor $' + Math.round(labor) + ' / ' + orders + ' orders';
     } else if (statCPOEl) {
       statCPOEl.textContent = '—';
       statCPOEl.style.color = '#F6AD55';
