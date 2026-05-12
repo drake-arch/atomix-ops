@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Atomix Analytics &mdash; MKE</title>
+<title>Atomix Analytics &mdash; Multi-Site</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -16,6 +16,7 @@
   --bg:#060f1a;--s1:#0b1e30;--s2:#0f2540;--s3:#142d4a;
   --border:rgba(163,243,197,0.10);--border2:rgba(163,243,197,0.18);
   --text:#dce8f0;--muted:#4a6a84;--amber:#F6AD55;--red:#FC8181;--blue:#63B3ED;--purple:#B794F4;
+  --mke:#A3F3C5;--slc:#63B3ED;--bal:#F6AD55;
   --font-mono:'DM Mono',monospace;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -31,6 +32,8 @@ header{height:56px;background:var(--s1);border-bottom:1px solid var(--border);di
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
 .live-label{font-size:11px;color:var(--green);font-family:var(--font-mono);letter-spacing:0.06em;}
+.fac-filter{background:var(--s2);border:1px solid var(--border2);border-radius:6px;color:var(--green);font-family:var(--font-mono);font-size:11px;padding:5px 10px;cursor:pointer;outline:none;letter-spacing:0.06em;}
+.fac-filter:focus{border-color:var(--green);}
 .refresh-btn{background:var(--green);color:var(--navy);border:none;border-radius:6px;padding:5px 14px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity 0.15s;}
 .refresh-btn:hover{opacity:0.85;}
 .last-refresh{font-size:10px;color:var(--muted);font-family:var(--font-mono);}
@@ -41,22 +44,21 @@ nav{height:42px;background:var(--s1);border-bottom:1px solid var(--border);displ
 .tab:hover{color:var(--text);}
 .tab.active{background:var(--s3);color:var(--green);border:1px solid var(--border2);}
 main{flex:1;overflow:hidden;display:flex;position:relative;}
-.view{display:none;flex:1;overflow-y:auto;padding:20px 24px;flex-direction:column;gap:16px;}
+.view{display:none;flex:1;overflow-y:auto;padding:18px 22px;flex-direction:column;gap:14px;}
 .view.active{display:flex;}
 .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;flex-shrink:0;}
 .stat-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;transition:border-color 0.2s;}
 .stat-card:hover{border-color:var(--border2);}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--green));opacity:0.7;}
 .stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}
-.stat-val{font-family:var(--font-mono);font-size:26px;font-weight:500;color:var(--accent,var(--green));line-height:1;}
+.stat-val{font-family:var(--font-mono);font-size:24px;font-weight:500;color:var(--accent,var(--green));line-height:1;}
 .stat-sub{font-size:10px;color:var(--muted);margin-top:4px;}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
-.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
-.chart-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.chart-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;}
 .chart-card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;display:flex;align-items:center;justify-content:space-between;}
 .chart-wrap{position:relative;width:100%;height:200px;}
-.dept-bar-list{display:flex;flex-direction:column;gap:10px;}
+.dept-bar-list{display:flex;flex-direction:column;gap:8px;}
 .dept-bar-header{display:flex;justify-content:space-between;margin-bottom:4px;}
 .dept-bar-name{font-size:12px;font-weight:500;}
 .dept-bar-count{font-size:11px;font-family:var(--font-mono);color:var(--muted);}
@@ -74,6 +76,10 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
 .emp-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
 .emp-hrs{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
 .emp-dept-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;background:var(--s3);color:var(--text);}
+.fac-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:var(--font-mono);font-weight:600;letter-spacing:0.06em;}
+.fac-badge.MKE{background:rgba(163,243,197,0.15);color:var(--mke);}
+.fac-badge.SLC{background:rgba(99,179,237,0.15);color:var(--slc);}
+.fac-badge.BAL{background:rgba(246,173,85,0.15);color:var(--bal);}
 .proj-table{width:100%;border-collapse:collapse;}
 .proj-table th{text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;padding:6px 10px;border-bottom:1px solid var(--border);}
 .proj-table td{padding:9px 10px;border-bottom:1px solid rgba(163,243,197,0.04);font-size:12px;}
@@ -85,34 +91,6 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
 .money{font-family:var(--font-mono);color:var(--green);}
 .money.cost{color:var(--amber);}
 .money.margin{color:var(--green2);}
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;}
-.kpi-card{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
-.kpi-label{font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px;}
-.kpi-ring-wrap{position:relative;width:64px;height:64px;margin:0 auto 6px;}
-.kpi-ring-wrap svg{width:64px;height:64px;transform:rotate(-90deg);}
-.kpi-ring-bg{fill:none;stroke:var(--s3);stroke-width:5;}
-.kpi-ring-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 0.6s ease;}
-.kpi-ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;font-weight:500;}
-.kpi-target{font-size:9px;color:var(--muted);}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(6,15,26,0.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
-.modal-overlay.open{display:flex;}
-.modal{background:var(--s1);border:1px solid var(--border2);border-radius:14px;width:680px;max-width:95vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;}
-.modal-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.modal-title{font-size:15px;font-weight:600;color:var(--text);}
-.modal-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px 8px;border-radius:4px;}
-.modal-close:hover{color:var(--text);}
-.modal-body{padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
-.modal-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.modal-stat{background:var(--s2);border-radius:8px;padding:10px 12px;}
-.modal-stat-val{font-family:var(--font-mono);font-size:18px;color:var(--green);}
-.modal-stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-top:2px;}
-.timeline{display:flex;flex-direction:column;gap:6px;}
-.timeline-item{display:flex;align-items:flex-start;gap:10px;padding:6px 8px;border-radius:6px;}
-.timeline-item:hover{background:var(--s2);}
-.timeline-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}
-.timeline-time{font-family:var(--font-mono);font-size:10px;color:var(--muted);min-width:52px;margin-top:2px;}
-.timeline-text{font-size:11px;color:var(--text);}
 .filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;background:var(--s1);border:1px solid var(--border);border-radius:8px;flex-shrink:0;}
 .filter-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;}
 .filter-select,.filter-input{background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:4px 8px;color:var(--text);font-size:11px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;}
@@ -125,17 +103,39 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
 .toast{position:fixed;bottom:20px;right:20px;z-index:1000;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,0.4);display:none;animation:fadeUp 0.2s ease;}
 .toast.show{display:block;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* PATCH v4: Multi-site tri-pane */
+.tri-pane{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;height:100%;}
+.site-col{display:flex;flex-direction:column;gap:10px;background:var(--s1);border-radius:10px;padding:14px;border-top:3px solid var(--accent);overflow-y:auto;}
+.site-col.MKE{--accent:var(--mke);}
+.site-col.SLC{--accent:var(--slc);}
+.site-col.BAL{--accent:var(--bal);}
+.site-header{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.site-code{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--accent);letter-spacing:0.08em;}
+.site-city{font-size:11px;color:var(--muted);}
+.site-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.site-stat{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px;}
+.site-stat-label{font-size:8px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:4px;}
+.site-stat-val{font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--accent);line-height:1;}
+.site-stat-sub{font-size:9px;color:var(--muted);margin-top:3px;}
+.site-section-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-top:6px;}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo"><div class="logo-mark">Ax</div>ATOMIX ANALYTICS &mdash; MKE</div>
+  <div class="logo"><div class="logo-mark">Ax</div>ATOMIX ANALYTICS &mdash; MULTI-SITE</div>
   <div class="header-right">
     <div class="live-dot"></div>
     <div class="live-label">LIVE</div>
+    <select class="fac-filter" id="facFilter" onchange="onFacFilterChange()">
+      <option value="">All Sites</option>
+      <option value="MKE">MKE &mdash; Milwaukee</option>
+      <option value="SLC">SLC &mdash; Salt Lake City</option>
+      <option value="BAL">BAL &mdash; Baltimore</option>
+    </select>
     <span class="last-refresh" id="lastRefresh">&mdash;</span>
-    <button class="rebuild-btn" id="rebuildBtn" onclick="rebuildSummary()">&#x21BB; Rebuild Summary</button>
-    <button class="refresh-btn" onclick="doRefresh()">&#x21BB; Refresh</button>
+    <button class="rebuild-btn" id="rebuildBtn" onclick="rebuildSummary()">Rebuild Summary</button>
+    <button class="refresh-btn" onclick="doRefresh()">Refresh</button>
   </div>
 </header>
 <nav>
@@ -147,57 +147,12 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
   <button class="tab"        data-view="history"      onclick="showView('history')">History</button>
 </nav>
 <main>
-<!-- OVERVIEW -->
+
+<!-- OVERVIEW: Tri-pane (one column per facility) OR single-site view -->
 <div class="view active" id="view-overview">
-  <div class="stat-row">
-    <div class="stat-card" style="--accent:var(--green)">
-      <div class="stat-label">Active Headcount</div><div class="stat-val" id="statActive">&mdash;</div>
-      <div class="stat-sub" id="statActiveBreak">&mdash; on break &middot; &mdash; on lunch</div>
-    </div>
-    <div class="stat-card" style="--accent:var(--blue)">
-      <div class="stat-label">Total Hours Today</div><div class="stat-val" id="statHours">&mdash;</div>
-      <div class="stat-sub">since shift start</div>
-    </div>
-    <div class="stat-card" style="--accent:var(--amber)">
-      <div class="stat-label">Est. Labor Cost</div><div class="stat-val" id="statCost">&mdash;</div>
-      <div class="stat-sub">@ $<span id="cfgRateDisplay">18.50</span>/hr avg</div>
-    </div>
-    <div class="stat-card" style="--accent:var(--purple)">
-      <div class="stat-label">Shift Forecast</div><div class="stat-val" id="statForecast">&mdash;</div>
-      <div class="stat-sub">est. end-of-shift cost</div>
-    </div>
-    <div class="stat-card" style="--accent:var(--red)">
-      <div class="stat-label">OT Risk</div><div class="stat-val" id="statOT">&mdash;</div>
-      <div class="stat-sub">vs 10% target</div>
-    </div>
-    <div class="stat-card" style="--accent:var(--green2)">
-      <div class="stat-label">Labor %</div><div class="stat-val" id="statLaborPct">&mdash;</div>
-      <div class="stat-sub">vs 30% target</div>
-    </div>
-  </div>
-  <div class="grid-2-1" style="flex:1;min-height:0;">
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div class="chart-card">
-        <div class="chart-card-title">Headcount by Department</div>
-        <div id="deptBars" class="dept-bar-list"></div>
-      </div>
-      <div class="chart-card" style="flex:1;">
-        <div class="chart-card-title">Hours Accrued &mdash; Today <span style="font-size:9px;color:var(--muted);font-weight:400;">updated live</span></div>
-        <div class="chart-wrap" style="height:140px;"><canvas id="hoursChart"></canvas></div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div class="chart-card">
-        <div class="chart-card-title">KPI Targets</div>
-        <div class="kpi-row" id="kpiRow"></div>
-      </div>
-      <div class="chart-card" style="flex:1;overflow:hidden;">
-        <div class="chart-card-title">Live Activity Feed</div>
-        <div id="liveFeed" style="overflow-y:auto;max-height:260px;display:flex;flex-direction:column;gap:3px;"></div>
-      </div>
-    </div>
-  </div>
+  <div id="overviewBody"></div>
 </div>
+
 <!-- LABOR SPEND -->
 <div class="view" id="view-labor">
   <div class="filter-row">
@@ -207,11 +162,11 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     </select>
     <span class="filter-label">Dept</span>
     <select class="filter-select" id="laborDept" onchange="renderLaborView()"><option value="">All Depts</option></select>
-    <button class="export-btn" onclick="exportCSV('labor')">&#x2193; Export CSV</button>
+    <button class="export-btn" onclick="exportCSV('labor')">Export CSV</button>
   </div>
   <div class="grid-2">
     <div class="chart-card"><div class="chart-card-title">Labor Cost by Department</div><div class="chart-wrap"><canvas id="laborPieChart"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-title">Daily Labor Cost Trend</div><div class="chart-wrap"><canvas id="laborTrendChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-card-title">Labor Cost by Facility</div><div class="chart-wrap"><canvas id="laborByFacChart"></canvas></div></div>
   </div>
   <div class="grid-3">
     <div class="stat-card" style="--accent:var(--amber)"><div class="stat-label">Total Labor Cost</div><div class="stat-val" id="laborTotalCost">&mdash;</div><div class="stat-sub">this week</div></div>
@@ -219,10 +174,11 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     <div class="stat-card" style="--accent:var(--blue)"><div class="stat-label">Labor % of Revenue</div><div class="stat-val" id="laborRevPct">&mdash;</div><div class="stat-sub" id="laborPctTarget">target &lt;30%</div></div>
   </div>
   <div class="chart-card">
-    <div class="chart-card-title">Stacked Hours by Department</div>
-    <div class="chart-wrap" style="height:220px;"><canvas id="laborStackedChart"></canvas></div>
+    <div class="chart-card-title">Daily Labor Cost Trend</div>
+    <div class="chart-wrap" style="height:220px;"><canvas id="laborTrendChart"></canvas></div>
   </div>
 </div>
+
 <!-- PRODUCTIVITY -->
 <div class="view" id="view-productivity">
   <div class="grid-2">
@@ -234,6 +190,7 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     <div class="chart-card"><div class="chart-card-title">Attendance / Absenteeism</div><div class="chart-wrap"><canvas id="absenceChart"></canvas></div></div>
   </div>
 </div>
+
 <!-- EMPLOYEES -->
 <div class="view" id="view-employees">
   <div class="filter-row">
@@ -245,16 +202,17 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     <select class="filter-select" id="empStatusFilter" onchange="filterEmpTable()">
       <option value="">All</option><option value="active">Active</option><option value="break">On Break</option><option value="lunch">Lunch</option><option value="idle">Unassigned</option>
     </select>
-    <button class="export-btn" onclick="exportCSV('employees')">&#x2193; Export</button>
+    <button class="export-btn" onclick="exportCSV('employees')">Export</button>
   </div>
   <div class="chart-card" style="flex:1;overflow:auto;">
     <table class="emp-table">
-      <thead><tr><th>Employee</th><th>Department</th><th>Status</th><th>Hours Today</th><th>Hours Week</th><th>Clock In</th><th>Shift</th></tr></thead>
+      <thead><tr><th>Employee</th><th>Site</th><th>Department</th><th>Status</th><th>Hours Today</th><th>Hours Week</th><th>Clock In</th></tr></thead>
       <tbody id="empTableBody"></tbody>
     </table>
-    <div class="empty" id="empEmpty" style="display:none;"><div class="empty-icon">&#128100;</div>No employees match the filter.</div>
+    <div class="empty" id="empEmpty" style="display:none;">No employees match the filter.</div>
   </div>
 </div>
+
 <!-- PROJECTS -->
 <div class="view" id="view-projects">
   <div class="filter-row">
@@ -262,7 +220,7 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     <select class="filter-select" id="projStatusFilter" onchange="filterProjTable()">
       <option value="">All</option><option value="active">Active</option><option value="over">Over Budget</option><option value="complete">Complete</option>
     </select>
-    <button class="export-btn" onclick="exportCSV('projects')">&#x2193; Export</button>
+    <button class="export-btn" onclick="exportCSV('projects')">Export</button>
   </div>
   <div class="stat-row" style="flex-shrink:0;">
     <div class="stat-card" style="--accent:var(--green)"><div class="stat-label">Active Projects</div><div class="stat-val" id="projActive">&mdash;</div></div>
@@ -278,6 +236,7 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     </table>
   </div>
 </div>
+
 <!-- HISTORY -->
 <div class="view" id="view-history">
   <div class="filter-row">
@@ -286,7 +245,7 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
     <span class="filter-label">Dept</span>
     <select class="filter-select" id="histDept"><option value="">All</option></select>
     <button class="filter-btn" onclick="renderHistory()">Apply</button>
-    <button class="export-btn" onclick="exportCSV('history')">&#x2193; Export</button>
+    <button class="export-btn" onclick="exportCSV('history')">Export</button>
   </div>
   <div class="grid-3">
     <div class="stat-card" style="--accent:var(--green)"><div class="stat-label">Total Hours</div><div class="stat-val" id="histHours">&mdash;</div></div>
@@ -299,49 +258,31 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
   </div>
   <div class="chart-card" style="flex:1;overflow:auto;">
     <table class="emp-table">
-      <thead><tr><th>Date</th><th>Dept</th><th>Headcount</th><th>Hours</th><th>Labor Cost</th><th>OT Hrs</th><th>UPH</th></tr></thead>
+      <thead><tr><th>Date</th><th>Site</th><th>Dept</th><th>Headcount</th><th>Hours</th><th>Labor Cost</th><th>OT Hrs</th></tr></thead>
       <tbody id="histTableBody"></tbody>
     </table>
   </div>
 </div>
 </main>
-<!-- EMPLOYEE MODAL -->
-<div class="modal-overlay" id="empModal" onclick="if(event.target===this)closeModal('empModal')">
-  <div class="modal">
-    <div class="modal-header">
-      <div><div class="modal-title" id="empModalName">&mdash;</div><div class="modal-sub" id="empModalSub">&mdash;</div></div>
-      <button class="modal-close" onclick="closeModal('empModal')">&#x2715;</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-stat-row">
-        <div class="modal-stat"><div class="modal-stat-val" id="empModalHrsToday">&mdash;</div><div class="modal-stat-label">Hours Today</div></div>
-        <div class="modal-stat"><div class="modal-stat-val" id="empModalHrsWeek">&mdash;</div><div class="modal-stat-label">Hours This Week</div></div>
-        <div class="modal-stat"><div class="modal-stat-val" id="empModalBreaks">&mdash;</div><div class="modal-stat-label">Breaks Today</div></div>
-        <div class="modal-stat"><div class="modal-stat-val" id="empModalCost">&mdash;</div><div class="modal-stat-label">Labor Cost Today</div></div>
-      </div>
-      <div>
-        <div class="chart-card-title" style="margin-bottom:10px;">Activity Timeline &mdash; Today</div>
-        <div class="timeline" id="empModalTimeline"></div>
-        <div class="empty" id="empModalEmpty" style="display:none;font-size:11px;padding:20px;">No activity logged yet today.</div>
-      </div>
-    </div>
-  </div>
-</div>
+
 <div class="toast" id="toast"></div>
+
 <script>
 // CONFIG
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxa5yGCPf-nI-DgKNheq--Cb_coFWvGgrOZE43abEcaa0K4b-hPvWSq4yKzO2_6tgWwWQ/exec';
-const DASH = String.fromCharCode(8212); // em-dash, kept as JS escape to avoid file-encoding issues
+const FACILITIES = ['MKE','SLC','BAL'];
+const FAC_LABELS = { MKE: 'Milwaukee', SLC: 'Salt Lake City', BAL: 'Baltimore' };
+const FAC_COLORS = { MKE: '#A3F3C5', SLC: '#63B3ED', BAL: '#F6AD55' };
+const DASH = String.fromCharCode(8212);
 const MIDDOT = String.fromCharCode(183);
-const UP = String.fromCharCode(9650);
-const DN = String.fromCharCode(9660);
+const FAC_FILTER_KEY = 'atomix_analytics_facility_filter';
+
 const CONFIG = {
   scriptUrl:   SCRIPT_URL,
   hourlyRate:  18.50,
   laborPct:    30,
   cpo:         4.00,
   otPct:       10,
-  accuracy:    99.9,
   refresh:     30,
 };
 let LIVE_DATA  = null;
@@ -353,6 +294,19 @@ let ORDERS_TODAY = 0;
 let refreshTimer = null;
 const CHARTS = {};
 const DEPT_COLORS = ['#A3F3C5','#63B3ED','#F6AD55','#B794F4','#FC814A','#ED64A6','#68D391'];
+
+// FACILITY FILTER STATE
+let CURRENT_FAC = '';  // '' = all sites
+function loadFacFilter() {
+  try { CURRENT_FAC = localStorage.getItem(FAC_FILTER_KEY) || ''; } catch(e) {}
+  document.getElementById('facFilter').value = CURRENT_FAC;
+}
+function onFacFilterChange() {
+  CURRENT_FAC = document.getElementById('facFilter').value;
+  try { localStorage.setItem(FAC_FILTER_KEY, CURRENT_FAC); } catch(e) {}
+  doRefresh();
+}
+
 // TAB NAVIGATION
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -368,25 +322,33 @@ function showView(id) {
     if (id === 'history')      renderHistory();
   }, 100);
 }
+
 // API FETCH
-async function apiFetch(action, params={}) {
+async function apiFetch(action, params) {
+  params = params || {};
   const url = new URL(SCRIPT_URL);
   url.searchParams.set('action', action);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
+  // Apply facility filter to most endpoints (not 'live' since we always want byFacility data)
+  if (CURRENT_FAC && action !== 'live' && action !== 'rebuild_summary' && action !== 'projects') {
+    url.searchParams.set('facility', CURRENT_FAC);
+  }
+  Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
   try { return await (await fetch(url.toString())).json(); }
-  catch(e) { console.warn('API error:',e); return null; }
+  catch(e) { console.warn('API error:', e); return null; }
 }
+
 async function doRefresh() {
   document.getElementById('lastRefresh').textContent = 'refreshing...';
   try {
-    const [live,daily,emps,projs,events,orders] = await Promise.all([
-      apiFetch('live'),
-      apiFetch('daily',{from:daysAgo(30)}),
+    const results = await Promise.all([
+      apiFetch('live'),                                  // always returns byFacility
+      apiFetch('daily', {from: daysAgo(30)}),
       apiFetch('employees'),
       apiFetch('projects'),
-      apiFetch('events',{from:daysAgo(7),limit:500}),
+      apiFetch('events', {from: daysAgo(7), limit: 500}),
       apiFetch('orders'),
     ]);
+    const [live, daily, emps, projs, events, orders] = results;
     const gotLive   = live   && live.active  !== undefined;
     const gotDaily  = daily  && Array.isArray(daily.data) && daily.data.length > 0;
     const gotEmps   = emps   && Array.isArray(emps.employees) && emps.employees.length > 0;
@@ -410,7 +372,7 @@ async function doRefresh() {
     loadDemoData();
     document.getElementById('lastRefresh').textContent = 'error ' + DASH + ' showing demo data';
   }
-  Object.keys(CHARTS).forEach(k=>{if(CHARTS[k]){CHARTS[k].destroy();delete CHARTS[k];}});
+  Object.keys(CHARTS).forEach(k => { if (CHARTS[k]) { CHARTS[k].destroy(); delete CHARTS[k]; } });
   const active = document.querySelector('.view.active') ? document.querySelector('.view.active').id.replace('view-','') : null;
   if (active) {
     setTimeout(() => {
@@ -423,385 +385,443 @@ async function doRefresh() {
     }, 100);
   }
 }
-// DEMO DATA (fallback when backend unreachable)
+
+// DEMO DATA fallback
 function loadDemoData() {
   const depts = ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
   const now = Date.now();
-  const ha  = h => now - h*3600000;
+  const ha = h => now - h*3600000;
+  function fakeSite(active, hours) {
+    return {
+      facility: 'X',
+      active, onBreak: Math.round(active*0.1), onLunch: Math.round(active*0.08),
+      totalHoursToday: hours, estLaborCost: hours * CONFIG.hourlyRate,
+      depts: depts.map(name => ({ name, active: Math.round(active/depts.length), onBreak: 0, onLunch: 0 })),
+    };
+  }
   LIVE_DATA = {
-    active:38,onBreak:4,onLunch:3,totalHoursToday:142.5,estLaborCost:2636.25,
-    depts:[
-      {name:'AM Shift',active:22,onBreak:2,onLunch:1},
-      {name:'PM Shift',active:7,onBreak:1,onLunch:1},
-      {name:'Special Projects',active:5,onBreak:0,onLunch:1},
-      {name:'Inbound',active:3,onBreak:1,onLunch:0},
-      {name:'Inventory',active:1,onBreak:0,onLunch:0},
-    ],
+    active: 38, onBreak: 4, onLunch: 3, totalHoursToday: 142.5, estLaborCost: 2636.25,
+    depts: depts.map(n => ({ name:n, active: 5+Math.round(Math.random()*8), onBreak: 0, onLunch: 0 })),
+    byFacility: {
+      MKE: Object.assign(fakeSite(22, 88.4), { facility:'MKE' }),
+      SLC: Object.assign(fakeSite(11, 38.1), { facility:'SLC' }),
+      BAL: Object.assign(fakeSite(5,  16.0), { facility:'BAL' }),
+    },
   };
   DAILY_DATA = Array.from({length:14},(_,i)=>{
-    const d=new Date(); d.setDate(d.getDate()-(13-i));
-    const base=120+Math.random()*40;
-    return depts.map(dept=>({
-      Date:d.toDateString(), Dept:dept,
-      Headcount:Math.round(5+Math.random()*20),
-      'Hours Worked':(base*(0.3+Math.random()*0.4)).toFixed(1),
-      'Labor Cost':(base*CONFIG.hourlyRate*(0.3+Math.random()*0.4)).toFixed(2),
-      'OT Hours':(Math.random()*8).toFixed(1),
-      UPH:Math.round(80+Math.random()*40),
-    }));
+    const d = new Date(); d.setDate(d.getDate() - (13-i));
+    const base = 120 + Math.random()*40;
+    const out = [];
+    FACILITIES.forEach(f => {
+      depts.forEach(dept => {
+        out.push({
+          Date: d.toDateString(), Facility: f, Dept: dept,
+          Headcount: Math.round(3 + Math.random()*8),
+          'Hours Worked': (base * (0.1+Math.random()*0.2)).toFixed(1),
+          'Labor Cost': (base * CONFIG.hourlyRate * (0.1+Math.random()*0.2)).toFixed(2),
+          'OT Hours': (Math.random()*4).toFixed(1),
+          UPH: Math.round(80+Math.random()*40),
+        });
+      });
+    });
+    return out;
   }).flat();
-  const names=[
-    ['Kody Malas','AM Shift','active'],['Hugh Myers','PM Shift','active'],
-    ['Laura Perez','AM Shift','active'],['David Domash','PM Shift','break'],
-    ['Edwin Rivera','Special Projects','active'],['Phillip Lamson','Inbound','active'],
-    ['Jakwon Dumukes','Inventory','active'],['Ana Garcia','AM Shift','lunch'],
-    ['Haylee Stern','PM Shift','active'],['Maria Luna','Special Projects','active'],
-    ['Emyly Herrera','Inbound','active'],['Luis Gumucio','Inventory','idle'],
+  const names = [
+    ['Kody Malas','MKE','AM Shift','active'],['Hugh Myers','MKE','PM Shift','active'],
+    ['Laura Perez','MKE','AM Shift','active'],['David Domash','MKE','PM Shift','break'],
+    ['Edwin Rivera','SLC','Special Projects','active'],['Phillip Lamson','SLC','Inbound','active'],
+    ['Jakwon Dumukes','SLC','Inventory','active'],['Ana Garcia','SLC','AM Shift','lunch'],
+    ['Haylee Stern','BAL','PM Shift','active'],['Maria Luna','BAL','Special Projects','active'],
+    ['Emyly Herrera','BAL','Inbound','active'],['Luis Gumucio','BAL','Inventory','idle'],
   ];
-  EMP_DATA = names.map(([name,dept,status],i)=>({
-    'Employee ID':'e'+(i+1),'Full Name':name,Dept:dept,Status:status,
-    'Hours Today':(Math.random()*6+1).toFixed(1),
-    'Hours Week':(Math.random()*30+10).toFixed(1),
-    'Clock In':status!=='idle'?new Date(ha(Math.random()*4)).toLocaleTimeString():DASH,
-    'Shift Start':'06:00','Shift End':'14:30',
-    Manager:i<5?'Drake':'Kody Malas','Hourly Rate':18.50,
+  EMP_DATA = names.map((row,i) => ({
+    'Employee ID': 'e' + (i+1),
+    'Full Name': row[0],
+    'Facility': row[1],
+    'Dept': row[2],
+    'Status': row[3],
+    'Hours Today': (Math.random()*6+1).toFixed(1),
+    'Hours Week': (Math.random()*30+10).toFixed(1),
+    'Clock In': row[3] !== 'idle' ? new Date(ha(Math.random()*4)).toLocaleTimeString() : DASH,
+    'Shift Start': '06:00',
+    'Shift End': '14:30',
   }));
-  PROJ_DATA=[
+  PROJ_DATA = [
     {'Project Name':'Amazon Returns Q1','Client':'Amazon','Quoted Hours':80,'Actual Hours':67,'Supply Cost':240,'Bill Rate':28,'Start Date':'2026-03-01','End Date':'2026-03-31'},
     {'Project Name':'Target Kitting Run','Client':'Target','Quoted Hours':40,'Actual Hours':48,'Supply Cost':180,'Bill Rate':32,'Start Date':'2026-03-05','End Date':'2026-03-15'},
-    {'Project Name':'Nike Rework Project','Client':'Nike','Quoted Hours':120,'Actual Hours':30,'Supply Cost':90,'Bill Rate':25,'Start Date':'2026-03-10','End Date':'2026-04-10'},
   ];
-  EVENT_DATA=names.slice(0,8).flatMap(([name,dept],i)=>[
-    {Timestamp:new Date(ha(2+i*0.3)),'Event Type':'CLOCK_IN','Employee Name':name,'To Dept':dept},
-    ...(Math.random()>0.6?[{Timestamp:new Date(ha(1+i*0.2)),'Event Type':'BREAK_START','Employee Name':name}]:[]),
-  ]);
+  EVENT_DATA = names.slice(0,8).map((row,i) => ({
+    Timestamp: new Date(ha(2+i*0.3)),
+    'Event Type': 'CLOCK_IN',
+    'Employee Name': row[0],
+    'To Dept': row[2],
+    'Facility': row[1],
+  }));
 }
+
 // RENDER: OVERVIEW
 function renderOverview() {
   if (!LIVE_DATA) return;
-  const d=LIVE_DATA;
-  document.getElementById('statActive').textContent      = (d.active!=null?d.active:DASH);
-  document.getElementById('statActiveBreak').textContent = (d.onBreak||0) + ' on break ' + MIDDOT + ' ' + (d.onLunch||0) + ' on lunch';
-  document.getElementById('statHours').textContent       = (d.totalHoursToday||0).toFixed(1)+'h';
-  document.getElementById('cfgRateDisplay').textContent  = CONFIG.hourlyRate.toFixed(2);
-  const cost=d.estLaborCost!=null?d.estLaborCost:(d.totalHoursToday*CONFIG.hourlyRate);
-  document.getElementById('statCost').textContent    = '$'+fmt(cost);
-  const elapsed=(new Date().getHours()*60+new Date().getMinutes())-360;
-  const pct=Math.max(0.1,Math.min(1,elapsed/480));
-  document.getElementById('statForecast').textContent = '$'+fmt(cost/pct);
-  document.getElementById('statOT').textContent       = '0%';
-  document.getElementById('statLaborPct').textContent = DASH;
-  const bars=document.getElementById('deptBars');
-  const total=(d.depts||[]).reduce((s,x)=>s+x.active+x.onBreak+x.onLunch,0)||1;
-  bars.innerHTML=(d.depts||[]).map((dept,i)=>{
-    const count=dept.active+dept.onBreak+dept.onLunch;
-    const p=(count/total*100).toFixed(0);
-    const color=DEPT_COLORS[i%DEPT_COLORS.length];
-    return '<div class="dept-bar-item" onclick="showView(\'employees\')" style="cursor:pointer;">'+
-      '<div class="dept-bar-header">'+
-        '<span class="dept-bar-name" style="color:'+color+'">'+dept.name+'</span>'+
-        '<span class="dept-bar-count">'+count+' <span style="color:var(--muted);font-size:9px;">/ '+dept.active+' active</span></span>'+
-      '</div>'+
-      '<div class="dept-bar-track"><div class="dept-bar-fill" style="width:'+p+'%;background:'+color+'"></div></div>'+
-    '</div>';
-  }).join('');
-  const kpis=[
-    {label:'Labor %',val:24.2,target:CONFIG.laborPct,unit:'%',good:'under'},
-    {label:'CPO',val:3.80,target:CONFIG.cpo,unit:'$',good:'under'},
-    {label:'OT %',val:4.1,target:CONFIG.otPct,unit:'%',good:'under'},
-    {label:'Accuracy',val:99.7,target:CONFIG.accuracy,unit:'%',good:'over'},
-  ];
-  document.getElementById('kpiRow').innerHTML=kpis.map(k=>{
-    const circ=2*Math.PI*28;
-    const fill=Math.min(100,(k.val/(k.good==='under'?k.target*1.5:100))*100);
-    const offset=circ-(fill/100)*circ;
-    const good=k.good==='under'?k.val<=k.target:k.val>=k.target;
-    const color=good?'#A3F3C5':'#FC8181';
-    return '<div class="kpi-card">'+
-      '<div class="kpi-label">'+k.label+'</div>'+
-      '<div class="kpi-ring-wrap">'+
-        '<svg viewBox="0 0 64 64">'+
-          '<circle class="kpi-ring-bg" cx="32" cy="32" r="28"/>'+
-          '<circle class="kpi-ring-fill" cx="32" cy="32" r="28" stroke="'+color+'" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'"/>'+
-        '</svg>'+
-        '<div class="kpi-ring-val" style="color:'+color+'">'+(k.unit==='$'?'$':'')+k.val+(k.unit==='%'?'%':'')+'</div>'+
-      '</div>'+
-      '<div class="kpi-target">target: '+(k.unit==='$'?'$':'')+k.target+(k.unit==='%'?'%':'')+'</div>'+
-    '</div>';
-  }).join('');
-  if (CHARTS.hours) { CHARTS.hours.destroy(); delete CHARTS.hours; }
-  CHARTS.hours=new Chart(document.getElementById('hoursChart'),{
-    type:'bar',
-    data:{
-      labels:(d.depts||[]).map(x=>x.name),
-      datasets:[{data:(d.depts||[]).map(x=>{
-        const h=(x.active+x.onBreak+x.onLunch)*(d.totalHoursToday/Math.max(1,d.active+d.onBreak+d.onLunch));
-        return +h.toFixed(1);
-      }),backgroundColor:DEPT_COLORS,borderRadius:4,borderSkipped:false}]
-    },
-    options:chartOptions({legend:false}),
-  });
-  const tColors={CLOCK_IN:'#A3F3C5',CLOCK_OUT:'#FC8181',ASSIGN:'#A3F3C5',UNASSIGN:'#FC8181',BREAK_START:'#F6AD55',BREAK_END:'#F6AD55',LUNCH_START:'#63B3ED',LUNCH_END:'#63B3ED'};
-  const feed=document.getElementById('liveFeed');
-  const recent=[...EVENT_DATA].reverse().slice(0,40);
-  feed.innerHTML=recent.length===0
-    ?'<div class="empty" style="padding:16px;font-size:11px;">No events yet today.</div>'
-    :recent.map(ev=>{
-        const ts=new Date(ev.Timestamp);
-        const color=tColors[ev['Event Type']]||'#9D9F9E';
-        const label=(ev['Event Type']||'').replace(/_/g,' ');
-        return '<div class="timeline-item">'+
-          '<div class="timeline-dot" style="background:'+color+'"></div>'+
-          '<div class="timeline-time">'+ts.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})+'</div>'+
-          '<div class="timeline-text"><strong>'+(ev['Employee Name']||DASH)+'</strong><span style="color:var(--muted)"> '+DASH+' '+label+'</span>'+(ev['To Dept']?'<span style="color:var(--muted)"> &rarr; '+ev['To Dept']+'</span>':'')+'</div>'+
-        '</div>';
-      }).join('');
+  const body = document.getElementById('overviewBody');
+  if (CURRENT_FAC) {
+    // Single-site view: filter live data to that facility
+    const siteData = (LIVE_DATA.byFacility && LIVE_DATA.byFacility[CURRENT_FAC]) || LIVE_DATA;
+    body.innerHTML = renderSingleSite(siteData, CURRENT_FAC);
+    renderSingleSiteCharts(siteData);
+  } else {
+    // Tri-pane: all three facilities side by side
+    const byFac = LIVE_DATA.byFacility || {};
+    body.innerHTML =
+      '<div class="tri-pane">' +
+        FACILITIES.map(f => renderSitePane(byFac[f] || {facility:f, active:0, onBreak:0, onLunch:0, totalHoursToday:0, estLaborCost:0, depts:[]}, f)).join('') +
+      '</div>';
+  }
 }
+
+function renderSitePane(d, facCode) {
+  const city = FAC_LABELS[facCode] || '';
+  const total = (d.depts || []).reduce((s,x) => s + x.active + x.onBreak + x.onLunch, 0) || 1;
+  const deptBars = (d.depts || []).map((dept, i) => {
+    const count = dept.active + dept.onBreak + dept.onLunch;
+    const pct = (count / total * 100).toFixed(0);
+    const color = DEPT_COLORS[i % DEPT_COLORS.length];
+    return '<div>' +
+        '<div class="dept-bar-header">' +
+          '<span class="dept-bar-name" style="color:' + color + ';font-size:11px;">' + dept.name + '</span>' +
+          '<span class="dept-bar-count">' + count + '</span>' +
+        '</div>' +
+        '<div class="dept-bar-track"><div class="dept-bar-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+      '</div>';
+  }).join('') || '<div style="font-size:11px;color:var(--muted);text-align:center;padding:8px;">No active staff</div>';
+
+  return '<div class="site-col ' + facCode + '">' +
+    '<div class="site-header">' +
+      '<div><div class="site-code">' + facCode + '</div><div class="site-city">' + city + '</div></div>' +
+    '</div>' +
+    '<div class="site-stats">' +
+      '<div class="site-stat"><div class="site-stat-label">Active</div><div class="site-stat-val">' + (d.active || 0) + '</div><div class="site-stat-sub">' + (d.onBreak || 0) + ' brk ' + MIDDOT + ' ' + (d.onLunch || 0) + ' lun</div></div>' +
+      '<div class="site-stat"><div class="site-stat-label">Hours Today</div><div class="site-stat-val">' + ((d.totalHoursToday || 0)).toFixed(1) + 'h</div><div class="site-stat-sub">since shift start</div></div>' +
+      '<div class="site-stat"><div class="site-stat-label">Labor Cost</div><div class="site-stat-val">$' + fmt(d.estLaborCost || 0) + '</div><div class="site-stat-sub">@ $' + CONFIG.hourlyRate.toFixed(2) + '/hr</div></div>' +
+      '<div class="site-stat"><div class="site-stat-label">Forecast</div><div class="site-stat-val">$' + fmt(forecastShiftCost(d.estLaborCost || 0)) + '</div><div class="site-stat-sub">end of shift</div></div>' +
+    '</div>' +
+    '<div class="site-section-title">Headcount by Department</div>' +
+    '<div class="dept-bar-list">' + deptBars + '</div>' +
+  '</div>';
+}
+
+function renderSingleSite(d, facCode) {
+  // Single-site view — uses the existing stat-row + chart layout, but filtered
+  const city = FAC_LABELS[facCode] || '';
+  return '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">' +
+    '<div><div style="font-family:var(--font-mono);font-size:18px;color:' + (FAC_COLORS[facCode]||'#A3F3C5') + ';letter-spacing:0.08em;font-weight:700;">' + facCode + '</div><div style="font-size:11px;color:var(--muted);">' + city + '</div></div>' +
+  '</div>' +
+  '<div class="stat-row">' +
+    '<div class="stat-card" style="--accent:var(--green)"><div class="stat-label">Active Headcount</div><div class="stat-val">' + (d.active || 0) + '</div><div class="stat-sub">' + (d.onBreak || 0) + ' on break ' + MIDDOT + ' ' + (d.onLunch || 0) + ' on lunch</div></div>' +
+    '<div class="stat-card" style="--accent:var(--blue)"><div class="stat-label">Total Hours Today</div><div class="stat-val">' + ((d.totalHoursToday || 0)).toFixed(1) + 'h</div><div class="stat-sub">since shift start</div></div>' +
+    '<div class="stat-card" style="--accent:var(--amber)"><div class="stat-label">Est. Labor Cost</div><div class="stat-val">$' + fmt(d.estLaborCost || 0) + '</div><div class="stat-sub">@ $' + CONFIG.hourlyRate.toFixed(2) + '/hr avg</div></div>' +
+    '<div class="stat-card" style="--accent:var(--purple)"><div class="stat-label">Shift Forecast</div><div class="stat-val">$' + fmt(forecastShiftCost(d.estLaborCost || 0)) + '</div><div class="stat-sub">est. end-of-shift cost</div></div>' +
+  '</div>' +
+  '<div class="grid-2" style="margin-top:14px;flex:1;min-height:0;">' +
+    '<div class="chart-card"><div class="chart-card-title">Headcount by Department</div><div class="dept-bar-list" id="singleDeptBars"></div></div>' +
+    '<div class="chart-card"><div class="chart-card-title">Hours by Dept</div><div class="chart-wrap"><canvas id="singleHoursChart"></canvas></div></div>' +
+  '</div>';
+}
+
+function renderSingleSiteCharts(d) {
+  const bars = document.getElementById('singleDeptBars');
+  if (!bars) return;
+  const total = (d.depts || []).reduce((s,x) => s + x.active + x.onBreak + x.onLunch, 0) || 1;
+  bars.innerHTML = (d.depts || []).map((dept, i) => {
+    const count = dept.active + dept.onBreak + dept.onLunch;
+    const pct = (count / total * 100).toFixed(0);
+    const color = DEPT_COLORS[i % DEPT_COLORS.length];
+    return '<div>' +
+        '<div class="dept-bar-header">' +
+          '<span class="dept-bar-name" style="color:' + color + '">' + dept.name + '</span>' +
+          '<span class="dept-bar-count">' + count + '</span>' +
+        '</div>' +
+        '<div class="dept-bar-track"><div class="dept-bar-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+      '</div>';
+  }).join('');
+
+  if (CHARTS.singleHours) { CHARTS.singleHours.destroy(); delete CHARTS.singleHours; }
+  const canvas = document.getElementById('singleHoursChart');
+  if (canvas) {
+    CHARTS.singleHours = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: (d.depts || []).map(x => x.name),
+        datasets: [{
+          data: (d.depts || []).map(x => {
+            const h = (x.active + x.onBreak + x.onLunch) * (d.totalHoursToday / Math.max(1, d.active + d.onBreak + d.onLunch));
+            return +h.toFixed(1);
+          }),
+          backgroundColor: DEPT_COLORS, borderRadius: 4,
+        }],
+      },
+      options: chartOptions({legend:false}),
+    });
+  }
+}
+
+function forecastShiftCost(currentCost) {
+  const elapsed = (new Date().getHours()*60 + new Date().getMinutes()) - 360;
+  const pct = Math.max(0.1, Math.min(1, elapsed/480));
+  return currentCost / pct;
+}
+
 // RENDER: LABOR SPEND
 function renderLaborView() {
   if (!DAILY_DATA.length) return;
-  const laborSel=document.getElementById('laborDept');
-  while(laborSel.options.length>1) laborSel.remove(1);
-  [...new Set(DAILY_DATA.map(r=>r.Dept).filter(Boolean))].forEach(d=>{
-    const o=document.createElement('option'); o.value=d; o.textContent=d; laborSel.appendChild(o);
+  const laborSel = document.getElementById('laborDept');
+  while (laborSel.options.length > 1) laborSel.remove(1);
+  Array.from(new Set(DAILY_DATA.map(r => r.Dept).filter(Boolean))).forEach(d => {
+    const o = document.createElement('option'); o.value = d; o.textContent = d; laborSel.appendChild(o);
   });
-  const bydept={};
-  DAILY_DATA.forEach(r=>{
-    bydept[r.Dept]=bydept[r.Dept]||{cost:0,hours:0};
-    bydept[r.Dept].cost +=parseFloat(r['Labor Cost']||0);
-    bydept[r.Dept].hours+=parseFloat(r['Hours Worked']||0);
+
+  const bydept = {}, byfac = {};
+  DAILY_DATA.forEach(r => {
+    bydept[r.Dept] = bydept[r.Dept] || {cost:0, hours:0};
+    bydept[r.Dept].cost  += parseFloat(r['Labor Cost'] || 0);
+    bydept[r.Dept].hours += parseFloat(r['Hours Worked'] || 0);
+    const f = r.Facility || 'Unknown';
+    byfac[f] = byfac[f] || {cost:0, hours:0};
+    byfac[f].cost  += parseFloat(r['Labor Cost'] || 0);
+    byfac[f].hours += parseFloat(r['Hours Worked'] || 0);
   });
-  const depts=Object.keys(bydept);
-  const total=depts.reduce((s,d)=>s+bydept[d].cost,0);
-  document.getElementById('laborTotalCost').textContent='$'+fmt(total);
+  const depts = Object.keys(bydept);
+  const total = depts.reduce((s,d) => s + bydept[d].cost, 0);
+  document.getElementById('laborTotalCost').textContent = '$' + fmt(total);
+
   if (ORDERS_TODAY > 0) {
     const cpo = total / ORDERS_TODAY;
     const cpoEl = document.getElementById('laborCPO');
-    cpoEl.textContent = '$'+cpo.toFixed(2);
+    cpoEl.textContent = '$' + cpo.toFixed(2);
     cpoEl.style.color = cpo > CONFIG.cpo ? 'var(--red)' : '';
-    document.getElementById('laborCPOTarget').textContent = ORDERS_TODAY.toLocaleString()+' orders ' + MIDDOT + ' target <$'+CONFIG.cpo.toFixed(2);
+    document.getElementById('laborCPOTarget').textContent = ORDERS_TODAY.toLocaleString() + ' orders ' + MIDDOT + ' target <$' + CONFIG.cpo.toFixed(2);
   } else {
     document.getElementById('laborCPO').textContent = DASH;
-    document.getElementById('laborCPOTarget').textContent = 'target <$'+CONFIG.cpo.toFixed(2);
+    document.getElementById('laborCPOTarget').textContent = 'target <$' + CONFIG.cpo.toFixed(2);
   }
   document.getElementById('laborRevPct').textContent = DASH;
-  document.getElementById('laborPctTarget').textContent='target <'+CONFIG.laborPct+'%';
+  document.getElementById('laborPctTarget').textContent = 'target <' + CONFIG.laborPct + '%';
+
   if (CHARTS.laborPie) { CHARTS.laborPie.destroy(); delete CHARTS.laborPie; }
-  CHARTS.laborPie=new Chart(document.getElementById('laborPieChart'),{
-    type:'doughnut',
-    data:{labels:depts,datasets:[{data:depts.map(d=>bydept[d].cost.toFixed(2)),backgroundColor:DEPT_COLORS,borderWidth:0}]},
-    options:Object.assign({},chartOptions({legend:true}),{cutout:'60%'}),
+  CHARTS.laborPie = new Chart(document.getElementById('laborPieChart'), {
+    type: 'doughnut',
+    data: { labels: depts, datasets: [{ data: depts.map(d => bydept[d].cost.toFixed(2)), backgroundColor: DEPT_COLORS, borderWidth: 0 }] },
+    options: Object.assign({}, chartOptions({legend:true}), {cutout:'60%'}),
   });
-  const days=[...new Set(DAILY_DATA.map(r=>r.Date))].sort().slice(-14);
-  const dayLabels=days.map(d=>new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'}));
+
+  // Facility breakdown chart
+  const facLabels = Object.keys(byfac);
+  if (CHARTS.laborByFac) { CHARTS.laborByFac.destroy(); delete CHARTS.laborByFac; }
+  CHARTS.laborByFac = new Chart(document.getElementById('laborByFacChart'), {
+    type: 'bar',
+    data: {
+      labels: facLabels,
+      datasets: [{
+        data: facLabels.map(f => byfac[f].cost.toFixed(2)),
+        backgroundColor: facLabels.map(f => FAC_COLORS[f] || '#9D9F9E'),
+        borderRadius: 4,
+      }],
+    },
+    options: chartOptions({legend:false}),
+  });
+
+  const days = Array.from(new Set(DAILY_DATA.map(r => r.Date))).sort().slice(-14);
+  const dayLabels = days.map(d => new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'}));
   if (CHARTS.laborTrend) { CHARTS.laborTrend.destroy(); delete CHARTS.laborTrend; }
-  CHARTS.laborTrend=new Chart(document.getElementById('laborTrendChart'),{
-    type:'line',
-    data:{labels:dayLabels,datasets:[{
-      data:days.map(d=>DAILY_DATA.filter(r=>r.Date===d).reduce((s,r)=>s+parseFloat(r['Labor Cost']||0),0).toFixed(2)),
-      borderColor:'#A3F3C5',backgroundColor:'rgba(163,243,197,0.08)',fill:true,tension:0.4,pointRadius:3,borderWidth:2,
-    }]},
-    options:chartOptions({legend:false}),
-  });
-  if (CHARTS.laborStacked) { CHARTS.laborStacked.destroy(); delete CHARTS.laborStacked; }
-  CHARTS.laborStacked=new Chart(document.getElementById('laborStackedChart'),{
-    type:'bar',
-    data:{labels:dayLabels,datasets:depts.map((dept,i)=>({
-      label:dept,
-      data:days.map(d=>{const r=DAILY_DATA.find(x=>x.Date===d&&x.Dept===dept);return r?parseFloat(r['Hours Worked']||0):0;}),
-      backgroundColor:DEPT_COLORS[i%DEPT_COLORS.length],borderRadius:2,
-    }))},
-    options:Object.assign({},chartOptions({legend:true}),{scales:{x:Object.assign({},darkScales().x,{stacked:true}),y:Object.assign({},darkScales().y,{stacked:true})}}),
+  // Build one dataset per facility for the trend
+  const trendDatasets = (CURRENT_FAC ? [CURRENT_FAC] : FACILITIES).map(f => ({
+    label: f,
+    data: days.map(d => DAILY_DATA.filter(r => r.Date === d && (CURRENT_FAC ? r.Facility === CURRENT_FAC : r.Facility === f)).reduce((s,r) => s + parseFloat(r['Labor Cost'] || 0), 0).toFixed(2)),
+    borderColor: FAC_COLORS[f] || '#A3F3C5',
+    backgroundColor: (FAC_COLORS[f] || '#A3F3C5') + '20',
+    fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2,
+  }));
+  CHARTS.laborTrend = new Chart(document.getElementById('laborTrendChart'), {
+    type: 'line',
+    data: { labels: dayLabels, datasets: trendDatasets },
+    options: chartOptions({legend:true}),
   });
 }
+
 // RENDER: PRODUCTIVITY
 function renderProductivity() {
-  const deptNames=LIVE_DATA?(LIVE_DATA.depts||[]).map(d=>d.name):['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
-  const hcDays=last7Days();
+  const deptNames = LIVE_DATA ? (LIVE_DATA.depts || []).map(d => d.name) : ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
+  const hcDays = last7Days();
   if (CHARTS.uph) { CHARTS.uph.destroy(); delete CHARTS.uph; }
-  CHARTS.uph=new Chart(document.getElementById('uphChart'),{
-    type:'bar',
-    data:{labels:deptNames,datasets:[
-      {label:'Actual UPH',data:deptNames.map(()=>80+Math.round(Math.random()*40)),backgroundColor:'rgba(163,243,197,0.7)',borderRadius:4},
-      {label:'Baseline UPH',data:deptNames.map(()=>100),backgroundColor:'rgba(99,179,237,0.3)',borderRadius:4},
+  CHARTS.uph = new Chart(document.getElementById('uphChart'), {
+    type: 'bar',
+    data: { labels: deptNames, datasets: [
+      { label: 'Actual UPH', data: deptNames.map(()=>80+Math.round(Math.random()*40)), backgroundColor: 'rgba(163,243,197,0.7)', borderRadius: 4 },
+      { label: 'Baseline UPH', data: deptNames.map(()=>100), backgroundColor: 'rgba(99,179,237,0.3)', borderRadius: 4 },
     ]},
-    options:chartOptions({legend:true}),
+    options: chartOptions({legend:true}),
   });
   if (CHARTS.hcPlan) { CHARTS.hcPlan.destroy(); delete CHARTS.hcPlan; }
-  CHARTS.hcPlan=new Chart(document.getElementById('hcPlanChart'),{
-    type:'line',
-    data:{labels:hcDays,datasets:[
-      {label:'Actual HC',data:Array.from({length:7},()=>Math.round(30+Math.random()*15)),borderColor:'#A3F3C5',backgroundColor:'rgba(163,243,197,0.08)',tension:0.4,fill:true,borderWidth:2,pointRadius:3},
-      {label:'Planned HC',data:Array.from({length:7},()=>40),borderColor:'rgba(246,173,85,0.5)',borderDash:[6,3],borderWidth:1.5,pointRadius:0},
+  CHARTS.hcPlan = new Chart(document.getElementById('hcPlanChart'), {
+    type: 'line',
+    data: { labels: hcDays, datasets: [
+      { label: 'Actual HC', data: Array.from({length:7},()=>Math.round(30+Math.random()*15)), borderColor: '#A3F3C5', backgroundColor: 'rgba(163,243,197,0.08)', tension: 0.4, fill: true, borderWidth: 2, pointRadius: 3 },
+      { label: 'Planned HC', data: Array.from({length:7},()=>40), borderColor: 'rgba(246,173,85,0.5)', borderDash: [6,3], borderWidth: 1.5, pointRadius: 0 },
     ]},
-    options:chartOptions({legend:true}),
+    options: chartOptions({legend:true}),
   });
   if (CHARTS.ot) { CHARTS.ot.destroy(); delete CHARTS.ot; }
-  CHARTS.ot=new Chart(document.getElementById('otChart'),{
-    type:'line',
-    data:{labels:hcDays,datasets:[
-      {label:'OT %',data:Array.from({length:7},()=>+(Math.random()*12).toFixed(1)),borderColor:'#FC8181',backgroundColor:'rgba(252,129,129,0.08)',tension:0.4,fill:true,borderWidth:2,pointRadius:3},
-      {label:'Target 10%',data:Array.from({length:7},()=>10),borderColor:'rgba(246,173,85,0.4)',borderDash:[6,3],borderWidth:1.5,pointRadius:0},
+  CHARTS.ot = new Chart(document.getElementById('otChart'), {
+    type: 'line',
+    data: { labels: hcDays, datasets: [
+      { label: 'OT %', data: Array.from({length:7},()=>+(Math.random()*12).toFixed(1)), borderColor: '#FC8181', backgroundColor: 'rgba(252,129,129,0.08)', tension: 0.4, fill: true, borderWidth: 2, pointRadius: 3 },
+      { label: 'Target 10%', data: Array.from({length:7},()=>10), borderColor: 'rgba(246,173,85,0.4)', borderDash: [6,3], borderWidth: 1.5, pointRadius: 0 },
     ]},
-    options:chartOptions({legend:true}),
+    options: chartOptions({legend:true}),
   });
   if (CHARTS.abs) { CHARTS.abs.destroy(); delete CHARTS.abs; }
-  CHARTS.abs=new Chart(document.getElementById('absenceChart'),{
-    type:'bar',
-    data:{labels:hcDays,datasets:[
-      {label:'Present',data:Array.from({length:7},()=>Math.round(35+Math.random()*10)),backgroundColor:'rgba(163,243,197,0.5)',borderRadius:3},
-      {label:'Absent',data:Array.from({length:7},()=>Math.round(Math.random()*5)),backgroundColor:'rgba(252,129,129,0.5)',borderRadius:3},
+  CHARTS.abs = new Chart(document.getElementById('absenceChart'), {
+    type: 'bar',
+    data: { labels: hcDays, datasets: [
+      { label: 'Present', data: Array.from({length:7},()=>Math.round(35+Math.random()*10)), backgroundColor: 'rgba(163,243,197,0.5)', borderRadius: 3 },
+      { label: 'Absent', data: Array.from({length:7},()=>Math.round(Math.random()*5)), backgroundColor: 'rgba(252,129,129,0.5)', borderRadius: 3 },
     ]},
-    options:Object.assign({},chartOptions({legend:true}),{scales:{x:Object.assign({},darkScales().x,{stacked:true}),y:Object.assign({},darkScales().y,{stacked:true})}}),
+    options: Object.assign({}, chartOptions({legend:true}), {scales: {x: Object.assign({}, darkScales().x, {stacked:true}), y: Object.assign({}, darkScales().y, {stacked:true})}}),
   });
 }
+
 // RENDER: EMPLOYEES
 function renderEmployeeTable() {
-  const sel=document.getElementById('empDeptFilter');
-  while(sel.options.length>1) sel.remove(1);
-  [...new Set(EMP_DATA.map(e=>e.Dept).filter(Boolean))].forEach(d=>{
-    const o=document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o);
+  const sel = document.getElementById('empDeptFilter');
+  while (sel.options.length > 1) sel.remove(1);
+  Array.from(new Set(EMP_DATA.map(e => e.Dept).filter(Boolean))).forEach(d => {
+    const o = document.createElement('option'); o.value = d; o.textContent = d; sel.appendChild(o);
   });
   filterEmpTable();
 }
 function filterEmpTable() {
-  const search=(document.getElementById('empSearch')&&document.getElementById('empSearch').value||'').toLowerCase();
-  const dept=document.getElementById('empDeptFilter')&&document.getElementById('empDeptFilter').value||'';
-  const status=document.getElementById('empStatusFilter')&&document.getElementById('empStatusFilter').value||'';
-  const filtered=EMP_DATA.filter(e=>{
-    if (search&&!(e['Full Name']||'').toLowerCase().includes(search)) return false;
-    if (dept  &&e.Dept!==dept)     return false;
-    if (status&&e.Status!==status) return false;
+  const searchEl = document.getElementById('empSearch');
+  const deptEl = document.getElementById('empDeptFilter');
+  const statusEl = document.getElementById('empStatusFilter');
+  const search = (searchEl && searchEl.value || '').toLowerCase();
+  const dept   = deptEl && deptEl.value || '';
+  const status = statusEl && statusEl.value || '';
+  let filtered = EMP_DATA.filter(e => {
+    if (search && !(e['Full Name'] || '').toLowerCase().includes(search)) return false;
+    if (dept   && e.Dept   !== dept)   return false;
+    if (status && e.Status !== status) return false;
     return true;
   });
-  const dotColors={active:'#A3F3C5',break:'#F6AD55',lunch:'#63B3ED',idle:'#4a6a84'};
-  document.getElementById('empTableBody').innerHTML=filtered.map(emp=>{
-    const sc=emp.Status||'idle';
-    return '<tr onclick="openEmpDrill(\''+emp['Employee ID']+'\')">'+
-      '<td><strong>'+(emp['Full Name']||DASH)+'</strong>'+(emp.Manager?'<div style="font-size:9px;color:var(--muted)">'+emp.Manager+'</div>':'')+'</td>'+
-      '<td><span class="emp-dept-badge">'+(emp.Dept||DASH)+'</span></td>'+
-      '<td><span class="emp-status '+sc+'"><span class="emp-dot" style="background:'+(dotColors[sc]||'#4a6a84')+'"></span>'+sc+'</span></td>'+
-      '<td class="emp-hrs">'+(emp['Hours Today']||'0.0')+'h</td>'+
-      '<td class="emp-hrs">'+(emp['Hours Week']||'0.0')+'h</td>'+
-      '<td style="font-family:var(--font-mono);font-size:10px;color:var(--muted)">'+(emp['Clock In']||DASH)+'</td>'+
-      '<td style="font-size:10px;color:var(--muted)">'+(emp['Shift Start']||DASH)+' - '+(emp['Shift End']||DASH)+'</td>'+
+  const dotColors = {active:'#A3F3C5', break:'#F6AD55', lunch:'#63B3ED', idle:'#4a6a84'};
+  document.getElementById('empTableBody').innerHTML = filtered.map(emp => {
+    const sc = emp.Status || 'idle';
+    const fac = emp.Facility || '';
+    const facBadge = fac ? '<span class="fac-badge ' + fac + '">' + fac + '</span>' : '';
+    return '<tr>' +
+      '<td><strong>' + (emp['Full Name'] || DASH) + '</strong></td>' +
+      '<td>' + facBadge + '</td>' +
+      '<td><span class="emp-dept-badge">' + (emp.Dept || DASH) + '</span></td>' +
+      '<td><span class="emp-status ' + sc + '"><span class="emp-dot" style="background:' + (dotColors[sc] || '#4a6a84') + '"></span>' + sc + '</span></td>' +
+      '<td class="emp-hrs">' + (emp['Hours Today'] || '0.0') + 'h</td>' +
+      '<td class="emp-hrs">' + (emp['Hours Week'] || '0.0') + 'h</td>' +
+      '<td style="font-family:var(--font-mono);font-size:10px;color:var(--muted)">' + (emp['Clock In'] || DASH) + '</td>' +
     '</tr>';
   }).join('');
-  document.getElementById('empEmpty').style.display=filtered.length?'none':'block';
+  document.getElementById('empEmpty').style.display = filtered.length ? 'none' : 'block';
 }
+
 // RENDER: PROJECTS
 function renderProjectTable() {
-  const today=new Date();
-  const active=PROJ_DATA.filter(p=>!p['End Date']||new Date(p['End Date'])>=today);
-  document.getElementById('projActive').textContent =active.length;
-  document.getElementById('projQuoted').textContent =PROJ_DATA.reduce((s,p)=>s+parseFloat(p['Quoted Hours']||0),0).toFixed(0)+'h';
-  document.getElementById('projActual').textContent =PROJ_DATA.reduce((s,p)=>s+parseFloat(p['Actual Hours']||0),0).toFixed(0)+'h';
-  document.getElementById('projRevenue').textContent='$'+fmt(PROJ_DATA.reduce((s,p)=>s+parseFloat(p['Quoted Hours']||0)*parseFloat(p['Bill Rate']||0),0));
-  document.getElementById('projCost').textContent   ='$'+fmt(PROJ_DATA.reduce((s,p)=>s+parseFloat(p['Supply Cost']||0),0));
+  const today = new Date();
+  const active = PROJ_DATA.filter(p => !p['End Date'] || new Date(p['End Date']) >= today);
+  document.getElementById('projActive').textContent  = active.length;
+  document.getElementById('projQuoted').textContent  = PROJ_DATA.reduce((s,p) => s + parseFloat(p['Quoted Hours'] || 0), 0).toFixed(0) + 'h';
+  document.getElementById('projActual').textContent  = PROJ_DATA.reduce((s,p) => s + parseFloat(p['Actual Hours'] || 0), 0).toFixed(0) + 'h';
+  document.getElementById('projRevenue').textContent = '$' + fmt(PROJ_DATA.reduce((s,p) => s + parseFloat(p['Quoted Hours'] || 0) * parseFloat(p['Bill Rate'] || 0), 0));
+  document.getElementById('projCost').textContent    = '$' + fmt(PROJ_DATA.reduce((s,p) => s + parseFloat(p['Supply Cost'] || 0), 0));
   filterProjTable();
 }
 function filterProjTable() {
-  const status=document.getElementById('projStatusFilter')&&document.getElementById('projStatusFilter').value||'';
-  const today=new Date();
-  const filtered=PROJ_DATA.filter(p=>{
+  const statusEl = document.getElementById('projStatusFilter');
+  const status = statusEl && statusEl.value || '';
+  const today = new Date();
+  const filtered = PROJ_DATA.filter(p => {
     if (!status) return true;
-    const pct=parseFloat(p['Actual Hours']||0)/Math.max(1,parseFloat(p['Quoted Hours']||1));
-    const ended=p['End Date']&&new Date(p['End Date'])<today;
-    if (status==='active')   return !ended;
-    if (status==='over')     return pct>1;
-    if (status==='complete') return ended;
+    const pct = parseFloat(p['Actual Hours'] || 0) / Math.max(1, parseFloat(p['Quoted Hours'] || 1));
+    const ended = p['End Date'] && new Date(p['End Date']) < today;
+    if (status === 'active')   return !ended;
+    if (status === 'over')     return pct > 1;
+    if (status === 'complete') return ended;
     return true;
   });
-  document.getElementById('projTableBody').innerHTML=filtered.map(p=>{
-    const quoted=parseFloat(p['Quoted Hours']||0);
-    const actual=parseFloat(p['Actual Hours']||0);
-    const pct=quoted>0?Math.min(200,actual/quoted*100):0;
-    const over=pct>100;
-    const rate=parseFloat(p['Bill Rate']||0);
-    const cost=parseFloat(p['Supply Cost']||0);
-    const rev=quoted*rate+cost;
-    const margin=rev-actual*CONFIG.hourlyRate-cost;
-    return '<tr>'+
-      '<td><strong>'+(p['Project Name']||DASH)+'</strong></td>'+
-      '<td style="color:var(--muted)">'+(p.Client||DASH)+'</td>'+
-      '<td class="emp-hrs">'+quoted+'h</td>'+
-      '<td class="emp-hrs">'+actual+'h</td>'+
-      '<td><div class="proj-progress"><div class="proj-progress-bar"><div class="proj-progress-fill'+(over?' over':'')+'" style="width:'+Math.min(100,pct)+'%"></div></div><div class="proj-pct">'+pct.toFixed(0)+'%</div></div></td>'+
-      '<td class="money cost">$'+fmt(cost)+'</td>'+
-      '<td class="emp-hrs">$'+rate+'/hr</td>'+
-      '<td class="money">$'+fmt(rev)+'</td>'+
-      '<td class="money '+(margin>=0?'margin':'cost')+'">$'+fmt(Math.abs(margin))+' '+(margin>=0?UP:DN)+'</td>'+
+  document.getElementById('projTableBody').innerHTML = filtered.map(p => {
+    const quoted = parseFloat(p['Quoted Hours'] || 0);
+    const actual = parseFloat(p['Actual Hours'] || 0);
+    const pct = quoted > 0 ? Math.min(200, actual/quoted*100) : 0;
+    const over = pct > 100;
+    const rate = parseFloat(p['Bill Rate'] || 0);
+    const cost = parseFloat(p['Supply Cost'] || 0);
+    const rev = quoted*rate + cost;
+    const margin = rev - actual*CONFIG.hourlyRate - cost;
+    return '<tr>' +
+      '<td><strong>' + (p['Project Name'] || DASH) + '</strong></td>' +
+      '<td style="color:var(--muted)">' + (p.Client || DASH) + '</td>' +
+      '<td class="emp-hrs">' + quoted + 'h</td>' +
+      '<td class="emp-hrs">' + actual + 'h</td>' +
+      '<td><div class="proj-progress"><div class="proj-progress-bar"><div class="proj-progress-fill' + (over?' over':'') + '" style="width:' + Math.min(100,pct) + '%"></div></div><div class="proj-pct">' + pct.toFixed(0) + '%</div></div></td>' +
+      '<td class="money cost">$' + fmt(cost) + '</td>' +
+      '<td class="emp-hrs">$' + rate + '/hr</td>' +
+      '<td class="money">$' + fmt(rev) + '</td>' +
+      '<td class="money ' + (margin>=0 ? 'margin' : 'cost') + '">$' + fmt(Math.abs(margin)) + '</td>' +
     '</tr>';
   }).join('');
 }
+
 // RENDER: HISTORY
 function renderHistory() {
   if (!DAILY_DATA.length) return;
-  const sel=document.getElementById('histDept');
-  while(sel.options.length>1) sel.remove(1);
-  [...new Set(DAILY_DATA.map(r=>r.Dept).filter(Boolean))].forEach(d=>{
-    const o=document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o);
+  const sel = document.getElementById('histDept');
+  while (sel.options.length > 1) sel.remove(1);
+  Array.from(new Set(DAILY_DATA.map(r => r.Dept).filter(Boolean))).forEach(d => {
+    const o = document.createElement('option'); o.value = d; o.textContent = d; sel.appendChild(o);
   });
-  const totalHours=DAILY_DATA.reduce((s,r)=>s+parseFloat(r['Hours Worked']||0),0);
-  const totalCost =DAILY_DATA.reduce((s,r)=>s+parseFloat(r['Labor Cost']||0),0);
-  const avgHC     =DAILY_DATA.reduce((s,r)=>s+parseFloat(r.Headcount||0),0)/Math.max(1,DAILY_DATA.length);
-  document.getElementById('histHours').textContent=totalHours.toFixed(0)+'h';
-  document.getElementById('histCost').textContent ='$'+fmt(totalCost);
-  document.getElementById('histHC').textContent   =avgHC.toFixed(0);
-  const days=[...new Set(DAILY_DATA.map(r=>r.Date))].sort().slice(-14);
-  const dayLabels=days.map(d=>new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'}));
-  const dailyHrs =days.map(d=>DAILY_DATA.filter(r=>r.Date===d).reduce((s,r)=>s+parseFloat(r['Hours Worked']||0),0).toFixed(1));
-  const dailyCost=days.map(d=>DAILY_DATA.filter(r=>r.Date===d).reduce((s,r)=>s+parseFloat(r['Labor Cost']||0),0).toFixed(2));
+  const totalHours = DAILY_DATA.reduce((s,r) => s + parseFloat(r['Hours Worked'] || 0), 0);
+  const totalCost  = DAILY_DATA.reduce((s,r) => s + parseFloat(r['Labor Cost'] || 0), 0);
+  const avgHC      = DAILY_DATA.reduce((s,r) => s + parseFloat(r.Headcount || 0), 0) / Math.max(1, DAILY_DATA.length);
+  document.getElementById('histHours').textContent = totalHours.toFixed(0) + 'h';
+  document.getElementById('histCost').textContent  = '$' + fmt(totalCost);
+  document.getElementById('histHC').textContent    = avgHC.toFixed(0);
+  const days = Array.from(new Set(DAILY_DATA.map(r => r.Date))).sort().slice(-14);
+  const dayLabels = days.map(d => new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'}));
+  const dailyHrs  = days.map(d => DAILY_DATA.filter(r => r.Date === d).reduce((s,r) => s + parseFloat(r['Hours Worked'] || 0), 0).toFixed(1));
+  const dailyCost = days.map(d => DAILY_DATA.filter(r => r.Date === d).reduce((s,r) => s + parseFloat(r['Labor Cost'] || 0), 0).toFixed(2));
   if (CHARTS.histH) { CHARTS.histH.destroy(); delete CHARTS.histH; }
-  CHARTS.histH=new Chart(document.getElementById('histHoursChart'),{
-    type:'bar',
-    data:{labels:dayLabels,datasets:[{data:dailyHrs,backgroundColor:'rgba(163,243,197,0.5)',borderRadius:3,borderSkipped:false}]},
-    options:chartOptions({legend:false}),
+  CHARTS.histH = new Chart(document.getElementById('histHoursChart'), {
+    type: 'bar',
+    data: { labels: dayLabels, datasets: [{ data: dailyHrs, backgroundColor: 'rgba(163,243,197,0.5)', borderRadius: 3 }]},
+    options: chartOptions({legend:false}),
   });
   if (CHARTS.histC) { CHARTS.histC.destroy(); delete CHARTS.histC; }
-  CHARTS.histC=new Chart(document.getElementById('histCostChart'),{
-    type:'line',
-    data:{labels:dayLabels,datasets:[{data:dailyCost,borderColor:'#F6AD55',backgroundColor:'rgba(246,173,85,0.08)',fill:true,tension:0.4,borderWidth:2,pointRadius:3}]},
-    options:chartOptions({legend:false}),
+  CHARTS.histC = new Chart(document.getElementById('histCostChart'), {
+    type: 'line',
+    data: { labels: dayLabels, datasets: [{ data: dailyCost, borderColor: '#F6AD55', backgroundColor: 'rgba(246,173,85,0.08)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 3 }]},
+    options: chartOptions({legend:false}),
   });
-  const sorted=[...DAILY_DATA].sort((a,b)=>new Date(b.Date)-new Date(a.Date));
-  document.getElementById('histTableBody').innerHTML=sorted.slice(0,100).map(r=>
-    '<tr>'+
-      '<td style="font-family:var(--font-mono);font-size:10px">'+new Date(r.Date).toLocaleDateString()+'</td>'+
-      '<td>'+(r.Dept||DASH)+'</td>'+
-      '<td class="emp-hrs">'+(r.Headcount||0)+'</td>'+
-      '<td class="emp-hrs">'+parseFloat(r['Hours Worked']||0).toFixed(1)+'h</td>'+
-      '<td class="money">$'+fmt(parseFloat(r['Labor Cost']||0))+'</td>'+
-      '<td class="emp-hrs">'+parseFloat(r['OT Hours']||0).toFixed(1)+'h</td>'+
-      '<td class="emp-hrs">'+(r.UPH||DASH)+'</td>'+
-    '</tr>').join('');
-}
-// EMPLOYEE DRILL-DOWN
-function openEmpDrill(empId) {
-  const emp=EMP_DATA.find(e=>e['Employee ID']===empId);
-  if (!emp) return;
-  document.getElementById('empModalName').textContent    =emp['Full Name']||empId;
-  document.getElementById('empModalSub').textContent     =(emp.Dept||'Unassigned')+' '+MIDDOT+' '+(emp['Shift Start']||DASH)+' - '+(emp['Shift End']||DASH);
-  document.getElementById('empModalHrsToday').textContent=(emp['Hours Today']||'0.0')+'h';
-  document.getElementById('empModalHrsWeek').textContent =(emp['Hours Week']||'0.0')+'h';
-  const empEvents=EVENT_DATA.filter(e=>e['Employee Name']===emp['Full Name']);
-  document.getElementById('empModalBreaks').textContent  =empEvents.filter(e=>e['Event Type']==='BREAK_START').length;
-  document.getElementById('empModalCost').textContent    ='$'+fmt(parseFloat(emp['Hours Today']||0)*CONFIG.hourlyRate);
-  const tColors={CLOCK_IN:'#A3F3C5',CLOCK_OUT:'#FC8181',ASSIGN:'#A3F3C5',UNASSIGN:'#FC8181',BREAK_START:'#F6AD55',BREAK_END:'#F6AD55',LUNCH_START:'#63B3ED',LUNCH_END:'#63B3ED'};
-  document.getElementById('empModalTimeline').innerHTML=empEvents.map(ev=>{
-    const ts=new Date(ev.Timestamp);
-    const color=tColors[ev['Event Type']]||'#9D9F9E';
-    const label=(ev['Event Type']||'').replace(/_/g,' ');
-    return '<div class="timeline-item">'+
-      '<div class="timeline-dot" style="background:'+color+'"></div>'+
-      '<div class="timeline-time">'+ts.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})+'</div>'+
-      '<div class="timeline-text">'+label+(ev['To Dept']?' &rarr; <strong>'+ev['To Dept']+'</strong>':'')+'</div>'+
-    '</div>';
+  const sorted = DAILY_DATA.slice().sort((a,b) => new Date(b.Date) - new Date(a.Date));
+  document.getElementById('histTableBody').innerHTML = sorted.slice(0,200).map(r => {
+    const fac = r.Facility || '';
+    const facBadge = fac ? '<span class="fac-badge ' + fac + '">' + fac + '</span>' : DASH;
+    return '<tr>' +
+      '<td style="font-family:var(--font-mono);font-size:10px">' + new Date(r.Date).toLocaleDateString() + '</td>' +
+      '<td>' + facBadge + '</td>' +
+      '<td>' + (r.Dept || DASH) + '</td>' +
+      '<td class="emp-hrs">' + (r.Headcount || 0) + '</td>' +
+      '<td class="emp-hrs">' + parseFloat(r['Hours Worked'] || 0).toFixed(1) + 'h</td>' +
+      '<td class="money">$' + fmt(parseFloat(r['Labor Cost'] || 0)) + '</td>' +
+      '<td class="emp-hrs">' + parseFloat(r['OT Hours'] || 0).toFixed(1) + 'h</td>' +
+    '</tr>';
   }).join('');
-  document.getElementById('empModalEmpty').style.display=empEvents.length?'none':'block';
-  document.getElementById('empModal').classList.add('open');
 }
-function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove('open');}
+
 // REBUILD SUMMARY
 async function rebuildSummary() {
   const btn = document.getElementById('rebuildBtn');
@@ -811,50 +831,63 @@ async function rebuildSummary() {
   toast('Daily summary rebuilt - refreshing...');
   await doRefresh();
 }
+
 // EXPORT
 function exportCSV(type) {
-  let rows,filename;
-  if (type==='labor'||type==='history'){rows=[['Date','Dept','Headcount','Hours','Labor Cost','OT Hrs','UPH'],...DAILY_DATA.map(r=>[r.Date,r.Dept,r.Headcount,r['Hours Worked'],r['Labor Cost'],r['OT Hours'],r.UPH])];filename='atomix_labor_'+today()+'.csv';}
-  else if(type==='employees'){rows=[['ID','Name','Dept','Status','Hours Today','Hours Week'],...EMP_DATA.map(e=>[e['Employee ID'],e['Full Name'],e.Dept,e.Status,e['Hours Today'],e['Hours Week']])];filename='atomix_employees_'+today()+'.csv';}
-  else if(type==='projects'){rows=[['Project','Client','Quoted Hrs','Actual Hrs','Supply Cost','Bill Rate'],...PROJ_DATA.map(p=>[p['Project Name'],p.Client,p['Quoted Hours'],p['Actual Hours'],p['Supply Cost'],p['Bill Rate']])];filename='atomix_projects_'+today()+'.csv';}
-  const csv=rows.map(r=>r.map(v=>'"'+v+'"').join(',')).join('\n');
-  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:filename});
+  let rows, filename;
+  if (type === 'labor' || type === 'history') {
+    rows = [['Date','Facility','Dept','Headcount','Hours','Labor Cost','OT Hrs','UPH'],
+      ...DAILY_DATA.map(r => [r.Date, r.Facility, r.Dept, r.Headcount, r['Hours Worked'], r['Labor Cost'], r['OT Hours'], r.UPH])];
+    filename = 'atomix_labor_' + today() + '.csv';
+  } else if (type === 'employees') {
+    rows = [['ID','Name','Facility','Dept','Status','Hours Today','Hours Week'],
+      ...EMP_DATA.map(e => [e['Employee ID'], e['Full Name'], e.Facility, e.Dept, e.Status, e['Hours Today'], e['Hours Week']])];
+    filename = 'atomix_employees_' + today() + '.csv';
+  } else if (type === 'projects') {
+    rows = [['Project','Client','Quoted Hrs','Actual Hrs','Supply Cost','Bill Rate'],
+      ...PROJ_DATA.map(p => [p['Project Name'], p.Client, p['Quoted Hours'], p['Actual Hours'], p['Supply Cost'], p['Bill Rate']])];
+    filename = 'atomix_projects_' + today() + '.csv';
+  }
+  const csv = rows.map(r => r.map(v => '"' + (v == null ? '' : v) + '"').join(',')).join('\n');
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv], {type:'text/csv'})), download: filename });
   a.click(); URL.revokeObjectURL(a.href);
-  toast('Exported '+filename);
+  toast('Exported ' + filename);
 }
+
 // CHART HELPERS
 Chart.defaults.animation = false;
 Chart.defaults.responsive = true;
 Chart.defaults.maintainAspectRatio = false;
-function darkScales(){return{
-  x:{grid:{color:'rgba(163,243,197,0.04)',drawBorder:false},ticks:{color:'#4a6a84',font:{size:9},maxRotation:0},border:{display:false}},
-  y:{grid:{color:'rgba(163,243,197,0.06)',drawBorder:false},ticks:{color:'#4a6a84',font:{size:9}},border:{display:false}},
+function darkScales() { return {
+  x: { grid: {color:'rgba(163,243,197,0.04)', drawBorder:false}, ticks: {color:'#4a6a84', font:{size:9}, maxRotation:0}, border:{display:false} },
+  y: { grid: {color:'rgba(163,243,197,0.06)', drawBorder:false}, ticks: {color:'#4a6a84', font:{size:9}}, border:{display:false} },
 };}
-function chartOptions(opts){var legend=opts&&opts.legend||false;return{
-  responsive:true,maintainAspectRatio:false,
-  plugins:{
-    legend:{display:legend,position:'bottom',labels:{color:'#4a6a84',font:{size:9},padding:12,boxWidth:10}},
-    tooltip:{backgroundColor:'#0f2540',titleColor:'#dce8f0',bodyColor:'#9D9F9E',borderColor:'rgba(163,243,197,0.2)',borderWidth:1,padding:8},
+function chartOptions(opts) { const legend = opts && opts.legend || false; return {
+  responsive: true, maintainAspectRatio: false,
+  plugins: {
+    legend: { display: legend, position: 'bottom', labels: { color:'#4a6a84', font:{size:9}, padding:12, boxWidth:10 } },
+    tooltip: { backgroundColor:'#0f2540', titleColor:'#dce8f0', bodyColor:'#9D9F9E', borderColor:'rgba(163,243,197,0.2)', borderWidth:1, padding:8 },
   },
-  scales:darkScales(),
+  scales: darkScales(),
 };}
+
 // UTILS
-function fmt(n){return parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().split('T')[0];}
-function today(){return new Date().toISOString().split('T')[0];}
-function last7Days(){return Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return d.toLocaleDateString('en',{month:'short',day:'numeric'});});}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
-function startAutoRefresh(){clearInterval(refreshTimer);refreshTimer=setInterval(doRefresh,CONFIG.refresh*1000);}
+function fmt(n) { return parseFloat(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function daysAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return d.toISOString().split('T')[0]; }
+function today() { return new Date().toISOString().split('T')[0]; }
+function last7Days() { return Array.from({length:7},(_,i)=>{ const d=new Date(); d.setDate(d.getDate()-(6-i)); return d.toLocaleDateString('en',{month:'short',day:'numeric'}); });}
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+function startAutoRefresh() { clearInterval(refreshTimer); refreshTimer = setInterval(doRefresh, CONFIG.refresh*1000); }
+
 // INIT
-window.addEventListener('load',()=>{
-  const t=new Date(),w=new Date(); w.setDate(w.getDate()-7);
-  document.getElementById('histFrom').value=w.toISOString().split('T')[0];
-  document.getElementById('histTo').value  =t.toISOString().split('T')[0];
-  // Seed with demo data first so UI is never blank
+window.addEventListener('load', () => {
+  const t = new Date(), w = new Date(); w.setDate(w.getDate()-7);
+  document.getElementById('histFrom').value = w.toISOString().split('T')[0];
+  document.getElementById('histTo').value   = t.toISOString().split('T')[0];
+  loadFacFilter();
   loadDemoData();
   renderOverview();
-  document.getElementById('lastRefresh').textContent='connecting...';
-  // Immediately connect to real backend
+  document.getElementById('lastRefresh').textContent = 'connecting...';
   doRefresh();
   startAutoRefresh();
 });
