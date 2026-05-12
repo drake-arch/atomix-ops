@@ -182,12 +182,30 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
 <!-- PRODUCTIVITY -->
 <div class="view" id="view-productivity">
   <div class="grid-2">
-    <div class="chart-card"><div class="chart-card-title">UPH by Department vs. Baseline</div><div class="chart-wrap"><canvas id="uphChart"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-title">Headcount: Actual vs. Plan</div><div class="chart-wrap"><canvas id="hcPlanChart"></canvas></div></div>
+    <div class="chart-card">
+      <div class="chart-card-title">Headcount Trend (last 7 days)</div>
+      <div class="chart-wrap"><canvas id="hcPlanChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">OT % Trend (target &lt;10%)</div>
+      <div class="chart-wrap"><canvas id="otChart"></canvas></div>
+    </div>
   </div>
   <div class="grid-2">
-    <div class="chart-card"><div class="chart-card-title">OT % Trend (target &lt;10%)</div><div class="chart-wrap"><canvas id="otChart"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-title">Attendance / Absenteeism</div><div class="chart-wrap"><canvas id="absenceChart"></canvas></div></div>
+    <div class="chart-card">
+      <div class="chart-card-title">UPH by Department vs. Baseline</div>
+      <div class="empty" style="font-size:12px;padding:50px 20px;color:var(--muted);line-height:1.6;">
+        Awaiting orders / units data source.<br>
+        <span style="font-size:10px;opacity:0.7;">UPH = units produced &divide; hours worked. Will populate once order data is wired in.</span>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Attendance / Absenteeism</div>
+      <div class="empty" style="font-size:12px;padding:50px 20px;color:var(--muted);line-height:1.6;">
+        Awaiting scheduled-shift data source.<br>
+        <span style="font-size:10px;opacity:0.7;">Requires a roster with assigned shifts to compare against actual clock-ins.</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -355,15 +373,23 @@ async function doRefresh() {
     const gotProjs  = projs  && Array.isArray(projs.projects);
     const gotEvents = events && Array.isArray(events.events);
     const gotOrders = orders && orders.ok && orders.ordersToday > 0;
-    if (gotLive)   LIVE_DATA    = live;
-    if (gotDaily)  DAILY_DATA   = daily.data;
-    if (gotEmps)   EMP_DATA     = emps.employees;
-    if (gotProjs)  PROJ_DATA    = projs.projects;
-    if (gotEvents) EVENT_DATA   = events.events;
+    // PATCH v3.4: explicit clearing — if the API responded successfully
+    // with an empty array (no events/days yet), use the empty array.
+    // Don't keep stale data from a previous render or fall back to demo.
+    if (gotLive)  LIVE_DATA  = live;
+    else if (live && live.ok) LIVE_DATA = { active:0, onBreak:0, onLunch:0, totalHoursToday:0, estLaborCost:0, depts:[], byFacility: live.byFacility || {} };
+    if (gotDaily)  DAILY_DATA  = daily.data;
+    else if (daily && daily.ok) DAILY_DATA = [];
+    if (gotEmps)   EMP_DATA    = emps.employees;
+    else if (emps && emps.ok)   EMP_DATA = [];
+    if (gotProjs)  PROJ_DATA   = projs.projects;
+    if (gotEvents) EVENT_DATA  = events.events;
+    else if (events && events.ok) EVENT_DATA = [];
     if (gotOrders) ORDERS_TODAY = orders.ordersToday;
-    if (!gotLive && !gotDaily && !gotEmps) {
-      loadDemoData();
-      document.getElementById('lastRefresh').textContent = 'backend unreachable ' + DASH + ' showing demo data';
+    else ORDERS_TODAY = 0;
+    const allFailed = !live && !daily && !emps;
+    if (allFailed) {
+      document.getElementById('lastRefresh').textContent = 'backend unreachable';
     } else {
       document.getElementById('lastRefresh').textContent = 'updated ' + new Date().toLocaleTimeString();
       document.getElementById('rebuildBtn').style.display = 'block';
@@ -572,7 +598,17 @@ function forecastShiftCost(currentCost) {
 
 // RENDER: LABOR SPEND
 function renderLaborView() {
-  if (!DAILY_DATA.length) return;
+  // PATCH v3.4: when no daily data yet, clear charts + show "no data" state
+  if (!DAILY_DATA.length) {
+    ['laborPie','laborByFac','laborTrend'].forEach(k => {
+      if (CHARTS[k]) { CHARTS[k].destroy(); delete CHARTS[k]; }
+    });
+    document.getElementById('laborTotalCost').textContent = '$0.00';
+    document.getElementById('laborCPO').textContent = DASH;
+    document.getElementById('laborCPOTarget').textContent = 'no shifts completed yet — target <$' + CONFIG.cpo.toFixed(2);
+    document.getElementById('laborRevPct').textContent = DASH;
+    return;
+  }
   const laborSel = document.getElementById('laborDept');
   while (laborSel.options.length > 1) laborSel.remove(1);
   Array.from(new Set(DAILY_DATA.map(r => r.Dept).filter(Boolean))).forEach(d => {
@@ -647,46 +683,81 @@ function renderLaborView() {
   });
 }
 
-// RENDER: PRODUCTIVITY
+// RENDER: PRODUCTIVITY — real data only, no random placeholders
 function renderProductivity() {
-  const deptNames = LIVE_DATA ? (LIVE_DATA.depts || []).map(d => d.name) : ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
-  const hcDays = last7Days();
-  if (CHARTS.uph) { CHARTS.uph.destroy(); delete CHARTS.uph; }
-  CHARTS.uph = new Chart(document.getElementById('uphChart'), {
-    type: 'bar',
-    data: { labels: deptNames, datasets: [
-      { label: 'Actual UPH', data: deptNames.map(()=>80+Math.round(Math.random()*40)), backgroundColor: 'rgba(163,243,197,0.7)', borderRadius: 4 },
-      { label: 'Baseline UPH', data: deptNames.map(()=>100), backgroundColor: 'rgba(99,179,237,0.3)', borderRadius: 4 },
-    ]},
-    options: chartOptions({legend:true}),
+  // Need DAILY_DATA. If empty, leave the canvases blank.
+  if (!DAILY_DATA || !DAILY_DATA.length) {
+    if (CHARTS.hcPlan) { CHARTS.hcPlan.destroy(); delete CHARTS.hcPlan; }
+    if (CHARTS.ot)     { CHARTS.ot.destroy();     delete CHARTS.ot;     }
+    return;
+  }
+
+  // Build last-7-day series from DAILY_DATA (respects current facility filter on server)
+  const allDates = Array.from(new Set(DAILY_DATA.map(r => r.Date))).sort();
+  const days = allDates.slice(-7);
+  const dayLabels = days.map(d => new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'}));
+
+  // Headcount per day (sum of Headcount column across all depts that day)
+  const actualHC = days.map(d =>
+    DAILY_DATA.filter(r => r.Date === d).reduce((s, r) => s + parseInt(r.Headcount || 0), 0)
+  );
+
+  // OT % per day = sum(OT Hours) / sum(Hours Worked) * 100
+  const otPct = days.map(d => {
+    const dayRows = DAILY_DATA.filter(r => r.Date === d);
+    const totalHrs = dayRows.reduce((s, r) => s + parseFloat(r['Hours Worked'] || 0), 0);
+    const otHrs   = dayRows.reduce((s, r) => s + parseFloat(r['OT Hours']     || 0), 0);
+    return totalHrs > 0 ? +(otHrs / totalHrs * 100).toFixed(1) : 0;
   });
+
+  // HC chart (actual only — no Planned line yet; will add when a scheduling source exists)
   if (CHARTS.hcPlan) { CHARTS.hcPlan.destroy(); delete CHARTS.hcPlan; }
-  CHARTS.hcPlan = new Chart(document.getElementById('hcPlanChart'), {
-    type: 'line',
-    data: { labels: hcDays, datasets: [
-      { label: 'Actual HC', data: Array.from({length:7},()=>Math.round(30+Math.random()*15)), borderColor: '#A3F3C5', backgroundColor: 'rgba(163,243,197,0.08)', tension: 0.4, fill: true, borderWidth: 2, pointRadius: 3 },
-      { label: 'Planned HC', data: Array.from({length:7},()=>40), borderColor: 'rgba(246,173,85,0.5)', borderDash: [6,3], borderWidth: 1.5, pointRadius: 0 },
-    ]},
-    options: chartOptions({legend:true}),
-  });
+  const hcCanvas = document.getElementById('hcPlanChart');
+  if (hcCanvas) {
+    CHARTS.hcPlan = new Chart(hcCanvas, {
+      type: 'line',
+      data: {
+        labels: dayLabels,
+        datasets: [{
+          label: 'Actual HC',
+          data: actualHC,
+          borderColor: '#A3F3C5',
+          backgroundColor: 'rgba(163,243,197,0.08)',
+          tension: 0.4, fill: true, borderWidth: 2, pointRadius: 3,
+        }],
+      },
+      options: chartOptions({legend: true}),
+    });
+  }
+
+  // OT % chart with the 10% target reference line
   if (CHARTS.ot) { CHARTS.ot.destroy(); delete CHARTS.ot; }
-  CHARTS.ot = new Chart(document.getElementById('otChart'), {
-    type: 'line',
-    data: { labels: hcDays, datasets: [
-      { label: 'OT %', data: Array.from({length:7},()=>+(Math.random()*12).toFixed(1)), borderColor: '#FC8181', backgroundColor: 'rgba(252,129,129,0.08)', tension: 0.4, fill: true, borderWidth: 2, pointRadius: 3 },
-      { label: 'Target 10%', data: Array.from({length:7},()=>10), borderColor: 'rgba(246,173,85,0.4)', borderDash: [6,3], borderWidth: 1.5, pointRadius: 0 },
-    ]},
-    options: chartOptions({legend:true}),
-  });
-  if (CHARTS.abs) { CHARTS.abs.destroy(); delete CHARTS.abs; }
-  CHARTS.abs = new Chart(document.getElementById('absenceChart'), {
-    type: 'bar',
-    data: { labels: hcDays, datasets: [
-      { label: 'Present', data: Array.from({length:7},()=>Math.round(35+Math.random()*10)), backgroundColor: 'rgba(163,243,197,0.5)', borderRadius: 3 },
-      { label: 'Absent', data: Array.from({length:7},()=>Math.round(Math.random()*5)), backgroundColor: 'rgba(252,129,129,0.5)', borderRadius: 3 },
-    ]},
-    options: Object.assign({}, chartOptions({legend:true}), {scales: {x: Object.assign({}, darkScales().x, {stacked:true}), y: Object.assign({}, darkScales().y, {stacked:true})}}),
-  });
+  const otCanvas = document.getElementById('otChart');
+  if (otCanvas) {
+    CHARTS.ot = new Chart(otCanvas, {
+      type: 'line',
+      data: {
+        labels: dayLabels,
+        datasets: [
+          {
+            label: 'OT %',
+            data: otPct,
+            borderColor: '#FC8181',
+            backgroundColor: 'rgba(252,129,129,0.08)',
+            tension: 0.4, fill: true, borderWidth: 2, pointRadius: 3,
+          },
+          {
+            label: 'Target 10%',
+            data: dayLabels.map(() => 10),
+            borderColor: 'rgba(246,173,85,0.5)',
+            borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0,
+          },
+        ],
+      },
+      options: chartOptions({legend: true}),
+    });
+  }
+  // UPH and Attendance: rendered as empty-state divs in HTML — nothing to draw here.
 }
 
 // RENDER: EMPLOYEES
@@ -885,7 +956,15 @@ window.addEventListener('load', () => {
   document.getElementById('histFrom').value = w.toISOString().split('T')[0];
   document.getElementById('histTo').value   = t.toISOString().split('T')[0];
   loadFacFilter();
-  loadDemoData();
+  // PATCH v3.4: don't seed demo data on init. Start empty and let
+  // doRefresh() populate real data. Avoids confusing fake numbers
+  // before the first real shift completes.
+  LIVE_DATA = { active:0, onBreak:0, onLunch:0, totalHoursToday:0, estLaborCost:0, depts:[], byFacility:{} };
+  DAILY_DATA = [];
+  EMP_DATA = [];
+  PROJ_DATA = [];
+  EVENT_DATA = [];
+  ORDERS_TODAY = 0;
   renderOverview();
   document.getElementById('lastRefresh').textContent = 'connecting...';
   doRefresh();
