@@ -615,26 +615,37 @@ function renderLaborView() {
     const o = document.createElement('option'); o.value = d; o.textContent = d; laborSel.appendChild(o);
   });
 
+  // PATCH v6: split totals by billable. CPO uses non-billable only.
   const bydept = {}, byfac = {};
+  let totalCost = 0, nonBillCost = 0, billCost = 0;
   DAILY_DATA.forEach(r => {
+    const cost = parseFloat(r['Labor Cost'] || 0);
+    const hrs  = parseFloat(r['Hours Worked'] || 0);
+    const isBill = String(r.Billable || '').toUpperCase() === 'TRUE';
     bydept[r.Dept] = bydept[r.Dept] || {cost:0, hours:0};
-    bydept[r.Dept].cost  += parseFloat(r['Labor Cost'] || 0);
-    bydept[r.Dept].hours += parseFloat(r['Hours Worked'] || 0);
+    bydept[r.Dept].cost  += cost;
+    bydept[r.Dept].hours += hrs;
     const f = r.Facility || 'Unknown';
     byfac[f] = byfac[f] || {cost:0, hours:0};
-    byfac[f].cost  += parseFloat(r['Labor Cost'] || 0);
-    byfac[f].hours += parseFloat(r['Hours Worked'] || 0);
+    byfac[f].cost  += cost;
+    byfac[f].hours += hrs;
+    totalCost += cost;
+    if (isBill) billCost += cost;
+    else nonBillCost += cost;
   });
   const depts = Object.keys(bydept);
-  const total = depts.reduce((s,d) => s + bydept[d].cost, 0);
-  document.getElementById('laborTotalCost').textContent = '$' + fmt(total);
+  document.getElementById('laborTotalCost').textContent = '$' + fmt(totalCost);
 
-  if (ORDERS_TODAY > 0) {
-    const cpo = total / ORDERS_TODAY;
+  if (ORDERS_TODAY > 0 && nonBillCost > 0) {
+    const cpo = nonBillCost / ORDERS_TODAY;
     const cpoEl = document.getElementById('laborCPO');
     cpoEl.textContent = '$' + cpo.toFixed(2);
     cpoEl.style.color = cpo > CONFIG.cpo ? 'var(--red)' : '';
-    document.getElementById('laborCPOTarget').textContent = ORDERS_TODAY.toLocaleString() + ' orders ' + MIDDOT + ' target <$' + CONFIG.cpo.toFixed(2);
+    cpoEl.title = '$' + nonBillCost.toFixed(0) + ' non-billable labor / ' + ORDERS_TODAY + ' orders' +
+                  (billCost > 0 ? ' (excluded billable: $' + billCost.toFixed(0) + ')' : '');
+    document.getElementById('laborCPOTarget').textContent =
+      ORDERS_TODAY.toLocaleString() + ' orders ' + MIDDOT + ' target <$' + CONFIG.cpo.toFixed(2) +
+      (billCost > 0 ? ' ' + MIDDOT + ' billable $' + Math.round(billCost) + ' excluded' : '');
   } else {
     document.getElementById('laborCPO').textContent = DASH;
     document.getElementById('laborCPOTarget').textContent = 'target <$' + CONFIG.cpo.toFixed(2);
