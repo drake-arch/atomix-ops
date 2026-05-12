@@ -290,10 +290,23 @@
   .bubble.child-bubble .bubble-hc { bottom: 4px; padding: 2px 7px; }
   .bubble.child-bubble .bubble-hc-num { font-size: 11px; }
   .bubble.child-bubble .bubble-hc-label { display: none; }
+  /* PATCH v2: backend status pill — pulse animation when degraded */
+  .stat-pill.backend-degraded .val { animation: pulseDot 1.5s ease-in-out infinite; }
+  @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  /* PATCH v3: Heat map overlay */
+  .heat-toggle { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 10px; font-family: 'DM Mono', monospace; cursor: pointer; letter-spacing: 0.04em; transition: all 0.15s; height: 26px; }
+  .heat-toggle:hover { color: var(--text); border-color: var(--text); }
+  .heat-toggle.on { background: rgba(252,129,74,0.15); border-color: #FC814A; color: #FC814A; box-shadow: 0 0 8px rgba(252,129,74,0.3); }
+  .heat-legend { position: absolute; bottom: 120px; right: 16px; background: rgba(7,18,31,0.85); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 9px; font-family: 'DM Mono', monospace; display: none; flex-direction: column; gap: 5px; z-index: 30; backdrop-filter: blur(6px); pointer-events: none; }
+  .heat-legend.show { display: flex; }
+  .heat-legend-title { font-size: 9px; color: var(--green); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .heat-legend-row { display: flex; align-items: center; gap: 7px; color: var(--text); font-size: 9px; }
+  .heat-swatch { width: 16px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .bubble-burn { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; padding: 2px 9px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; z-index: 17; pointer-events: none; backdrop-filter: blur(4px); white-space: nowrap; }
+  .bubble.child-bubble .bubble-burn { font-size: 8px; padding: 1px 6px; top: 4px; }
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">
     <div class="logo-icon">Ax</div>
@@ -310,9 +323,9 @@
     <div class="stat-divider"></div>
     <div class="ot-alert" id="otAlert" title="Click to see OT employees">⚠ <span id="otAlertText">0 OT</span></div>
     <div class="stat-divider"></div>
-    <div class="stat-pill" id="backendPill" title="Backend connected" style="cursor:default;">
-      <span class="val" id="backendDot">🟢</span>
-      <span class="lbl">Backend</span>
+    <div class="stat-pill" id="backendPill" title="Backend status" style="cursor:pointer;">
+      <span class="val" id="backendDot">⚪</span>
+      <span class="lbl" id="backendLbl">Backend</span>
     </div>
     <div class="stat-divider"></div>
     <div class="clock-display" id="clockDisplay">00:00:00</div>
@@ -322,10 +335,10 @@
       <span class="zoom-val" id="zoomVal">100%</span>
       <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
       <button class="zoom-btn" id="fitAllBtn" title="Fit all bubbles in view" style="margin-left:4px;font-size:10px;padding:0 6px;">⊡</button>
+      <button class="heat-toggle" id="heatToggleBtn" title="Toggle labor cost heat map (highlights expensive depts)">🔥 Heat</button>
     </div>
   </div>
 </header>
-
 <div class="main">
   <div class="left-panel">
     <div class="tube-wrap">
@@ -351,7 +364,6 @@
       <input class="tube-target-input" id="tubeWeekInput" type="number" value="400" min="1" placeholder="target hrs">
     </div>
   </div>
-
   <div class="canvas-area" id="canvasArea">
     <canvas id="bgCanvas"></canvas>
     <div id="bubbleLayer"></div>
@@ -363,6 +375,13 @@
       </div>
       <div class="roster-body" id="rosterBody"></div>
       <div class="roster-footer" id="rosterFooter"></div>
+    </div>
+    <div class="heat-legend" id="heatLegend">
+      <div class="heat-legend-title">🔥 Labor $/hr</div>
+      <div class="heat-legend-row"><div class="heat-swatch" style="background:#A3F3C5"></div>Cold &lt; $50/hr</div>
+      <div class="heat-legend-row"><div class="heat-swatch" style="background:#F6AD55"></div>Warm $50–150</div>
+      <div class="heat-legend-row"><div class="heat-swatch" style="background:#FC814A"></div>Hot $150–300</div>
+      <div class="heat-legend-row"><div class="heat-swatch" style="background:#FC8181"></div>Boiling &gt; $300</div>
     </div>
     <div class="break-zones">
       <div class="break-zone brk" id="breakZone" data-zone="break">
@@ -379,7 +398,6 @@
       </div>
     </div>
   </div>
-
   <div class="right-panel">
     <div class="panel-section">
       <div class="panel-title">Departments</div>
@@ -432,14 +450,12 @@
     </div>
   </div>
 </div>
-
 <div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item" id="ctxRename">&#9999;&#65039; Rename</div>
   <div class="ctx-item" id="ctxSP">&#128196; Special Project Details</div>
   <div class="ctx-item" id="ctxRemoveAll">&#128260; Clear employees</div>
   <div class="ctx-item danger" id="ctxDelete">&#10005; Delete bubble</div>
 </div>
-
 <script>
 // ═══════════════════════════════════════════════
 // CONFIG — URL hardcoded, no localStorage needed
@@ -448,25 +464,145 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9ISU7AAXt7lFppT2N-
 const DEVICE_ID  = 'floor-tablet-' + (Math.random().toString(36).slice(2,6));
 
 // ═══════════════════════════════════════════════
-// BACKEND LOGGING
+// PATCH v2 (2026-05-12): Reliable backend logging
+// ─ Replaces silent fire-and-forget no-cors writes
+// ─ Adds localStorage retry queue (survives reload, network blips)
+// ─ Adds real connectivity health check (no more fake green dot)
+// ─ Adds explicit CLOCK_IN events
+// ─ Protects local floor state from being wiped by an empty sync
+// ═══════════════════════════════════════════════
+const EVENT_QUEUE_KEY = 'atomix_event_queue_v1';
+let backendOk = null;        // null = unknown, true = healthy, false = failing
+let lastBackendCheck = 0;
+let flushInFlight = false;
+
+function getEventQueue() {
+  try { return JSON.parse(localStorage.getItem(EVENT_QUEUE_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function setEventQueue(q) {
+  try { localStorage.setItem(EVENT_QUEUE_KEY, JSON.stringify(q)); } catch (e) {}
+}
+function genEventId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+// ═══════════════════════════════════════════════
+// BACKEND LOGGING (queue + retry)
 // ═══════════════════════════════════════════════
 async function logEvent(type, data = {}) {
+  const event = {
+    eventId:     genEventId(),
+    type,
+    timestamp:   new Date().toISOString(),
+    deviceId:    DEVICE_ID,
+    empId:       data.empId       || '',
+    empName:     data.empName     || '',
+    fromDept:    data.fromDept    || '',
+    toDept:      data.toDept      || '',
+    hoursLogged: data.hoursLogged || '',
+    projectName: data.projectName || '',
+    shiftStart:  data.shiftStart  || '',
+  };
+  const q = getEventQueue();
+  q.push(event);
+  setEventQueue(q);
+  updateBackendDot();
+  flushEventQueue();
+}
+
+async function flushEventQueue() {
+  if (flushInFlight) return;
+  flushInFlight = true;
+  try {
+    let queue = getEventQueue();
+    while (queue.length > 0) {
+      const event = queue[0];
+      try {
+        const url = new URL(SCRIPT_URL);
+        url.searchParams.set('method', 'post');
+        Object.entries(event).forEach(([k, v]) => {
+          url.searchParams.set(k, v == null ? '' : String(v));
+        });
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        // success — drop this event from the queue
+        queue.shift();
+        setEventQueue(queue);
+        backendOk = true;
+      } catch (err) {
+        // network or server failure — stop flushing, keep queue intact, retry later
+        backendOk = false;
+        console.warn('[atomix] event send failed, will retry:', event.type, err.message);
+        break;
+      }
+    }
+  } finally {
+    flushInFlight = false;
+    updateBackendDot();
+  }
+}
+
+// Real connectivity check — pings the script's known-good endpoint
+async function pingBackend() {
   try {
     const url = new URL(SCRIPT_URL);
-    url.searchParams.set('method',      'post');
-    url.searchParams.set('type',        type);
-    url.searchParams.set('timestamp',   new Date().toISOString());
-    url.searchParams.set('deviceId',    DEVICE_ID);
-    url.searchParams.set('empId',       data.empId       || '');
-    url.searchParams.set('empName',     data.empName     || '');
-    url.searchParams.set('fromDept',    data.fromDept    || '');
-    url.searchParams.set('toDept',      data.toDept      || '');
-    url.searchParams.set('hoursLogged', data.hoursLogged || '');
-    url.searchParams.set('projectName', data.projectName || '');
-    url.searchParams.set('shiftStart',  data.shiftStart  || '');
-    fetch(url.toString(), { method:'GET', mode:'no-cors' });
-  } catch(e) { /* offline */ }
+    url.searchParams.set('action', 'live');
+    const res = await fetch(url.toString());
+    backendOk = res.ok;
+    lastBackendCheck = Date.now();
+    // opportunistically flush any queued events when connectivity returns
+    if (backendOk && getEventQueue().length > 0) flushEventQueue();
+  } catch (e) {
+    backendOk = false;
+  }
+  updateBackendDot();
 }
+
+function updateBackendDot() {
+  const dot  = document.getElementById('backendDot');
+  const pill = document.getElementById('backendPill');
+  const lbl  = document.getElementById('backendLbl');
+  if (!dot || !pill) return;
+  const q = getEventQueue().length;
+  if (backendOk === false) {
+    dot.textContent = '🔴';
+    lbl.textContent = q ? `${q} queued` : 'OFFLINE';
+    pill.title = q
+      ? `Backend OFFLINE — ${q} event${q===1?'':'s'} queued, will retry`
+      : 'Backend OFFLINE — last write failed';
+    pill.classList.add('backend-degraded');
+  } else if (q > 0) {
+    dot.textContent = '🟡';
+    lbl.textContent = `${q} syncing`;
+    pill.title = `Syncing — ${q} event${q===1?'':'s'} queued`;
+    pill.classList.add('backend-degraded');
+  } else if (backendOk === true) {
+    dot.textContent = '🟢';
+    lbl.textContent = 'Backend';
+    pill.title = 'Backend connected · all events synced';
+    pill.classList.remove('backend-degraded');
+  } else {
+    dot.textContent = '⚪';
+    lbl.textContent = 'Checking...';
+    pill.title = 'Checking backend connection';
+    pill.classList.remove('backend-degraded');
+  }
+}
+
+// Retry queue every 15s while there's anything pending
+setInterval(() => { if (getEventQueue().length) flushEventQueue(); }, 15000);
+// Retry when the network comes back or tab regains focus
+window.addEventListener('online', () => { pingBackend(); flushEventQueue(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') { pingBackend(); flushEventQueue(); }
+});
+// Manual retry: click the backend pill
+document.addEventListener('DOMContentLoaded', () => {
+  const pill = document.getElementById('backendPill');
+  if (pill) pill.addEventListener('click', () => { pingBackend(); flushEventQueue(); });
+});
 
 // ═══════════════════════════════════════════════
 // COLORS
@@ -480,7 +616,6 @@ const COLORS = [
   { bg:'rgba(237,100,166,0.18)', border:'#ED64A6', glow:'rgba(237,100,166,0.3)' },
   { bg:'rgba(72,187,120,0.18)',  border:'#48BB78', glow:'rgba(72,187,120,0.3)' },
 ];
-
 // ═══════════════════════════════════════════════
 // EMPLOYEES
 // ═══════════════════════════════════════════════
@@ -542,7 +677,6 @@ const EMPLOYEES = [
   { id:'e55', name:'Ofelia P.',    fullName:'Ofelia Cansino Pena',       dept:null, clockIn:null, totalHrs:0, color:'#e8c56e', shiftStart:'08:00', shiftEnd:'16:30', isManager:false },
   { id:'e56', name:'Ramar W.',     fullName:'Ramar Washington',          dept:null, clockIn:null, totalHrs:0, color:'#6ee8d8', shiftStart:'08:00', shiftEnd:'16:30', isManager:false },
 ];
-
 const DEPTS_DEFAULT = [
   { id:'b1', name:'AM Shift',         colorIdx:0, bx:300,  by:280, size:150, employees:[], parentId:null },
   { id:'b2', name:'PM Shift',         colorIdx:1, bx:750,  by:220, size:130, employees:[], parentId:null },
@@ -550,7 +684,6 @@ const DEPTS_DEFAULT = [
   { id:'b4', name:'Inbound',          colorIdx:3, bx:520,  by:560, size:95,  employees:[], parentId:null },
   { id:'b5', name:'Inventory',        colorIdx:5, bx:880,  by:540, size:88,  employees:[], parentId:null },
 ];
-
 let bubbles = JSON.parse(JSON.stringify(DEPTS_DEFAULT));
 let bubbleIdCounter = 10;
 let selectedColorIdx = 0;
@@ -558,7 +691,6 @@ let logEntries = [];
 let totalWeeklyHrs = 0;
 let dragData = null;
 let ctxTarget = null;
-
 const AVATAR_STYLES = [
   { key:'personas',  label:'Persona' },
   { key:'avataaars', label:'Cartoon' },
@@ -568,11 +700,44 @@ const AVATAR_STYLES = [
 ];
 let activeAvatarStyle = 'personas';
 let selectedAvatarSeed = null;
-
 function avatarUrl(emp) {
   const style = emp.avatarStyle || 'personas';
   const seed  = emp.avatarSeed  || encodeURIComponent(emp.fullName || emp.name);
   return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
+}
+// ═══════════════════════════════════════════════
+// PATCH v3: HEAT MAP — tint bubbles by labor cost intensity
+// ═══════════════════════════════════════════════
+const HOURLY_RATE = 18.50;
+const HEAT_THRESHOLDS = [
+  { max: 50,       color: '#A3F3C5', glow: 'rgba(163,243,197,0.5)' },  // Cold
+  { max: 150,      color: '#F6AD55', glow: 'rgba(246,173,85,0.5)' },   // Warm
+  { max: 300,      color: '#FC814A', glow: 'rgba(252,129,74,0.55)' },  // Hot
+  { max: Infinity, color: '#FC8181', glow: 'rgba(252,129,129,0.6)' },  // Boiling
+];
+let heatMapMode = false;
+try { heatMapMode = localStorage.getItem('atomix_heatmap_on') === '1'; } catch (e) {}
+
+function getBubbleBurnRate(b) {
+  // Active headcount (including sub-bubble employees) × hourly rate
+  const total = getTotalEmpCount(b.id);
+  return total * HOURLY_RATE;
+}
+function getHeatTier(rate) {
+  return HEAT_THRESHOLDS.find(t => rate < t.max);
+}
+function setupHeatToggle() {
+  const btn = document.getElementById('heatToggleBtn');
+  const legend = document.getElementById('heatLegend');
+  if (!btn || !legend) return;
+  function applyMode() {
+    btn.classList.toggle('on', heatMapMode);
+    legend.classList.toggle('show', heatMapMode);
+    try { localStorage.setItem('atomix_heatmap_on', heatMapMode ? '1' : '0'); } catch (e) {}
+    renderBubbles();
+  }
+  btn.addEventListener('click', () => { heatMapMode = !heatMapMode; applyMode(); });
+  applyMode();
 }
 
 // ═══════════════════════════════════════════════
@@ -580,21 +745,18 @@ function avatarUrl(emp) {
 // ═══════════════════════════════════════════════
 const OT_DAILY_HRS  = 8;
 const OT_WEEKLY_HRS = 40;
-
 function getEmpHours(emp) {
   const nowMs = Date.now();
   const today = emp.totalHrs + (emp.clockIn ? (nowMs - emp.clockIn) / 3600000 : 0);
   const week  = (emp.weeklyHrs || 0) + today;
   return { today, week };
 }
-
 function getOTClass(emp) {
   const { today, week } = getEmpHours(emp);
   if (week  >= OT_WEEKLY_HRS) return 'ot-weekly';
   if (today >= OT_DAILY_HRS)  return 'ot-daily';
   return '';
 }
-
 function updateOTAlert() {
   const dailyOT  = EMPLOYEES.filter(e => getEmpHours(e).today >= OT_DAILY_HRS);
   const weeklyOT = EMPLOYEES.filter(e => getEmpHours(e).week  >= OT_WEEKLY_HRS);
@@ -610,38 +772,30 @@ function updateOTAlert() {
     alert.classList.remove('show');
   }
 }
-
 // ═══════════════════════════════════════════════
 // EMPLOYEE CREATOR
 // ═══════════════════════════════════════════════
 let empIdCounter = 100;
-
 function setupEmpCreator() {
   const btn    = document.getElementById('showEmpCreatorBtn');
   const form   = document.getElementById('newEmpForm');
   const cancel = document.getElementById('neCancel');
-
   btn.addEventListener('click', () => {
     form.classList.toggle('show');
     if (form.classList.contains('show')) document.getElementById('neName').focus();
   });
-
   cancel.addEventListener('click', () => {
     form.classList.remove('show');
     document.getElementById('neName').value = '';
   });
-
   document.getElementById('neCreate').addEventListener('click', () => {
     const name = document.getElementById('neName').value.trim();
     if (!name) { document.getElementById('neName').focus(); return; }
     const shiftStart  = document.getElementById('neShiftStart').value || '06:00';
     const shiftEnd    = document.getElementById('neShiftEnd').value   || '14:30';
     const isManager   = document.getElementById('neRole').value === 'true';
-
-    // Pick a color cycling through palette
     const colors = ['#e89b6e','#6eb5e8','#7be87a','#e86eae','#b56ee8','#e8c56e','#6ee8d8','#e86e6e','#6e8ee8','#8ee86e'];
     const color = colors[EMPLOYEES.length % colors.length];
-
     const newEmp = {
       id:         'e_' + (++empIdCounter),
       name:       name.length > 12 ? name.split(' ')[0] + ' ' + (name.split(' ')[1]?.[0] || '') + '.' : name,
@@ -655,32 +809,23 @@ function setupEmpCreator() {
       shiftEnd,
       isManager,
     };
-
     EMPLOYEES.push(newEmp);
     document.getElementById('neName').value = '';
     form.classList.remove('show');
     addLog(`${newEmp.name} added to roster`, '');
     renderAll();
   });
-
-  // Allow Enter key to submit
   document.getElementById('neName').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('neCreate').click();
   });
 }
-
 function removeEmployee(empId) {
   const emp = EMPLOYEES.find(e => e.id === empId);
   if (!emp) return;
   if (!confirm(`Remove ${emp.fullName || emp.name} from the roster? This cannot be undone.`)) return;
-
-  // Clock them out first if active
   if (emp.clockIn || emp.dept) unassignEmployee(empId);
-
-  // Remove from array
   const idx = EMPLOYEES.findIndex(e => e.id === empId);
   if (idx !== -1) EMPLOYEES.splice(idx, 1);
-
   addLog(`${emp.name} removed from roster`, 'out');
   closeEmpModal();
   renderAll();
@@ -691,7 +836,6 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
-
 // ═══════════════════════════════════════════════
 // TUBES
 // ═══════════════════════════════════════════════
@@ -711,7 +855,6 @@ function updateTubes() {
   document.getElementById('tubeWeekVal').textContent   = `${weekHrs.toFixed(0)}h / ${weekTarget}h`;
 }
 setInterval(updateTubes, 5000);
-
 // ═══════════════════════════════════════════════
 // STATS
 // ═══════════════════════════════════════════════
@@ -726,7 +869,6 @@ function updateStats() {
   document.getElementById('statUnassigned').textContent = EMPLOYEES.filter(e=>!e.dept&&!e.clockIn).length;
 }
 setInterval(updateStats, 3000);
-
 // ═══════════════════════════════════════════════
 // LOG
 // ═══════════════════════════════════════════════
@@ -742,7 +884,6 @@ function renderLog() {
     <span class="${l.type==='in'?'log-in':l.type==='out'?'log-out':l.type==='brk'?'log-brk':l.type==='lunch'?'log-lunch':''}">&nbsp;${l.text}</span></div>`
   ).join('');
 }
-
 // ═══════════════════════════════════════════════
 // BUBBLE RENDERING
 // ═══════════════════════════════════════════════
@@ -751,18 +892,15 @@ function getTotalEmpCount(bubbleId) {
   if (!b) return 0;
   return b.employees.length + bubbles.filter(x=>x.parentId===bubbleId).reduce((s,c)=>s+getTotalEmpCount(c.id),0);
 }
-
 function getBubbleSize(b) {
   return Math.max(b.parentId?55:80, b.size+getTotalEmpCount(b.id)*(b.parentId?10:14));
 }
-
 function makeBubbleElement(b, isChild, parentEl, parentSize) {
   const color = COLORS[b.colorIdx%COLORS.length];
   const size  = getBubbleSize(b);
   const el    = document.createElement('div');
   el.className = 'bubble'+(isChild?' child-bubble':'');
   el.id = 'bubble-'+b.id;
-
   if (isChild) {
     const cx = b.cx!==undefined?b.cx:0.5+(Math.random()-0.5)*0.35;
     const cy = b.cy!==undefined?b.cy:0.5+(Math.random()-0.5)*0.35;
@@ -772,7 +910,6 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
     if (b.bx===undefined){b.bx=400+Math.random()*800;b.by=300+Math.random()*500;}
     el.style.cssText = `width:${size}px;height:${size}px;left:${b.bx-size/2}px;top:${b.by-size/2}px;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.08),${color.bg} 60%,rgba(0,0,0,0.2));border:1.5px solid ${color.border};box-shadow:0 0 ${size*0.3}px ${color.glow},inset 0 1px 0 rgba(255,255,255,0.1);`;
   }
-
   const inner = document.createElement('div');
   inner.className = 'bubble-inner';
   inner.style.pointerEvents = 'none';
@@ -800,19 +937,29 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
     inner.appendChild(hrsEl);
   }
   el.appendChild(inner);
-
   const hcBadge = document.createElement('div');
   hcBadge.className = 'bubble-hc';
   const total = getTotalEmpCount(b.id);
   hcBadge.innerHTML = `<span class="bubble-hc-icon">👤</span><span class="bubble-hc-num">${total}</span><span class="bubble-hc-label">on floor</span>`;
   el.appendChild(hcBadge);
-
+  // PATCH v3: Heat map overlay — tint border + add burn-rate badge
+  if (heatMapMode) {
+    const rate = getBubbleBurnRate(b);
+    const tier = getHeatTier(rate);
+    el.style.borderColor = tier.color;
+    el.style.boxShadow = `0 0 ${size*0.4}px ${tier.glow}, inset 0 0 ${size*0.18}px ${tier.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`;
+    const burnEl = document.createElement('div');
+    burnEl.className = 'bubble-burn';
+    burnEl.textContent = '$' + Math.round(rate) + '/hr';
+    burnEl.style.color = tier.color;
+    burnEl.style.borderColor = tier.color;
+    el.appendChild(burnEl);
+  }
   const ctxBtn = document.createElement('button');
   ctxBtn.className = 'bubble-context-btn';
   ctxBtn.textContent = '⋯';
   ctxBtn.addEventListener('click',e=>{e.stopPropagation();showCtxMenu(e,b.id);});
   el.appendChild(ctxBtn);
-
   const avatarSize = isChild?22:34;
   b.employees.forEach((eid,idx)=>{
     const emp=EMPLOYEES.find(e=>e.id===eid);
@@ -840,12 +987,10 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
     nameTag.textContent=emp.name.length>10?emp.name.slice(0,9)+'…':emp.name;
     empEl.appendChild(nameTag);
     empEl.addEventListener('dragstart',e=>onEmpDragStart(e,eid,b.id));
-    // OT highlight on bubble avatar
     const otClass = getOTClass(emp);
     if (otClass) empEl.classList.add(otClass);
     el.appendChild(empEl);
   });
-
   if (!isChild) {
     el.addEventListener('mousedown',e=>{
       if(e.target.classList.contains('emp-float')||e.target.closest('.emp-float')||e.target.classList.contains('bubble-context-btn')||e.target.closest('.child-bubble'))return;
@@ -862,7 +1007,6 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
   el.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();el.classList.remove('drag-over');handleDropOnBubble(e,b.id);});
   return {el,size};
 }
-
 function renderBubbles() {
   const layer=document.getElementById('bubbleLayer');
   layer.querySelectorAll('.bubble').forEach(el=>el.remove());
@@ -875,7 +1019,6 @@ function renderBubbles() {
     layer.appendChild(el);
   });
 }
-
 // ═══════════════════════════════════════════════
 // BUBBLE DRAG
 // ═══════════════════════════════════════════════
@@ -910,7 +1053,6 @@ document.addEventListener('mouseup',()=>{
   bubbleDrag=null;
   document.getElementById('canvasArea').classList.remove('bubble-dragging');
 });
-
 let childBubbleDrag=null;
 function startChildBubbleDrag(e,bubbleId){
   const b=bubbles.find(x=>x.id===bubbleId);if(!b||!b.parentId)return;
@@ -942,18 +1084,15 @@ document.addEventListener('mouseup',()=>{
   if(el){el.style.cursor='';el.style.zIndex=20;}
   childBubbleDrag=null;
 });
-
 // ═══════════════════════════════════════════════
 // EMPLOYEE DRAG
 // ═══════════════════════════════════════════════
 let currentDragEmpId=null;
 let currentDragOrigin=null;
-
 function onEmpDragStart(e,empId,originBubble){
   currentDragEmpId=empId;currentDragOrigin=originBubble||'pool';
   e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',empId);
 }
-
 function handleDropOnBubble(e,targetBubbleId){
   if(!currentDragEmpId)return;
   const empId=currentDragEmpId;
@@ -968,7 +1107,9 @@ function handleDropOnBubble(e,targetBubbleId){
     if(!emp.clockIn){
       emp.clockIn=Date.now();
       addLog(`${emp.name} → ${newBubble.name}`,'in');
-      logEvent('ASSIGN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:newBubble.name,shiftStart:emp.shiftStart||''});
+      // PATCH v2: emit explicit CLOCK_IN, then ASSIGN (kept for backwards compat with current Apps Script)
+      logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:newBubble.name,shiftStart:emp.shiftStart||''});
+      logEvent('ASSIGN', {empId:emp.id,empName:emp.fullName||emp.name,toDept:newBubble.name,shiftStart:emp.shiftStart||''});
       lastSyncPause=Date.now();
     } else {
       addLog(`${emp.name} moved to ${newBubble.name}`,'');
@@ -977,7 +1118,6 @@ function handleDropOnBubble(e,targetBubbleId){
   }
   currentDragEmpId=null;currentDragOrigin=null;renderAll();
 }
-
 // ═══════════════════════════════════════════════
 // UNASSIGN / CLOCK OUT
 // ═══════════════════════════════════════════════
@@ -1006,13 +1146,11 @@ function unassignEmployee(empId){
   }
   lastSyncPause=Date.now();renderAll();
 }
-
 // ═══════════════════════════════════════════════
 // BREAK / LUNCH
 // ═══════════════════════════════════════════════
 const BREAK_DURATION  = 15*60*1000;
 const LUNCH_DURATION  = 30*60*1000;
-
 function handleDropOnBreakZone(empId, zoneType) {
   const emp = EMPLOYEES.find(e => e.id === empId);
   if (!emp) return;
@@ -1035,7 +1173,6 @@ function handleDropOnBreakZone(empId, zoneType) {
   emp._breakTimer = setTimeout(() => returnFromBreak(emp.id), duration);
   renderAll();
 }
-
 function returnFromBreak(empId) {
   const emp = EMPLOYEES.find(e => e.id === empId);
   if (!emp || !emp.breakStatus) return;
@@ -1052,7 +1189,6 @@ function returnFromBreak(empId) {
   addLog(`${emp.name} back from ${label}`, 'in');
   renderAll();
 }
-
 function renderBreakZones() {
   ['break','lunch'].forEach(zone=>{
     const el=document.getElementById(zone==='break'?'breakAvatars':'lunchAvatars');
@@ -1079,7 +1215,6 @@ function renderBreakZones() {
     });
   });
 }
-
 function setupBreakZones(){
   ['breakZone','lunchZone'].forEach(zoneId=>{
     const zone=document.getElementById(zoneId);if(!zone)return;
@@ -1093,7 +1228,6 @@ function setupBreakZones(){
     });
   });
 }
-
 // ═══════════════════════════════════════════════
 // EMPLOYEE POOL
 // ═══════════════════════════════════════════════
@@ -1118,7 +1252,6 @@ function renderPool(){
   });
   updateOTAlert();
 }
-
 // ═══════════════════════════════════════════════
 // BUBBLE CREATOR
 // ═══════════════════════════════════════════════
@@ -1149,14 +1282,12 @@ function setupCreator(){
     renderAll();
   });
 }
-
 function refreshParentDropdown(){
   const sel=document.getElementById('nbParent');const current=sel.value;
   sel.innerHTML='<option value="">— Standalone bubble —</option>';
   bubbles.filter(b=>!b.parentId).forEach(b=>{const opt=document.createElement('option');opt.value=b.id;opt.textContent=`Inside: ${b.name}`;sel.appendChild(opt);});
   sel.value=current;
 }
-
 // ═══════════════════════════════════════════════
 // CONTEXT MENU
 // ═══════════════════════════════════════════════
@@ -1184,7 +1315,6 @@ document.getElementById('ctxDelete').addEventListener('click',()=>{
   bubbles=bubbles.filter(x=>x.id!==ctxTarget);
   addLog(`Dept "${b?.name}" deleted`,'');renderAll();
 });
-
 // ═══════════════════════════════════════════════
 // BG CANVAS
 // ═══════════════════════════════════════════════
@@ -1199,7 +1329,6 @@ function drawBg(){
   for(let x=0;x<canvas.width;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
   for(let y=0;y<canvas.height;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
 }
-
 // ═══════════════════════════════════════════════
 // RENDER ALL
 // ═══════════════════════════════════════════════
@@ -1208,14 +1337,12 @@ function renderAll(){
   if(document.getElementById('rosterPanel')?.classList.contains('open'))renderRoster();
   updateStats();updateTubes();updateOTAlert();
 }
-
 // ═══════════════════════════════════════════════
 // PAN + ZOOM
 // ═══════════════════════════════════════════════
 let zoomLevel=0.55,panX=0,panY=0,lastSyncPause=0;
 const ZOOM_MIN=0.2,ZOOM_MAX=3.0,ZOOM_STEP=0.1;
 let isPanning=false,panStart={x:0,y:0};
-
 function applyTransform(animate){
   const layer=document.getElementById('bubbleLayer');if(!layer)return;
   layer.style.transition=animate?'transform 0.18s ease':'none';
@@ -1254,7 +1381,6 @@ ca.addEventListener('mousedown',e=>{
 });
 document.addEventListener('mousemove',e=>{if(!isPanning)return;panX=e.clientX-panStart.x;panY=e.clientY-panStart.y;applyTransform(false);});
 document.addEventListener('mouseup',e=>{if(isPanning){isPanning=false;ca.classList.remove('panning');}});
-
 // ═══════════════════════════════════════════════
 // EMPLOYEE MODAL
 // ═══════════════════════════════════════════════
@@ -1269,7 +1395,6 @@ function openEmpModal(empId){
   else if(emp.breakStatus==='lunch')status='On Lunch';
   else if(emp.dept){const b=bubbles.find(x=>x.id===emp.dept);status=b?`In: ${b.name}`:'Assigned';}
   if(emp.clockIn)status+=' · Clocked in '+new Date(emp.clockIn).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-  // OT status
   const { today, week } = getEmpHours(emp);
   if (week >= OT_WEEKLY_HRS)       status += ` · 🔴 WEEKLY OT (${week.toFixed(1)}h)`;
   else if (today >= OT_DAILY_HRS)  status += ` · 🟠 Daily OT (${today.toFixed(1)}h today)`;
@@ -1301,13 +1426,19 @@ function saveEmpModal(){
     emp.dept=newDeptId||null;
     if(newDeptId){
       const newB=bubbles.find(x=>x.id===newDeptId);
-      if(newB&&!newB.employees.includes(emp.id)){newB.employees.push(emp.id);if(!emp.clockIn)emp.clockIn=Date.now();}
+      if(newB&&!newB.employees.includes(emp.id)){
+        newB.employees.push(emp.id);
+        if(!emp.clockIn){
+          emp.clockIn=Date.now();
+          // PATCH v2: emit CLOCK_IN when manual assignment starts a shift
+          logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:newB.name,shiftStart:emp.shiftStart||''});
+        }
+      }
       addLog(`${emp.name} assigned to ${newB?.name||''}`,'in');
     } else {unassignEmployee(emp.id);}
   }
   closeEmpModal();renderAll();
 }
-
 // ═══════════════════════════════════════════════
 // AVATAR PICKER
 // ═══════════════════════════════════════════════
@@ -1344,7 +1475,6 @@ document.addEventListener('click',e=>{
   document.getElementById('tabAvatar').classList.toggle('active',panel==='avatar');
   if(panel==='avatar'&&modalEmpId)buildAvatarTab(modalEmpId);
 });
-
 // ═══════════════════════════════════════════════
 // SPECIAL PROJECT MODAL
 // ═══════════════════════════════════════════════
@@ -1377,13 +1507,11 @@ function saveSpModal(){
   b.spBillRate=parseFloat(document.getElementById('spBillRate').value)||0;
   addLog(`SP "${b.spName||b.name}" saved`,'');closeSpModal();renderAll();
 }
-
 // ═══════════════════════════════════════════════
 // ROSTER
 // ═══════════════════════════════════════════════
 const DEPT_COLORS_HEX=['#A3F3C5','#63B3ED','#F6AD55','#9F7AEA','#FC814A','#ED64A6','#48BB78'];
 let rosterCollapsed={};
-
 function renderRoster(){
   const body=document.getElementById('rosterBody');const footer=document.getElementById('rosterFooter');
   if(!body)return;body.innerHTML='';
@@ -1440,7 +1568,6 @@ function makeMemberRow(emp,accentColor){
   row.addEventListener('click',()=>openEmpModal(emp.id));return row;
 }
 function toggleRoster(){document.getElementById('rosterPanel').classList.toggle('open');renderRoster();}
-
 // ═══════════════════════════════════════════════
 // BACKEND SYNC (read-back from sheet for multi-tablet support)
 // ═══════════════════════════════════════════════
@@ -1449,7 +1576,21 @@ async function fetchLive(){
 }
 async function syncFromBackend(){
   if(Date.now()-lastSyncPause<10000)return;
-  const live=await fetchLive();if(!live||!live.ok)return;
+  const live=await fetchLive();
+  if(!live||!live.ok){backendOk=false;updateBackendDot();return;}
+  backendOk=true;updateBackendDot();
+
+  // PATCH v2 — SAFETY: don't wipe local state if backend returns empty employees.
+  // Yesterday's bug: aggregator returned {ok:true, employees:[]} and the tablet erased
+  // the entire floor every 20s, taking analytics with it.
+  if (!live.employees || live.employees.length === 0) {
+    const hasLocalActivity = EMPLOYEES.some(e => e.dept || e.clockIn || e.breakStatus);
+    if (hasLocalActivity) {
+      console.warn('[atomix] Backend returned empty employee list but local state has activity — skipping sync to protect data.');
+      return;
+    }
+  }
+
   EMPLOYEES.forEach(emp=>{emp.dept=null;emp.clockIn=null;emp.breakStatus=null;});
   bubbles.forEach(b=>{b.employees=[];});
   (live.employees||[]).forEach(s=>{
@@ -1469,14 +1610,18 @@ async function syncFromBackend(){
   });
   renderAll();
 }
-
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
 window.addEventListener('load',()=>{
-  drawBg();setupBreakZones();setupCreator();setupEmpCreator();renderAll();applyTransform(false);
-  // Show green dot since URL is hardcoded
-  document.getElementById('backendDot').textContent = '🟢';
+  drawBg();setupBreakZones();setupCreator();setupEmpCreator();setupHeatToggle();renderAll();applyTransform(false);
+
+  // PATCH v2 — real backend health check + drain any queued events from prior session
+  updateBackendDot();
+  pingBackend();
+  flushEventQueue();
+  setInterval(pingBackend, 30000);
+
   ['tubeDayInput','tubeWeekInput'].forEach(id=>document.getElementById(id).addEventListener('change',updateTubes));
   const empPool=document.getElementById('empPool');
   empPool.addEventListener('dragover',e=>{e.preventDefault();empPool.classList.add('drag-over-pool');});
@@ -1494,7 +1639,6 @@ window.addEventListener('load',()=>{
   document.getElementById('empModalRemove').addEventListener('click',()=>{ if(modalEmpId) removeEmployee(modalEmpId); });
   document.getElementById('empModalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('empModalOverlay'))closeEmpModal();});
   document.getElementById('otAlert').addEventListener('click',()=>{
-    // scroll pool into view and flash OT employees
     document.getElementById('empPool').scrollIntoView({behavior:'smooth'});
   });
   document.getElementById('spModalClose').addEventListener('click',closeSpModal);
@@ -1508,11 +1652,9 @@ window.addEventListener('load',()=>{
   syncFromBackend();
   setInterval(syncFromBackend,20000);
 });
-
 setInterval(renderAll,30000);
 setInterval(renderBreakZones,60000);
 </script>
-
 <!-- EMPLOYEE PROFILE MODAL -->
 <div class="emp-modal-overlay" id="empModalOverlay">
   <div class="emp-modal">
@@ -1555,7 +1697,6 @@ setInterval(renderBreakZones,60000);
     </div>
   </div>
 </div>
-
 <!-- SPECIAL PROJECT MODAL -->
 <div class="emp-modal-overlay" id="spModalOverlay">
   <div class="emp-modal" style="width:380px;">
