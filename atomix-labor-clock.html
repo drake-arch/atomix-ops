@@ -293,6 +293,27 @@
   /* PATCH v2: backend status pill — pulse animation when degraded */
   .stat-pill.backend-degraded .val { animation: pulseDot 1.5s ease-in-out infinite; }
   @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  /* PATCH v4: Facility chip + picker modal */
+  .fac-chip { display:flex; align-items:center; gap:6px; padding:4px 10px; background:rgba(163,243,197,0.08); border:1px solid var(--green); border-radius:14px; color:var(--green); font-family:'DM Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.08em; cursor:pointer; transition:all 0.15s; margin-left:12px; }
+  .fac-chip:hover { background:rgba(163,243,197,0.15); }
+  .fac-chip .fac-code { font-weight:700; }
+  .fac-chip .fac-city { font-weight:400; opacity:0.7; font-size:10px; }
+  .fac-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); z-index:5000; display:none; align-items:center; justify-content:center; }
+  .fac-modal-overlay.show { display:flex; }
+  .fac-modal { background:var(--surface); border:1px solid var(--green); border-radius:16px; padding:30px 36px; min-width:420px; max-width:520px; box-shadow:0 30px 80px rgba(0,0,0,0.6); }
+  .fac-modal-title { font-family:'DM Mono',monospace; font-size:14px; color:var(--green); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px; }
+  .fac-modal-sub { font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.5; }
+  .fac-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .fac-option { padding:18px 14px; background:var(--surface2); border:2px solid var(--border); border-radius:12px; cursor:pointer; text-align:center; transition:all 0.15s; }
+  .fac-option:hover { border-color:var(--green); background:rgba(163,243,197,0.08); transform:translateY(-2px); }
+  .fac-option.selected { border-color:var(--green); background:rgba(163,243,197,0.15); }
+  .fac-option .fac-opt-code { font-family:'DM Mono',monospace; font-size:22px; font-weight:700; color:var(--green); letter-spacing:0.08em; }
+  .fac-option .fac-opt-city { font-size:11px; color:var(--text); margin-top:4px; }
+  .fac-modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:24px; }
+  .fac-modal-btn { padding:9px 20px; border-radius:8px; border:none; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; cursor:pointer; }
+  .fac-modal-btn.confirm { background:var(--green); color:var(--navy); }
+  .fac-modal-btn.confirm:disabled { opacity:0.4; cursor:not-allowed; }
+  .fac-modal-btn.cancel { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
   /* PATCH v3: Heat map overlay */
   .heat-toggle { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 10px; font-family: 'DM Mono', monospace; cursor: pointer; letter-spacing: 0.04em; transition: all 0.15s; height: 26px; }
   .heat-toggle:hover { color: var(--text); border-color: var(--text); }
@@ -311,6 +332,10 @@
   <div class="logo">
     <div class="logo-icon">Ax</div>
     ATOMIX LABOR CLOCK
+    <div class="fac-chip" id="facChip" title="Click to change facility (manager confirm required)">
+      <span class="fac-code" id="facChipCode">--</span>
+      <span class="fac-city" id="facChipCity"></span>
+    </div>
   </div>
   <div class="header-stats">
     <div class="stat-pill"><span class="val" id="statActive">0</span><span class="lbl">Active</span></div>
@@ -463,6 +488,18 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxa5yGCPf-nI-DgKNheq--Cb_coFWvGgrOZE43abEcaa0K4b-hPvWSq4yKzO2_6tgWwWQ/exec';
 const DEVICE_ID  = 'floor-tablet-' + (Math.random().toString(36).slice(2,6));
 
+// PATCH v4: Multi-site facility (locked per tablet via localStorage)
+const FACILITIES = ['MKE','SLC','BAL'];
+const FACILITY_KEY = 'atomix_facility';
+const FACILITY_LABELS = { MKE: 'Milwaukee', SLC: 'Salt Lake City', BAL: 'Baltimore' };
+function getFacility() {
+  try { return localStorage.getItem(FACILITY_KEY) || ''; } catch(e) { return ''; }
+}
+function setFacility(f) {
+  try { localStorage.setItem(FACILITY_KEY, f); } catch(e) {}
+}
+let CURRENT_FACILITY = getFacility();
+
 // ═══════════════════════════════════════════════
 // PATCH v2 (2026-05-12): Reliable backend logging
 // ─ Replaces silent fire-and-forget no-cors writes
@@ -497,6 +534,7 @@ async function logEvent(type, data = {}) {
     type,
     timestamp:   new Date().toISOString(),
     deviceId:    DEVICE_ID,
+    facility:    CURRENT_FACILITY || '',
     empId:       data.empId       || '',
     empName:     data.empName     || '',
     fromDept:    data.fromDept    || '',
@@ -1572,7 +1610,12 @@ function toggleRoster(){document.getElementById('rosterPanel').classList.toggle(
 // BACKEND SYNC (read-back from sheet for multi-tablet support)
 // ═══════════════════════════════════════════════
 async function fetchLive(){
-  try{const url=new URL(SCRIPT_URL);url.searchParams.set('action','live');return await(await fetch(url.toString())).json();}catch(e){return null;}
+  try{
+    const url=new URL(SCRIPT_URL);
+    url.searchParams.set('action','live');
+    if (CURRENT_FACILITY) url.searchParams.set('facility', CURRENT_FACILITY);
+    return await(await fetch(url.toString())).json();
+  }catch(e){return null;}
 }
 async function syncFromBackend(){
   if(Date.now()-lastSyncPause<10000)return;
@@ -1732,5 +1775,114 @@ setInterval(renderBreakZones,60000);
     </div>
   </div>
 </div>
+<!-- PATCH v4: Facility picker modal -->
+<div class="fac-modal-overlay" id="facModal">
+  <div class="fac-modal">
+    <div class="fac-modal-title">Select Facility</div>
+    <div class="fac-modal-sub" id="facModalSub">
+      Which warehouse is this tablet at? This locks to the device. To change later, click the facility chip in the header (a manager confirm is required).
+    </div>
+    <div class="fac-grid" id="facGrid">
+      <div class="fac-option" data-fac="MKE">
+        <div class="fac-opt-code">MKE</div>
+        <div class="fac-opt-city">Milwaukee</div>
+      </div>
+      <div class="fac-option" data-fac="SLC">
+        <div class="fac-opt-code">SLC</div>
+        <div class="fac-opt-city">Salt Lake City</div>
+      </div>
+      <div class="fac-option" data-fac="BAL">
+        <div class="fac-opt-code">BAL</div>
+        <div class="fac-opt-city">Baltimore</div>
+      </div>
+    </div>
+    <div class="fac-modal-footer">
+      <button class="fac-modal-btn cancel" id="facModalCancel" style="display:none;">Cancel</button>
+      <button class="fac-modal-btn confirm" id="facModalConfirm" disabled>Confirm</button>
+    </div>
+  </div>
+</div>
+<script>
+// PATCH v4: Facility picker wiring
+(function() {
+  let pickedFac = null;
+  let isSwitchMode = false;
+
+  function refreshFacChip() {
+    const chipCode = document.getElementById('facChipCode');
+    const chipCity = document.getElementById('facChipCity');
+    if (CURRENT_FACILITY) {
+      chipCode.textContent = CURRENT_FACILITY;
+      chipCity.textContent = FACILITY_LABELS[CURRENT_FACILITY] || '';
+    } else {
+      chipCode.textContent = '--';
+      chipCity.textContent = 'not set';
+    }
+  }
+
+  function openFacModal(switchMode) {
+    isSwitchMode = !!switchMode;
+    pickedFac = null;
+    const overlay = document.getElementById('facModal');
+    const cancel  = document.getElementById('facModalCancel');
+    const confirm = document.getElementById('facModalConfirm');
+    const sub     = document.getElementById('facModalSub');
+    if (isSwitchMode) {
+      cancel.style.display = '';
+      sub.innerHTML = 'Switching facility on this tablet. <strong style="color:#ff7a7a;">Manager action.</strong> Active clock-ins will continue on the new facility. To proceed, type <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;">SWITCH</code> in a prompt after selecting.';
+    } else {
+      cancel.style.display = 'none';
+      sub.textContent = 'Which warehouse is this tablet at? This locks to the device. To change later, click the facility chip in the header (a manager confirm is required).';
+    }
+    confirm.disabled = true;
+    document.querySelectorAll('.fac-option').forEach(o => o.classList.remove('selected'));
+    overlay.classList.add('show');
+  }
+
+  function closeFacModal() {
+    document.getElementById('facModal').classList.remove('show');
+  }
+
+  document.querySelectorAll('.fac-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.fac-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      pickedFac = opt.dataset.fac;
+      document.getElementById('facModalConfirm').disabled = false;
+    });
+  });
+
+  document.getElementById('facModalConfirm').addEventListener('click', () => {
+    if (!pickedFac) return;
+    if (isSwitchMode) {
+      const typed = prompt('Type SWITCH to confirm changing this tablet to ' + pickedFac + '.');
+      if (!typed || typed.trim().toUpperCase() !== 'SWITCH') return;
+    }
+    CURRENT_FACILITY = pickedFac;
+    setFacility(pickedFac);
+    refreshFacChip();
+    closeFacModal();
+    addLog('Facility set to ' + pickedFac + ' (' + (FACILITY_LABELS[pickedFac] || '') + ')', '');
+    // Reload to ensure all state is clean for the new facility
+    setTimeout(() => location.reload(), 400);
+  });
+
+  document.getElementById('facModalCancel').addEventListener('click', closeFacModal);
+  document.getElementById('facChip').addEventListener('click', () => openFacModal(true));
+
+  // On load: if no facility, force picker
+  function initFacility() {
+    refreshFacChip();
+    if (!CURRENT_FACILITY) {
+      openFacModal(false);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFacility);
+  } else {
+    initFacility();
+  }
+})();
+</script>
 </body>
 </html>
