@@ -344,6 +344,10 @@
     <div class="stat-divider"></div>
     <div class="stat-pill"><span class="val" id="statCost">$0</span><span class="lbl">Est. Labor $</span></div>
     <div class="stat-divider"></div>
+    <div class="stat-pill" title="Orders shipped today (Metabase, refreshed every 5 min)"><span class="val" id="statOrders" style="color:#63B3ED">—</span><span class="lbl">Orders Today</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat-pill" title="Labor cost per order shipped"><span class="val" id="statCPO" style="color:#F6AD55">—</span><span class="lbl">CPO</span></div>
+    <div class="stat-divider"></div>
     <div class="stat-pill"><span class="val" id="statUnassigned">0</span><span class="lbl">Unassigned</span></div>
     <div class="stat-divider"></div>
     <div class="ot-alert" id="otAlert" title="Click to see OT employees">⚠ <span id="otAlertText">0 OT</span></div>
@@ -656,8 +660,11 @@ const COLORS = [
 ];
 // ═══════════════════════════════════════════════
 // EMPLOYEES
+// PATCH v5: Hardcoded list is the MKE seed only. SLC/BAL start empty.
+// Each facility has its own localStorage namespace so rosters/bubbles
+// don't leak between sites.
 // ═══════════════════════════════════════════════
-const EMPLOYEES = [
+const DEFAULT_EMPLOYEES_MKE = [
   { id:'e1',  name:'Kody M.',      fullName:'Kody Malas',                dept:null, clockIn:null, totalHrs:0, color:'#e89b6e', shiftStart:'06:00', shiftEnd:'14:30', isManager:true  },
   { id:'e2',  name:'Hugh M.',      fullName:'Hugh Myers',                dept:null, clockIn:null, totalHrs:0, color:'#6eb5e8', shiftStart:'12:00', shiftEnd:'20:30', isManager:true  },
   { id:'e3',  name:'Adam G.',      fullName:'Adam Gronowski',            dept:null, clockIn:null, totalHrs:0, color:'#7be87a', shiftStart:'08:00', shiftEnd:'16:30', isManager:true  },
@@ -722,7 +729,45 @@ const DEPTS_DEFAULT = [
   { id:'b4', name:'Inbound',          colorIdx:3, bx:520,  by:560, size:95,  employees:[], parentId:null },
   { id:'b5', name:'Inventory',        colorIdx:5, bx:880,  by:540, size:88,  employees:[], parentId:null },
 ];
-let bubbles = JSON.parse(JSON.stringify(DEPTS_DEFAULT));
+// PATCH v5: facility-isolated state loaders
+function rosterKey(f)   { return 'atomix_roster_v1_'   + (f || 'NONE'); }
+function bubblesKey(f)  { return 'atomix_bubbles_v1_'  + (f || 'NONE'); }
+function loadRoster(f) {
+  if (!f) return [];
+  try {
+    const raw = localStorage.getItem(rosterKey(f));
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  if (f === 'MKE') return JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES_MKE));
+  return [];
+}
+function loadBubbles(f) {
+  if (!f) return JSON.parse(JSON.stringify(DEPTS_DEFAULT));
+  try {
+    const raw = localStorage.getItem(bubblesKey(f));
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEPTS_DEFAULT));
+}
+function saveRoster() {
+  if (!CURRENT_FACILITY) return;
+  try {
+    // Strip non-serializable timer refs
+    const clean = EMPLOYEES.map(e => {
+      const c = Object.assign({}, e);
+      delete c._breakTimer;
+      return c;
+    });
+    localStorage.setItem(rosterKey(CURRENT_FACILITY), JSON.stringify(clean));
+  } catch(e) {}
+}
+function saveBubbles() {
+  if (!CURRENT_FACILITY) return;
+  try { localStorage.setItem(bubblesKey(CURRENT_FACILITY), JSON.stringify(bubbles)); } catch(e) {}
+}
+
+let EMPLOYEES = loadRoster(CURRENT_FACILITY);
+let bubbles = loadBubbles(CURRENT_FACILITY);
 let bubbleIdCounter = 10;
 let selectedColorIdx = 0;
 let logEntries = [];
@@ -1374,6 +1419,8 @@ function renderAll(){
   renderBubbles();renderPool();renderBreakZones();
   if(document.getElementById('rosterPanel')?.classList.contains('open'))renderRoster();
   updateStats();updateTubes();updateOTAlert();
+  // PATCH v5: persist facility-isolated state on every render
+  saveRoster(); saveBubbles();
 }
 // ═══════════════════════════════════════════════
 // PAN + ZOOM
@@ -1617,6 +1664,38 @@ async function fetchLive(){
     return await(await fetch(url.toString())).json();
   }catch(e){return null;}
 }
+
+// PATCH v3.3: Live orders-shipped & CPO from Metabase sync
+async function fetchOrdersToday(){
+  if (!CURRENT_FACILITY) return;
+  try{
+    const url = new URL(SCRIPT_URL);
+    url.searchParams.set('action', 'orders');
+    url.searchParams.set('facility', CURRENT_FACILITY);
+    const data = await(await fetch(url.toString())).json();
+    if (!data || !data.ok) return;
+    const orders = data.ordersToday || 0;
+    const statOrdersEl = document.getElementById('statOrders');
+    const statCPOEl    = document.getElementById('statCPO');
+    if (statOrdersEl) statOrdersEl.textContent = orders > 0 ? orders.toLocaleString() : '—';
+    // Compute CPO from current labor cost (from statCost) / orders
+    if (orders > 0 && statCPOEl) {
+      const costText = (document.getElementById('statCost').textContent || '$0').replace(/[$,]/g,'');
+      const labor = parseFloat(costText) || 0;
+      const cpo = labor / orders;
+      statCPOEl.textContent = '$' + cpo.toFixed(2);
+      // Color red if over $4 target
+      statCPOEl.style.color = cpo > 4.00 ? '#FC8181' : '#A3F3C5';
+    } else if (statCPOEl) {
+      statCPOEl.textContent = '—';
+      statCPOEl.style.color = '#F6AD55';
+    }
+  }catch(e){ /* silent */ }
+}
+// Refresh orders every 5 min
+setInterval(fetchOrdersToday, 5 * 60 * 1000);
+// And once shortly after page load
+setTimeout(fetchOrdersToday, 3000);
 async function syncFromBackend(){
   if(Date.now()-lastSyncPause<10000)return;
   const live=await fetchLive();
