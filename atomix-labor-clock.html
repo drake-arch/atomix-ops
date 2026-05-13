@@ -145,22 +145,17 @@
   .nb-btn:hover { opacity: 0.85; }
   .nb-btn.danger { background: rgba(255,90,90,0.15); color: #ff7a7a; border: 1px solid rgba(255,90,90,0.3); }
   .nb-btn.danger:hover { background: rgba(255,90,90,0.25); }
-  /* Employee creator */
   .new-emp-form { display: none; flex-direction: column; gap: 6px; padding: 10px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); }
   .new-emp-form.show { display: flex; }
   .ne-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-  /* OT alert on emp cards */
   .emp-card.ot-daily img { border-color: #ff7a7a !important; box-shadow: 0 0 8px rgba(255,90,90,0.5); }
   .emp-card.ot-daily span { color: #ff7a7a !important; }
   .emp-card.ot-weekly img { border-color: #ff4444 !important; box-shadow: 0 0 12px rgba(255,40,40,0.6); }
   .emp-card.ot-weekly span { color: #ff4444 !important; }
-  /* OT on bubble avatars */
   .emp-float.ot-daily .emp-float-img-wrap { border-color: #ff7a7a !important; box-shadow: 0 0 8px rgba(255,90,90,0.6) !important; }
   .emp-float.ot-weekly .emp-float-img-wrap { border-color: #ff4444 !important; box-shadow: 0 0 12px rgba(255,40,40,0.7) !important; }
-  /* OT header alert */
   .ot-alert { display: none; background: rgba(255,90,90,0.12); border: 1px solid rgba(255,90,90,0.3); border-radius: 6px; padding: 4px 10px; font-size: 10px; color: #ff7a7a; font-family: 'DM Mono', monospace; letter-spacing: 0.04em; cursor: pointer; }
   .ot-alert.show { display: flex; align-items: center; gap: 6px; }
-  /* Remove emp button inside modal */
   .emp-modal-btn.remove { background: rgba(255,90,90,0.12); color: #ff7a7a; border: 1px solid rgba(255,90,90,0.25); margin-right: auto; }
   .emp-modal-btn.remove:hover { background: rgba(255,90,90,0.22); }
   .emp-pool { flex: 1; overflow-y: auto; padding: 8px; }
@@ -290,10 +285,8 @@
   .bubble.child-bubble .bubble-hc { bottom: 4px; padding: 2px 7px; }
   .bubble.child-bubble .bubble-hc-num { font-size: 11px; }
   .bubble.child-bubble .bubble-hc-label { display: none; }
-  /* PATCH v2: backend status pill — pulse animation when degraded */
   .stat-pill.backend-degraded .val { animation: pulseDot 1.5s ease-in-out infinite; }
   @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-  /* PATCH v4: Facility chip + picker modal */
   .fac-chip { display:flex; align-items:center; gap:6px; padding:4px 10px; background:rgba(163,243,197,0.08); border:1px solid var(--green); border-radius:14px; color:var(--green); font-family:'DM Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.08em; cursor:pointer; transition:all 0.15s; margin-left:12px; }
   .fac-chip:hover { background:rgba(163,243,197,0.15); }
   .fac-chip .fac-code { font-weight:700; }
@@ -314,7 +307,6 @@
   .fac-modal-btn.confirm { background:var(--green); color:var(--navy); }
   .fac-modal-btn.confirm:disabled { opacity:0.4; cursor:not-allowed; }
   .fac-modal-btn.cancel { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
-  /* PATCH v6: Billable bubble indicator */
   .bubble.billable { border-style: dashed !important; border-color: #F6E05E !important; box-shadow: 0 0 30px rgba(246,224,94,0.35), inset 0 1px 0 rgba(255,255,255,0.1) !important; }
   .bubble-bill-badge { position: absolute; top: 6px; left: 6px; background: linear-gradient(135deg, #F6E05E, #D4A017); color: #1A1410; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 10px; display: flex; align-items: center; gap: 3px; z-index: 18; box-shadow: 0 2px 6px rgba(0,0,0,0.5); pointer-events: none; }
   .bubble.child-bubble .bubble-bill-badge { font-size: 7px; padding: 1px 5px; top: 3px; left: 3px; }
@@ -322,7 +314,6 @@
   .nb-billable-row input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: #F6E05E; }
   .nb-billable-row label { font-size: 11px; color: var(--text); cursor: pointer; flex: 1; }
   .nb-billable-row .nb-bill-hint { font-size: 9px; color: var(--muted); margin-top: 2px; }
-  /* PATCH v3: Heat map overlay */
   .heat-toggle { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 10px; font-family: 'DM Mono', monospace; cursor: pointer; letter-spacing: 0.04em; transition: all 0.15s; height: 26px; }
   .heat-toggle:hover { color: var(--text); border-color: var(--text); }
   .heat-toggle.on { background: rgba(252,129,74,0.15); border-color: #FC814A; color: #FC814A; box-shadow: 0 0 8px rgba(252,129,74,0.3); }
@@ -502,84 +493,42 @@
   <div class="ctx-item danger" id="ctxDelete">&#10005; Delete bubble</div>
 </div>
 <script>
-// ═══════════════════════════════════════════════
-// CONFIG — URL hardcoded, no localStorage needed
-// ═══════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqVHIs-EuELAmjMNV3nmFf1z2kPSU2OcRzczOGGtZQSEAsel53IKO5FFw1_odyc6G7BA/exec';
 const DEVICE_ID  = 'floor-tablet-' + (Math.random().toString(36).slice(2,6));
-
-// PATCH v4: Multi-site facility (locked per tablet via localStorage)
 const FACILITIES = ['MKE','SLC','BAL'];
 const FACILITY_KEY = 'atomix_facility';
 const FACILITY_LABELS = { MKE: 'Milwaukee', SLC: 'Salt Lake City', BAL: 'Baltimore' };
-function getFacility() {
-  try { return localStorage.getItem(FACILITY_KEY) || ''; } catch(e) { return ''; }
-}
-function setFacility(f) {
-  try { localStorage.setItem(FACILITY_KEY, f); } catch(e) {}
-}
+function getFacility() { try { return localStorage.getItem(FACILITY_KEY) || ''; } catch(e) { return ''; } }
+function setFacility(f) { try { localStorage.setItem(FACILITY_KEY, f); } catch(e) {} }
 let CURRENT_FACILITY = getFacility();
 
-// ═══════════════════════════════════════════════
-// PATCH v2 (2026-05-12): Reliable backend logging
-// ─ Replaces silent fire-and-forget no-cors writes
-// ─ Adds localStorage retry queue (survives reload, network blips)
-// ─ Adds real connectivity health check (no more fake green dot)
-// ─ Adds explicit CLOCK_IN events
-// ─ Protects local floor state from being wiped by an empty sync
-// ═══════════════════════════════════════════════
 const EVENT_QUEUE_KEY = 'atomix_event_queue_v1';
-let backendOk = null;        // null = unknown, true = healthy, false = failing
+let backendOk = null;
 let lastBackendCheck = 0;
 let flushInFlight = false;
 
-function getEventQueue() {
-  try { return JSON.parse(localStorage.getItem(EVENT_QUEUE_KEY) || '[]'); }
-  catch (e) { return []; }
-}
-function setEventQueue(q) {
-  try { localStorage.setItem(EVENT_QUEUE_KEY, JSON.stringify(q)); } catch (e) {}
-}
+function getEventQueue() { try { return JSON.parse(localStorage.getItem(EVENT_QUEUE_KEY) || '[]'); } catch (e) { return []; } }
+function setEventQueue(q) { try { localStorage.setItem(EVENT_QUEUE_KEY, JSON.stringify(q)); } catch (e) {} }
 function genEventId() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
   return Date.now() + '-' + Math.random().toString(36).slice(2, 10);
 }
 
-// ═══════════════════════════════════════════════
-// BACKEND LOGGING (queue + retry)
-// ═══════════════════════════════════════════════
 async function logEvent(type, data = {}) {
-  // PATCH v6: auto-derive billable flag from the destination bubble if not explicitly passed
   let billable = data.billable;
   if (typeof billable === 'undefined') {
     const targetName = data.toDept || data.fromDept;
-    if (targetName) {
-      const b = bubbles.find(x => x.name === targetName);
-      billable = b ? !!b.billable : false;
-    } else {
-      billable = false;
-    }
+    if (targetName) { const b = bubbles.find(x => x.name === targetName); billable = b ? !!b.billable : false; }
+    else { billable = false; }
   }
   const event = {
-    eventId:     genEventId(),
-    type,
-    timestamp:   new Date().toISOString(),
-    deviceId:    DEVICE_ID,
-    facility:    CURRENT_FACILITY || '',
-    billable:    billable ? 'true' : 'false',
-    empId:       data.empId       || '',
-    empName:     data.empName     || '',
-    fromDept:    data.fromDept    || '',
-    toDept:      data.toDept      || '',
-    hoursLogged: data.hoursLogged || '',
-    projectName: data.projectName || '',
-    shiftStart:  data.shiftStart  || '',
+    eventId: genEventId(), type, timestamp: new Date().toISOString(), deviceId: DEVICE_ID,
+    facility: CURRENT_FACILITY || '', billable: billable ? 'true' : 'false',
+    empId: data.empId || '', empName: data.empName || '', fromDept: data.fromDept || '',
+    toDept: data.toDept || '', hoursLogged: data.hoursLogged || '',
+    projectName: data.projectName || '', shiftStart: data.shiftStart || '',
   };
-  const q = getEventQueue();
-  q.push(event);
-  setEventQueue(q);
-  updateBackendDot();
-  flushEventQueue();
+  const q = getEventQueue(); q.push(event); setEventQueue(q); updateBackendDot(); flushEventQueue();
 }
 
 async function flushEventQueue() {
@@ -592,91 +541,60 @@ async function flushEventQueue() {
       try {
         const url = new URL(SCRIPT_URL);
         url.searchParams.set('method', 'post');
-        Object.entries(event).forEach(([k, v]) => {
-          url.searchParams.set(k, v == null ? '' : String(v));
-        });
+        Object.entries(event).forEach(([k, v]) => { url.searchParams.set(k, v == null ? '' : String(v)); });
         const res = await fetch(url.toString());
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        // success — drop this event from the queue
-        queue.shift();
-        setEventQueue(queue);
-        backendOk = true;
+        queue.shift(); setEventQueue(queue); backendOk = true;
       } catch (err) {
-        // network or server failure — stop flushing, keep queue intact, retry later
         backendOk = false;
         console.warn('[atomix] event send failed, will retry:', event.type, err.message);
         break;
       }
     }
-  } finally {
-    flushInFlight = false;
-    updateBackendDot();
-  }
+  } finally { flushInFlight = false; updateBackendDot(); }
 }
 
-// Real connectivity check — pings the script's known-good endpoint
 async function pingBackend() {
   try {
     const url = new URL(SCRIPT_URL);
     url.searchParams.set('action', 'live');
     const res = await fetch(url.toString());
-    backendOk = res.ok;
-    lastBackendCheck = Date.now();
-    // opportunistically flush any queued events when connectivity returns
+    backendOk = res.ok; lastBackendCheck = Date.now();
     if (backendOk && getEventQueue().length > 0) flushEventQueue();
-  } catch (e) {
-    backendOk = false;
-  }
+  } catch (e) { backendOk = false; }
   updateBackendDot();
 }
 
 function updateBackendDot() {
-  const dot  = document.getElementById('backendDot');
+  const dot = document.getElementById('backendDot');
   const pill = document.getElementById('backendPill');
-  const lbl  = document.getElementById('backendLbl');
+  const lbl = document.getElementById('backendLbl');
   if (!dot || !pill) return;
   const q = getEventQueue().length;
   if (backendOk === false) {
-    dot.textContent = '🔴';
-    lbl.textContent = q ? `${q} queued` : 'OFFLINE';
-    pill.title = q
-      ? `Backend OFFLINE — ${q} event${q===1?'':'s'} queued, will retry`
-      : 'Backend OFFLINE — last write failed';
+    dot.textContent = '🔴'; lbl.textContent = q ? `${q} queued` : 'OFFLINE';
+    pill.title = q ? `Backend OFFLINE — ${q} event${q===1?'':'s'} queued, will retry` : 'Backend OFFLINE — last write failed';
     pill.classList.add('backend-degraded');
   } else if (q > 0) {
-    dot.textContent = '🟡';
-    lbl.textContent = `${q} syncing`;
-    pill.title = `Syncing — ${q} event${q===1?'':'s'} queued`;
-    pill.classList.add('backend-degraded');
+    dot.textContent = '🟡'; lbl.textContent = `${q} syncing`;
+    pill.title = `Syncing — ${q} event${q===1?'':'s'} queued`; pill.classList.add('backend-degraded');
   } else if (backendOk === true) {
-    dot.textContent = '🟢';
-    lbl.textContent = 'Backend';
-    pill.title = 'Backend connected · all events synced';
-    pill.classList.remove('backend-degraded');
+    dot.textContent = '🟢'; lbl.textContent = 'Backend';
+    pill.title = 'Backend connected · all events synced'; pill.classList.remove('backend-degraded');
   } else {
-    dot.textContent = '⚪';
-    lbl.textContent = 'Checking...';
-    pill.title = 'Checking backend connection';
-    pill.classList.remove('backend-degraded');
+    dot.textContent = '⚪'; lbl.textContent = 'Checking...';
+    pill.title = 'Checking backend connection'; pill.classList.remove('backend-degraded');
   }
 }
 
-// Retry queue every 15s while there's anything pending
 setInterval(() => { if (getEventQueue().length) flushEventQueue(); }, 15000);
-// Retry when the network comes back or tab regains focus
 window.addEventListener('online', () => { pingBackend(); flushEventQueue(); });
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') { pingBackend(); flushEventQueue(); }
-});
-// Manual retry: click the backend pill
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { pingBackend(); flushEventQueue(); } });
 document.addEventListener('DOMContentLoaded', () => {
   const pill = document.getElementById('backendPill');
   if (pill) pill.addEventListener('click', () => { pingBackend(); flushEventQueue(); });
 });
 
-// ═══════════════════════════════════════════════
-// COLORS
-// ═══════════════════════════════════════════════
 const COLORS = [
   { bg:'rgba(163,243,197,0.18)', border:'#A3F3C5', glow:'rgba(163,243,197,0.3)' },
   { bg:'rgba(99,179,237,0.18)',  border:'#63B3ED', glow:'rgba(99,179,237,0.3)' },
@@ -686,12 +604,7 @@ const COLORS = [
   { bg:'rgba(237,100,166,0.18)', border:'#ED64A6', glow:'rgba(237,100,166,0.3)' },
   { bg:'rgba(72,187,120,0.18)',  border:'#48BB78', glow:'rgba(72,187,120,0.3)' },
 ];
-// ═══════════════════════════════════════════════
-// EMPLOYEES
-// PATCH v5: Hardcoded list is the MKE seed only. SLC/BAL start empty.
-// Each facility has its own localStorage namespace so rosters/bubbles
-// don't leak between sites.
-// ═══════════════════════════════════════════════
+
 const DEFAULT_EMPLOYEES_MKE = [
   { id:'e1',  name:'Kody M.',      fullName:'Kody Malas',                dept:null, clockIn:null, totalHrs:0, color:'#e89b6e', shiftStart:'06:00', shiftEnd:'14:30', isManager:true  },
   { id:'e2',  name:'Hugh M.',      fullName:'Hugh Myers',                dept:null, clockIn:null, totalHrs:0, color:'#6eb5e8', shiftStart:'12:00', shiftEnd:'20:30', isManager:true  },
@@ -750,8 +663,7 @@ const DEFAULT_EMPLOYEES_MKE = [
   { id:'e55', name:'Ofelia P.',    fullName:'Ofelia Cansino Pena',       dept:null, clockIn:null, totalHrs:0, color:'#e8c56e', shiftStart:'08:00', shiftEnd:'16:30', isManager:false },
   { id:'e56', name:'Ramar W.',     fullName:'Ramar Washington',          dept:null, clockIn:null, totalHrs:0, color:'#6ee8d8', shiftStart:'08:00', shiftEnd:'16:30', isManager:false },
 ];
-// PATCH v6: each bubble carries a `billable` flag. Hours logged in
-// billable bubbles are tracked separately and EXCLUDED from CPO.
+
 const DEPTS_DEFAULT = [
   { id:'b1', name:'AM Shift',         colorIdx:0, bx:300,  by:280, size:150, employees:[], parentId:null, billable:false },
   { id:'b2', name:'PM Shift',         colorIdx:1, bx:750,  by:220, size:130, employees:[], parentId:null, billable:false },
@@ -759,18 +671,25 @@ const DEPTS_DEFAULT = [
   { id:'b4', name:'Inbound',          colorIdx:3, bx:520,  by:560, size:95,  employees:[], parentId:null, billable:false },
   { id:'b5', name:'Inventory',        colorIdx:5, bx:880,  by:540, size:88,  employees:[], parentId:null, billable:false },
 ];
-// PATCH v5: facility-isolated state loaders
-function rosterKey(f)   { return 'atomix_roster_v1_'   + (f || 'NONE'); }
-function bubblesKey(f)  { return 'atomix_bubbles_v1_'  + (f || 'NONE'); }
+
+function rosterKey(f)  { return 'atomix_roster_v1_'  + (f || 'NONE'); }
+function bubblesKey(f) { return 'atomix_bubbles_v1_' + (f || 'NONE'); }
+
+// PATCH v7: Always seed from DEFAULT_EMPLOYEES_MKE if localStorage is blocked,
+// missing, or empty. Adds/deletes persist normally via localStorage on browsers that support it.
 function loadRoster(f) {
-  if (!f) return [];
   try {
-    const raw = localStorage.getItem(rosterKey(f));
-    if (raw) return JSON.parse(raw);
-  } catch(e) {}
-  if (f === 'MKE') return JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES_MKE));
-  return [];
+    const raw = localStorage.getItem(rosterKey(f || 'MKE'));
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.length > 0) return parsed;
+    }
+  } catch(e) {
+    console.warn('[atomix] localStorage unavailable — using hardcoded MKE roster');
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES_MKE));
 }
+
 function loadBubbles(f) {
   if (!f) return JSON.parse(JSON.stringify(DEPTS_DEFAULT));
   try {
@@ -782,12 +701,7 @@ function loadBubbles(f) {
 function saveRoster() {
   if (!CURRENT_FACILITY) return;
   try {
-    // Strip non-serializable timer refs
-    const clean = EMPLOYEES.map(e => {
-      const c = Object.assign({}, e);
-      delete c._breakTimer;
-      return c;
-    });
+    const clean = EMPLOYEES.map(e => { const c = Object.assign({}, e); delete c._breakTimer; return c; });
     localStorage.setItem(rosterKey(CURRENT_FACILITY), JSON.stringify(clean));
   } catch(e) {}
 }
@@ -818,27 +732,19 @@ function avatarUrl(emp) {
   const seed  = emp.avatarSeed  || encodeURIComponent(emp.fullName || emp.name);
   return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
 }
-// ═══════════════════════════════════════════════
-// PATCH v3: HEAT MAP — tint bubbles by labor cost intensity
-// ═══════════════════════════════════════════════
+
 const HOURLY_RATE = 18.50;
 const HEAT_THRESHOLDS = [
-  { max: 50,       color: '#A3F3C5', glow: 'rgba(163,243,197,0.5)' },  // Cold
-  { max: 150,      color: '#F6AD55', glow: 'rgba(246,173,85,0.5)' },   // Warm
-  { max: 300,      color: '#FC814A', glow: 'rgba(252,129,74,0.55)' },  // Hot
-  { max: Infinity, color: '#FC8181', glow: 'rgba(252,129,129,0.6)' },  // Boiling
+  { max: 50,       color: '#A3F3C5', glow: 'rgba(163,243,197,0.5)' },
+  { max: 150,      color: '#F6AD55', glow: 'rgba(246,173,85,0.5)' },
+  { max: 300,      color: '#FC814A', glow: 'rgba(252,129,74,0.55)' },
+  { max: Infinity, color: '#FC8181', glow: 'rgba(252,129,129,0.6)' },
 ];
 let heatMapMode = false;
 try { heatMapMode = localStorage.getItem('atomix_heatmap_on') === '1'; } catch (e) {}
 
-function getBubbleBurnRate(b) {
-  // Active headcount (including sub-bubble employees) × hourly rate
-  const total = getTotalEmpCount(b.id);
-  return total * HOURLY_RATE;
-}
-function getHeatTier(rate) {
-  return HEAT_THRESHOLDS.find(t => rate < t.max);
-}
+function getBubbleBurnRate(b) { return getTotalEmpCount(b.id) * HOURLY_RATE; }
+function getHeatTier(rate) { return HEAT_THRESHOLDS.find(t => rate < t.max); }
 function setupHeatToggle() {
   const btn = document.getElementById('heatToggleBtn');
   const legend = document.getElementById('heatLegend');
@@ -853,9 +759,6 @@ function setupHeatToggle() {
   applyMode();
 }
 
-// ═══════════════════════════════════════════════
-// OT DETECTION HELPERS
-// ═══════════════════════════════════════════════
 const OT_DAILY_HRS  = 8;
 const OT_WEEKLY_HRS = 40;
 function getEmpHours(emp) {
@@ -881,46 +784,29 @@ function updateOTAlert() {
     const wk = weeklyOT.length;
     const dy = dailyOT.filter(e => getEmpHours(e).week < OT_WEEKLY_HRS).length;
     text.textContent = (wk ? `${wk} weekly OT` : '') + (wk && dy ? ' · ' : '') + (dy ? `${dy} daily OT` : '');
-  } else {
-    alert.classList.remove('show');
-  }
+  } else { alert.classList.remove('show'); }
 }
-// ═══════════════════════════════════════════════
-// EMPLOYEE CREATOR
-// ═══════════════════════════════════════════════
+
 let empIdCounter = 100;
 function setupEmpCreator() {
   const btn    = document.getElementById('showEmpCreatorBtn');
   const form   = document.getElementById('newEmpForm');
   const cancel = document.getElementById('neCancel');
-  btn.addEventListener('click', () => {
-    form.classList.toggle('show');
-    if (form.classList.contains('show')) document.getElementById('neName').focus();
-  });
-  cancel.addEventListener('click', () => {
-    form.classList.remove('show');
-    document.getElementById('neName').value = '';
-  });
+  btn.addEventListener('click', () => { form.classList.toggle('show'); if (form.classList.contains('show')) document.getElementById('neName').focus(); });
+  cancel.addEventListener('click', () => { form.classList.remove('show'); document.getElementById('neName').value = ''; });
   document.getElementById('neCreate').addEventListener('click', () => {
     const name = document.getElementById('neName').value.trim();
     if (!name) { document.getElementById('neName').focus(); return; }
-    const shiftStart  = document.getElementById('neShiftStart').value || '06:00';
-    const shiftEnd    = document.getElementById('neShiftEnd').value   || '14:30';
-    const isManager   = document.getElementById('neRole').value === 'true';
+    const shiftStart = document.getElementById('neShiftStart').value || '06:00';
+    const shiftEnd   = document.getElementById('neShiftEnd').value   || '14:30';
+    const isManager  = document.getElementById('neRole').value === 'true';
     const colors = ['#e89b6e','#6eb5e8','#7be87a','#e86eae','#b56ee8','#e8c56e','#6ee8d8','#e86e6e','#6e8ee8','#8ee86e'];
     const color = colors[EMPLOYEES.length % colors.length];
     const newEmp = {
-      id:         'e_' + (++empIdCounter),
-      name:       name.length > 12 ? name.split(' ')[0] + ' ' + (name.split(' ')[1]?.[0] || '') + '.' : name,
-      fullName:   name,
-      dept:       null,
-      clockIn:    null,
-      totalHrs:   0,
-      weeklyHrs:  0,
-      color,
-      shiftStart,
-      shiftEnd,
-      isManager,
+      id: 'e_' + (++empIdCounter),
+      name: name.length > 12 ? name.split(' ')[0] + ' ' + (name.split(' ')[1]?.[0] || '') + '.' : name,
+      fullName: name, dept: null, clockIn: null, totalHrs: 0, weeklyHrs: 0,
+      color, shiftStart, shiftEnd, isManager,
     };
     EMPLOYEES.push(newEmp);
     document.getElementById('neName').value = '';
@@ -928,9 +814,7 @@ function setupEmpCreator() {
     addLog(`${newEmp.name} added to roster`, '');
     renderAll();
   });
-  document.getElementById('neName').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('neCreate').click();
-  });
+  document.getElementById('neName').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('neCreate').click(); });
 }
 function removeEmployee(empId) {
   const emp = EMPLOYEES.find(e => e.id === empId);
@@ -943,15 +827,10 @@ function removeEmployee(empId) {
   closeEmpModal();
   renderAll();
 }
-function updateClock() {
-  document.getElementById('clockDisplay').textContent =
-    new Date().toLocaleTimeString('en-US', { hour12:false });
-}
+function updateClock() { document.getElementById('clockDisplay').textContent = new Date().toLocaleTimeString('en-US', { hour12:false }); }
 setInterval(updateClock, 1000);
 updateClock();
-// ═══════════════════════════════════════════════
-// TUBES
-// ═══════════════════════════════════════════════
+
 function updateTubes() {
   const active = EMPLOYEES.filter(e => e.clockIn !== null);
   const nowMs = Date.now();
@@ -968,9 +847,7 @@ function updateTubes() {
   document.getElementById('tubeWeekVal').textContent   = `${weekHrs.toFixed(0)}h / ${weekTarget}h`;
 }
 setInterval(updateTubes, 5000);
-// ═══════════════════════════════════════════════
-// STATS
-// ═══════════════════════════════════════════════
+
 function updateStats() {
   const active = EMPLOYEES.filter(e => e.clockIn !== null);
   const nowMs  = Date.now();
@@ -982,9 +859,7 @@ function updateStats() {
   document.getElementById('statUnassigned').textContent = EMPLOYEES.filter(e=>!e.dept&&!e.clockIn).length;
 }
 setInterval(updateStats, 3000);
-// ═══════════════════════════════════════════════
-// LOG
-// ═══════════════════════════════════════════════
+
 function addLog(text, type) {
   const now = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
   logEntries.unshift({time:now,text,type});
@@ -993,21 +868,17 @@ function addLog(text, type) {
 }
 function renderLog() {
   document.getElementById('logList').innerHTML = logEntries.map(l =>
-    `<div class="log-item"><span class="log-time">${l.time}</span>
-    <span class="${l.type==='in'?'log-in':l.type==='out'?'log-out':l.type==='brk'?'log-brk':l.type==='lunch'?'log-lunch':''}">&nbsp;${l.text}</span></div>`
+    `<div class="log-item"><span class="log-time">${l.time}</span><span class="${l.type==='in'?'log-in':l.type==='out'?'log-out':l.type==='brk'?'log-brk':l.type==='lunch'?'log-lunch':''}">&nbsp;${l.text}</span></div>`
   ).join('');
 }
-// ═══════════════════════════════════════════════
-// BUBBLE RENDERING
-// ═══════════════════════════════════════════════
+
 function getTotalEmpCount(bubbleId) {
   const b = bubbles.find(x=>x.id===bubbleId);
   if (!b) return 0;
   return b.employees.length + bubbles.filter(x=>x.parentId===bubbleId).reduce((s,c)=>s+getTotalEmpCount(c.id),0);
 }
-function getBubbleSize(b) {
-  return Math.max(b.parentId?55:80, b.size+getTotalEmpCount(b.id)*(b.parentId?10:14));
-}
+function getBubbleSize(b) { return Math.max(b.parentId?55:80, b.size+getTotalEmpCount(b.id)*(b.parentId?10:14)); }
+
 function makeBubbleElement(b, isChild, parentEl, parentSize) {
   const color = COLORS[b.colorIdx%COLORS.length];
   const size  = getBubbleSize(b);
@@ -1038,19 +909,9 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
     countEl.textContent = total>b.employees.length?`${b.employees.length} + ${total-b.employees.length} sub`:`${b.employees.length} active`;
     inner.appendChild(countEl);
   }
-  const hrs = b.employees.reduce((s,eid)=>{
-    const emp=EMPLOYEES.find(e=>e.id===eid);
-    if(!emp)return s;
-    return s+(emp.clockIn?(Date.now()-emp.clockIn)/3600000+emp.totalHrs:emp.totalHrs);
-  },0);
-  if (hrs>0) {
-    const hrsEl=document.createElement('div');
-    hrsEl.className='bubble-hrs';
-    hrsEl.textContent=hrs.toFixed(1)+'h';
-    inner.appendChild(hrsEl);
-  }
+  const hrs = b.employees.reduce((s,eid)=>{ const emp=EMPLOYEES.find(e=>e.id===eid); if(!emp)return s; return s+(emp.clockIn?(Date.now()-emp.clockIn)/3600000+emp.totalHrs:emp.totalHrs); },0);
+  if (hrs>0) { const hrsEl=document.createElement('div'); hrsEl.className='bubble-hrs'; hrsEl.textContent=hrs.toFixed(1)+'h'; inner.appendChild(hrsEl); }
   el.appendChild(inner);
-  // PATCH v6: billable badge — visible flag that this bubble's hours don't count toward CPO
   if (b.billable) {
     const billBadge = document.createElement('div');
     billBadge.className = 'bubble-bill-badge';
@@ -1063,7 +924,6 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
   const total = getTotalEmpCount(b.id);
   hcBadge.innerHTML = `<span class="bubble-hc-icon">👤</span><span class="bubble-hc-num">${total}</span><span class="bubble-hc-label">on floor</span>`;
   el.appendChild(hcBadge);
-  // PATCH v3: Heat map overlay — tint border + add burn-rate badge
   if (heatMapMode) {
     const rate = getBubbleBurnRate(b);
     const tier = getHeatTier(rate);
@@ -1083,45 +943,29 @@ function makeBubbleElement(b, isChild, parentEl, parentSize) {
   el.appendChild(ctxBtn);
   const avatarSize = isChild?22:34;
   b.employees.forEach((eid,idx)=>{
-    const emp=EMPLOYEES.find(e=>e.id===eid);
-    if(!emp)return;
+    const emp=EMPLOYEES.find(e=>e.id===eid); if(!emp)return;
     const angle=(idx/Math.max(b.employees.length,1))*Math.PI*2-Math.PI/2;
-    const r=size*0.28;
-    const cx=size/2+Math.cos(angle)*r;
-    const cy=size/2+Math.sin(angle)*r;
+    const r=size*0.28; const cx=size/2+Math.cos(angle)*r; const cy=size/2+Math.sin(angle)*r;
     const empEl=document.createElement('div');
-    empEl.className='emp-float';
-    empEl.id='empfloat-'+eid;
-    empEl.setAttribute('data-empid',eid);
-    empEl.setAttribute('data-origin-bubble',b.id);
+    empEl.className='emp-float'; empEl.id='empfloat-'+eid;
+    empEl.setAttribute('data-empid',eid); empEl.setAttribute('data-origin-bubble',b.id);
     empEl.draggable=true;
     empEl.style.cssText=`left:${cx-avatarSize/2}px;top:${cy-avatarSize/2}px;width:${avatarSize}px;`;
     const imgWrap=document.createElement('div');
-    imgWrap.className='emp-float-img-wrap';
-    imgWrap.style.cssText=`width:${avatarSize}px;height:${avatarSize}px;`;
-    const img=document.createElement('img');
-    img.src=avatarUrl(emp);img.alt=emp.name;img.draggable=false;
-    imgWrap.appendChild(img);
-    empEl.appendChild(imgWrap);
-    const nameTag=document.createElement('div');
-    nameTag.className='emp-float-name';
+    imgWrap.className='emp-float-img-wrap'; imgWrap.style.cssText=`width:${avatarSize}px;height:${avatarSize}px;`;
+    const img=document.createElement('img'); img.src=avatarUrl(emp); img.alt=emp.name; img.draggable=false;
+    imgWrap.appendChild(img); empEl.appendChild(imgWrap);
+    const nameTag=document.createElement('div'); nameTag.className='emp-float-name';
     nameTag.textContent=emp.name.length>10?emp.name.slice(0,9)+'…':emp.name;
     empEl.appendChild(nameTag);
     empEl.addEventListener('dragstart',e=>onEmpDragStart(e,eid,b.id));
-    const otClass = getOTClass(emp);
-    if (otClass) empEl.classList.add(otClass);
+    const otClass = getOTClass(emp); if (otClass) empEl.classList.add(otClass);
     el.appendChild(empEl);
   });
   if (!isChild) {
-    el.addEventListener('mousedown',e=>{
-      if(e.target.classList.contains('emp-float')||e.target.closest('.emp-float')||e.target.classList.contains('bubble-context-btn')||e.target.closest('.child-bubble'))return;
-      startBubbleDrag(e,b.id);
-    });
+    el.addEventListener('mousedown',e=>{ if(e.target.classList.contains('emp-float')||e.target.closest('.emp-float')||e.target.classList.contains('bubble-context-btn')||e.target.closest('.child-bubble'))return; startBubbleDrag(e,b.id); });
   } else {
-    el.addEventListener('mousedown',e=>{
-      if(e.target.classList.contains('emp-float')||e.target.closest('.emp-float')||e.target.classList.contains('bubble-context-btn'))return;
-      e.stopPropagation();startChildBubbleDrag(e,b.id);
-    });
+    el.addEventListener('mousedown',e=>{ if(e.target.classList.contains('emp-float')||e.target.closest('.emp-float')||e.target.classList.contains('bubble-context-btn'))return; e.stopPropagation();startChildBubbleDrag(e,b.id); });
   }
   el.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();el.classList.add('drag-over');});
   el.addEventListener('dragleave',e=>{if(!el.contains(e.relatedTarget))el.classList.remove('drag-over');});
@@ -1133,16 +977,11 @@ function renderBubbles() {
   layer.querySelectorAll('.bubble').forEach(el=>el.remove());
   bubbles.filter(b=>!b.parentId).forEach(b=>{
     const {el,size}=makeBubbleElement(b,false,null,null);
-    bubbles.filter(c=>c.parentId===b.id).forEach(child=>{
-      const {el:childEl}=makeBubbleElement(child,true,el,size);
-      el.appendChild(childEl);
-    });
+    bubbles.filter(c=>c.parentId===b.id).forEach(child=>{ const {el:childEl}=makeBubbleElement(child,true,el,size); el.appendChild(childEl); });
     layer.appendChild(el);
   });
 }
-// ═══════════════════════════════════════════════
-// BUBBLE DRAG
-// ═══════════════════════════════════════════════
+
 let bubbleDrag=null;
 function startBubbleDrag(e,bubbleId){
   const b=bubbles.find(x=>x.id===bubbleId);if(!b)return;
@@ -1160,12 +999,9 @@ document.addEventListener('mousemove',e=>{
   const vx=(e.clientX-bubbleDrag.startScreenX)/zoomLevel+bubbleDrag.startBX;
   const vy=(e.clientY-bubbleDrag.startScreenY)/zoomLevel+bubbleDrag.startBY;
   const canvasEl=document.getElementById('canvasArea');
-  const maxX=canvasEl.clientWidth/zoomLevel-60;
-  const maxY=canvasEl.clientHeight/zoomLevel-60;
-  b.bx=Math.max(60,Math.min(vx,maxX));
-  b.by=Math.max(60,Math.min(vy,maxY));
-  el.style.left=(b.bx-size/2)+'px';
-  el.style.top=(b.by-size/2)+'px';
+  const maxX=canvasEl.clientWidth/zoomLevel-60; const maxY=canvasEl.clientHeight/zoomLevel-60;
+  b.bx=Math.max(60,Math.min(vx,maxX)); b.by=Math.max(60,Math.min(vy,maxY));
+  el.style.left=(b.bx-size/2)+'px'; el.style.top=(b.by-size/2)+'px';
 });
 document.addEventListener('mouseup',()=>{
   if(!bubbleDrag)return;
@@ -1190,8 +1026,7 @@ document.addEventListener('mousemove',e=>{
   const el=document.getElementById('bubble-'+childBubbleDrag.id);
   const parentEl=document.getElementById('bubble-'+b.parentId);if(!el||!parentEl)return;
   const parentRect=parentEl.getBoundingClientRect();
-  const parentSize=parseInt(parentEl.style.width);
-  const childSize=parseInt(el.style.width);
+  const parentSize=parseInt(parentEl.style.width); const childSize=parseInt(el.style.width);
   let nx=e.clientX-parentRect.left-childBubbleDrag.offX;
   let ny=e.clientY-parentRect.top-childBubbleDrag.offY;
   nx=Math.max(-childSize*0.3,Math.min(parentSize-childSize*0.7,nx));
@@ -1205,9 +1040,7 @@ document.addEventListener('mouseup',()=>{
   if(el){el.style.cursor='';el.style.zIndex=20;}
   childBubbleDrag=null;
 });
-// ═══════════════════════════════════════════════
-// EMPLOYEE DRAG
-// ═══════════════════════════════════════════════
+
 let currentDragEmpId=null;
 let currentDragOrigin=null;
 function onEmpDragStart(e,empId,originBubble){
@@ -1228,7 +1061,6 @@ function handleDropOnBubble(e,targetBubbleId){
     if(!emp.clockIn){
       emp.clockIn=Date.now();
       addLog(`${emp.name} → ${newBubble.name}`,'in');
-      // PATCH v2: emit explicit CLOCK_IN, then ASSIGN (kept for backwards compat with current Apps Script)
       logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:newBubble.name,shiftStart:emp.shiftStart||''});
       logEvent('ASSIGN', {empId:emp.id,empName:emp.fullName||emp.name,toDept:newBubble.name,shiftStart:emp.shiftStart||''});
       lastSyncPause=Date.now();
@@ -1239,26 +1071,16 @@ function handleDropOnBubble(e,targetBubbleId){
   }
   currentDragEmpId=null;currentDragOrigin=null;renderAll();
 }
-// ═══════════════════════════════════════════════
-// UNASSIGN / CLOCK OUT
-// ═══════════════════════════════════════════════
+
 function unassignEmployee(empId){
   const emp=EMPLOYEES.find(e=>e.id===empId);if(!emp)return;
-  if(emp.breakStatus){
-    clearTimeout(emp._breakTimer);
-    emp.breakStatus=null;emp.breakStart=null;emp.breakReturnBubble=null;emp._breakTimer=null;
-  }
+  if(emp.breakStatus){ clearTimeout(emp._breakTimer); emp.breakStatus=null;emp.breakStart=null;emp.breakReturnBubble=null;emp._breakTimer=null; }
   const fromBubble=emp.dept?bubbles.find(x=>x.id===emp.dept):null;
   const fromDeptName=fromBubble?fromBubble.name:'';
-  if(emp.dept){
-    if(fromBubble)fromBubble.employees=fromBubble.employees.filter(id=>id!==emp.id);
-    emp.dept=null;
-  }
+  if(emp.dept){ if(fromBubble)fromBubble.employees=fromBubble.employees.filter(id=>id!==emp.id); emp.dept=null; }
   if(emp.clockIn){
     const hrs=(Date.now()-emp.clockIn)/3600000;
-    emp.totalHrs+=hrs;
-    emp.weeklyHrs=(emp.weeklyHrs||0)+hrs;
-    emp.clockIn=null;
+    emp.totalHrs+=hrs; emp.weeklyHrs=(emp.weeklyHrs||0)+hrs; emp.clockIn=null;
     addLog(`${emp.name} clocked out (${hrs.toFixed(2)}h)`,'out');
     logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fromDeptName,hoursLogged:hrs.toFixed(2)});
   } else {
@@ -1267,27 +1089,19 @@ function unassignEmployee(empId){
   }
   lastSyncPause=Date.now();renderAll();
 }
-// ═══════════════════════════════════════════════
-// BREAK / LUNCH
-// ═══════════════════════════════════════════════
+
 const BREAK_DURATION  = 15*60*1000;
 const LUNCH_DURATION  = 30*60*1000;
 function handleDropOnBreakZone(empId, zoneType) {
-  const emp = EMPLOYEES.find(e => e.id === empId);
-  if (!emp) return;
+  const emp = EMPLOYEES.find(e => e.id === empId); if (!emp) return;
   if (emp.breakStatus) return;
   emp.breakReturnBubble = emp.dept || null;
-  const fromBubble   = emp.dept ? bubbles.find(x => x.id === emp.dept) : null;
+  const fromBubble = emp.dept ? bubbles.find(x => x.id === emp.dept) : null;
   const fromDeptName = fromBubble ? fromBubble.name : '';
-  if (emp.dept) {
-    const b = bubbles.find(x => x.id === emp.dept);
-    if (b) b.employees = b.employees.filter(id => id !== emp.id);
-    emp.dept = null;
-  }
-  emp.breakStatus = zoneType;
-  emp.breakStart  = Date.now();
-  const duration  = zoneType === 'break' ? BREAK_DURATION : LUNCH_DURATION;
-  const label     = zoneType === 'break' ? 'Break' : 'Lunch';
+  if (emp.dept) { const b = bubbles.find(x => x.id === emp.dept); if (b) b.employees = b.employees.filter(id => id !== emp.id); emp.dept = null; }
+  emp.breakStatus = zoneType; emp.breakStart = Date.now();
+  const duration = zoneType === 'break' ? BREAK_DURATION : LUNCH_DURATION;
+  const label = zoneType === 'break' ? 'Break' : 'Lunch';
   const eventType = zoneType === 'break' ? 'BREAK_START' : 'LUNCH_START';
   addLog(`${emp.name} on ${label}`, zoneType === 'break' ? 'brk' : 'lunch');
   logEvent(eventType, { empId: emp.id, empName: emp.fullName || emp.name, fromDept: fromDeptName });
@@ -1295,16 +1109,12 @@ function handleDropOnBreakZone(empId, zoneType) {
   renderAll();
 }
 function returnFromBreak(empId) {
-  const emp = EMPLOYEES.find(e => e.id === empId);
-  if (!emp || !emp.breakStatus) return;
+  const emp = EMPLOYEES.find(e => e.id === empId); if (!emp || !emp.breakStatus) return;
   clearTimeout(emp._breakTimer);
-  const label     = emp.breakStatus === 'break' ? 'Break' : 'Lunch';
+  const label = emp.breakStatus === 'break' ? 'Break' : 'Lunch';
   const eventType = emp.breakStatus === 'break' ? 'BREAK_END' : 'LUNCH_END';
   const returnBubble = emp.breakReturnBubble ? bubbles.find(x => x.id === emp.breakReturnBubble) : null;
-  if (returnBubble) {
-    returnBubble.employees.push(emp.id);
-    emp.dept = emp.breakReturnBubble;
-  }
+  if (returnBubble) { returnBubble.employees.push(emp.id); emp.dept = emp.breakReturnBubble; }
   logEvent(eventType, { empId: emp.id, empName: emp.fullName || emp.name, toDept: returnBubble ? returnBubble.name : '' });
   emp.breakStatus = null; emp.breakStart = null; emp.breakReturnBubble = null; emp._breakTimer = null;
   addLog(`${emp.name} back from ${label}`, 'in');
@@ -1312,25 +1122,20 @@ function returnFromBreak(empId) {
 }
 function renderBreakZones() {
   ['break','lunch'].forEach(zone=>{
-    const el=document.getElementById(zone==='break'?'breakAvatars':'lunchAvatars');
-    if(!el)return;
+    const el=document.getElementById(zone==='break'?'breakAvatars':'lunchAvatars'); if(!el)return;
     el.innerHTML='';
     EMPLOYEES.filter(e=>e.breakStatus===zone).forEach(emp=>{
-      const wrap=document.createElement('div');
-      wrap.className='break-avatar';wrap.draggable=true;
+      const wrap=document.createElement('div'); wrap.className='break-avatar'; wrap.draggable=true;
       const elapsed=Date.now()-(emp.breakStart||Date.now());
       const total=zone==='break'?BREAK_DURATION:LUNCH_DURATION;
       const remaining=Math.max(0,Math.ceil((total-elapsed)/60000));
-      const tip=document.createElement('div');
-      tip.className='break-tip';tip.textContent=`${emp.name} · ${remaining}m left`;
-      wrap.appendChild(tip);
-      const img=document.createElement('img');img.src=avatarUrl(emp);img.alt=emp.name;
-      wrap.appendChild(img);
+      const tip=document.createElement('div'); tip.className='break-tip'; tip.textContent=`${emp.name} · ${remaining}m left`; wrap.appendChild(tip);
+      const img=document.createElement('img'); img.src=avatarUrl(emp); img.alt=emp.name; wrap.appendChild(img);
       wrap.addEventListener('dragstart',e=>{
-        currentDragEmpId=emp.id;currentDragOrigin='break';
+        currentDragEmpId=emp.id; currentDragOrigin='break';
         clearTimeout(emp._breakTimer);
-        emp.breakStatus=null;emp.breakStart=null;emp.breakReturnBubble=null;emp._breakTimer=null;
-        e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',emp.id);
+        emp.breakStatus=null; emp.breakStart=null; emp.breakReturnBubble=null; emp._breakTimer=null;
+        e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',emp.id);
       });
       el.appendChild(wrap);
     });
@@ -1338,20 +1143,17 @@ function renderBreakZones() {
 }
 function setupBreakZones(){
   ['breakZone','lunchZone'].forEach(zoneId=>{
-    const zone=document.getElementById(zoneId);if(!zone)return;
+    const zone=document.getElementById(zoneId); if(!zone)return;
     zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over-zone');});
     zone.addEventListener('dragleave',e=>{if(!zone.contains(e.relatedTarget))zone.classList.remove('drag-over-zone');});
     zone.addEventListener('drop',e=>{
-      e.preventDefault();zone.classList.remove('drag-over-zone');
+      e.preventDefault(); zone.classList.remove('drag-over-zone');
       const empId=e.dataTransfer.getData('text/plain')||currentDragEmpId;
-      handleDropOnBreakZone(empId,zone.dataset.zone);
-      currentDragEmpId=null;
+      handleDropOnBreakZone(empId,zone.dataset.zone); currentDragEmpId=null;
     });
   });
 }
-// ═══════════════════════════════════════════════
-// EMPLOYEE POOL
-// ═══════════════════════════════════════════════
+
 function renderPool(){
   const grid=document.getElementById('poolGrid');
   const unassigned=EMPLOYEES.filter(e=>!e.dept&&!e.breakStatus);
@@ -1362,10 +1164,10 @@ function renderPool(){
     const otClass = getOTClass(emp);
     const { today } = getEmpHours(emp);
     const card=document.createElement('div');
-    card.className='emp-card'+(emp.clockIn?' active':'')+( otClass ? ' '+otClass : '');
-    card.draggable=true;card.setAttribute('data-empid',emp.id);card.title=emp.fullName||emp.name;
+    card.className='emp-card'+(emp.clockIn?' active':'')+(otClass?' '+otClass:'');
+    card.draggable=true; card.setAttribute('data-empid',emp.id); card.title=emp.fullName||emp.name;
     const hrsLabel = today > 0 ? ` ${today.toFixed(1)}h` : '';
-    const otIcon   = otClass === 'ot-weekly' ? ' 🔴' : otClass === 'ot-daily' ? ' 🟠' : '';
+    const otIcon = otClass==='ot-weekly'?' 🔴':otClass==='ot-daily'?' 🟠':'';
     card.innerHTML=`<img src="${avatarUrl(emp)}" alt="${emp.name}" draggable="false"><span>${emp.name}${emp.isManager?' ★':''}${emp.clockIn?' ●':''}${hrsLabel}${otIcon}</span>`;
     card.addEventListener('dragstart',e=>onEmpDragStart(e,emp.id,'pool'));
     card.addEventListener('click',e=>{if(!e.defaultPrevented)openEmpModal(emp.id);});
@@ -1373,135 +1175,107 @@ function renderPool(){
   });
   updateOTAlert();
 }
-// ═══════════════════════════════════════════════
-// BUBBLE CREATOR
-// ═══════════════════════════════════════════════
+
 function setupCreator(){
   const btn=document.getElementById('showCreatorBtn');
   const form=document.getElementById('newBubbleForm');
   const colorRow=document.getElementById('colorRow');
   COLORS.forEach((c,i)=>{
     const dot=document.createElement('div');
-    dot.className='color-dot'+(i===0?' selected':'');
-    dot.style.background=c.border;
-    dot.addEventListener('click',()=>{
-      document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('selected'));
-      dot.classList.add('selected');selectedColorIdx=i;
-    });
+    dot.className='color-dot'+(i===0?' selected':''); dot.style.background=c.border;
+    dot.addEventListener('click',()=>{ document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('selected')); dot.classList.add('selected'); selectedColorIdx=i; });
     colorRow.appendChild(dot);
   });
   btn.addEventListener('click',()=>{form.classList.toggle('show');if(form.classList.contains('show'))refreshParentDropdown();});
   document.getElementById('nbCreate').addEventListener('click',()=>{
-    const name=document.getElementById('nbName').value.trim();if(!name)return;
+    const name=document.getElementById('nbName').value.trim(); if(!name)return;
     const parentId=document.getElementById('nbParent').value||null;
     const billable=document.getElementById('nbBillable').checked;
     const canvasEl=document.getElementById('canvasArea');
     const newBubble={id:'b'+(++bubbleIdCounter),name,colorIdx:selectedColorIdx,bx:(canvasEl.clientWidth/2-panX)/zoomLevel,by:(canvasEl.clientHeight/2-panY)/zoomLevel,cx:0.4+Math.random()*0.2,cy:0.4+Math.random()*0.2,size:parentId?55:90,employees:[],parentId:parentId||null,billable:billable};
     bubbles.push(newBubble);
-    document.getElementById('nbName').value='';
-    document.getElementById('nbParent').value='';
-    document.getElementById('nbBillable').checked=false;
+    document.getElementById('nbName').value=''; document.getElementById('nbParent').value=''; document.getElementById('nbBillable').checked=false;
     form.classList.remove('show');
     addLog(`"${name}" created${billable?' (BILLABLE)':''}${parentId?' inside '+bubbles.find(b=>b.id===parentId)?.name:''}`, '');
     renderAll();
   });
 }
 function refreshParentDropdown(){
-  const sel=document.getElementById('nbParent');const current=sel.value;
+  const sel=document.getElementById('nbParent'); const current=sel.value;
   sel.innerHTML='<option value="">— Standalone bubble —</option>';
   bubbles.filter(b=>!b.parentId).forEach(b=>{const opt=document.createElement('option');opt.value=b.id;opt.textContent=`Inside: ${b.name}`;sel.appendChild(opt);});
   sel.value=current;
 }
-// ═══════════════════════════════════════════════
-// CONTEXT MENU
-// ═══════════════════════════════════════════════
-function showCtxMenu(e,bubbleId){
-  ctxTarget=bubbleId;
-  const menu=document.getElementById('ctxMenu');
-  menu.style.left=e.clientX+'px';menu.style.top=e.clientY+'px';menu.classList.add('show');
-}
+
+function showCtxMenu(e,bubbleId){ ctxTarget=bubbleId; const menu=document.getElementById('ctxMenu'); menu.style.left=e.clientX+'px'; menu.style.top=e.clientY+'px'; menu.classList.add('show'); }
 document.addEventListener('click',e=>{if(!e.target.closest('#ctxMenu'))document.getElementById('ctxMenu').classList.remove('show');});
 document.getElementById('ctxSP').addEventListener('click',()=>{if(ctxTarget)openSpModal(ctxTarget);});
 document.getElementById('ctxRename').addEventListener('click',()=>{
-  if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);if(!b)return;
-  const n=prompt('Rename department:',b.name);if(n){b.name=n.trim();renderAll();}
+  if(!ctxTarget)return; const b=bubbles.find(x=>x.id===ctxTarget); if(!b)return;
+  const n=prompt('Rename department:',b.name); if(n){b.name=n.trim();renderAll();}
 });
-// PATCH v6: toggle billable on/off via context menu
 document.getElementById('ctxBillable').addEventListener('click',()=>{
-  if(!ctxTarget)return;
-  const b=bubbles.find(x=>x.id===ctxTarget);
-  if(!b)return;
+  if(!ctxTarget)return; const b=bubbles.find(x=>x.id===ctxTarget); if(!b)return;
   b.billable=!b.billable;
   addLog(`"${b.name}" marked as ${b.billable?'BILLABLE (excluded from CPO)':'non-billable'}`, '');
   renderAll();
 });
 document.getElementById('ctxRemoveAll').addEventListener('click',()=>{
-  if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);if(!b)return;
-  b.employees.slice().forEach(eid=>unassignEmployee(eid));lastSyncPause=Date.now()+20000;renderAll();
+  if(!ctxTarget)return; const b=bubbles.find(x=>x.id===ctxTarget); if(!b)return;
+  b.employees.slice().forEach(eid=>unassignEmployee(eid)); lastSyncPause=Date.now()+20000; renderAll();
 });
 document.getElementById('ctxDelete').addEventListener('click',()=>{
-  if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);
-  if(b){
-    b.employees.forEach(eid=>{const emp=EMPLOYEES.find(e=>e.id===eid);if(emp)emp.dept=null;});
-    bubbles.filter(c=>c.parentId===ctxTarget).forEach(c=>{c.parentId=null;c.bx=400+Math.random()*600;c.by=300+Math.random()*400;});
-  }
+  if(!ctxTarget)return; const b=bubbles.find(x=>x.id===ctxTarget);
+  if(b){ b.employees.forEach(eid=>{const emp=EMPLOYEES.find(e=>e.id===eid);if(emp)emp.dept=null;}); bubbles.filter(c=>c.parentId===ctxTarget).forEach(c=>{c.parentId=null;c.bx=400+Math.random()*600;c.by=300+Math.random()*400;}); }
   bubbles=bubbles.filter(x=>x.id!==ctxTarget);
-  addLog(`Dept "${b?.name}" deleted`,'');renderAll();
+  addLog(`Dept "${b?.name}" deleted`,''); renderAll();
 });
-// ═══════════════════════════════════════════════
-// BG CANVAS
-// ═══════════════════════════════════════════════
+
 function drawBg(){
-  const canvas=document.getElementById('bgCanvas');
-  const ca=document.getElementById('canvasArea');
-  canvas.width=ca.clientWidth;canvas.height=ca.clientHeight;
+  const canvas=document.getElementById('bgCanvas'); const ca=document.getElementById('canvasArea');
+  canvas.width=ca.clientWidth; canvas.height=ca.clientHeight;
   const ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.strokeStyle='rgba(163,243,197,0.03)';ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(163,243,197,0.03)'; ctx.lineWidth=1;
   const grid=40;
   for(let x=0;x<canvas.width;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
   for(let y=0;y<canvas.height;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
 }
-// ═══════════════════════════════════════════════
-// RENDER ALL
-// ═══════════════════════════════════════════════
+
 function renderAll(){
-  renderBubbles();renderPool();renderBreakZones();
+  renderBubbles(); renderPool(); renderBreakZones();
   if(document.getElementById('rosterPanel')?.classList.contains('open'))renderRoster();
-  updateStats();updateTubes();updateOTAlert();
-  // PATCH v5: persist facility-isolated state on every render
+  updateStats(); updateTubes(); updateOTAlert();
   saveRoster(); saveBubbles();
 }
-// ═══════════════════════════════════════════════
-// PAN + ZOOM
-// ═══════════════════════════════════════════════
+
 let zoomLevel=0.55,panX=0,panY=0,lastSyncPause=0;
 const ZOOM_MIN=0.2,ZOOM_MAX=3.0,ZOOM_STEP=0.1;
 let isPanning=false,panStart={x:0,y:0};
 function applyTransform(animate){
-  const layer=document.getElementById('bubbleLayer');if(!layer)return;
+  const layer=document.getElementById('bubbleLayer'); if(!layer)return;
   layer.style.transition=animate?'transform 0.18s ease':'none';
   layer.style.transform=`translate(${panX}px,${panY}px) scale(${zoomLevel})`;
   document.getElementById('zoomVal').textContent=Math.round(zoomLevel*100)+'%';
 }
 function zoomAroundPoint(cx,cy,newZoom){
-  const oldZoom=zoomLevel;zoomLevel=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,newZoom));
-  const ca=document.getElementById('canvasArea');const rect=ca.getBoundingClientRect();
+  const oldZoom=zoomLevel; zoomLevel=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,newZoom));
+  const ca=document.getElementById('canvasArea'); const rect=ca.getBoundingClientRect();
   const mx=cx-rect.left,my=cy-rect.top;
-  panX=mx-(mx-panX)*(zoomLevel/oldZoom);panY=my-(my-panY)*(zoomLevel/oldZoom);
+  panX=mx-(mx-panX)*(zoomLevel/oldZoom); panY=my-(my-panY)*(zoomLevel/oldZoom);
   applyTransform(false);
 }
 function fitAll(){
   if(!bubbles.length)return;
   const canvas=document.getElementById('canvasArea');
   const cw=canvas.clientWidth,ch=canvas.clientHeight,pad=80;
-  const xs=bubbles.map(b=>b.bx).filter(Boolean);const ys=bubbles.map(b=>b.by).filter(Boolean);
+  const xs=bubbles.map(b=>b.bx).filter(Boolean); const ys=bubbles.map(b=>b.by).filter(Boolean);
   if(!xs.length)return;
   const minX=Math.min(...xs)-120,minY=Math.min(...ys)-120;
   const maxX=Math.max(...xs)+120,maxY=Math.max(...ys)+120;
   const contentW=maxX-minX,contentH=maxY-minY;
   zoomLevel=Math.min((cw-pad*2)/contentW,(ch-pad*2)/contentH,1.2);
-  panX=(cw/2)-(minX+contentW/2)*zoomLevel;panY=(ch/2)-(minY+contentH/2)*zoomLevel;
+  panX=(cw/2)-(minX+contentW/2)*zoomLevel; panY=(ch/2)-(minY+contentH/2)*zoomLevel;
   applyTransform(true);
 }
 document.getElementById('fitAllBtn').addEventListener('click',fitAll);
@@ -1511,17 +1285,15 @@ document.getElementById('canvasArea').addEventListener('wheel',e=>{e.preventDefa
 const ca=document.getElementById('canvasArea');
 ca.addEventListener('mousedown',e=>{
   if(e.button===1||(e.button===0&&!e.target.closest('.bubble'))){
-    isPanning=true;panStart={x:e.clientX-panX,y:e.clientY-panY};ca.classList.add('panning');e.preventDefault();
+    isPanning=true; panStart={x:e.clientX-panX,y:e.clientY-panY}; ca.classList.add('panning'); e.preventDefault();
   }
 });
 document.addEventListener('mousemove',e=>{if(!isPanning)return;panX=e.clientX-panStart.x;panY=e.clientY-panStart.y;applyTransform(false);});
 document.addEventListener('mouseup',e=>{if(isPanning){isPanning=false;ca.classList.remove('panning');}});
-// ═══════════════════════════════════════════════
-// EMPLOYEE MODAL
-// ═══════════════════════════════════════════════
+
 let modalEmpId=null;
 function openEmpModal(empId){
-  const emp=EMPLOYEES.find(e=>e.id===empId);if(!emp)return;
+  const emp=EMPLOYEES.find(e=>e.id===empId); if(!emp)return;
   modalEmpId=empId;
   document.getElementById('empModalAvatar').src=avatarUrl(emp);
   document.getElementById('empModalName').textContent=emp.fullName||emp.name;
@@ -1531,13 +1303,13 @@ function openEmpModal(empId){
   else if(emp.dept){const b=bubbles.find(x=>x.id===emp.dept);status=b?`In: ${b.name}`:'Assigned';}
   if(emp.clockIn)status+=' · Clocked in '+new Date(emp.clockIn).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
   const { today, week } = getEmpHours(emp);
-  if (week >= OT_WEEKLY_HRS)       status += ` · 🔴 WEEKLY OT (${week.toFixed(1)}h)`;
-  else if (today >= OT_DAILY_HRS)  status += ` · 🟠 Daily OT (${today.toFixed(1)}h today)`;
+  if (week >= OT_WEEKLY_HRS) status += ` · 🔴 WEEKLY OT (${week.toFixed(1)}h)`;
+  else if (today >= OT_DAILY_HRS) status += ` · 🟠 Daily OT (${today.toFixed(1)}h today)`;
   document.getElementById('empModalStatus').textContent=status;
   const deptSel=document.getElementById('empModalDept');
   deptSel.innerHTML='<option value="">— Unassigned —</option>';
   bubbles.forEach(b=>{
-    const opt=document.createElement('option');opt.value=b.id;
+    const opt=document.createElement('option'); opt.value=b.id;
     const parent=b.parentId?bubbles.find(p=>p.id===b.parentId):null;
     opt.textContent=parent?`${parent.name} › ${b.name}`:b.name;
     if(b.id===emp.dept)opt.selected=true;
@@ -1545,13 +1317,13 @@ function openEmpModal(empId){
   });
   document.getElementById('empModalStart').value=emp.shiftStart||'07:00';
   document.getElementById('empModalEnd').value=emp.shiftEnd||'15:30';
-  let hrs=emp.totalHrs;if(emp.clockIn)hrs+=(Date.now()-emp.clockIn)/3600000;
-  document.getElementById('empModalHrs').textContent=hrs.toFixed(2)+'h today · '+(( (emp.weeklyHrs||0)+hrs).toFixed(1))+'h week';
+  let hrs=emp.totalHrs; if(emp.clockIn)hrs+=(Date.now()-emp.clockIn)/3600000;
+  document.getElementById('empModalHrs').textContent=hrs.toFixed(2)+'h today · '+((emp.weeklyHrs||0)+hrs).toFixed(1)+'h week';
   document.getElementById('empModalOverlay').classList.add('show');
 }
 function closeEmpModal(){document.getElementById('empModalOverlay').classList.remove('show');modalEmpId=null;}
 function saveEmpModal(){
-  const emp=EMPLOYEES.find(e=>e.id===modalEmpId);if(!emp)return;
+  const emp=EMPLOYEES.find(e=>e.id===modalEmpId); if(!emp)return;
   if(modalEmpId&&selectedAvatarSeed){emp.avatarStyle=activeAvatarStyle;emp.avatarSeed=selectedAvatarSeed;}
   const newDeptId=document.getElementById('empModalDept').value||null;
   emp.shiftStart=document.getElementById('empModalStart').value;
@@ -1563,27 +1335,21 @@ function saveEmpModal(){
       const newB=bubbles.find(x=>x.id===newDeptId);
       if(newB&&!newB.employees.includes(emp.id)){
         newB.employees.push(emp.id);
-        if(!emp.clockIn){
-          emp.clockIn=Date.now();
-          // PATCH v2: emit CLOCK_IN when manual assignment starts a shift
-          logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:newB.name,shiftStart:emp.shiftStart||''});
-        }
+        if(!emp.clockIn){ emp.clockIn=Date.now(); logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:newB.name,shiftStart:emp.shiftStart||''}); }
       }
       addLog(`${emp.name} assigned to ${newB?.name||''}`,'in');
-    } else {unassignEmployee(emp.id);}
+    } else { unassignEmployee(emp.id); }
   }
-  closeEmpModal();renderAll();
+  closeEmpModal(); renderAll();
 }
-// ═══════════════════════════════════════════════
-// AVATAR PICKER
-// ═══════════════════════════════════════════════
+
 function buildAvatarTab(empId){
-  const emp=EMPLOYEES.find(e=>e.id===empId);if(!emp)return;
-  activeAvatarStyle=emp.avatarStyle||'personas';selectedAvatarSeed=emp.avatarSeed||null;
-  const styleRow=document.getElementById('avatarStyleRow');styleRow.innerHTML='';
+  const emp=EMPLOYEES.find(e=>e.id===empId); if(!emp)return;
+  activeAvatarStyle=emp.avatarStyle||'personas'; selectedAvatarSeed=emp.avatarSeed||null;
+  const styleRow=document.getElementById('avatarStyleRow'); styleRow.innerHTML='';
   AVATAR_STYLES.forEach(s=>{
     const btn=document.createElement('button');
-    btn.className='avatar-style-btn'+(s.key===activeAvatarStyle?' active':'');btn.textContent=s.label;
+    btn.className='avatar-style-btn'+(s.key===activeAvatarStyle?' active':''); btn.textContent=s.label;
     btn.addEventListener('click',()=>{activeAvatarStyle=s.key;styleRow.querySelectorAll('.avatar-style-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');populateAvatarGrid(empId);});
     styleRow.appendChild(btn);
   });
@@ -1591,31 +1357,29 @@ function buildAvatarTab(empId){
 }
 function populateAvatarGrid(empId){
   const emp=EMPLOYEES.find(e=>e.id===empId);
-  const grid=document.getElementById('avatarGrid');grid.innerHTML='';
+  const grid=document.getElementById('avatarGrid'); grid.innerHTML='';
   const seeds=[emp.name,emp.id,...Array.from({length:13},(_,i)=>emp.name+i)];
   seeds.forEach(seed=>{
     const encoded=encodeURIComponent(seed);
     const url=`https://api.dicebear.com/7.x/${activeAvatarStyle}/svg?seed=${encoded}&backgroundColor=transparent`;
-    const wrap=document.createElement('div');wrap.className='avatar-option'+(selectedAvatarSeed===seed?' selected':'');
-    const img=document.createElement('img');img.src=url;img.alt='';wrap.appendChild(img);
+    const wrap=document.createElement('div'); wrap.className='avatar-option'+(selectedAvatarSeed===seed?' selected':'');
+    const img=document.createElement('img'); img.src=url; img.alt=''; wrap.appendChild(img);
     wrap.addEventListener('click',()=>{selectedAvatarSeed=seed;grid.querySelectorAll('.avatar-option').forEach(o=>o.classList.remove('selected'));wrap.classList.add('selected');document.getElementById('empModalAvatar').src=url;});
     grid.appendChild(wrap);
   });
 }
 document.addEventListener('click',e=>{
-  const tab=e.target.closest('.modal-tab');if(!tab)return;
+  const tab=e.target.closest('.modal-tab'); if(!tab)return;
   const panel=tab.dataset.tab;
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===panel));
   document.getElementById('tabProfile').classList.toggle('active',panel==='profile');
   document.getElementById('tabAvatar').classList.toggle('active',panel==='avatar');
   if(panel==='avatar'&&modalEmpId)buildAvatarTab(modalEmpId);
 });
-// ═══════════════════════════════════════════════
-// SPECIAL PROJECT MODAL
-// ═══════════════════════════════════════════════
+
 let spBubbleId=null;
 function openSpModal(bubbleId){
-  const b=bubbles.find(x=>x.id===bubbleId);if(!b)return;spBubbleId=bubbleId;
+  const b=bubbles.find(x=>x.id===bubbleId); if(!b)return; spBubbleId=bubbleId;
   document.getElementById('spModalTitle').textContent=b.name;
   document.getElementById('spName').value=b.spName||'';
   document.getElementById('spQuotedHrs').value=b.spQuotedHrs||'';
@@ -1623,7 +1387,7 @@ function openSpModal(bubbleId){
   document.getElementById('spSupplies').value=b.spSupplies||'';
   document.getElementById('spSupplyCost').value=b.spSupplyCost||'';
   document.getElementById('spBillRate').value=b.spBillRate||'';
-  updateSpTotal();document.getElementById('spModalOverlay').classList.add('show');
+  updateSpTotal(); document.getElementById('spModalOverlay').classList.add('show');
 }
 function updateSpTotal(){
   const hrs=parseFloat(document.getElementById('spQuotedHrs').value)||0;
@@ -1633,56 +1397,54 @@ function updateSpTotal(){
 }
 function closeSpModal(){document.getElementById('spModalOverlay').classList.remove('show');spBubbleId=null;}
 function saveSpModal(){
-  const b=bubbles.find(x=>x.id===spBubbleId);if(!b)return;
+  const b=bubbles.find(x=>x.id===spBubbleId); if(!b)return;
   b.spName=document.getElementById('spName').value;
   b.spQuotedHrs=parseFloat(document.getElementById('spQuotedHrs').value)||0;
   b.spActualHrs=parseFloat(document.getElementById('spActualHrs').value)||0;
   b.spSupplies=document.getElementById('spSupplies').value;
   b.spSupplyCost=parseFloat(document.getElementById('spSupplyCost').value)||0;
   b.spBillRate=parseFloat(document.getElementById('spBillRate').value)||0;
-  addLog(`SP "${b.spName||b.name}" saved`,'');closeSpModal();renderAll();
+  addLog(`SP "${b.spName||b.name}" saved`,''); closeSpModal(); renderAll();
 }
-// ═══════════════════════════════════════════════
-// ROSTER
-// ═══════════════════════════════════════════════
+
 const DEPT_COLORS_HEX=['#A3F3C5','#63B3ED','#F6AD55','#9F7AEA','#FC814A','#ED64A6','#48BB78'];
 let rosterCollapsed={};
 function renderRoster(){
-  const body=document.getElementById('rosterBody');const footer=document.getElementById('rosterFooter');
-  if(!body)return;body.innerHTML='';
+  const body=document.getElementById('rosterBody'); const footer=document.getElementById('rosterFooter');
+  if(!body)return; body.innerHTML='';
   const totalActive=EMPLOYEES.filter(e=>e.clockIn||e.dept).length;
   bubbles.filter(b=>!b.parentId).forEach(b=>{
     const color=DEPT_COLORS_HEX[b.colorIdx%DEPT_COLORS_HEX.length];
-    const allDeptEmps=getDeptEmps(b.id);if(allDeptEmps.length===0)return;
+    const allDeptEmps=getDeptEmps(b.id); if(allDeptEmps.length===0)return;
     const isCollapsed=rosterCollapsed[b.id];
-    const section=document.createElement('div');section.className='roster-dept'+(isCollapsed?' collapsed':'');
-    const hdr=document.createElement('div');hdr.className='roster-dept-header';
+    const section=document.createElement('div'); section.className='roster-dept'+(isCollapsed?' collapsed':'');
+    const hdr=document.createElement('div'); hdr.className='roster-dept-header';
     hdr.innerHTML=`<div class="roster-dept-name"><div class="roster-dept-dot" style="background:${color}"></div>${b.name}</div><div style="display:flex;align-items:center;gap:6px;"><span class="roster-dept-count">${allDeptEmps.length}</span><span class="roster-dept-chevron">▾</span></div>`;
     hdr.addEventListener('click',()=>{rosterCollapsed[b.id]=!rosterCollapsed[b.id];renderRoster();});
     section.appendChild(hdr);
     const children=bubbles.filter(c=>c.parentId===b.id);
-    const membersWrap=document.createElement('div');membersWrap.className='roster-members';
+    const membersWrap=document.createElement('div'); membersWrap.className='roster-members';
     EMPLOYEES.filter(e=>e.dept===b.id).forEach(emp=>membersWrap.appendChild(makeMemberRow(emp,color)));
     children.forEach(child=>{
       const childColor=DEPT_COLORS_HEX[child.colorIdx%DEPT_COLORS_HEX.length];
-      const childEmps=EMPLOYEES.filter(e=>e.dept===child.id);if(childEmps.length===0)return;
+      const childEmps=EMPLOYEES.filter(e=>e.dept===child.id); if(childEmps.length===0)return;
       const subLabel=document.createElement('div');
       subLabel.style.cssText=`font-size:9px;color:${childColor};text-transform:uppercase;letter-spacing:0.07em;padding:4px 8px 2px;margin-top:4px;`;
-      subLabel.textContent='↳ '+child.name;membersWrap.appendChild(subLabel);
+      subLabel.textContent='↳ '+child.name; membersWrap.appendChild(subLabel);
       childEmps.forEach(emp=>membersWrap.appendChild(makeMemberRow(emp,childColor)));
     });
-    section.appendChild(membersWrap);body.appendChild(section);
+    section.appendChild(membersWrap); body.appendChild(section);
   });
   const unassigned=EMPLOYEES.filter(e=>!e.dept&&!e.breakStatus);
   if(unassigned.length>0){
-    const section=document.createElement('div');section.className='roster-dept roster-unassigned'+(rosterCollapsed['_unassigned']?' collapsed':'');
-    const hdr=document.createElement('div');hdr.className='roster-dept-header';
+    const section=document.createElement('div'); section.className='roster-dept roster-unassigned'+(rosterCollapsed['_unassigned']?' collapsed':'');
+    const hdr=document.createElement('div'); hdr.className='roster-dept-header';
     hdr.innerHTML=`<div class="roster-dept-name"><div class="roster-dept-dot" style="background:var(--muted)"></div>Unassigned</div><div style="display:flex;align-items:center;gap:6px;"><span class="roster-dept-count">${unassigned.length}</span><span class="roster-dept-chevron">▾</span></div>`;
     hdr.addEventListener('click',()=>{rosterCollapsed['_unassigned']=!rosterCollapsed['_unassigned'];renderRoster();});
     section.appendChild(hdr);
-    const wrap=document.createElement('div');wrap.className='roster-members';
+    const wrap=document.createElement('div'); wrap.className='roster-members';
     unassigned.forEach(emp=>wrap.appendChild(makeMemberRow(emp,'var(--muted)')));
-    section.appendChild(wrap);body.appendChild(section);
+    section.appendChild(wrap); body.appendChild(section);
   }
   if(footer){
     const onBreak=EMPLOYEES.filter(e=>e.breakStatus==='break').length;
@@ -1694,18 +1456,16 @@ function getDeptEmps(bubbleId){
   return [...EMPLOYEES.filter(e=>e.dept===bubbleId),...bubbles.filter(c=>c.parentId===bubbleId).flatMap(c=>EMPLOYEES.filter(e=>e.dept===c.id))];
 }
 function makeMemberRow(emp,accentColor){
-  const row=document.createElement('div');row.className='roster-member';row.title='Click to edit '+(emp.fullName||emp.name);
+  const row=document.createElement('div'); row.className='roster-member'; row.title='Click to edit '+(emp.fullName||emp.name);
   let statusClass='idle';
   if(emp.breakStatus==='break')statusClass='break';
   else if(emp.breakStatus==='lunch')statusClass='lunch';
   else if(emp.clockIn)statusClass='active';
   row.innerHTML=`<div class="roster-member-avatar"><img src="${avatarUrl(emp)}" alt="${emp.name}"></div><div class="roster-member-info"><div class="roster-member-name${emp.isManager?' is-manager':''}">${emp.fullName||emp.name}${emp.isManager?' ★':''}</div><div class="roster-member-shift">${emp.shiftStart||'--'} – ${emp.shiftEnd||'--'}</div></div><div class="roster-member-status ${statusClass}"></div>`;
-  row.addEventListener('click',()=>openEmpModal(emp.id));return row;
+  row.addEventListener('click',()=>openEmpModal(emp.id)); return row;
 }
 function toggleRoster(){document.getElementById('rosterPanel').classList.toggle('open');renderRoster();}
-// ═══════════════════════════════════════════════
-// BACKEND SYNC (read-back from sheet for multi-tablet support)
-// ═══════════════════════════════════════════════
+
 async function fetchLive(){
   try{
     const url=new URL(SCRIPT_URL);
@@ -1715,7 +1475,6 @@ async function fetchLive(){
   }catch(e){return null;}
 }
 
-// PATCH v3.3: Live orders-shipped & CPO from Metabase sync
 async function fetchOrdersToday(){
   if (!CURRENT_FACILITY) return;
   try{
@@ -1728,17 +1487,11 @@ async function fetchOrdersToday(){
     const statOrdersEl = document.getElementById('statOrders');
     const statCPOEl    = document.getElementById('statCPO');
     if (statOrdersEl) statOrdersEl.textContent = orders > 0 ? orders.toLocaleString() : '—';
-    // PATCH v6: CPO = NON-BILLABLE labor cost only / orders.
-    // Sum up live hours, splitting by the bubble's billable flag.
     if (orders > 0 && statCPOEl) {
       const nowMs = Date.now();
       let nonBillableHrs = 0;
       EMPLOYEES.forEach(emp => {
-        if (emp.dept) {
-          const b = bubbles.find(x => x.id === emp.dept);
-          if (b && b.billable) return; // skip billable
-        }
-        // Accumulate hours for this emp
+        if (emp.dept) { const b = bubbles.find(x => x.id === emp.dept); if (b && b.billable) return; }
         let h = emp.totalHrs || 0;
         if (emp.clockIn) h += (nowMs - emp.clockIn) / 3600000;
         nonBillableHrs += h;
@@ -1748,33 +1501,21 @@ async function fetchOrdersToday(){
       statCPOEl.textContent = '$' + cpo.toFixed(2);
       statCPOEl.style.color = cpo > 4.00 ? '#FC8181' : '#A3F3C5';
       statCPOEl.title = 'Non-billable labor $' + Math.round(labor) + ' / ' + orders + ' orders';
-    } else if (statCPOEl) {
-      statCPOEl.textContent = '—';
-      statCPOEl.style.color = '#F6AD55';
-    }
-  }catch(e){ /* silent */ }
+    } else if (statCPOEl) { statCPOEl.textContent = '—'; statCPOEl.style.color = '#F6AD55'; }
+  }catch(e){}
 }
-// Refresh orders every 5 min
 setInterval(fetchOrdersToday, 5 * 60 * 1000);
-// And once shortly after page load
 setTimeout(fetchOrdersToday, 3000);
+
 async function syncFromBackend(){
   if(Date.now()-lastSyncPause<10000)return;
   const live=await fetchLive();
   if(!live||!live.ok){backendOk=false;updateBackendDot();return;}
   backendOk=true;updateBackendDot();
-
-  // PATCH v2 — SAFETY: don't wipe local state if backend returns empty employees.
-  // Yesterday's bug: aggregator returned {ok:true, employees:[]} and the tablet erased
-  // the entire floor every 20s, taking analytics with it.
   if (!live.employees || live.employees.length === 0) {
     const hasLocalActivity = EMPLOYEES.some(e => e.dept || e.clockIn || e.breakStatus);
-    if (hasLocalActivity) {
-      console.warn('[atomix] Backend returned empty employee list but local state has activity — skipping sync to protect data.');
-      return;
-    }
+    if (hasLocalActivity) { console.warn('[atomix] Backend returned empty employee list but local state has activity — skipping sync to protect data.'); return; }
   }
-
   EMPLOYEES.forEach(emp=>{emp.dept=null;emp.clockIn=null;emp.breakStatus=null;});
   bubbles.forEach(b=>{b.employees=[];});
   (live.employees||[]).forEach(s=>{
@@ -1784,7 +1525,7 @@ async function syncFromBackend(){
     if(s.onLunch){emp.breakStatus='lunch';emp.breakStart=emp.breakStart||Date.now();return;}
     let bubble=bubbles.find(b=>b.name===s.dept);
     if(!bubble&&s.dept){
-      const angle=(bubbles.length*137.5)*Math.PI/180;const radius=250+bubbles.length*30;
+      const angle=(bubbles.length*137.5)*Math.PI/180; const radius=250+bubbles.length*30;
       const canvasW=(document.getElementById('canvasArea')?.clientWidth||1200)/zoomLevel;
       const canvasH=(document.getElementById('canvasArea')?.clientHeight||700)/zoomLevel;
       bubble={id:'b_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),name:s.dept,bx:Math.max(100,Math.min(500+Math.cos(angle)*radius,canvasW-100)),by:Math.max(100,Math.min(400+Math.sin(angle)*radius,canvasH-100)),colorIdx:bubbles.length%7,size:90,employees:[],parentId:null};
@@ -1794,18 +1535,11 @@ async function syncFromBackend(){
   });
   renderAll();
 }
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
+
 window.addEventListener('load',()=>{
   drawBg();setupBreakZones();setupCreator();setupEmpCreator();setupHeatToggle();renderAll();applyTransform(false);
-
-  // PATCH v2 — real backend health check + drain any queued events from prior session
-  updateBackendDot();
-  pingBackend();
-  flushEventQueue();
+  updateBackendDot(); pingBackend(); flushEventQueue();
   setInterval(pingBackend, 30000);
-
   ['tubeDayInput','tubeWeekInput'].forEach(id=>document.getElementById(id).addEventListener('change',updateTubes));
   const empPool=document.getElementById('empPool');
   empPool.addEventListener('dragover',e=>{e.preventDefault();empPool.classList.add('drag-over-pool');});
@@ -1822,9 +1556,7 @@ window.addEventListener('load',()=>{
   document.getElementById('empModalSave').addEventListener('click',saveEmpModal);
   document.getElementById('empModalRemove').addEventListener('click',()=>{ if(modalEmpId) removeEmployee(modalEmpId); });
   document.getElementById('empModalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('empModalOverlay'))closeEmpModal();});
-  document.getElementById('otAlert').addEventListener('click',()=>{
-    document.getElementById('empPool').scrollIntoView({behavior:'smooth'});
-  });
+  document.getElementById('otAlert').addEventListener('click',()=>{ document.getElementById('empPool').scrollIntoView({behavior:'smooth'}); });
   document.getElementById('spModalClose').addEventListener('click',closeSpModal);
   document.getElementById('spModalCancel').addEventListener('click',closeSpModal);
   document.getElementById('spModalSave').addEventListener('click',saveSpModal);
@@ -1832,7 +1564,6 @@ window.addEventListener('load',()=>{
   ['spQuotedHrs','spBillRate','spSupplyCost'].forEach(id=>document.getElementById(id).addEventListener('input',updateSpTotal));
   window.addEventListener('resize',()=>{drawBg();renderAll();});
   addLog('System started','');
-  // Start backend sync
   syncFromBackend();
   setInterval(syncFromBackend,20000);
 });
@@ -1924,18 +1655,9 @@ setInterval(renderBreakZones,60000);
       Which warehouse is this tablet at? This locks to the device. To change later, click the facility chip in the header (a manager confirm is required).
     </div>
     <div class="fac-grid" id="facGrid">
-      <div class="fac-option" data-fac="MKE">
-        <div class="fac-opt-code">MKE</div>
-        <div class="fac-opt-city">Milwaukee</div>
-      </div>
-      <div class="fac-option" data-fac="SLC">
-        <div class="fac-opt-code">SLC</div>
-        <div class="fac-opt-city">Salt Lake City</div>
-      </div>
-      <div class="fac-option" data-fac="BAL">
-        <div class="fac-opt-code">BAL</div>
-        <div class="fac-opt-city">Baltimore</div>
-      </div>
+      <div class="fac-option" data-fac="MKE"><div class="fac-opt-code">MKE</div><div class="fac-opt-city">Milwaukee</div></div>
+      <div class="fac-option" data-fac="SLC"><div class="fac-opt-code">SLC</div><div class="fac-opt-city">Salt Lake City</div></div>
+      <div class="fac-option" data-fac="BAL"><div class="fac-opt-code">BAL</div><div class="fac-opt-city">Baltimore</div></div>
     </div>
     <div class="fac-modal-footer">
       <button class="fac-modal-btn cancel" id="facModalCancel" style="display:none;">Cancel</button>
@@ -1944,7 +1666,6 @@ setInterval(renderBreakZones,60000);
   </div>
 </div>
 <script>
-// PATCH v4: Facility picker wiring
 (function() {
   let pickedFac = null;
   let isSwitchMode = false;
@@ -1952,18 +1673,12 @@ setInterval(renderBreakZones,60000);
   function refreshFacChip() {
     const chipCode = document.getElementById('facChipCode');
     const chipCity = document.getElementById('facChipCity');
-    if (CURRENT_FACILITY) {
-      chipCode.textContent = CURRENT_FACILITY;
-      chipCity.textContent = FACILITY_LABELS[CURRENT_FACILITY] || '';
-    } else {
-      chipCode.textContent = '--';
-      chipCity.textContent = 'not set';
-    }
+    if (CURRENT_FACILITY) { chipCode.textContent = CURRENT_FACILITY; chipCity.textContent = FACILITY_LABELS[CURRENT_FACILITY] || ''; }
+    else { chipCode.textContent = '--'; chipCity.textContent = 'not set'; }
   }
 
   function openFacModal(switchMode) {
-    isSwitchMode = !!switchMode;
-    pickedFac = null;
+    isSwitchMode = !!switchMode; pickedFac = null;
     const overlay = document.getElementById('facModal');
     const cancel  = document.getElementById('facModalCancel');
     const confirm = document.getElementById('facModalConfirm');
@@ -1980,15 +1695,12 @@ setInterval(renderBreakZones,60000);
     overlay.classList.add('show');
   }
 
-  function closeFacModal() {
-    document.getElementById('facModal').classList.remove('show');
-  }
+  function closeFacModal() { document.getElementById('facModal').classList.remove('show'); }
 
   document.querySelectorAll('.fac-option').forEach(opt => {
     opt.addEventListener('click', () => {
       document.querySelectorAll('.fac-option').forEach(o => o.classList.remove('selected'));
-      opt.classList.add('selected');
-      pickedFac = opt.dataset.fac;
+      opt.classList.add('selected'); pickedFac = opt.dataset.fac;
       document.getElementById('facModalConfirm').disabled = false;
     });
   });
@@ -2004,25 +1716,18 @@ setInterval(renderBreakZones,60000);
     refreshFacChip();
     closeFacModal();
     addLog('Facility set to ' + pickedFac + ' (' + (FACILITY_LABELS[pickedFac] || '') + ')', '');
-    // Reload to ensure all state is clean for the new facility
     setTimeout(() => location.reload(), 400);
   });
 
   document.getElementById('facModalCancel').addEventListener('click', closeFacModal);
   document.getElementById('facChip').addEventListener('click', () => openFacModal(true));
 
-  // On load: if no facility, force picker
   function initFacility() {
     refreshFacChip();
-    if (!CURRENT_FACILITY) {
-      openFacModal(false);
-    }
+    if (!CURRENT_FACILITY) { openFacModal(false); }
   }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFacility);
-  } else {
-    initFacility();
-  }
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initFacility); }
+  else { initFacility(); }
 })();
 </script>
 </body>
