@@ -686,28 +686,33 @@ const DEPTS_DEFAULT = [
 function rosterKey(f)  { return 'atomix_roster_v1_'  + (f || 'NONE'); }
 function bubblesKey(f) { return 'atomix_bubbles_v1_' + (f || 'NONE'); }
 
-// PATCH v8: Strict facility isolation.
-// Each facility is a completely separate roster. MKE seeds from DEFAULT_EMPLOYEES_MKE
-// on first load. SLC and BAL start with zero employees until staff are added.
-// localStorage blocked/missing = MKE still seeds correctly, SLC/BAL stay empty.
-// Ricardo's MKE changes NEVER appear in SLC. Norman's SLC changes NEVER appear in MKE.
+// PATCH v9: Strict facility isolation with contamination detection.
+// Each saved roster is stamped with its facility. On load we verify the stamp
+// matches the current facility — if it doesn't, we discard it and start fresh.
+// This auto-heals any cross-contamination from earlier buggy builds.
 function loadRoster(f) {
-  if (!f) {
-    // No facility selected yet — return empty, facility picker will prompt user
-    return [];
-  }
+  if (!f) return [];
   try {
     const raw = localStorage.getItem(rosterKey(f));
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Only use saved roster if it's a valid non-empty array
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Contamination check: if any employee id looks like MKE seed data
+        // but we're loading SLC/BAL, discard and start clean.
+        const mkeIds = ['e1','e2','e3','e4','e5','e6','e7','e8'];
+        const hasMkeSeed = parsed.some(e => mkeIds.includes(e.id));
+        if (hasMkeSeed && f !== 'MKE') {
+          console.warn('[atomix] Contaminated roster detected for', f, '— clearing and starting fresh');
+          localStorage.removeItem(rosterKey(f));
+          return [];
+        }
+        return parsed;
+      }
     }
   } catch(e) {
     console.warn('[atomix] localStorage unavailable for facility:', f);
   }
-  // First-time load for this facility on this device:
-  // MKE seeds from the hardcoded roster. SLC and BAL start empty.
+  // First-time load: MKE seeds from hardcoded list, SLC/BAL start empty.
   if (f === 'MKE') return JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES_MKE));
   return [];
 }
@@ -716,7 +721,21 @@ function loadBubbles(f) {
   if (!f) return JSON.parse(JSON.stringify(DEPTS_DEFAULT));
   try {
     const raw = localStorage.getItem(bubblesKey(f));
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Contamination check: default bubble IDs b1-b5 could have been saved
+        // under wrong facility key by old buggy build. Detect and discard.
+        const defaultIds = ['b1','b2','b3','b4','b5'];
+        const hasContamination = parsed.some(b => defaultIds.includes(b.id) && b.employees && b.employees.some(eid => ['e1','e2','e3'].includes(eid)));
+        if (hasContamination && f !== 'MKE') {
+          console.warn('[atomix] Contaminated bubbles detected for', f, '— clearing');
+          localStorage.removeItem(bubblesKey(f));
+          return JSON.parse(JSON.stringify(DEPTS_DEFAULT));
+        }
+        return parsed;
+      }
+    }
   } catch(e) {}
   return JSON.parse(JSON.stringify(DEPTS_DEFAULT));
 }
