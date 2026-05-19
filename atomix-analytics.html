@@ -404,9 +404,9 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
 </div>
 
 <script>
-// ════════════════════════════════════════════════════
+// ====================================================
 // CONFIG
-// ════════════════════════════════════════════════════
+// ====================================================
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqVHIs-EuELAmjMNV3nmFf1z2kPSU2OcRzczOGGtZQSEAsel53IKO5FFw1_odyc6G7BA/exec';
 // ─────────────────────────────────────────────────────────────
 // GAS JSONP NOTE: For JSONP to work, your GAS doGet() must check
@@ -421,8 +421,8 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqVHIs-EuELAmjMNV3n
 const FACILITIES = ['MKE','SLC','BAL'];
 const FAC_LABELS  = { MKE:'Milwaukee', SLC:'Salt Lake City', BAL:'Baltimore' };
 const FAC_COLORS  = { MKE:'#A3F3C5',  SLC:'#63B3ED',        BAL:'#F6AD55'  };
-const DASH = '—';
-const MIDDOT = '·';
+const DASH = '\u2014';
+const MIDDOT = '\u00b7';
 const FAC_FILTER_KEY = 'atomix_analytics_facility_filter';
 const SP_LABOR_RATE  = 17.50; // mirrors labor clock logSpHoursForBubble
 
@@ -439,18 +439,18 @@ let LIVE_DATA    = null;
 let DAILY_DATA   = [];
 let EMP_DATA     = [];
 let PROJ_DATA    = [];   // generic projects (legacy)
-let SP_DATA      = [];   // ← NEW: SP tasks from GAS spHours log + ClickUp task cache
-let SP_LINKS     = {};   // ← NEW: {taskId: bubbleName} from GAS saveSpLinks
-let SP_BUBBLES   = [];   // ← NEW: bubble SP fields (spQuotedHrs, spBillRate, spSupplyCost)
+let SP_DATA      = [];   // <- NEW: SP tasks from GAS spHours log + ClickUp task cache
+let SP_LINKS     = {};   // <- NEW: {taskId: bubbleName} from GAS saveSpLinks
+let SP_BUBBLES   = [];   // <- NEW: bubble SP fields (spQuotedHrs, spBillRate, spSupplyCost)
 let EVENT_DATA   = [];
 let ORDERS_TODAY = 0;
 let refreshTimer = null;
 const CHARTS = {};
 const DEPT_COLORS = ['#A3F3C5','#63B3ED','#F6AD55','#B794F4','#FC814A','#ED64A6','#68D391'];
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // FACILITY FILTER
-// ════════════════════════════════════════════════════
+// ====================================================
 let CURRENT_FAC = '';
 function loadFacFilter() {
   try { CURRENT_FAC = localStorage.getItem(FAC_FILTER_KEY) || ''; } catch(e) {}
@@ -462,9 +462,9 @@ function onFacFilterChange() {
   doRefresh();
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // TAB NAVIGATION
-// ════════════════════════════════════════════════════
+// ====================================================
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -480,14 +480,14 @@ function showView(id) {
   }, 100);
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // API FETCH
-// ════════════════════════════════════════════════════
+// ====================================================
 // GAS CORS notes:
 //   • GAS deployed as "Anyone" returns JSON with proper CORS headers.
 //   • The key is: NO custom request headers (no Content-Type, no Authorization).
 //     Any custom header triggers a preflight OPTIONS which GAS doesn't handle.
-//   • Must use redirect:'follow' — GAS redirects to script.googleusercontent.com.
+//   • Must use redirect:'follow' -- GAS redirects to script.googleusercontent.com.
 //   • response.text() then JSON.parse() is safer than response.json() across GAS versions.
 async function apiFetch(action, params) {
   params = params || {};
@@ -504,12 +504,12 @@ async function apiFetch(action, params) {
     const res = await fetch(url.toString(), {
       method: 'GET',
       redirect: 'follow',
-      // NO headers object at all — any custom header triggers a CORS preflight that GAS rejects
+      // NO headers object at all -- any custom header triggers a CORS preflight that GAS rejects
     });
     if (!res.ok) { console.warn('API HTTP error [' + action + ']:', res.status); return null; }
     const text = await res.text();
     // GAS sometimes wraps response in extra whitespace or a UTF-8 BOM
-    const clean = text.replace(/^﻿/, '').trim();
+    const clean = text.replace(/^[\uFEFF]/, '').trim();
     return JSON.parse(clean);
   } catch(e) {
     console.warn('API error [' + action + ']:', e.message);
@@ -522,19 +522,9 @@ function showGasBanner(msg) {
   var m = document.getElementById('gasBannerMsg');
   var u = document.getElementById('gasBannerUrl');
   if (!b) return;
-  var isFile = window.location.protocol === 'file:';
-  if (isFile) {
-    if (m) m.innerHTML =
-      '<strong style="color:#FC8181">This file is open as a local file (file://). Browsers block all network requests from file://.</strong><br>' +
-      'Fix: Push analytics.html to GitHub Pages at <code style="color:#A3F3C5">drake-arch.github.io/atomix-ops/analytics.html</code><br>' +
-      'OR open terminal and run: <code style="color:#A3F3C5">python3 -m http.server 8080</code> then go to <code style="color:#A3F3C5">http://localhost:8080</code>';
-  } else {
-    if (m) m.innerHTML =
-      'The GAS backend script has a host allowlist check blocking this page.<br>' +
-      '<strong style="color:#F6AD55">Tom needs to remove the allowlist check from doGet() in the GAS script.</strong> ' +
-      'The patch file <code style="color:#A3F3C5">GAS_FIX_doGet_patch.js</code> has the exact replacement — it's a copy-paste fix.<br>' +
-      'After applying: Deploy → Manage Deployments → New Version → Deploy.';
-  }
+  if (m) m.innerHTML = window.location.protocol === 'file:' ?
+    'File opened locally. Push to GitHub Pages to connect to GAS.' :
+    'GAS backend not responding. Verify deployment: Execute as Me, Who has access: Anyone. Redeploy as new version.';
   if (u) u.textContent = SCRIPT_URL;
   b.style.display = 'flex';
 }
@@ -549,10 +539,10 @@ async function doRefresh() {
       apiFetch('projects'),
       apiFetch('events',   { from: daysAgo(7), limit: 500 }),
       apiFetch('orders'),
-      apiFetch('spHours'),      // ← SP hour log: [{taskId, taskName, client, empId, empName, bubbleName, hours, hourlyRate, facility, timestamp}]
-      apiFetch('spLinks'),      // ← SP bubble links: {taskId: bubbleName}
-      apiFetch('spTasks'),      // ← ClickUp task cache: [{id, name, status, priority, estHrs, spentHrs, due, url}]
-      apiFetch('spBubbles'),    // ← Bubble SP fields: [{bubbleName, spQuotedHrs, spBillRate, spSupplyCost, spSupplies, spName, facility}]
+      apiFetch('spHours'),      // <- SP hour log: [{taskId, taskName, client, empId, empName, bubbleName, hours, hourlyRate, facility, timestamp}]
+      apiFetch('spLinks'),      // <- SP bubble links: {taskId: bubbleName}
+      apiFetch('spTasks'),      // <- ClickUp task cache: [{id, name, status, priority, estHrs, spentHrs, due, url}]
+      apiFetch('spBubbles'),    // <- Bubble SP fields: [{bubbleName, spQuotedHrs, spBillRate, spSupplyCost, spSupplies, spName, facility}]
     ]);
     const [live, daily, emps, projs, events, orders, spHours, spLinks, spTasks, spBubbles] = results;
 
@@ -567,7 +557,7 @@ async function doRefresh() {
     if (orders && orders.ok && orders.ordersToday > 0) ORDERS_TODAY = orders.ordersToday;
     else ORDERS_TODAY = 0;
 
-    // SP data — graceful fallback if backend doesn't have these endpoints yet
+    // SP data -- graceful fallback if backend doesn't have these endpoints yet
     if (spHours  && Array.isArray(spHours.logs))       SP_DATA    = spHours.logs;
     else if (spHours && Array.isArray(spHours))        SP_DATA    = spHours;
     else                                               SP_DATA    = [];
@@ -586,11 +576,11 @@ async function doRefresh() {
     const allFailed = !live && !daily && !emps;
     if (allFailed) {
       loadDemoData();
-      // Give a useful diagnostic — show the actual URL being hit so GAS deployment can be checked
+      // Give a useful diagnostic -- show the actual URL being hit so GAS deployment can be checked
       const shortUrl = SCRIPT_URL.slice(0, 60) + '...';
-      document.getElementById('lastRefresh').textContent = 'GAS blocked — see console for fix';
+      document.getElementById('lastRefresh').textContent = 'GAS blocked -- see console for fix';
       console.error(
-        '%c ATX Analytics — GAS Connection Failed ',
+        '%c ATX Analytics -- GAS Connection Failed ',
         'background:#FC8181;color:#000;font-weight:bold;padding:2px 6px;border-radius:3px'
       );
       console.error('The GAS script is returning "Host not in allowlist".');
@@ -598,15 +588,15 @@ async function doRefresh() {
       var origin = window.location.origin;
       var isFileProtocol = window.location.protocol === 'file:';
       if (isFileProtocol) {
-        console.error('IMPORTANT: This file is open as file:// — browsers block all cross-origin fetch from file://.');
+        console.error('IMPORTANT: This file is open as file:// -- browsers block all cross-origin fetch from file://.');
         console.error('You MUST serve this from a web server. Push to GitHub Pages: https://drake-arch.github.io/atomix-ops/analytics.html');
         console.error('OR run: python3 -m http.server 8080 and open http://localhost:8080/analytics.html');
-        showGasBanner('file:// origin — push to GitHub Pages or run a local server. See console.');
+        showGasBanner('file:// origin -- push to GitHub Pages or run a local server. See console.');
       } else {
         console.error('Add this origin to the allowed list: ' + origin);
         showGasBanner('GAS blocked. Tom needs to remove the host allowlist check in doGet(). See console F12.');
       }
-      console.error('OR remove the host check entirely — GAS deployment access controls are sufficient.');
+      console.error('OR remove the host check entirely -- GAS deployment access controls are sufficient.');
       console.error('GAS URL:', SCRIPT_URL);
     } else {
       document.getElementById('lastRefresh').textContent = 'updated ' + new Date().toLocaleTimeString();
@@ -614,7 +604,7 @@ async function doRefresh() {
     }
   } catch(e) {
     loadDemoData();
-    document.getElementById('lastRefresh').textContent = 'fetch error — showing demo data';
+    document.getElementById('lastRefresh').textContent = 'fetch error -- showing demo data';
     console.error('doRefresh exception:', e);
     showGasBanner('fetch exception: ' + e.message);
   }
@@ -634,9 +624,9 @@ async function doRefresh() {
   }
 }
 
-// ════════════════════════════════════════════════════
-// SP HELPERS — merge task data with live hour logs
-// ════════════════════════════════════════════════════
+// ====================================================
+// SP HELPERS -- merge task data with live hour logs
+// ====================================================
 
 // Returns logged hours for a task from the SP hour log
 function spLoggedHours(taskId) {
@@ -646,7 +636,7 @@ function spLoggedHours(taskId) {
 
 // Parse client from task name ("Client Name - Task Description")
 function spClient(taskName) {
-  return ((taskName || '').match(/^([^-–]+)/)?.[1] || taskName || '').trim();
+  return ((taskName || '').match(/^([^--]+)/)?.[1] || taskName || '').trim();
 }
 
 // Get SP status CSS class
@@ -660,7 +650,7 @@ function spStatusClass(s) {
   return 'other';
 }
 
-// Get burn state from pct (0–1+)
+// Get burn state from pct (0-1+)
 function spBurnState(pct, hasEst) {
   if (!hasEst) return 'noest';
   if (pct >= 1.0) return 'over';
@@ -717,9 +707,9 @@ function buildMergedSP() {
   });
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // DEMO DATA
-// ════════════════════════════════════════════════════
+// ====================================================
 function loadDemoData() {
   const depts = ['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
   function fakeSite(active, hours) {
@@ -777,9 +767,9 @@ function loadDemoData() {
   ];
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // OVERVIEW
-// ════════════════════════════════════════════════════
+// ====================================================
 function renderOverview() {
   if (!LIVE_DATA) return;
   const body = document.getElementById('overviewBody');
@@ -878,9 +868,9 @@ function forecastShiftCost(currentCost) {
   return currentCost / pct;
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // LABOR SPEND
-// ════════════════════════════════════════════════════
+// ====================================================
 function renderLaborView() {
   if (!DAILY_DATA.length) {
     ['laborPie','laborByFac','laborTrend'].forEach(k => { if(CHARTS[k]){CHARTS[k].destroy();delete CHARTS[k];} });
@@ -969,9 +959,9 @@ function renderLaborView() {
   });
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // PRODUCTIVITY
-// ════════════════════════════════════════════════════
+// ====================================================
 function renderProductivity() {
   if (!DAILY_DATA||!DAILY_DATA.length) {
     if(CHARTS.hcPlan){CHARTS.hcPlan.destroy();delete CHARTS.hcPlan;}
@@ -1010,9 +1000,9 @@ function renderProductivity() {
   }
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // EMPLOYEES
-// ════════════════════════════════════════════════════
+// ====================================================
 function renderEmployeeTable() {
   const sel=document.getElementById('empDeptFilter');
   while(sel.options.length>1) sel.remove(1);
@@ -1049,9 +1039,9 @@ function filterEmpTable() {
   document.getElementById('empEmpty').style.display=filtered.length?'none':'block';
 }
 
-// ════════════════════════════════════════════════════
-// SPECIAL PROJECTS — full SP view
-// ════════════════════════════════════════════════════
+// ====================================================
+// SPECIAL PROJECTS -- full SP view
+// ====================================================
 function renderProjectTable() {
   if (!PROJ_DATA.length && !SP_DATA.length) {
     document.getElementById('projEmpty').style.display = 'block';
@@ -1157,7 +1147,7 @@ function renderSpCharts(merged) {
       options:chartOptions({legend:false}),
     });
   } else if (spTC) {
-    // No log data — use cumulative spentHrs instead
+    // No log data -- use cumulative spentHrs instead
     const sorted = [...merged].sort((a,b)=>(a.due||0)-(b.due||0)).slice(0,8);
     CHARTS.spTrend = new Chart(spTC, {
       type:'bar',
@@ -1201,16 +1191,16 @@ function filterProjTable(mergedIn) {
     const pctDisp = r.estHrs > 0 ? Math.min(200, r.pct*100).toFixed(0)+'%' : DASH;
     const progColor = r.burnState==='over'?'sp-prog-over':r.burnState==='hot'?'sp-prog-hot':r.burnState==='warm'?'sp-prog-warm':'sp-prog-ok';
     const linkedCell = r.linkedBubble
-      ? '<span class="sp-linked-badge">⬤ '+r.linkedBubble+'</span>'
-      : '<span class="sp-linked-none">—</span>';
+      ? '<span class="sp-linked-badge">o '+r.linkedBubble+'</span>'
+      : '<span class="sp-linked-none">--</span>';
     const marginDisp = r.estRevenue>0
       ? '<span class="money '+(r.margin>=0?'margin':'neg')+'">'+(r.margin>=0?'$':'-$')+fmt(Math.abs(r.margin||0))+'</span>'
-      : '<span style="color:var(--muted)">—</span>';
-    const revDisp = r.estRevenue>0 ? '<span class="money">$'+fmt(r.estRevenue)+'</span>' : '<span style="color:var(--muted)">—</span>';
+      : '<span style="color:var(--muted)">--</span>';
+    const revDisp = r.estRevenue>0 ? '<span class="money">$'+fmt(r.estRevenue)+'</span>' : '<span style="color:var(--muted)">--</span>';
 
     return '<tr>' +
-      '<td><strong style="font-size:12px">'+(r.taskName.length>45?r.taskName.slice(0,44)+'…':r.taskName)+'</strong>'+
-        (r.url&&r.url!=='#'?' <a href="'+r.url+'" target="_blank" style="font-size:9px;color:var(--muted);text-decoration:none;">↗</a>':'')+'</td>' +
+      '<td><strong style="font-size:12px">'+(r.taskName.length>45?r.taskName.slice(0,44)+'...':r.taskName)+'</strong>'+
+        (r.url&&r.url!=='#'?' <a href="'+r.url+'" target="_blank" style="font-size:9px;color:var(--muted);text-decoration:none;">-></a>':'')+'</td>' +
       '<td style="color:var(--muted);white-space:nowrap">'+r.client+'</td>'+
       '<td><span class="sp-status '+spStatusClass(r.status)+'">'+r.status+'</span></td>'+
       '<td style="font-family:var(--font-mono);font-size:10px;'+dueColor+'">'+dueFmt+'</td>'+
@@ -1228,9 +1218,9 @@ function filterProjTable(mergedIn) {
   }).join('');
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // HISTORY
-// ════════════════════════════════════════════════════
+// ====================================================
 function renderHistory() {
   if (!DAILY_DATA.length) return;
   const sel=document.getElementById('histDept');
@@ -1274,15 +1264,15 @@ function renderHistory() {
   }).join('');
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // REBUILD / EXPORT
-// ════════════════════════════════════════════════════
+// ====================================================
 async function rebuildSummary() {
   const btn=document.getElementById('rebuildBtn');
   btn.textContent='Rebuilding...';
   await apiFetch('rebuild_summary');
   btn.textContent='Rebuild Summary';
-  toast('Daily summary rebuilt — refreshing...');
+  toast('Daily summary rebuilt -- refreshing...');
   await doRefresh();
 }
 
@@ -1308,9 +1298,9 @@ function exportCSV(type) {
   toast('Exported '+filename);
 }
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // CHART HELPERS
-// ════════════════════════════════════════════════════
+// ====================================================
 Chart.defaults.animation=false;
 Chart.defaults.responsive=true;
 Chart.defaults.maintainAspectRatio=false;
@@ -1327,18 +1317,18 @@ function chartOptions(opts){const legend=opts&&opts.legend||false;return{
   scales:darkScales(),
 };}
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // UTILS
-// ════════════════════════════════════════════════════
+// ====================================================
 function fmt(n){return parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().split('T')[0];}
 function today(){return new Date().toISOString().split('T')[0];}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function startAutoRefresh(){clearInterval(refreshTimer);refreshTimer=setInterval(doRefresh,CONFIG.refresh*1000);}
 
-// ════════════════════════════════════════════════════
+// ====================================================
 // INIT
-// ════════════════════════════════════════════════════
+// ====================================================
 window.addEventListener('load',()=>{
   const t=new Date(),w=new Date();w.setDate(w.getDate()-7);
   document.getElementById('histFrom').value=w.toISOString().split('T')[0];
