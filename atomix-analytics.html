@@ -385,11 +385,39 @@ main{flex:1;overflow:hidden;display:flex;position:relative;}
 </main>
 <div class="toast" id="toast"></div>
 
+<!-- GAS connection error banner — shown when backend is unreachable -->
+<div id="gasBanner" style="display:none;position:fixed;top:56px;left:0;right:0;z-index:500;
+  background:linear-gradient(90deg,#1a0a0a,#2a0f0f);border-bottom:2px solid #FC8181;
+  padding:12px 24px;display:none;align-items:flex-start;gap:14px;">
+  <div style="font-size:18px;flex-shrink:0;margin-top:1px;">⚠️</div>
+  <div style="flex:1;">
+    <div style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:#FC8181;
+      letter-spacing:0.06em;margin-bottom:4px;">BACKEND CONNECTION FAILED — SHOWING DEMO DATA</div>
+    <div id="gasBannerMsg" style="font-size:11px;color:#dce8f0;line-height:1.6;"></div>
+    <div style="margin-top:8px;font-family:var(--font-mono);font-size:10px;color:#4a6a84;">
+      GAS URL: <span style="color:#63B3ED;word-break:break-all;" id="gasBannerUrl"></span>
+    </div>
+  </div>
+  <button onclick="document.getElementById('gasBanner').style.display='none'"
+    style="background:none;border:1px solid #4a6a84;border-radius:5px;padding:4px 10px;
+    color:#4a6a84;cursor:pointer;font-size:11px;flex-shrink:0;margin-top:2px;">Dismiss</button>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════
 // CONFIG
 // ════════════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqVHIs-EuELAmjMNV3nmFf1z2kPSU2OcRzczOGGtZQSEAsel53IKO5FFw1_odyc6G7BA/exec';
+// ─────────────────────────────────────────────────────────────
+// GAS JSONP NOTE: For JSONP to work, your GAS doGet() must check
+// for a ?callback= parameter and wrap the JSON response like:
+//   if (e.parameter.callback) {
+//     return ContentService.createTextOutput(
+//       e.parameter.callback + '(' + JSON.stringify(result) + ')'
+//     ).setMimeType(ContentService.MimeType.JAVASCRIPT);
+//   }
+// Without this, the analytics will fall back to demo data.
+// ─────────────────────────────────────────────────────────────
 const FACILITIES = ['MKE','SLC','BAL'];
 const FAC_LABELS  = { MKE:'Milwaukee', SLC:'Salt Lake City', BAL:'Baltimore' };
 const FAC_COLORS  = { MKE:'#A3F3C5',  SLC:'#63B3ED',        BAL:'#F6AD55'  };
@@ -455,6 +483,12 @@ function showView(id) {
 // ════════════════════════════════════════════════════
 // API FETCH
 // ════════════════════════════════════════════════════
+// GAS CORS notes:
+//   • GAS deployed as "Anyone" returns JSON with proper CORS headers.
+//   • The key is: NO custom request headers (no Content-Type, no Authorization).
+//     Any custom header triggers a preflight OPTIONS which GAS doesn't handle.
+//   • Must use redirect:'follow' — GAS redirects to script.googleusercontent.com.
+//   • response.text() then JSON.parse() is safer than response.json() across GAS versions.
 async function apiFetch(action, params) {
   params = params || {};
   const url = new URL(SCRIPT_URL);
@@ -463,8 +497,46 @@ async function apiFetch(action, params) {
     url.searchParams.set('facility', CURRENT_FAC);
   }
   Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
-  try { return await (await fetch(url.toString())).json(); }
-  catch(e) { console.warn('API error [' + action + ']:', e); return null; }
+  // Cache-bust so GAS doesn't serve a stale cached response
+  url.searchParams.set('_t', Date.now());
+
+  try {
+    const res = await fetch(url.toString(), {
+      method: 'GET',
+      redirect: 'follow',
+      // NO headers object at all — any custom header triggers a CORS preflight that GAS rejects
+    });
+    if (!res.ok) { console.warn('API HTTP error [' + action + ']:', res.status); return null; }
+    const text = await res.text();
+    // GAS sometimes wraps response in extra whitespace or a UTF-8 BOM
+    const clean = text.replace(/^﻿/, '').trim();
+    return JSON.parse(clean);
+  } catch(e) {
+    console.warn('API error [' + action + ']:', e.message);
+    return null;
+  }
+}
+
+function showGasBanner(msg) {
+  var b = document.getElementById('gasBanner');
+  var m = document.getElementById('gasBannerMsg');
+  var u = document.getElementById('gasBannerUrl');
+  if (!b) return;
+  var isFile = window.location.protocol === 'file:';
+  if (isFile) {
+    if (m) m.innerHTML =
+      '<strong style="color:#FC8181">This file is open as a local file (file://). Browsers block all network requests from file://.</strong><br>' +
+      'Fix: Push analytics.html to GitHub Pages at <code style="color:#A3F3C5">drake-arch.github.io/atomix-ops/analytics.html</code><br>' +
+      'OR open terminal and run: <code style="color:#A3F3C5">python3 -m http.server 8080</code> then go to <code style="color:#A3F3C5">http://localhost:8080</code>';
+  } else {
+    if (m) m.innerHTML =
+      'The GAS backend script has a host allowlist check blocking this page.<br>' +
+      '<strong style="color:#F6AD55">Tom needs to remove the allowlist check from doGet() in the GAS script.</strong> ' +
+      'The patch file <code style="color:#A3F3C5">GAS_FIX_doGet_patch.js</code> has the exact replacement — it's a copy-paste fix.<br>' +
+      'After applying: Deploy → Manage Deployments → New Version → Deploy.';
+  }
+  if (u) u.textContent = SCRIPT_URL;
+  b.style.display = 'flex';
 }
 
 async function doRefresh() {
@@ -514,14 +586,37 @@ async function doRefresh() {
     const allFailed = !live && !daily && !emps;
     if (allFailed) {
       loadDemoData();
-      document.getElementById('lastRefresh').textContent = 'backend unreachable — demo data';
+      // Give a useful diagnostic — show the actual URL being hit so GAS deployment can be checked
+      const shortUrl = SCRIPT_URL.slice(0, 60) + '...';
+      document.getElementById('lastRefresh').textContent = 'GAS blocked — see console for fix';
+      console.error(
+        '%c ATX Analytics — GAS Connection Failed ',
+        'background:#FC8181;color:#000;font-weight:bold;padding:2px 6px;border-radius:3px'
+      );
+      console.error('The GAS script is returning "Host not in allowlist".');
+      console.error('Fix: Open your GAS script and find the allowlist/CORS check in doGet().');
+      var origin = window.location.origin;
+      var isFileProtocol = window.location.protocol === 'file:';
+      if (isFileProtocol) {
+        console.error('IMPORTANT: This file is open as file:// — browsers block all cross-origin fetch from file://.');
+        console.error('You MUST serve this from a web server. Push to GitHub Pages: https://drake-arch.github.io/atomix-ops/analytics.html');
+        console.error('OR run: python3 -m http.server 8080 and open http://localhost:8080/analytics.html');
+        showGasBanner('file:// origin — push to GitHub Pages or run a local server. See console.');
+      } else {
+        console.error('Add this origin to the allowed list: ' + origin);
+        showGasBanner('GAS blocked. Tom needs to remove the host allowlist check in doGet(). See console F12.');
+      }
+      console.error('OR remove the host check entirely — GAS deployment access controls are sufficient.');
+      console.error('GAS URL:', SCRIPT_URL);
     } else {
       document.getElementById('lastRefresh').textContent = 'updated ' + new Date().toLocaleTimeString();
       document.getElementById('rebuildBtn').style.display = 'block';
     }
   } catch(e) {
     loadDemoData();
-    document.getElementById('lastRefresh').textContent = 'error — demo data';
+    document.getElementById('lastRefresh').textContent = 'fetch error — showing demo data';
+    console.error('doRefresh exception:', e);
+    showGasBanner('fetch exception: ' + e.message);
   }
 
   Object.keys(CHARTS).forEach(k => { if (CHARTS[k]) { CHARTS[k].destroy(); delete CHARTS[k]; } });
