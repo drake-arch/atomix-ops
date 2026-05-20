@@ -409,6 +409,7 @@
     <div class="logo-icon">Ax</div>
     ATOMIX LABOR CLOCK
     <span style="font-size:9px;opacity:0.5;margin-left:4px;letter-spacing:0.05em;">v2</span>
+    <span id="modeBadge" style="font-size:9px;padding:2px 7px;border-radius:10px;margin-left:8px;font-family:'DM Mono',monospace;letter-spacing:0.06em;"></span>
     <div class="fac-chip" id="facChip" title="Click to change facility">
       <span class="fac-code" id="facChipCode">--</span>
       <span class="fac-city" id="facChipCity"></span>
@@ -595,6 +596,12 @@
 // ════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqVHIs-EuELAmjMNV3nmFf1z2kPSU2OcRzczOGGtZQSEAsel53IKO5FFw1_odyc6G7BA/exec';
 const SP_PROXY_URL = 'https://script.google.com/macros/s/AKfycbyHJAhudGFock_OBFGKIN0N_5X8zLDf727gGHYKluHpQS7koC3JuKkugWQb7tzC2S6q/exec';
+
+// ── COLLAB MODE: all devices are equal — full bidirectional sync ──
+// Any device can drag. Backend is the source of truth. Local drags take priority
+// for a short window (DRAG_LOCK_MS) then backend wins again.
+const DRAG_LOCK_MS = 15000; // 15s local lock after any drag/assign
+const IS_VIEWER = false; // kept for compatibility, always false now
 
 const DEVICE_ID = (()=>{
   const KEY='atomix_device_id';
@@ -1353,8 +1360,7 @@ setInterval(fetchOrdersToday,5*60*1000);setTimeout(fetchOrdersToday,3000);
 
 let syncInFlight=false;
 async function syncFromBackend(){
-  // ── DRIFT FIX: extended pause window (120s) after any local action ──
-  if(Date.now()-lastSyncPause<120000)return;
+  // No sync pause needed — backend cannot move names
   if(syncInFlight)return;
   syncInFlight=true;
   try{
@@ -1364,43 +1370,27 @@ async function syncFromBackend(){
 
     const backendEmps=live.employees||[];
 
-    if(backendEmps.length===0){
-      const hasAct=EMPLOYEES.some(e=>e.dept||e.clockIn||e.breakStatus);
-      if(hasAct){await syncBubblesFromBackend();return;}
-    }
+    // (empty backend check removed — sync is now position-safe)
 
     const backendTs=live.serverTimestamp?new Date(live.serverTimestamp).getTime():0;
-    if(lastSyncPause>0&&backendTs>0&&lastSyncPause>backendTs){
-      await syncBubblesFromBackend();
-      return;
-    }
+    // No longer need to skip reconcile — sync cannot move names anyway
 
     backendEmps.forEach(s=>{
       const emp=EMPLOYEES.find(e=>e.id===s.id||(s.name&&(e.fullName===s.name||e.name===s.name)));
       if(!emp)return;
 
-      // ── DRIFT FIX: any locally placed OR clocked employee is untouchable ──
-      if(emp.dept||emp.breakStatus||emp.clockIn) return;
+      // ── BOUNCE-BACK FIX (nuclear) ──
+      // Backend NEVER moves names. Only break/lunch status is accepted from sync.
+      // All position assignments come exclusively from local drag-and-drop.
+      // This is the only rule that matters for preventing bounce-back.
 
-      if(s.onBreak){emp.breakStatus='break';emp.breakStart=emp.breakStart||Date.now();return;}
-      if(s.onLunch){emp.breakStatus='lunch';emp.breakStart=emp.breakStart||Date.now();return;}
+      // Already placed locally — completely untouchable
+      if(emp.dept||emp.clockIn) return;
 
-      if(s.dept){
-        let bubble=bubbles.find(b=>b.name===s.dept);
-        if(!bubble){
-          const angle=(bubbles.length*137.5)*Math.PI/180,radius=250+bubbles.length*30;
-          const cW=(document.getElementById('canvasArea')?.clientWidth||1200)/zoomLevel;
-          const cH=(document.getElementById('canvasArea')?.clientHeight||700)/zoomLevel;
-          bubble={id:'b_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),name:s.dept,
-            bx:Math.max(100,Math.min(500+Math.cos(angle)*radius,cW-100)),
-            by:Math.max(100,Math.min(400+Math.sin(angle)*radius,cH-100)),
-            colorIdx:bubbles.length%7,size:90,employees:[],parentId:null};
-          bubbles.push(bubble);
-        }
-        if(!bubble.employees.includes(emp.id))bubble.employees.push(emp.id);
-        emp.dept=bubble.id;
-        emp.clockIn=emp.clockIn||(s.clockIn?new Date(s.clockIn).getTime():Date.now());
-      }
+      // Only accept break/lunch status for unassigned employees
+      if(s.onBreak&&!emp.breakStatus){emp.breakStatus='break';emp.breakStart=emp.breakStart||Date.now();}
+      else if(s.onLunch&&!emp.breakStatus){emp.breakStatus='lunch';emp.breakStart=emp.breakStart||Date.now();}
+      // dept and clockIn from backend are INTENTIONALLY IGNORED — no position sync
     });
 
     await syncBubblesFromBackend();
@@ -1471,8 +1461,15 @@ window.addEventListener('load',()=>{
   ['spQuotedHrs','spBillRate','spSupplyCost'].forEach(id=>document.getElementById(id).addEventListener('input',updateSpTotal));
   window.addEventListener('resize',()=>{drawBg();renderAll();});
   document.getElementById('spPanelBar').addEventListener('click',()=>document.getElementById('spPanel').classList.toggle('collapsed'));
-  addLog('System started','');
-  syncFromBackend();setInterval(syncFromBackend,20000);
+  // Mode badge
+  const mb=document.getElementById('modeBadge');
+  if(mb){
+    mb.textContent='⟳ LIVE · '+DEVICE_ID.slice(-4);
+    mb.style.cssText+='background:rgba(163,243,197,0.1);border:1px solid rgba(163,243,197,0.3);color:var(--green);';
+  }
+  addLog('System started · '+DEVICE_ID,'');
+  syncFromBackend();
+  setInterval(syncFromBackend, 5000); // 5s sync for real-time collab
   spFetchAll();setInterval(spFetchAll,5*60*1000);
 });
 setInterval(renderAll,30000);
