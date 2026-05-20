@@ -770,8 +770,16 @@ function loadRoster(f){
     if(raw){
       const p=JSON.parse(raw);
       if(Array.isArray(p)&&p.length>0){
+        // Guard: if roster contains IDs from a different facility, wipe and use defaults
         const mkeIds=['e1','e2','e3','e4','e5','e6','e7','e8'];
-        if(p.some(e=>mkeIds.includes(e.id))&&f!=='MKE'){localStorage.removeItem(rosterKey(f));return[];}
+        const slcIds=['s1','s2','s3','s4','s5'];
+        const balIds=['b_1','b_2','b_3'];
+        const hasMKE=p.some(e=>mkeIds.includes(e.id));
+        const hasSLC=p.some(e=>slcIds.includes(e.id));
+        const hasBAL=p.some(e=>balIds.includes(e.id));
+        if((hasMKE&&f!=='MKE')||(hasSLC&&f!=='SLC')||(hasBAL&&f!=='BAL')){
+          localStorage.removeItem(rosterKey(f));return[];
+        }
         return p;
       }
     }
@@ -1919,7 +1927,25 @@ function spFetchAll(){
   document.getElementById('facModalConfirm').addEventListener('click',()=>{
     if(!pickedFac)return;
     if(isSwitchMode){const t=prompt('Type SWITCH to confirm changing to '+pickedFac+'.');if(!t||t.trim().toUpperCase()!=='SWITCH')return;}
-    CURRENT_FACILITY=pickedFac;setFacility(pickedFac);refreshFacChip();closeFacModal();
+    CURRENT_FACILITY=pickedFac;setFacility(pickedFac);
+    // ── FACILITY SWITCH: clear all localStorage for previous facility so no
+    //    cross-contamination of rosters or bubble employee arrays ──
+    try{
+      // Wipe bubble employee arrays for ALL facilities before reload
+      // so the new facility loads with a clean slate
+      ['MKE','SLC','BAL'].forEach(f=>{
+        const bKey='atomix_bubbles_v1_'+f;
+        const raw=localStorage.getItem(bKey);
+        if(raw){
+          try{
+            const bb=JSON.parse(raw);
+            bb.forEach(b=>b.employees=[]);
+            localStorage.setItem(bKey,JSON.stringify(bb));
+          }catch(e){}
+        }
+      });
+    }catch(e){}
+    refreshFacChip();closeFacModal();
     addLog('Facility set to '+pickedFac+' ('+(FACILITY_LABELS[pickedFac]||'')+')','');
     setTimeout(()=>location.reload(),400);
   });
