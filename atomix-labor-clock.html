@@ -796,8 +796,15 @@ function loadBubbles(f){
     if(raw){
       const p=JSON.parse(raw);
       if(Array.isArray(p)&&p.length>0){
-        const dIds=['b1','b2','b3','b4','b5'];
-        if(p.some(b=>dIds.includes(b.id)&&b.employees&&b.employees.some(eid=>['e1','e2','e3'].includes(eid)))&&f!=='MKE'){localStorage.removeItem(bubblesKey(f));return JSON.parse(JSON.stringify(DEPTS_DEFAULT));}
+        // Load the correct roster for this facility to know which employee IDs are valid
+        const validRoster=loadRoster(f);
+        const validIds=new Set(validRoster.map(e=>e.id));
+        // Strip any employee IDs from bubbles that don't belong to this facility
+        p.forEach(b=>{
+          if(b.employees&&b.employees.length){
+            b.employees=b.employees.filter(eid=>validIds.has(eid));
+          }
+        });
         return p;
       }
     }
@@ -1928,23 +1935,6 @@ function spFetchAll(){
     if(!pickedFac)return;
     if(isSwitchMode){const t=prompt('Type SWITCH to confirm changing to '+pickedFac+'.');if(!t||t.trim().toUpperCase()!=='SWITCH')return;}
     CURRENT_FACILITY=pickedFac;setFacility(pickedFac);
-    // ── FACILITY SWITCH: clear all localStorage for previous facility so no
-    //    cross-contamination of rosters or bubble employee arrays ──
-    try{
-      // Wipe bubble employee arrays for ALL facilities before reload
-      // so the new facility loads with a clean slate
-      ['MKE','SLC','BAL'].forEach(f=>{
-        const bKey='atomix_bubbles_v1_'+f;
-        const raw=localStorage.getItem(bKey);
-        if(raw){
-          try{
-            const bb=JSON.parse(raw);
-            bb.forEach(b=>b.employees=[]);
-            localStorage.setItem(bKey,JSON.stringify(bb));
-          }catch(e){}
-        }
-      });
-    }catch(e){}
     refreshFacChip();closeFacModal();
     addLog('Facility set to '+pickedFac+' ('+(FACILITY_LABELS[pickedFac]||'')+')','');
     setTimeout(()=>location.reload(),400);
