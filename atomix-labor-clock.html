@@ -48,7 +48,7 @@
   .fac-chip .fac-city { font-weight:400; opacity:0.7; font-size:10px; }
 
   /* ══ SP LABOR PANEL ══ */
-  .sp-panel { background:linear-gradient(180deg,#0a1a2b 0%,#07121f 100%); border-bottom:1px solid var(--border); padding:0 20px; flex-shrink:0; display:flex; flex-direction:column; overflow:hidden; transition:max-height 0.32s cubic-bezier(0.4,0,0.2,1); max-height:310px; }
+  .sp-panel { background:linear-gradient(180deg,#0a1a2b 0%,#07121f 100%); border-bottom:1px solid var(--border); padding:0 20px; flex-shrink:0; display:flex; flex-direction:column; overflow:hidden; transition:max-height 0.32s cubic-bezier(0.4,0,0.2,1); max-height:540px; }
   .sp-panel.collapsed { max-height:40px; }
   .sp-panel-bar { height:40px; display:flex; align-items:center; gap:14px; flex-shrink:0; cursor:pointer; user-select:none; }
   .sp-panel-bar:hover { opacity:0.85; }
@@ -63,10 +63,10 @@
   .sp-sync-btn:hover { color:var(--green); border-color:var(--green); }
   .sp-sync-btn.loading { color:var(--green); border-color:var(--green); animation:sp-pulse 1s ease-in-out infinite; }
   @keyframes sp-pulse { 0%,100%{opacity:1;}50%{opacity:0.4;} }
-  .sp-scroll { flex:1; overflow-x:auto; overflow-y:hidden; padding-bottom:8px; }
-  .sp-scroll::-webkit-scrollbar { height:3px; }
+  .sp-scroll { flex:1; overflow-x:auto; overflow-y:auto; max-height:300px; padding-bottom:8px; }
+  .sp-scroll::-webkit-scrollbar { height:3px; width:3px; }
   .sp-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-  .sp-rows { display:flex; gap:9px; align-items:stretch; min-width:max-content; padding:2px 0; }
+  .sp-rows { display:flex; gap:9px; align-items:stretch; flex-wrap:wrap; padding:2px 0; }
 
   /* SP CARDS */
   .sp-card { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; min-width:200px; max-width:240px; display:flex; flex-direction:column; gap:5px; position:relative; overflow:hidden; transition:border-color 0.3s,box-shadow 0.3s; cursor:pointer; }
@@ -404,7 +404,6 @@
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">
     <div class="logo-icon">Ax</div>
@@ -595,13 +594,12 @@
 // CONFIG
 // ════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqVHIs-EuELAmjMNV3nmFf1z2kPSU2OcRzczOGGtZQSEAsel53IKO5FFw1_odyc6G7BA/exec';
-
-// ▼▼ PASTE YOUR SP PROXY URL HERE after deploying atx_sp_proxy.gs ▼▼
 const SP_PROXY_URL = 'https://script.google.com/macros/s/AKfycbyHJAhudGFock_OBFGKIN0N_5X8zLDf727gGHYKluHpQS7koC3JuKkugWQb7tzC2S6q/exec';
-// e.g. 'https://script.google.com/macros/s/AKfycb.../exec'
-// Leave blank to disable live sync (will use cached data only)
 
-const DEVICE_ID   = 'floor-tablet-' + (Math.random().toString(36).slice(2,6));
+const DEVICE_ID = (()=>{
+  const KEY='atomix_device_id';
+  try{let id=localStorage.getItem(KEY);if(!id){id='tablet-'+Math.random().toString(36).slice(2,8);localStorage.setItem(KEY,id);}return id;}catch(e){return'tablet-'+Math.random().toString(36).slice(2,8);}
+})();
 const FACILITIES  = ['MKE','SLC','BAL'];
 const FACILITY_KEY = 'atomix_facility';
 const FACILITY_LABELS = { MKE:'Milwaukee', SLC:'Salt Lake City', BAL:'Baltimore' };
@@ -615,7 +613,7 @@ function setFacility(f){ try{localStorage.setItem(FACILITY_KEY,f);}catch(e){} }
 let CURRENT_FACILITY = getFacility();
 
 // ════════════════════════════════════════════
-// BACKEND EVENT QUEUE (unchanged from v1)
+// BACKEND EVENT QUEUE
 // ════════════════════════════════════════════
 const EVENT_QUEUE_KEY='atomix_event_queue_v1';
 let backendOk=null, lastBackendCheck=0, flushInFlight=false;
@@ -734,7 +732,6 @@ const DEFAULT_EMPLOYEES_MKE=[
   {id:'e56',name:'Ramar W.',  fullName:'Ramar Washington',        dept:null,clockIn:null,totalHrs:0,color:'#6ee8d8',shiftStart:'08:00',shiftEnd:'16:30',isManager:false},
 ];
 
-
 const DEFAULT_EMPLOYEES_SLC = [
   {id:'s1',name:'Norman L.',  fullName:'Norman Longshaw',   dept:null,clockIn:null,totalHrs:0,color:'#63b3ed',shiftStart:'06:00',shiftEnd:'14:30',isManager:true},
   {id:'s2',name:'S. Assoc 1', fullName:'SLC Associate 1',   dept:null,clockIn:null,totalHrs:0,color:'#6ee8d8',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
@@ -796,7 +793,6 @@ function saveRoster(){if(!CURRENT_FACILITY)return;try{const c=EMPLOYEES.map(e=>{
 function saveBubbles(){
   if(!CURRENT_FACILITY)return;
   try{localStorage.setItem(bubblesKey(CURRENT_FACILITY),JSON.stringify(bubbles));}catch(e){}
-  // Sync to GAS backend so other devices see changes
   syncBubblesToBackend();
 }
 
@@ -807,7 +803,7 @@ function syncBubblesToBackend(){
     url.searchParams.set('action','saveBubbles');
     url.searchParams.set('facility',CURRENT_FACILITY);
     url.searchParams.set('bubblesJson',JSON.stringify(bubbles));
-    fetch(url.toString()).catch(()=>{});// fire-and-forget
+    fetch(url.toString()).catch(()=>{});
   }catch(e){}
 }
 
@@ -948,7 +944,6 @@ function makeBubbleElement(b,isChild,parentEl,parentSize){
   if(hrs>0){const hEl=document.createElement('div');hEl.className='bubble-hrs';hEl.textContent=hrs.toFixed(1)+'h';inner.appendChild(hEl);}
   el.appendChild(inner);
 
-  // SP glow
   if(!isChild&&!heatMapMode){
     const sp=getBubbleSpState(b.name);
     if(sp&&sp.state!=='ok'&&sp.state!=='no-est'){
@@ -1064,7 +1059,6 @@ function unassignEmployee(empId){
     emp.totalHrs+=hrs;emp.weeklyHrs=(emp.weeklyHrs||0)+hrs;emp.clockIn=null;
     addLog(`${emp.name} clocked out (${hrs.toFixed(2)}h)`,'out');
     logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn,hoursLogged:hrs.toFixed(2)});
-    // Log SP hours if this bubble is linked to SP tasks
     logSpHoursForBubble(emp,fdn,hrs);
   }
   else{addLog(`${emp.name} unassigned`,'');logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn,hoursLogged:'0'});}
@@ -1096,16 +1090,11 @@ function logSpHoursForBubble(emp, bubbleName, hrs){
     const client=(task.name.match(/^([^-–]+)/)?.[1]||task.name).trim();
     try{
       const url=new URL(SCRIPT_URL);
-      url.searchParams.set('action','logSpHours');
-      url.searchParams.set('facility',CURRENT_FACILITY);
-      url.searchParams.set('empId',emp.id);
-      url.searchParams.set('empName',emp.fullName||emp.name);
-      url.searchParams.set('bubbleName',bubbleName);
-      url.searchParams.set('spTaskId',taskId);
-      url.searchParams.set('spTaskName',task.name.slice(0,80));
-      url.searchParams.set('client',client);
-      url.searchParams.set('hours',hrsEach.toFixed(4));
-      url.searchParams.set('hourlyRate',rate.toFixed(2));
+      url.searchParams.set('action','logSpHours');url.searchParams.set('facility',CURRENT_FACILITY);
+      url.searchParams.set('empId',emp.id);url.searchParams.set('empName',emp.fullName||emp.name);
+      url.searchParams.set('bubbleName',bubbleName);url.searchParams.set('spTaskId',taskId);
+      url.searchParams.set('spTaskName',task.name.slice(0,80));url.searchParams.set('client',client);
+      url.searchParams.set('hours',hrsEach.toFixed(4));url.searchParams.set('hourlyRate',rate.toFixed(2));
       fetch(url.toString()).catch(()=>{});
     }catch(e){}
     if(task)task.spentHrs=(task.spentHrs||0)+hrsEach;
@@ -1254,7 +1243,7 @@ function openEmpModal(empId){
   if(week>=OT_WEEKLY_HRS)status+=` · 🔴 WEEKLY OT (${week.toFixed(1)}h)`;
   else if(today>=OT_DAILY_HRS)status+=` · 🟠 Daily OT (${today.toFixed(1)}h)`;
   document.getElementById('empModalStatus').textContent=status;
-  const deptSel=document.getElementById('empModalDept');deptSel.innerHTML='<option value="">— Unassigned —</option>';
+  const deptSel=document.getElementById('empModalDept');deptSel.innerHTML='<option value="">— Unassigned / Clock Out —</option>';
   bubbles.forEach(b=>{const o=document.createElement('option');o.value=b.id;const p=b.parentId?bubbles.find(x=>x.id===b.parentId):null;o.textContent=p?`${p.name} › ${b.name}`:b.name;if(b.id===emp.dept)o.selected=true;deptSel.appendChild(o);});
   document.getElementById('empModalStart').value=emp.shiftStart||'07:00';document.getElementById('empModalEnd').value=emp.shiftEnd||'15:30';
   let hrs=emp.totalHrs;if(emp.clockIn)hrs+=(Date.now()-emp.clockIn)/3600000;
@@ -1362,66 +1351,93 @@ async function fetchOrdersToday(){
 }
 setInterval(fetchOrdersToday,5*60*1000);setTimeout(fetchOrdersToday,3000);
 
+let syncInFlight=false;
 async function syncFromBackend(){
-  if(Date.now()-lastSyncPause<10000)return;
-  const live=await fetchLive();if(!live||!live.ok){backendOk=false;updateBackendDot();return;}
-  backendOk=true;updateBackendDot();
-  if(!live.employees||live.employees.length===0){const hasAct=EMPLOYEES.some(e=>e.dept||e.clockIn||e.breakStatus);if(hasAct)return;}
-  EMPLOYEES.forEach(emp=>{emp.dept=null;emp.clockIn=null;emp.breakStatus=null;});bubbles.forEach(b=>{b.employees=[];});
-  (live.employees||[]).forEach(s=>{
-    const emp=EMPLOYEES.find(e=>e.fullName===s.name||e.name===s.name||e.id===s.id);if(!emp)return;
-    if(s.onBreak){emp.breakStatus='break';emp.breakStart=emp.breakStart||Date.now();return;}
-    if(s.onLunch){emp.breakStatus='lunch';emp.breakStart=emp.breakStart||Date.now();return;}
-    let bubble=bubbles.find(b=>b.name===s.dept);
-    if(!bubble&&s.dept){const angle=(bubbles.length*137.5)*Math.PI/180,radius=250+bubbles.length*30;const cW=(document.getElementById('canvasArea')?.clientWidth||1200)/zoomLevel,cH=(document.getElementById('canvasArea')?.clientHeight||700)/zoomLevel;bubble={id:'b_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),name:s.dept,bx:Math.max(100,Math.min(500+Math.cos(angle)*radius,cW-100)),by:Math.max(100,Math.min(400+Math.sin(angle)*radius,cH-100)),colorIdx:bubbles.length%7,size:90,employees:[],parentId:null};bubbles.push(bubble);}
-    if(bubble&&!bubble.employees.includes(emp.id)){bubble.employees.push(emp.id);emp.dept=bubble.id;emp.clockIn=emp.clockIn||Date.now();}
-  });
-  // Also sync bubbles and SP links from backend
-  await syncBubblesFromBackend();
-  renderAll();
+  // ── DRIFT FIX: extended pause window (120s) after any local action ──
+  if(Date.now()-lastSyncPause<120000)return;
+  if(syncInFlight)return;
+  syncInFlight=true;
+  try{
+    const live=await fetchLive();
+    if(!live||!live.ok){backendOk=false;updateBackendDot();return;}
+    backendOk=true;updateBackendDot();
+
+    const backendEmps=live.employees||[];
+
+    if(backendEmps.length===0){
+      const hasAct=EMPLOYEES.some(e=>e.dept||e.clockIn||e.breakStatus);
+      if(hasAct){await syncBubblesFromBackend();return;}
+    }
+
+    const backendTs=live.serverTimestamp?new Date(live.serverTimestamp).getTime():0;
+    if(lastSyncPause>0&&backendTs>0&&lastSyncPause>backendTs){
+      await syncBubblesFromBackend();
+      return;
+    }
+
+    backendEmps.forEach(s=>{
+      const emp=EMPLOYEES.find(e=>e.id===s.id||(s.name&&(e.fullName===s.name||e.name===s.name)));
+      if(!emp)return;
+
+      // ── DRIFT FIX: any locally placed OR clocked employee is untouchable ──
+      if(emp.dept||emp.breakStatus||emp.clockIn) return;
+
+      if(s.onBreak){emp.breakStatus='break';emp.breakStart=emp.breakStart||Date.now();return;}
+      if(s.onLunch){emp.breakStatus='lunch';emp.breakStart=emp.breakStart||Date.now();return;}
+
+      if(s.dept){
+        let bubble=bubbles.find(b=>b.name===s.dept);
+        if(!bubble){
+          const angle=(bubbles.length*137.5)*Math.PI/180,radius=250+bubbles.length*30;
+          const cW=(document.getElementById('canvasArea')?.clientWidth||1200)/zoomLevel;
+          const cH=(document.getElementById('canvasArea')?.clientHeight||700)/zoomLevel;
+          bubble={id:'b_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),name:s.dept,
+            bx:Math.max(100,Math.min(500+Math.cos(angle)*radius,cW-100)),
+            by:Math.max(100,Math.min(400+Math.sin(angle)*radius,cH-100)),
+            colorIdx:bubbles.length%7,size:90,employees:[],parentId:null};
+          bubbles.push(bubble);
+        }
+        if(!bubble.employees.includes(emp.id))bubble.employees.push(emp.id);
+        emp.dept=bubble.id;
+        emp.clockIn=emp.clockIn||(s.clockIn?new Date(s.clockIn).getTime():Date.now());
+      }
+    });
+
+    await syncBubblesFromBackend();
+    renderAll();
+  }finally{syncInFlight=false;}
 }
 
 async function syncBubblesFromBackend(){
   if(!CURRENT_FACILITY)return;
-  const dragFreezeMs=15000; // don't overwrite positions for 15s after any drag
+  const dragFreezeMs=15000;
   const recentDrag=Date.now()-lastBubbleDragEnd<dragFreezeMs;
   try{
-    // Load bubbles
     const urlB=new URL(SCRIPT_URL);
-    urlB.searchParams.set('action','loadBubbles');
-    urlB.searchParams.set('facility',CURRENT_FACILITY);
-    urlB.searchParams.set('t',Date.now());
+    urlB.searchParams.set('action','loadBubbles');urlB.searchParams.set('facility',CURRENT_FACILITY);urlB.searchParams.set('t',Date.now());
     const resB=await fetch(urlB.toString());
     const dataB=await resB.json();
     if(dataB&&dataB.ok&&Array.isArray(dataB.bubbles)&&dataB.bubbles.length>0){
       const bb=dataB.bubbles;
-      // Add any bubbles that exist on backend but not locally
       bb.forEach(b=>{
         const local=bubbles.find(x=>x.id===b.id);
-        if(!local){
-          bubbles.push({...b,employees:[]});// employees re-populated by live sync
-        } else {
-          // Sync layout/name/config, preserve live employee assignments
+        if(!local){bubbles.push({...b,employees:[]});}
+        else{
           local.name=b.name;local.colorIdx=b.colorIdx;
-          if(!recentDrag){local.bx=b.bx;local.by=b.by;} // don't snap back if user just dragged
-          local.size=b.size;
-          local.billable=b.billable;local.parentId=b.parentId;
+          if(!recentDrag){local.bx=b.bx;local.by=b.by;}
+          local.size=b.size;local.billable=b.billable;local.parentId=b.parentId;
           if(b.spName)local.spName=b.spName;
           if(b.spQuotedHrs)local.spQuotedHrs=b.spQuotedHrs;
         }
       });
-      // Remove bubbles deleted on another device (only if empty of employees)
       const bIds=bb.map(x=>x.id);
       bubbles=bubbles.filter(b=>bIds.includes(b.id)||b.employees.length>0);
     }
   }catch(e){console.warn('[sync] bubble load failed:',e.message);}
 
-  // Load SP links
   try{
     const urlL=new URL(SCRIPT_URL);
-    urlL.searchParams.set('action','loadSpLinks');
-    urlL.searchParams.set('facility',CURRENT_FACILITY);
-    urlL.searchParams.set('t',Date.now());
+    urlL.searchParams.set('action','loadSpLinks');urlL.searchParams.set('facility',CURRENT_FACILITY);urlL.searchParams.set('t',Date.now());
     const resL=await fetch(urlL.toString());
     const dataL=await resL.json();
     if(dataL&&dataL.ok&&dataL.links&&Object.keys(dataL.links).length>0){
@@ -1463,7 +1479,7 @@ setInterval(renderAll,30000);
 setInterval(renderBreakZones,60000);
 
 // ════════════════════════════════════════════
-// SP LABOR PANEL — GAS PROXY VERSION
+// SP LABOR PANEL
 // ════════════════════════════════════════════
 const SP_LOCAL_KEY='atomix_sp_tasks_v1';
 const SP_EST_OVERRIDE_KEY='atomix_sp_est_v1';
@@ -1473,7 +1489,6 @@ let spTasks=[];
 let spEstOverrides={};
 let spBubbleLinks={};
 
-// Load cache on start
 (function(){
   try{const r=localStorage.getItem(SP_LOCAL_KEY);if(r)spTasks=JSON.parse(r);}catch(e){}
   try{const r=localStorage.getItem(SP_EST_OVERRIDE_KEY);if(r)spEstOverrides=JSON.parse(r);}catch(e){}
@@ -1501,6 +1516,8 @@ function spStatusClass(s){
   const v=(s||'').toLowerCase();
   if(v==='in progress')return'in-progress';
   if(v==='billing submission')return'billing';
+  if(v==='hold')return'awaiting';
+  if(v==='awaiting labels')return'awaiting';
   if(v.includes('awating')||v.includes('awaiting'))return'awaiting';
   if(v==='quoted')return'quoted';
   if(v.includes('ready')||v.includes('processing'))return'ready';
@@ -1545,7 +1562,6 @@ function buildSpCard(task){
   if(dueInfo){const dEl=document.createElement('div');dEl.className='sp-due'+(dueInfo.cls?' '+dueInfo.cls:'');dEl.textContent=dueInfo.txt;stats.appendChild(dEl);}
   card.appendChild(stats);
 
-  // Est hrs override
   const eRow=document.createElement('div');eRow.className='sp-est-row';
   const eLbl=document.createElement('span');eLbl.className='sp-est-lbl';eLbl.textContent='Est hrs:';eRow.appendChild(eLbl);
   const eInp=document.createElement('input');eInp.className='sp-est-input';eInp.type='number';eInp.min='0';eInp.step='0.5';
@@ -1553,7 +1569,6 @@ function buildSpCard(task){
   eInp.addEventListener('change',ev=>{ev.stopPropagation();const v=parseFloat(eInp.value);if(!isNaN(v)&&v>=0)spEstOverrides[task.id]=v;else delete spEstOverrides[task.id];saveSpCache();renderSpPanel();renderBubbles();});
   eInp.addEventListener('click',ev=>ev.stopPropagation());eRow.appendChild(eInp);card.appendChild(eRow);
 
-  // Bubble link
   const linkBtn=document.createElement('button');linkBtn.className='sp-link-btn';
   linkBtn.textContent=linked?`→ ${linked}`:'+ Link to bubble';
   linkBtn.title='Link to a bubble to track live hours';
@@ -1567,7 +1582,6 @@ function buildSpCard(task){
     saveSpCache();syncSpLinksToBackend();renderSpPanel();renderBubbles();
   });
   card.appendChild(linkBtn);
-  // Click opens detail modal; hold Ctrl/Cmd opens ClickUp directly
   card.addEventListener('click',ev=>{
     if(ev.ctrlKey||ev.metaKey){window.open(task.url,'_blank');return;}
     openSpCardModal(task);
@@ -1592,14 +1606,17 @@ function renderSpPanel(){
   }
 
   const now=Date.now();
-  const sorted=[...spTasks].filter(t=>t.status!=='client cancelled').sort((a,b)=>(a.due||9e15)-(b.due||9e15));
+  // ── STATUS WHITELIST: only show active work statuses ──
+  const SP_SHOW=['ready for processing','in progress','awaiting pickup','hold','awaiting labels'];
+  const sorted=[...spTasks].filter(t=>{const s=(t.status||'').toLowerCase().trim();return SP_SHOW.includes(s);}).sort((a,b)=>(a.due||9e15)-(b.due||9e15));
+
   const totalEst=sorted.reduce((s,t)=>s+spEffectiveEst(t),0);
   const noEst=sorted.filter(t=>spEffectiveEst(t)===0).length;
   const over=sorted.filter(t=>{const e=spEffectiveEst(t);return e>0&&spEffectiveLogged(t)/e>=1;}).length;
   const dueWk=sorted.filter(t=>t.due&&t.due>now&&t.due<=now+7*86400000).length;
 
   if(meta){
-    let html=`<span class="sp-meta-chip">${sorted.length} SPs</span>`;
+    let html=`<span class="sp-meta-chip">${sorted.length} active SPs</span>`;
     if(totalEst>0)html+=`<span class="sp-meta-chip">${totalEst}h projected</span>`;
     if(dueWk)html+=`<span class="sp-meta-chip warn">${dueWk} due this week</span>`;
     if(noEst)html+=`<span class="sp-meta-chip warn">${noEst} no est hrs</span>`;
@@ -1611,7 +1628,6 @@ function renderSpPanel(){
   renderSpPie(sorted);
 }
 
-// ── SP PIE CHART ──
 const SP_PIE_PAL=['#A3F3C5','#4d9fff','#ff5c5c','#ffd166','#c084fc','#5eead4','#ffaa4d','#67e8f9','#f472b6','#86efac','#fb923c','#a78bfa','#34d399','#f87171','#60a5fa','#facc15','#e879f9','#2dd4bf','#f97316','#818cf8'];
 
 function renderSpPie(tasks){
@@ -1622,11 +1638,8 @@ function renderSpPie(tasks){
 
   const now=Date.now();
   const weekEnd=now+7*86400000;
-
-  // Only tasks due this week (or overdue)
   const weekTasks=tasks.filter(t=>t.due&&t.due<=weekEnd);
 
-  // Group by client, sum est hrs
   const clientMap={};
   weekTasks.forEach(t=>{
     const c=(t.name.match(/^([^-–]+)/)?.[1]||t.name).trim();
@@ -1641,13 +1654,11 @@ function renderSpPie(tasks){
 
   if(!entries.length){
     const ctx=canvas.getContext('2d');ctx.clearRect(0,0,110,110);
-    // draw empty ring
     ctx.beginPath();ctx.arc(55,55,48,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=14;ctx.stroke();
     legend.innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0;">No est hrs set for tasks due this week</div>';
     return;
   }
 
-  // Draw donut
   const ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,110,110);
   let startAngle=-Math.PI/2;
@@ -1656,32 +1667,18 @@ function renderSpPie(tasks){
   entries.forEach(([client,hrs],i)=>{
     const angle=(hrs/totalHrs)*Math.PI*2;
     const color=SP_PIE_PAL[i%SP_PIE_PAL.length];
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,startAngle,startAngle+angle);
-    ctx.arc(cx,cy,ir,startAngle+angle,startAngle,true);
-    ctx.closePath();
-    ctx.fillStyle=color+'cc';
-    ctx.fill();
-    ctx.strokeStyle='#07121f';
-    ctx.lineWidth=1.5;
-    ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,startAngle,startAngle+angle);ctx.arc(cx,cy,ir,startAngle+angle,startAngle,true);ctx.closePath();
+    ctx.fillStyle=color+'cc';ctx.fill();ctx.strokeStyle='#07121f';ctx.lineWidth=1.5;ctx.stroke();
     startAngle+=angle;
   });
 
-  // Legend
   legend.innerHTML=entries.slice(0,12).map(([c,h],i)=>{
     const pct=Math.round((h/totalHrs)*100);
     const col=SP_PIE_PAL[i%SP_PIE_PAL.length];
-    return `<div class="sp-legend-row">
-      <div class="sp-legend-dot" style="background:${col}"></div>
-      <span class="sp-legend-name" title="${c}">${c}</span>
-      <span class="sp-legend-val">${h}h · ${pct}%</span>
-    </div>`;
+    return `<div class="sp-legend-row"><div class="sp-legend-dot" style="background:${col}"></div><span class="sp-legend-name" title="${c}">${c}</span><span class="sp-legend-val">${h}h · ${pct}%</span></div>`;
   }).join('')+(entries.length>12?`<div style="font-size:9px;color:var(--muted);padding-top:2px;">+${entries.length-12} more</div>`:'');
 }
 
-// ── SP CARD DETAIL MODAL ──
 let _scmTask=null;
 let _scmColorIdx=0;
 
@@ -1701,14 +1698,11 @@ function openSpCardModal(task){
     <div class="scm-field"><label>Due Date</label><div class="scm-val">${task.due?new Date(task.due).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—'}</div></div>
     <div class="scm-field"><label>Linked Bubble</label><div class="scm-val" style="color:var(--green)">${spBubbleLinks[task.id]||'None'}</div></div>
   `;
-  // Pre-fill bubble name from task client
   document.getElementById('scmBubbleName').value=client;
-  // Reset form state
   document.getElementById('scmBubbleForm').style.display='none';
   document.getElementById('scmDivider').style.display='none';
   document.getElementById('scmCreateBubbleToggle').textContent='+ Create Bubble';
 
-  // Build color picker
   const cr=document.getElementById('scmColorRow');cr.innerHTML='';
   COLORS.forEach((c,i)=>{
     const dot=document.createElement('div');
@@ -1719,7 +1713,6 @@ function openSpCardModal(task){
   });
 
   modal.style.display='flex';
-  // Stop background scroll
   modal.addEventListener('click',e=>{if(e.target===modal)closeSpCardModal();},{once:false});
 }
 
@@ -1743,10 +1736,8 @@ function createBubbleFromSp(){
   const name=document.getElementById('scmBubbleName').value.trim();
   if(!name){document.getElementById('scmBubbleName').focus();return;}
 
-  // Check if bubble with same name already exists
   const existing=bubbles.find(b=>b.name===name);
   if(existing){
-    // Just link and close
     spBubbleLinks[_scmTask.id]=name;
     saveSpCache();
     addLog(`SP "${_scmTask.name.slice(0,30)}" linked to existing bubble "${name}"`,'');
@@ -1755,46 +1746,24 @@ function createBubbleFromSp(){
     return;
   }
 
-  // Create new bubble
   const ca=document.getElementById('canvasArea');
   const newBubble={
-    id:'b'+(++bubbleIdCounter),
-    name,
-    colorIdx:_scmColorIdx,
-    bx:(ca.clientWidth/2-panX)/zoomLevel + (Math.random()-0.5)*200,
-    by:(ca.clientHeight/2-panY)/zoomLevel + (Math.random()-0.5)*150,
-    cx:0.4+Math.random()*0.2,
-    cy:0.4+Math.random()*0.2,
-    size:90,
-    employees:[],
-    parentId:null,
-    billable:true, // SP bubbles are billable by default
-    spName:_scmTask.name,
-    spQuotedHrs:spEffectiveEst(_scmTask)||0,
+    id:'b'+(++bubbleIdCounter),name,colorIdx:_scmColorIdx,
+    bx:(ca.clientWidth/2-panX)/zoomLevel+(Math.random()-0.5)*200,
+    by:(ca.clientHeight/2-panY)/zoomLevel+(Math.random()-0.5)*150,
+    cx:0.4+Math.random()*0.2,cy:0.4+Math.random()*0.2,
+    size:90,employees:[],parentId:null,billable:true,
+    spName:_scmTask.name,spQuotedHrs:spEffectiveEst(_scmTask)||0,
   };
   bubbles.push(newBubble);
-
-  // Auto-link this SP task to the new bubble
   spBubbleLinks[_scmTask.id]=name;
-  saveSpCache();
-  saveBubbles();
-
+  saveSpCache();saveBubbles();
   addLog(`Bubble "${name}" created from SP · linked to ClickUp task`,'in');
-  renderAll();
-  closeSpCardModal();
-
-  // Briefly highlight the new bubble
-  setTimeout(()=>{
-    const el=document.getElementById('bubble-'+newBubble.id);
-    if(el){el.style.transition='box-shadow 0.3s';el.style.boxShadow='0 0 40px rgba(163,243,197,0.8), inset 0 1px 0 rgba(255,255,255,0.2)';}
-  },100);
-  setTimeout(()=>{
-    const el=document.getElementById('bubble-'+newBubble.id);
-    if(el)el.style.boxShadow='';
-  },1800);
+  renderAll();closeSpCardModal();
+  setTimeout(()=>{const el=document.getElementById('bubble-'+newBubble.id);if(el){el.style.transition='box-shadow 0.3s';el.style.boxShadow='0 0 40px rgba(163,243,197,0.8), inset 0 1px 0 rgba(255,255,255,0.2)';}},100);
+  setTimeout(()=>{const el=document.getElementById('bubble-'+newBubble.id);if(el)el.style.boxShadow='';},1800);
 }
 
-// JSONP fetch — bypasses CORS entirely, works from any origin
 function spFetchAll(){
   const btn=document.getElementById('spSyncBtn');
   if(btn){btn.textContent='↻ …';btn.classList.add('loading');}
@@ -1805,12 +1774,10 @@ function spFetchAll(){
     renderSpPanel();return;
   }
 
-  // Clean up any previous JSONP script tag
   const oldScript=document.getElementById('sp-jsonp-script');
   if(oldScript)oldScript.remove();
   if(window._spJsonpTimeout)clearTimeout(window._spJsonpTimeout);
 
-  // Global callback that GAS will call
   window.spCallback=function(data){
     const s=document.getElementById('sp-jsonp-script');if(s)s.remove();
     clearTimeout(window._spJsonpTimeout);
@@ -1823,7 +1790,8 @@ function spFetchAll(){
     }else{
       spTasks=(data.tasks||[]).map(t=>({
         ...t,
-        estHrs:typeof t.estHrs==='number'?t.estHrs:0,
+        // ── ESTHS PATCH: use estHrs if present, else fall back to ClickUp time_estimate (ms→hrs) ──
+        estHrs:(typeof t.estHrs==='number'&&t.estHrs>0)?t.estHrs:(typeof t.time_estimate==='number'&&t.time_estimate>0?+(t.time_estimate/3600000).toFixed(2):0),
         spentHrs:typeof t.spentHrs==='number'?t.spentHrs:0,
       }));
       saveSpCache();
@@ -1834,7 +1802,6 @@ function spFetchAll(){
     if(btn){btn.textContent='↻ Sync';btn.classList.remove('loading');}
   };
 
-  // 15s timeout fallback — use cache if GAS doesn't respond
   window._spJsonpTimeout=setTimeout(function(){
     const s=document.getElementById('sp-jsonp-script');if(s)s.remove();
     delete window.spCallback;
@@ -1843,7 +1810,6 @@ function spFetchAll(){
     if(btn){btn.textContent='↻ Sync';btn.classList.remove('loading');}
   },15000);
 
-  // Inject JSONP script tag — GAS returns spCallback({...})
   const script=document.createElement('script');
   script.id='sp-jsonp-script';
   script.src=SP_PROXY_URL+'?action=tasks&callback=spCallback&t='+Date.now();
