@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPS Manager Daily Report — SLC</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Syne:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0f1e2e; --navy-mid:#1a2f45; --green:#A3F3C5;
+  --green-dim:rgba(163,243,197,0.08); --green-border:rgba(163,243,197,0.25);
+  --text:#e8edf2; --muted:#6e8799; --border:rgba(255,255,255,0.07);
+  --input-bg:rgba(255,255,255,0.04); --input-border:rgba(255,255,255,0.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;min-height:100vh;padding-bottom:60px;}
+.header{background:var(--navy-mid);border-bottom:1px solid var(--green-border);padding:16px 18px 12px;position:sticky;top:0;z-index:10;}
+.header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.site-badge{background:var(--green);color:#0f1e2e;font-weight:700;font-size:11px;letter-spacing:.1em;padding:3px 10px;border-radius:3px;}
+.header-date{font-size:11px;color:var(--muted);}
+.header h1{font-family:'Syne',monospace;font-size:15px;font-weight:700;letter-spacing:.05em;}
+.header-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.body{padding:16px;display:flex;flex-direction:column;gap:10px;}
+.section{border:1px solid var(--green-border);border-radius:8px;overflow:hidden;}
+.section-head{background:rgba(163,243,197,0.09);border-bottom:1px solid var(--green-border);padding:9px 14px;display:flex;align-items:center;gap:8px;}
+.sec-num{width:20px;height:20px;background:var(--green);color:#0f1e2e;font-size:10px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--green);text-transform:uppercase;}
+.section-body{padding:14px;display:flex;flex-direction:column;gap:14px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.label{font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+.hint{font-size:11px;color:var(--muted);font-style:italic;}
+textarea,input[type="text"],input[type="number"]{background:var(--input-bg);border:1px solid var(--input-border);border-radius:5px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 10px;width:100%;-webkit-appearance:none;}
+textarea:focus,input:focus{outline:none;border-color:rgba(163,243,197,.45);}
+textarea{resize:vertical;min-height:60px;line-height:1.5;}
+textarea.short{min-height:48px;}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.55;}
+
+/* Labor grid */
+.labor-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.labor-field{display:flex;flex-direction:column;gap:4px;}
+.labor-label{font-size:10px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;}
+.labor-calc{background:rgba(163,243,197,0.06);border:1px solid var(--green-border);border-radius:5px;padding:8px 10px;font-size:12px;color:var(--green);letter-spacing:.02em;}
+.labor-calc-label{font-size:9px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px;}
+
+/* Area blocks */
+.area-block{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:10px;}
+.area-label{font-size:11px;font-weight:700;color:var(--green);letter-spacing:.07em;text-transform:uppercase;}
+.project-list{display:flex;flex-direction:column;gap:8px;}
+.project-row{display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:5px;padding:10px;}
+.completion-row{display:flex;align-items:center;gap:8px;}
+.completion-label{font-size:10px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.completion-row input{flex:1;}
+.remove-btn{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 0 0 6px;line-height:1;flex-shrink:0;align-self:flex-start;}
+.remove-btn:hover{color:#e87070;}
+.add-btn{background:none;border:1px dashed var(--green-border);border-radius:5px;color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;}
+.add-btn:hover{background:var(--green-dim);}
+.add-btn::before{content:'+';font-size:16px;font-weight:700;}
+
+/* Radio */
+.radio-group{display:flex;gap:12px;flex-wrap:wrap;}
+.radio-opt{display:flex;align-items:center;gap:5px;cursor:pointer;}
+.radio-opt input{width:14px;height:14px;accent-color:var(--green);padding:0;cursor:pointer;}
+.radio-opt span{font-size:12px;}
+.req{color:var(--green);}
+
+.submit-wrap{padding:0 16px;margin-top:6px;}
+.submit-btn{width:100%;background:var(--green);color:#0f1e2e;border:none;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;letter-spacing:.07em;padding:14px;cursor:pointer;text-transform:uppercase;}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed;}
+.toast{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#0f1e2e;font-weight:700;font-size:12px;padding:10px 22px;border-radius:6px;z-index:100;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-row">
+    <span class="site-badge">SLC</span>
+    <span class="header-date" id="headerDate"></span>
+  </div>
+  <h1>OPS MANAGER DAILY REPORT</h1>
+  <div class="header-sub">Norman · Salt Lake City · Submit once per shift</div>
+</div>
+
+<form id="reportForm" onsubmit="handleSubmit(event)">
+<div class="body">
+
+  <!-- SECTION 1: LABOR -->
+  <div class="section">
+    <div class="section-head"><div class="sec-num">1</div><span class="sec-title">Labor</span></div>
+    <div class="section-body">
+      <div class="labor-grid">
+        <div class="labor-field">
+          <label class="labor-label">Hours worked <span class="req">*</span></label>
+          <input type="number" name="labor_hours" id="labor_hours" placeholder="0" min="0" step="0.5" oninput="calcLabor()">
+        </div>
+        <div class="labor-field">
+          <label class="labor-label">Labor cost <span class="req">*</span></label>
+          <input type="number" name="labor_cost" id="labor_cost" placeholder="0.00" min="0" step="0.01" oninput="calcLabor()">
+        </div>
+        <div class="labor-field">
+          <label class="labor-label">Orders shipped <span class="req">*</span></label>
+          <input type="number" name="orders_shipped" id="orders_shipped" placeholder="0" min="0" oninput="calcLabor()">
+        </div>
+      </div>
+      <div class="labor-grid">
+        <div class="labor-field">
+          <div class="labor-calc-label">OPH (auto)</div>
+          <div class="labor-calc" id="calc_oph">—</div>
+        </div>
+        <div class="labor-field">
+          <div class="labor-calc-label">CPO (auto)</div>
+          <div class="labor-calc" id="calc_cpo">—</div>
+        </div>
+        <div class="labor-field">
+          <div class="labor-calc-label">&nbsp;</div>
+          <div class="labor-calc" style="border-color:transparent;background:transparent;">&nbsp;</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Labor notes / takeaways</label>
+        <textarea class="short" name="labor_notes" placeholder="Anything notable about today's labor — efficiency, callouts, pace..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: WORK IN PROGRESS -->
+  <div class="section">
+    <div class="section-head"><div class="sec-num">2</div><span class="sec-title">Work in Progress</span></div>
+    <div class="section-body">
+      <div class="hint">One row per active project. Leave an area empty if nothing active.</div>
+
+      <div class="area-block">
+        <div class="area-label">Outbound</div>
+        <div class="project-list" id="list-outbound"></div>
+        <button type="button" class="add-btn" onclick="addProject('outbound')">Add project</button>
+      </div>
+      <div class="area-block">
+        <div class="area-label">Inbound / Receiving</div>
+        <div class="project-list" id="list-inbound"></div>
+        <button type="button" class="add-btn" onclick="addProject('inbound')">Add project</button>
+      </div>
+      <div class="area-block">
+        <div class="area-label">Special Projects / Kitting</div>
+        <div class="project-list" id="list-sp"></div>
+        <button type="button" class="add-btn" onclick="addProject('sp')">Add project</button>
+      </div>
+      <div class="area-block">
+        <div class="area-label">B2B / Freight</div>
+        <div class="project-list" id="list-b2b"></div>
+        <button type="button" class="add-btn" onclick="addProject('b2b')">Add project</button>
+      </div>
+      <div class="area-block">
+        <div class="area-label">Inventory</div>
+        <div class="project-list" id="list-inventory"></div>
+        <button type="button" class="add-btn" onclick="addProject('inventory')">Add project</button>
+      </div>
+      <div class="area-block">
+        <div class="area-label">Other</div>
+        <div class="project-list" id="list-other"></div>
+        <button type="button" class="add-btn" onclick="addProject('other')">Add project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: PLAN & CAPACITY -->
+  <div class="section">
+    <div class="section-head"><div class="sec-num">3</div><span class="sec-title">Plan &amp; Capacity</span></div>
+    <div class="section-body">
+      <div class="field">
+        <label class="label">Will everything get done today? <span class="req">*</span></label>
+        <div class="radio-group">
+          <label class="radio-opt"><input type="radio" name="gets_done" value="Yes"><span>Yes</span></label>
+          <label class="radio-opt"><input type="radio" name="gets_done" value="No"><span>No</span></label>
+          <label class="radio-opt"><input type="radio" name="gets_done" value="Partial"><span>Partial</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">If not — what carries over and what's the plan?</label>
+        <textarea name="carryover" placeholder="What slips, who owns recovery, when it gets done..."></textarea>
+      </div>
+      <div class="field">
+        <label class="label">Overtime risk? <span class="req">*</span></label>
+        <div class="radio-group">
+          <label class="radio-opt"><input type="radio" name="ot_risk" value="No"><span>No</span></label>
+          <label class="radio-opt"><input type="radio" name="ot_risk" value="Possible"><span>Possible</span></label>
+          <label class="radio-opt"><input type="radio" name="ot_risk" value="Yes"><span>Yes</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">If yes — which dept, estimated hours, why?</label>
+        <textarea class="short" name="ot_details" placeholder="Dept · est. hours · reason..."></textarea>
+      </div>
+      <div class="field">
+        <label class="label">Anything needing to be expedited?</label>
+        <textarea name="expedite" placeholder="What, why, and who owns it. 'None' if nothing."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: CX COMMUNICATION -->
+  <div class="section">
+    <div class="section-head"><div class="sec-num">4</div><span class="sec-title">CX Communication</span></div>
+    <div class="section-body">
+      <div class="field">
+        <label class="label">What has been communicated to CX today? <span class="req">*</span></label>
+        <textarea name="cx_communicated" placeholder="Projects, order status, delays, holds — what CX was told today. 'None' if nothing."></textarea>
+      </div>
+      <div class="field">
+        <label class="label">What is OPS waiting on CX for?</label>
+        <textarea class="short" name="ops_waiting_cx" placeholder="Approvals, instructions, confirmations needed. 'None' if nothing."></textarea>
+      </div>
+      <div class="field">
+        <label class="label">What is CX waiting on OPS for?</label>
+        <textarea class="short" name="cx_waiting_ops" placeholder="Orders, updates, shipments CX is expecting from us. 'None' if nothing."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: EXCEPTIONS -->
+  <div class="section">
+    <div class="section-head"><div class="sec-num">5</div><span class="sec-title">Exceptions</span></div>
+    <div class="section-body">
+      <div class="field">
+        <label class="label">Any SLA risk or misses?</label>
+        <textarea class="short" name="sla_risk" placeholder="Order #, customer, reason. 'None' if clean."></textarea>
+      </div>
+      <div class="field">
+        <label class="label">Any non-compliant inbounds or shipments?</label>
+        <textarea class="short" name="non_compliant" placeholder="What, which client, what's wrong. 'None' if clean."></textarea>
+      </div>
+      <div class="field">
+        <label class="label">Any HR situations to flag?</label>
+        <textarea class="short" name="hr_issues" placeholder="Attendance, performance, conduct. 'None' if nothing."></textarea>
+      </div>
+      <div class="field">
+        <label class="label">Errors logged today</label>
+        <input type="number" name="errors_count" placeholder="0" min="0" style="max-width:110px;">
+      </div>
+      <div class="field">
+        <label class="label">Error patterns or notes</label>
+        <textarea class="short" name="error_notes" placeholder="Recurring issues, root causes. 'None' if nothing notable."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: ADDITIONAL COMMENTS -->
+  <div class="section">
+    <div class="section-head"><div class="sec-num">6</div><span class="sec-title">Additional Comments</span></div>
+    <div class="section-body">
+      <div class="field">
+        <label class="label">Anything else Drake should know?</label>
+        <textarea name="additional_comments" placeholder="Context, wins, concerns, heads up for tomorrow..."></textarea>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="submit-wrap">
+  <button type="submit" class="submit-btn" id="submitBtn">Submit Report</button>
+</div>
+</form>
+<div class="toast" id="toast">✓ Report submitted</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/YOUR_APPS_SCRIPT_WEBHOOK_URL/exec';
+const SUBMITTER = 'Norman';
+const SITE = 'SLC';
+const AREAS = ['outbound','inbound','sp','b2b','inventory','other'];
+const counters = {};
+
+document.getElementById('headerDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+
+function calcLabor() {
+  const hrs = parseFloat(document.getElementById('labor_hours').value) || 0;
+  const cost = parseFloat(document.getElementById('labor_cost').value) || 0;
+  const orders = parseFloat(document.getElementById('orders_shipped').value) || 0;
+  document.getElementById('calc_oph').textContent = hrs > 0 ? (orders / hrs).toFixed(2) : '—';
+  document.getElementById('calc_cpo').textContent = orders > 0 ? '$' + (cost / orders).toFixed(2) : '—';
+}
+
+function addProject(area) {
+  if (!counters[area]) counters[area] = 0;
+  const idx = counters[area]++;
+  const list = document.getElementById('list-' + area);
+  const row = document.createElement('div');
+  row.className = 'project-row';
+  row.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;">
+      <input type="text" name="proj_${area}_${idx}_name" placeholder="Project name..." style="flex:1;">
+      <button type="button" class="remove-btn" onclick="this.closest('.project-row').remove()" title="Remove">×</button>
+    </div>
+    <div class="completion-row">
+      <span class="completion-label">Expected completion:</span>
+      <input type="text" name="proj_${area}_${idx}_date" placeholder="EOD / Fri 5/23 / ongoing">
+    </div>`;
+  list.appendChild(row);
+  row.querySelector('input[type="text"]').focus();
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  const fd = new FormData(e.target);
+  const payload = { submitter: SUBMITTER, site: SITE, timestamp: new Date().toISOString() };
+  fd.forEach((v, k) => { payload[k] = v; });
+  // Auto-calculated fields
+  const hrs = parseFloat(payload.labor_hours) || 0;
+  const cost = parseFloat(payload.labor_cost) || 0;
+  const orders = parseFloat(payload.orders_shipped) || 0;
+  payload.calc_oph = hrs > 0 ? (orders / hrs).toFixed(2) : '0';
+  payload.calc_cpo = orders > 0 ? (cost / orders).toFixed(2) : '0';
+  // Collect projects
+  AREAS.forEach(area => {
+    const rows = document.querySelectorAll('#list-' + area + ' .project-row');
+    const projects = [];
+    rows.forEach(row => {
+      const n = row.querySelector('input[name$="_name"]');
+      const d = row.querySelector('input[name$="_date"]');
+      if (n && n.value.trim()) projects.push({ project: n.value.trim(), completion: d ? d.value.trim() : '' });
+    });
+    payload['projects_' + area] = JSON.stringify(projects);
+  });
+  try {
+    await fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    document.getElementById('toast').style.display = 'block';
+    btn.textContent = '✓ Submitted';
+    setTimeout(() => {
+      e.target.reset();
+      AREAS.forEach(a => { document.getElementById('list-' + a).innerHTML = ''; counters[a] = 0; });
+      document.getElementById('calc_oph').textContent = '—';
+      document.getElementById('calc_cpo').textContent = '—';
+      btn.disabled = false; btn.textContent = 'Submit Report';
+      document.getElementById('toast').style.display = 'none';
+    }, 3000);
+  } catch(err) {
+    btn.disabled = false; btn.textContent = 'Retry Submit';
+    alert('Submission failed. Check connection and try again.');
+  }
+}
+</script>
+</body>
+</html>
