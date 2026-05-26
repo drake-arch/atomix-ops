@@ -665,7 +665,12 @@ body { min-height: 100vh; background: var(--navy); }
         <div class="chat-name" id="mgrName"></div>
         <div class="chat-role" id="mgrRole"></div>
       </div>
-      <button class="btn-back" onclick="goBack()">← back</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button id="btnSendRecap" onclick="triggerRecapNow()" style="display:none;padding:7px 14px;background:var(--green);color:#0a1a0f;border:none;border-radius:8px;font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:600;cursor:pointer;letter-spacing:0.03em" title="Send all recap emails now">
+          ✉ Send recap now
+        </button>
+        <button class="btn-back" onclick="goBack()">← back</button>
+      </div>
     </div>
 
     <div class="tab-row">
@@ -1649,9 +1654,33 @@ function deleteAdhocFromEditor(id) {
 function proceedToManager() {
   document.getElementById('mgrName').textContent = currentPerson.name;
   document.getElementById('mgrRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
+  // Show "Send recap now" only for Drake and Ricardo
+  const btn = document.getElementById('btnSendRecap');
+  btn.style.display = ['drake','ricardo'].includes(currentPerson.id) ? 'inline-block' : 'none';
   showScreen('screenManager');
   loadManagerData();
   populateAqTarget();
+}
+
+function triggerRecapNow() {
+  const btn = document.getElementById('btnSendRecap');
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    showToast('No Apps Script URL configured.');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '⏳ Sending…';
+  const payload = { action: 'sendAllNow', requestedBy: currentPerson.id };
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+  jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, (err, data) => {
+    btn.disabled = false;
+    btn.textContent = '✉ Send recap now';
+    if (!err && data && data.ok !== false) {
+      showToast('✓ Recap emails sent successfully.');
+    } else {
+      showToast('Recap triggered — check Apps Script logs if emails are missing.');
+    }
+  });
 }
 
 function typeLabel(t){return{text:'Short answer',textarea:'Long answer',number:'Number',yesno:'Yes / No'}[t]||t;}
