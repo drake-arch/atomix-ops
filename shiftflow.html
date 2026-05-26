@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ShiftFlow EOD — Atomix OPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── ATX OPS Design System ─────────────────────────────────── */
+:root {
+  --navy:    #0f172a;
+  --navy2:   #1e293b;
+  --navy3:   #334155;
+  --green:   #A3F3C5;
+  --green2:  #6ee7b7;
+  --text:    #e2e8f0;
+  --text2:   #94a3b8;
+  --text3:   #64748b;
+  --border:  rgba(163,243,197,0.12);
+  --border2: rgba(163,243,197,0.22);
+  --glass:   rgba(30,41,59,0.7);
+  --radius:  12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--navy); color: var(--text); font-family: 'Syne', sans-serif; }
+body { min-height: 100vh; background: var(--navy); }
+
+/* ── Layout ─────────────────────────────────────────────────── */
+.page { max-width: 680px; margin: 0 auto; padding: 0 16px 60px; }
+
+/* ── Header ─────────────────────────────────────────────────── */
+.topbar {
+  padding: 20px 0 16px;
+  border-bottom: 0.5px solid var(--border);
+  margin-bottom: 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.logo-mark {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-mark svg { width: 18px; height: 18px; }
+.logo-text { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.logo-sub { font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
+.topbar-date { font-size: 12px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── Glass card ─────────────────────────────────────────────── */
+.card {
+  background: var(--glass);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.card-sm { padding: 14px 16px; }
+
+/* ── Section label ───────────────────────────────────────────── */
+.section-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+  color: var(--green); text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-bottom: 12px;
+}
+
+/* ── Screens ─────────────────────────────────────────────────── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── Name picker ─────────────────────────────────────────────── */
+.site-label {
+  font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em; margin-bottom: 6px; text-transform: uppercase;
+}
+.name-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-bottom: 8px;
+}
+.name-btn {
+  background: var(--glass);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.name-btn:hover { border-color: var(--border2); background: rgba(163,243,197,0.06); }
+.name-btn .nb-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.name-btn .nb-role { font-size: 11px; color: var(--text2); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+
+/* ── Chat flow ────────────────────────────────────────────────── */
+.chat-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+}
+.chat-name { font-size: 18px; font-weight: 700; color: var(--text); }
+.chat-role { font-size: 12px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
+.progress-wrap { margin-bottom: 24px; }
+.progress-meta { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.progress-meta span { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+.progress-bar { height: 3px; background: var(--navy3); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.4s ease; }
+
+.bubble-q {
+  background: rgba(163,243,197,0.08);
+  border: 0.5px solid var(--border2);
+  border-radius: 0 var(--radius) var(--radius) var(--radius);
+  padding: 12px 14px;
+  font-size: 14px; color: var(--text);
+  margin-bottom: 14px;
+  animation: fadeUp 0.2s ease;
+}
+.bubble-q .q-label { font-size: 10px; color: var(--green); font-family: 'IBM Plex Mono', monospace; margin-bottom: 4px; letter-spacing: 0.06em; }
+
+.answer-area textarea {
+  width: 100%;
+  background: var(--navy2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.15s;
+  min-height: 80px;
+}
+.answer-area textarea:focus { border-color: var(--green); }
+.answer-area input[type=number] {
+  width: 100%;
+  background: var(--navy2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.answer-area input[type=number]:focus { border-color: var(--green); }
+
+.quick-btns { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.quick-btn {
+  padding: 8px 16px; border-radius: 20px;
+  border: 0.5px solid var(--border2);
+  background: transparent; color: var(--text);
+  font-family: 'Syne', sans-serif; font-size: 13px;
+  cursor: pointer; transition: background 0.15s, border-color 0.15s;
+}
+.quick-btn:hover, .quick-btn.selected {
+  background: rgba(163,243,197,0.12); border-color: var(--green);
+  color: var(--green);
+}
+
+.btn-next {
+  width: 100%; margin-top: 12px;
+  background: var(--green); color: var(--navy);
+  border: none; border-radius: var(--radius-sm);
+  padding: 13px; font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.btn-next:hover { opacity: 0.9; }
+.btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-back {
+  background: none; border: none; color: var(--text3);
+  font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer; padding: 4px 0; margin-top: 8px;
+}
+.btn-back:hover { color: var(--text2); }
+
+/* ── Complete screen ──────────────────────────────────────────── */
+.complete-card { text-align: center; padding: 40px 20px; }
+.complete-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(163,243,197,0.12);
+  border: 0.5px solid var(--green);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+.complete-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.complete-sub { font-size: 13px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; }
+.complete-another {
+  margin-top: 24px;
+  background: none; border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text2);
+  font-family: 'Syne', sans-serif; font-size: 13px;
+  padding: 10px 20px; cursor: pointer; transition: color 0.15s, border-color 0.15s;
+}
+.complete-another:hover { color: var(--text); border-color: var(--border2); }
+
+/* ── Manager view ─────────────────────────────────────────────── */
+.tab-row { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 0.5px solid var(--border); padding-bottom: 0; }
+.tab-btn {
+  font-size: 12px; padding: 7px 14px;
+  background: none; border: none; color: var(--text3);
+  font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px;
+  transition: color 0.15s;
+}
+.tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+.person-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 0.5px solid var(--border);
+}
+.person-row:last-child { border-bottom: none; }
+.person-left { display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.av-g { background: rgba(163,243,197,0.12); color: var(--green); border: 0.5px solid rgba(163,243,197,0.3); }
+.av-b { background: rgba(56,189,248,0.1); color: #38bdf8; border: 0.5px solid rgba(56,189,248,0.25); }
+.av-a { background: rgba(251,191,36,0.1); color: #fbbf24; border: 0.5px solid rgba(251,191,36,0.25); }
+.av-r { background: rgba(248,113,113,0.1); color: #f87171; border: 0.5px solid rgba(248,113,113,0.25); }
+.av-p { background: rgba(167,139,250,0.1); color: #a78bfa; border: 0.5px solid rgba(167,139,250,0.25); }
+.pname { font-size: 13px; font-weight: 600; color: var(--text); }
+.prole { font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; }
+.pill {
+  font-size: 10px; padding: 3px 8px; border-radius: 20px;
+  font-family: 'IBM Plex Mono', monospace; font-weight: 500;
+}
+.pill-ok  { background: rgba(163,243,197,0.1); color: var(--green); border: 0.5px solid rgba(163,243,197,0.25); }
+.pill-no  { background: rgba(248,113,113,0.1); color: #f87171; border: 0.5px solid rgba(248,113,113,0.25); }
+.pill-live{ background: rgba(251,191,36,0.1); color: #fbbf24; border: 0.5px solid rgba(251,191,36,0.25); }
+
+.expand-btn {
+  background: none; border: none; color: var(--text3);
+  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer; margin-left: 8px; padding: 2px 4px;
+}
+.expand-btn:hover { color: var(--text2); }
+.qa-block { padding: 8px 0 4px 44px; display: none; }
+.qa-block.open { display: block; }
+.qa-item { margin-bottom: 10px; }
+.qa-q { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; margin-bottom: 3px; }
+.qa-a { font-size: 13px; color: var(--text); }
+
+/* ── Add question ─────────────────────────────────────────────── */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; margin-bottom: 6px; letter-spacing: 0.04em; }
+.field select, .field textarea, .field input[type=text] {
+  width: 100%;
+  background: var(--navy2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+  appearance: none;
+}
+.field select:focus, .field textarea:focus, .field input[type=text]:focus { border-color: var(--green); }
+.field textarea { resize: none; min-height: 70px; }
+.field select option { background: var(--navy2); }
+
+.btn-add {
+  width: 100%; padding: 12px;
+  background: rgba(163,243,197,0.08);
+  border: 0.5px solid var(--green);
+  border-radius: var(--radius-sm);
+  color: var(--green); font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-add:hover { background: rgba(163,243,197,0.14); }
+
+.adhoc-item {
+  padding: 10px 12px;
+  background: rgba(163,243,197,0.04);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.adhoc-q-text { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+.adhoc-meta { font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+.del-btn {
+  background: none; border: none; color: var(--text3);
+  font-size: 16px; cursor: pointer; line-height: 1; padding: 0 2px; flex-shrink: 0;
+}
+.del-btn:hover { color: #f87171; }
+
+/* ── Email preview ────────────────────────────────────────────── */
+.email-card {
+  background: var(--glass);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.email-head {
+  padding: 12px 16px;
+  background: rgba(15,23,42,0.6);
+  border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.email-to { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+.email-subj { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; }
+.email-body { padding: 14px 16px; display: none; }
+.email-body.open { display: block; }
+.email-section { margin-bottom: 12px; }
+.email-section-title { font-size: 10px; color: var(--green); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 6px; }
+.email-line { font-size: 13px; color: var(--text2); padding: 4px 0; border-bottom: 0.5px solid var(--border); }
+.email-line:last-child { border-bottom: none; }
+.email-missing { font-size: 12px; color: #f87171; padding: 6px 10px; background: rgba(248,113,113,0.06); border-radius: var(--radius-sm); margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; }
+.email-ok { font-size: 12px; color: var(--green); padding: 6px 10px; background: rgba(163,243,197,0.06); border-radius: var(--radius-sm); margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; }
+.preview-btn {
+  font-size: 11px; padding: 5px 12px; border-radius: 20px;
+  border: 0.5px solid var(--border2); background: transparent;
+  color: var(--text3); font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer; transition: color 0.15s, border-color 0.15s;
+}
+.preview-btn:hover { color: var(--green); border-color: rgba(163,243,197,0.4); }
+
+/* ── Status / toast ───────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--navy2); border: 0.5px solid var(--green);
+  border-radius: var(--radius-sm); padding: 10px 20px;
+  color: var(--green); font-size: 13px; font-family: 'IBM Plex Mono', monospace;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* ── Mode toggle ──────────────────────────────────────────────── */
+.mode-toggle { display: flex; gap: 4px; margin-bottom: 20px; }
+.mode-btn {
+  flex: 1; padding: 9px; border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+  background: transparent; color: var(--text3);
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.mode-btn.active {
+  background: rgba(163,243,197,0.08);
+  border-color: var(--green); color: var(--green);
+}
+
+/* ── Loading ──────────────────────────────────────────────────── */
+.loading { text-align: center; padding: 40px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.dot-anim::after { content: ''; animation: dots 1.2s steps(4,end) infinite; }
+@keyframes dots { 0%,100%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+@keyframes fadeUp { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+
+/* ── Submitting overlay ───────────────────────────────────────── */
+.submitting-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,0.85); z-index: 998;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px;
+}
+.submitting-overlay.show { display: flex; }
+.submitting-text { color: var(--green); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+.spinner {
+  width: 32px; height: 32px; border: 2px solid var(--border2);
+  border-top-color: var(--green); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+/* ── Questions editor ─────────────────────────────────────────── */
+.qed-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.qed-item:last-child { border-bottom: none; }
+.qed-num {
+  font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace;
+  min-width: 22px; padding-top: 2px; flex-shrink: 0;
+}
+.qed-body { flex: 1; min-width: 0; }
+.qed-text {
+  font-size: 13px; color: var(--text); margin-bottom: 4px;
+  word-break: break-word;
+}
+.qed-text[contenteditable="true"] {
+  outline: none;
+  border-bottom: 1px solid var(--green);
+  padding-bottom: 2px;
+  cursor: text;
+}
+.qed-meta { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+.qed-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+.qed-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+  padding: 3px 7px; border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+  color: var(--text3); transition: color 0.1s, border-color 0.1s;
+}
+.qed-btn:hover { color: var(--text); border-color: var(--border2); }
+.qed-btn.save  { color: var(--green); border-color: rgba(163,243,197,0.3); }
+.qed-btn.save:hover { background: rgba(163,243,197,0.08); }
+.qed-btn.del:hover  { color: #f87171; border-color: rgba(248,113,113,0.3); }
+.qed-move { color: var(--text3); cursor: grab; font-size: 14px; padding: 0 2px; }
+.qed-empty { font-size:12px; color:var(--text3); font-family:'IBM Plex Mono',monospace; padding:12px 0; }
+
+/* ── Org chart ────────────────────────────────────────── */
+.org-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.org-node-btn {
+  cursor: pointer; overflow: visible;
+}
+.org-node-rect {
+  fill: rgba(30,41,59,0.92);
+  stroke: rgba(163,243,197,0.2);
+  stroke-width: 0.5;
+  rx: 7; ry: 7;
+  transition: fill 0.15s, stroke 0.15s;
+}
+.org-node-btn:hover .org-node-rect { fill: rgba(163,243,197,0.07); stroke: rgba(163,243,197,0.55); }
+.org-node-btn.root .org-node-rect  { fill: rgba(163,243,197,0.06); stroke: rgba(163,243,197,0.5); }
+.org-node-btn.mgr  .org-node-rect  { stroke: rgba(163,243,197,0.3); }
+.org-node-name { font-size: 11px; font-weight: 700; fill: #e2e8f0; font-family: Syne, sans-serif; }
+.org-node-role { font-size: 9px;  fill: #64748b; font-family: "IBM Plex Mono", monospace; }
+.org-badge-rect-am { fill: rgba(251,191,36,0.15); rx:3; ry:3; }
+.org-badge-text-am { font-size: 8px; fill: #fbbf24; font-family: "IBM Plex Mono", monospace; }
+.org-badge-rect-pm { fill: rgba(56,189,248,0.15); rx:3; ry:3; }
+.org-badge-text-pm { font-size: 8px; fill: #38bdf8; font-family: "IBM Plex Mono", monospace; }
+.org-badge-rect-slc{ fill: rgba(163,243,197,0.1); rx:3; ry:3; }
+.org-badge-text-slc{ font-size: 8px; fill: #A3F3C5; font-family: "IBM Plex Mono", monospace; }
+.org-line { stroke: rgba(163,243,197,0.28); stroke-width: 0.75; fill: none; }
+
+/* ── Labor metrics card ──────────────────────────────────────── */
+.labor-card {
+  background: rgba(163,243,197,0.04);
+  border: 0.5px solid rgba(163,243,197,0.3);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  animation: fadeUp 0.3s ease;
+}
+.labor-title {
+  font-size: 10px; font-weight: 600; letter-spacing: .1em;
+  color: var(--green); text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.labor-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px; margin-bottom: 10px;
+}
+.labor-metric {
+  background: rgba(15,23,42,0.6);
+  border: 0.5px solid rgba(163,243,197,0.12);
+  border-radius: 8px; padding: 10px 12px; text-align: center;
+}
+.labor-metric.highlight {
+  border-color: rgba(163,243,197,0.35);
+  background: rgba(163,243,197,0.06);
+}
+.lm-val {
+  font-size: 20px; font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--green); line-height: 1.1;
+}
+.lm-lbl {
+  font-size: 9px; color: var(--text3);
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-top: 3px;
+}
+.labor-row {
+  display: flex; gap: 10px; margin-top: 8px;
+}
+.labor-input-wrap { flex: 1; }
+.labor-input-wrap label {
+  font-size: 10px; color: var(--text2);
+  font-family: 'IBM Plex Mono', monospace;
+  display: block; margin-bottom: 4px;
+}
+</style>
+</head>
+<body>
+
+<!-- ── SUBMITTING OVERLAY ───────────────────────────────────── -->
+<div class="submitting-overlay" id="submittingOverlay">
+  <div class="spinner"></div>
+  <div class="submitting-text dot-anim">Submitting report</div>
+</div>
+
+<!-- ── TOAST ─────────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<div class="page">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-mark">
+        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="6" height="6" rx="1.5" fill="#0f172a"/>
+          <rect x="10" y="2" width="6" height="6" rx="1.5" fill="#0f172a"/>
+          <rect x="2" y="10" width="6" height="6" rx="1.5" fill="#0f172a"/>
+          <rect x="10" y="10" width="6" height="6" rx="1.5" fill="#0f172a" opacity="0.4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">ShiftFlow EOD</div>
+        <div class="logo-sub">Atomix Logistics</div>
+      </div>
+    </div>
+    <div class="topbar-date" id="topbarDate"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SCREEN: PICKER                                            -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="screen active" id="screenPicker">
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeReport" onclick="setMode('report')">Submit my report</button>
+      <button class="mode-btn" id="modeManager" onclick="setMode('manager')">Manager view</button>
+    </div>
+
+    <div id="reporterPicker">
+      <p class="section-label">Who's checking out?</p>
+      <div id="mke-label" class="site-label">MKE — Milwaukee</div>
+      <div class="name-grid" id="nameGridMKE"></div>
+      <div id="slc-label" class="site-label" style="margin-top:12px">SLC — Salt Lake City</div>
+      <div class="name-grid" id="nameGridSLC"></div>
+    </div>
+
+    <div id="managerPicker" style="display:none">
+      <p class="section-label">Select a person to manage</p>
+      <div id="orgChartWrap"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SCREEN: CHAT (report submission)                          -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screenChat">
+    <div class="chat-header">
+      <div>
+        <div class="chat-name" id="chatName"></div>
+        <div class="chat-role" id="chatRole"></div>
+      </div>
+      <button class="btn-back" onclick="goBack()">← back</button>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="progressLabel">Question 1 of 3</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div id="questionArea"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SCREEN: COMPLETE                                          -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screenComplete">
+    <div class="card complete-card">
+      <div class="complete-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M5 13l4 4L19 7" stroke="#A3F3C5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="complete-title" id="completeName">Report submitted.</div>
+      <div class="complete-sub" id="completeSub">Thanks — have a good night.</div>
+      <button class="complete-another" onclick="goHome()">Submit another report</button>
+    </div>
+    <div id="laborSummaryBlock" style="display:none"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SCREEN: MANAGER                                           -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SCREEN: QUESTIONS EDITOR -->
+  <div class="screen" id="screenQuestions">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div class="chat-name" id="qedName"></div>
+        <div class="chat-role" id="qedRole"></div>
+      </div>
+      <button class="btn-back" onclick="goBack()">&#8592; back</button>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showQedTab('std',this)">Standard questions</button>
+      <button class="tab-btn" onclick="showQedTab('adhoc',this)">Tonight's ad-hoc</button>
+    </div>
+
+    <!-- Standard questions list -->
+    <div id="qedTabStd">
+      <div id="qedStdList"></div>
+      <div class="card" style="margin-top:12px">
+        <p class="section-label" style="margin-bottom:12px">Add a standard question</p>
+        <div class="field">
+          <label>Question text</label>
+          <textarea id="newStdQ" rows="2" placeholder="e.g. What should leadership know about today?"></textarea>
+        </div>
+        <div class="field">
+          <label>Answer type</label>
+          <select id="newStdType">
+            <option value="text">Short answer</option>
+            <option value="textarea">Long answer</option>
+            <option value="number">Number</option>
+            <option value="yesno">Yes / No</option>
+          </select>
+        </div>
+        <button class="btn-add" onclick="addStandardQuestion()">Add question</button>
+        <div id="newStdConfirm" style="display:none;margin-top:8px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--green)"></div>
+      </div>
+    </div>
+
+    <!-- Ad-hoc questions -->
+    <div id="qedTabAdhoc" style="display:none">
+      <div id="qedAdhocList"></div>
+      <div class="card" style="margin-top:12px">
+        <p class="section-label" style="margin-bottom:12px">Add an ad-hoc question for tonight</p>
+        <div class="field">
+          <label>Cadence</label>
+          <select id="newAdhocCadence">
+            <option value="tonight">Tonight only</option>
+            <option value="weekdays">Every weekday</option>
+            <option value="daily">Every day</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Answer type</label>
+          <select id="newAdhocType">
+            <option value="text">Short answer</option>
+            <option value="textarea">Long answer</option>
+            <option value="number">Number</option>
+            <option value="yesno">Yes / No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Question text</label>
+          <textarea id="newAdhocQ" rows="2" placeholder="e.g. How many unscanned pallets remain on the dock?"></textarea>
+        </div>
+        <button class="btn-add" onclick="addAdhocFromEditor()">Add to tonight's report</button>
+        <div id="newAdhocConfirm" style="display:none;margin-top:8px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--green)"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px">
+      <button class="btn-next" onclick="proceedToManager()">Go to manager view &#8594;</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screenManager">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div class="chat-name" id="mgrName"></div>
+        <div class="chat-role" id="mgrRole"></div>
+      </div>
+      <button class="btn-back" onclick="goBack()">← back</button>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showTab('tabSnapshot',this)">Snapshot</button>
+      <button class="tab-btn" onclick="showTab('tabReports',this)">Reports</button>
+      <button class="tab-btn" onclick="showTab('tabEmails',this)">Email preview</button>
+      <button class="tab-btn" onclick="showTab('tabAskQ',this)">Ask a question</button>
+    </div>
+
+    <!-- TAB: SNAPSHOT -->
+    <div id="tabSnapshot">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+        <div class="card card-sm" style="text-align:center">
+          <div style="font-size:24px;font-weight:700;color:var(--green)" id="snapSubmitted">—</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px">submitted</div>
+        </div>
+        <div class="card card-sm" style="text-align:center">
+          <div style="font-size:24px;font-weight:700;color:#f87171" id="snapMissing">—</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px">missing</div>
+        </div>
+        <div class="card card-sm" style="text-align:center">
+          <div style="font-size:24px;font-weight:700;color:var(--text)" id="snapTotal">—</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px">total</div>
+        </div>
+      </div>
+      <p class="section-label">Team status</p>
+      <div class="card" style="padding:4px 16px" id="snapshotList">
+        <div class="loading dot-anim">Loading</div>
+      </div>
+    </div>
+
+    <!-- TAB: REPORTS -->
+    <div id="tabReports" style="display:none">
+      <p class="section-label">Submitted answers — today</p>
+      <div id="reportsList"><div class="loading dot-anim">Loading</div></div>
+    </div>
+
+    <!-- TAB: EMAIL PREVIEW -->
+    <div id="tabEmails" style="display:none">
+      <p class="section-label">Tonight's recap emails</p>
+      <div id="emailsList"><div class="loading dot-anim">Loading</div></div>
+    </div>
+
+    <!-- TAB: ASK A QUESTION -->
+    <div id="tabAskQ" style="display:none">
+      <p class="section-label">Add a question to tonight's report</p>
+      <div class="card">
+        <div class="field">
+          <label>Who gets this question?</label>
+          <select id="aqTarget"></select>
+        </div>
+        <div class="field">
+          <label>When does it show?</label>
+          <select id="aqCadence">
+            <option value="tonight">Tonight only</option>
+            <option value="weekdays">Every weekday</option>
+            <option value="daily">Every day</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Answer type</label>
+          <select id="aqType">
+            <option value="text">Short answer</option>
+            <option value="textarea">Long answer</option>
+            <option value="number">Number</option>
+            <option value="yesno">Yes / No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Your question</label>
+          <textarea id="aqQuestion" placeholder="e.g. How many unscanned pallets remain on the dock?"></textarea>
+        </div>
+        <button class="btn-add" onclick="submitAdhocQuestion()">Add to tonight's report</button>
+        <div id="aqConfirm" style="display:none;margin-top:10px;font-size:12px;font-family:'IBM Plex Mono',monospace;"></div>
+      </div>
+
+      <p class="section-label" style="margin-top:16px">Active ad-hoc questions</p>
+      <div id="adhocList"><div class="loading dot-anim">Loading</div></div>
+    </div>
+
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONFIG — replace with your deployed Apps Script Web App URL
+// ══════════════════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/a/macros/atomixlogistics.com/s/AKfycby1waIpsKxoRXMXjQ08jwy1-08QQQfvZZvJLUJ5YhGqjHp6-RdinaL9bTXzyE5ELqpevw/exec';
+
+// ══════════════════════════════════════════════════════════════
+// TEAM DATA — edit to match your actual team
+// ══════════════════════════════════════════════════════════════
+const TEAM = [
+  // ── Drake (root) ──────────────────────────────────────────
+  { id:'drake',    name:'Drake',    role:'Ops Lead',        site:'MKE', av:'av-g', initials:'D',  reportsTo:null,      managerOf:['ricardo','norman'] },
+  // ── Ricardo ───────────────────────────────────────────────
+  { id:'ricardo',  name:'Ricardo',  role:'Site Lead',       site:'MKE', av:'av-r', initials:'RM', reportsTo:'drake',   managerOf:['kody','hugh','emyly','luis','adam'] },
+  // ── Kody (AM) ─────────────────────────────────────────────
+  { id:'kody',     name:'Kody',     role:'AM Outbound',     site:'MKE', av:'av-b', initials:'KM', reportsTo:'ricardo', managerOf:['ana','yaniel'] },
+  { id:'ana',      name:'Ana',      role:'AM Outbound',     site:'MKE', av:'av-p', initials:'AN', reportsTo:'kody',    managerOf:[] },
+  { id:'yaniel',   name:'Yaniel',   role:'AM Outbound',     site:'MKE', av:'av-a', initials:'YN', reportsTo:'kody',    managerOf:[] },
+  // ── Hugh (PM) — lateral to Kody ───────────────────────────
+  { id:'hugh',     name:'Hugh',     role:'PM Lead',         site:'MKE', av:'av-a', initials:'HM', reportsTo:'ricardo', managerOf:['christine'] },
+  { id:'christine',name:'Christine',role:'PM Shift',        site:'MKE', av:'av-p', initials:'CH', reportsTo:'hugh',    managerOf:[] },
+  // ── Emyly subtree ─────────────────────────────────────────
+  { id:'emyly',    name:'Emyly',    role:'Inbound',         site:'MKE', av:'av-g', initials:'EH', reportsTo:'ricardo', managerOf:['relly'] },
+  { id:'relly',    name:'Relly',    role:'Inbound',         site:'MKE', av:'av-b', initials:'RL', reportsTo:'emyly',   managerOf:[] },
+  // ── Luis subtree ──────────────────────────────────────────
+  { id:'luis',     name:'Luis',     role:'Inventory',       site:'MKE', av:'av-p', initials:'LG', reportsTo:'ricardo', managerOf:['ramar','brenda','ofelia','david'] },
+  { id:'ramar',    name:'Ramar',    role:'Inventory',       site:'MKE', av:'av-b', initials:'RA', reportsTo:'luis',    managerOf:[] },
+  { id:'brenda',   name:'Brenda',   role:'Inventory',       site:'MKE', av:'av-g', initials:'BR', reportsTo:'luis',    managerOf:[] },
+  { id:'ofelia',   name:'Ofelia',   role:'Inventory',       site:'MKE', av:'av-a', initials:'OF', reportsTo:'luis',    managerOf:[] },
+  { id:'david',    name:'David',    role:'Inventory',       site:'MKE', av:'av-b', initials:'DV', reportsTo:'luis',    managerOf:[] },
+  // ── Adam subtree ──────────────────────────────────────────
+  { id:'adam',     name:'Adam',     role:'Special Projects',site:'MKE', av:'av-p', initials:'AG', reportsTo:'ricardo', managerOf:['nate','maria'] },
+  { id:'nate',     name:'Nate',     role:'B2B',             site:'MKE', av:'av-r', initials:'NT', reportsTo:'adam',    managerOf:[] },
+  { id:'maria',    name:'Maria',    role:'Kitting',         site:'MKE', av:'av-g', initials:'MA', reportsTo:'adam',    managerOf:[] },
+  // ── Norman / SLC ──────────────────────────────────────────
+  { id:'norman',   name:'Norman',   role:'SLC Site Manager',site:'SLC', av:'av-b', initials:'NM', reportsTo:'drake',   managerOf:['santana'] },
+  { id:'santana',  name:'Santana',  role:'SLC Outbound',    site:'SLC', av:'av-a', initials:'SA', reportsTo:'norman',  managerOf:[] },
+];
+
+// ══════════════════════════════════════════════════════════════
+// STANDARD QUESTIONS PER ROLE
+// ══════════════════════════════════════════════════════════════
+const STD_QUESTIONS = {
+  drake: [
+    { id:'d1', text:'Top priority for tomorrow?', type:'textarea', optional:true },
+    { id:'d2', text:'Any leadership decisions needed?', type:'text', optional:true },
+    { id:'d3', text:'Weekly grade so far?', type:'text', optional:true },
+  ],
+  ricardo: [
+    { id:'r_date',  text:'Date you are reporting for', type:'date', laborField:'report_date' },
+    { id:'r_hours', text:'Total labor hours worked (MKE)', type:'number', laborField:'hours' },
+    { id:'r_spend', text:'Total labor spend $ (MKE)', type:'number', laborField:'spend' },
+    { id:'r_orders',text:'Total orders shipped (MKE)', type:'number', laborField:'orders' },
+    { id:'r1', text:'Overall site performance today?', type:'textarea' },
+    { id:'r2', text:'Any issues requiring Drake\'s attention?', type:'text' },
+    { id:'r3', text:'Team accountability notes?', type:'text' },
+    { id:'r4', text:'Site readiness for tomorrow?', type:'textarea' },
+  ],
+  kody: [
+    { id:'k1', text:'How was AM outbound throughput today?', type:'textarea' },
+    { id:'k2', text:'Any staffing issues on your shift?', type:'text' },
+    { id:'k3', text:'Any equipment or process issues to flag?', type:'text' },
+    { id:'k4', text:'What should leadership know from outbound?', type:'textarea' },
+  ],
+  ana: [
+    { id:'an1', text:'How did your shift go today?', type:'textarea' },
+    { id:'an2', text:'Any issues or blockers to flag?', type:'text' },
+    { id:'an3', text:'Anything for Kody to know?', type:'text' },
+  ],
+  yaniel: [
+    { id:'yn1', text:'How did your shift go today?', type:'textarea' },
+    { id:'yn2', text:'Any issues or blockers to flag?', type:'text' },
+    { id:'yn3', text:'Anything for Kody to know?', type:'text' },
+  ],
+  hugh: [
+    { id:'h1', text:'How was PM outbound volume?', type:'textarea' },
+    { id:'h2', text:'Any handoff issues from AM shift?', type:'text' },
+    { id:'h3', text:'Staffing and overtime status?', type:'text' },
+    { id:'h4', text:'Anything to flag before tomorrow?', type:'textarea' },
+  ],
+  christine: [
+    { id:'ch1', text:'How did your shift go today?', type:'textarea' },
+    { id:'ch2', text:'Any issues or blockers to flag?', type:'text' },
+    { id:'ch3', text:'Anything for Hugh to know?', type:'text' },
+  ],
+  emyly: [
+    { id:'e1', text:'How was inbound volume today?', type:'textarea' },
+    { id:'e2', text:'Any receiving discrepancies or holds?', type:'text' },
+    { id:'e3', text:'Cold chain or temperature flags?', type:'text' },
+    { id:'e4', text:'What should leadership know from inbound?', type:'textarea' },
+  ],
+  relly: [
+    { id:'rl1', text:'How did inbound go on your shift?', type:'textarea' },
+    { id:'rl2', text:'Any receiving issues to flag?', type:'text' },
+    { id:'rl3', text:'Anything for Emyly to know?', type:'text' },
+  ],
+  luis: [
+    { id:'l1', text:'Any inventory discrepancies found today?', type:'textarea' },
+    { id:'l2', text:'Cycle count progress?', type:'text' },
+    { id:'l3', text:'IMS / OMS sync issues?', type:'text' },
+    { id:'l4', text:'What should leadership know from inventory?', type:'textarea' },
+  ],
+  ramar: [
+    { id:'rm1', text:'What did you work on in inventory today?', type:'textarea' },
+    { id:'rm2', text:'Any discrepancies or issues found?', type:'text' },
+    { id:'rm3', text:'Anything for Luis to know?', type:'text' },
+  ],
+  brenda: [
+    { id:'br1', text:'What did you work on in inventory today?', type:'textarea' },
+    { id:'br2', text:'Any discrepancies or issues found?', type:'text' },
+    { id:'br3', text:'Anything for Luis to know?', type:'text' },
+  ],
+  ofelia: [
+    { id:'of1', text:'What did you work on in inventory today?', type:'textarea' },
+    { id:'of2', text:'Any discrepancies or issues found?', type:'text' },
+    { id:'of3', text:'Anything for Luis to know?', type:'text' },
+  ],
+  david: [
+    { id:'dv1', text:'What did you work on in inventory today?', type:'textarea' },
+    { id:'dv2', text:'Any discrepancies or issues found?', type:'text' },
+    { id:'dv3', text:'Anything for Luis to know?', type:'text' },
+  ],
+  adam: [
+    { id:'a1', text:'Special projects status update?', type:'textarea' },
+    { id:'a2', text:'Any B2B or retail issues?', type:'text' },
+    { id:'a3', text:'Blockers or escalations needed?', type:'text' },
+  ],
+  nate: [
+    { id:'nt1', text:'What did you work on today?', type:'textarea' },
+    { id:'nt2', text:'Any blockers or issues?', type:'text' },
+    { id:'nt3', text:'Anything for Adam to know?', type:'text' },
+  ],
+  maria: [
+    { id:'mr1', text:'What did you work on today?', type:'textarea' },
+    { id:'mr2', text:'Any blockers or issues?', type:'text' },
+    { id:'mr3', text:'Anything for Adam to know?', type:'text' },
+  ],
+  santana: [
+    { id:'sa1', text:'How was SLC outbound today?', type:'textarea' },
+    { id:'sa2', text:'Any issues to flag for Norman?', type:'text' },
+    { id:'sa3', text:'Staffing and shift notes?', type:'text' },
+  ],
+  norman: [
+    { id:'n_date',  text:'Date you are reporting for', type:'date', laborField:'report_date' },
+    { id:'n_hours', text:'Total labor hours worked (SLC)', type:'number', laborField:'hours' },
+    { id:'n_spend', text:'Total labor spend $ (SLC)', type:'number', laborField:'spend' },
+    { id:'n_orders',text:'Total orders shipped (SLC)', type:'number', laborField:'orders' },
+    { id:'n1', text:'SLC site performance today?', type:'textarea' },
+    { id:'n2', text:'Staffing and labor notes?', type:'text' },
+    { id:'n3', text:'Any issues requiring Drake\'s attention?', type:'text' },
+    { id:'n4', text:'SLC readiness for tomorrow?', type:'text' },
+  ],
+};
+
+// ══════════════════════════════════════════════════════════════
+// APP STATE
+// ══════════════════════════════════════════════════════════════
+let currentPerson = null;
+let currentMode = 'report';
+let questions = [];
+let answers = {};
+let currentQ = 0;
+let adhocQuestions = [];
+let snapshotData = {};
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+
+function init() {
+  const mke = TEAM.filter(p => p.site === 'MKE');
+  const slc = TEAM.filter(p => p.site === 'SLC');
+  renderNameGrid('nameGridMKE', mke, false);
+  renderNameGrid('nameGridSLC', slc, false);
+  buildOrgChart();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ORG CHART BUILDER — SVG-based, pixel-perfect fit
+// ══════════════════════════════════════════════════════════════
+function buildOrgChart() {
+  const wrap = document.getElementById('orgChartWrap');
+  wrap.innerHTML = '';
+
+  // ── Layout constants ─────────────────────────────────────────
+  const NW = 76, NH = 50;   // node width / height
+  const HGAP = 6;            // horizontal gap between siblings
+  const VGAP = 32;           // vertical gap between levels
+
+  // ── Tree definition (ordered left→right) ─────────────────────
+  // Each node: { id, children? }
+  const TREE = {
+    id: 'drake',
+    children: [
+      {
+        id: 'ricardo',
+        children: [
+          { id: 'kody',  children: [ {id:'ana'}, {id:'yaniel'} ] },
+          { id: 'hugh',  children: [ {id:'christine'} ] },
+          { id: 'emyly', children: [ {id:'relly'} ] },
+          { id: 'luis',  children: [ {id:'ramar'}, {id:'brenda'}, {id:'ofelia'}, {id:'david'} ] },
+          { id: 'adam',  children: [ {id:'nate'}, {id:'maria'} ] },
+        ]
+      },
+      {
+        id: 'norman',
+        children: [ {id:'santana'} ]
+      }
+    ]
+  };
+
+  // ── Step 1: compute subtree widths ────────────────────────────
+  function subtreeWidth(node) {
+    if (!node.children || node.children.length === 0) return NW;
+    const total = node.children.reduce((s, c) => s + subtreeWidth(c), 0)
+                  + HGAP * (node.children.length - 1);
+    return Math.max(NW, total);
+  }
+
+  // ── Step 2: assign x,y to every node ─────────────────────────
+  function layout(node, x, y) {
+    const sw = subtreeWidth(node);
+    node._x = x + sw / 2 - NW / 2;
+    node._y = y;
+    node._sw = sw;
+    if (node.children && node.children.length > 0) {
+      let cx = x;
+      node.children.forEach(child => {
+        const csw = subtreeWidth(child);
+        layout(child, cx, y + NH + VGAP);
+        cx += csw + HGAP;
+      });
+    }
+  }
+
+  layout(TREE, 0, 0);
+
+  // ── Step 3: compute total canvas size ────────────────────────
+  function allNodes(node) {
+    let list = [node];
+    if (node.children) node.children.forEach(c => { list = list.concat(allNodes(c)); });
+    return list;
+  }
+  const nodes = allNodes(TREE);
+  const maxX = Math.max(...nodes.map(n => n._x + NW));
+  const maxY = Math.max(...nodes.map(n => n._y + NH));
+  const SVG_W = maxX;
+  const SVG_H = maxY + 4;
+
+  // ── Step 4: build SVG ─────────────────────────────────────────
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${SVG_W} ${SVG_H}`);
+  svg.setAttribute('xmlns', NS);
+  svg.style.cssText = `display:block;width:100%;height:auto;max-width:${SVG_W}px;`;
+
+  // Lines layer
+  const lineG = document.createElementNS(NS, 'g');
+  svg.appendChild(lineG);
+
+  function drawLines(node) {
+    if (!node.children || node.children.length === 0) return;
+    const px = node._x + NW / 2;
+    const py = node._y + NH;
+    const midY = py + VGAP / 2;
+
+    // vertical from parent down to mid
+    const vl = document.createElementNS(NS, 'line');
+    vl.setAttribute('x1', px); vl.setAttribute('y1', py);
+    vl.setAttribute('x2', px); vl.setAttribute('y2', midY);
+    vl.setAttribute('class', 'org-line');
+    lineG.appendChild(vl);
+
+    if (node.children.length > 1) {
+      // horizontal line spanning all children
+      const leftX  = node.children[0]._x + NW / 2;
+      const rightX = node.children[node.children.length - 1]._x + NW / 2;
+      const hl = document.createElementNS(NS, 'line');
+      hl.setAttribute('x1', leftX); hl.setAttribute('y1', midY);
+      hl.setAttribute('x2', rightX); hl.setAttribute('y2', midY);
+      hl.setAttribute('class', 'org-line');
+      lineG.appendChild(hl);
+    }
+
+    node.children.forEach(child => {
+      const cx = child._x + NW / 2;
+      const cl = document.createElementNS(NS, 'line');
+      cl.setAttribute('x1', cx); cl.setAttribute('y1', midY);
+      cl.setAttribute('x2', cx); cl.setAttribute('y2', child._y);
+      cl.setAttribute('class', 'org-line');
+      lineG.appendChild(cl);
+      drawLines(child);
+    });
+  }
+  drawLines(TREE);
+
+  // Nodes layer
+  nodes.forEach(node => {
+    const p = TEAM.find(t => t.id === node.id);
+    if (!p) return;
+
+    const isRoot = node.id === 'drake';
+    const isMgr  = p.managerOf && p.managerOf.length > 0;
+    const shift  = p.role.includes('AM') ? 'am'
+                 : (p.role.includes('PM') || p.role === 'PM Lead' || p.role === 'PM Shift') ? 'pm'
+                 : '';
+    const isSLC  = p.site === 'SLC';
+
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'org-node-btn' + (isRoot ? ' root' : isMgr ? ' mgr' : ''));
+    g.setAttribute('transform', `translate(${node._x},${node._y})`);
+    g.style.cursor = 'pointer';
+    g.addEventListener('click', () => selectManager(node.id));
+
+    // Rect
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('class', 'org-node-rect');
+    rect.setAttribute('width', NW);
+    rect.setAttribute('height', NH);
+    rect.setAttribute('rx', 7);
+    g.appendChild(rect);
+
+    // Name — centered
+    const nameEl = document.createElementNS(NS, 'text');
+    nameEl.setAttribute('class', 'org-node-name');
+    nameEl.setAttribute('x', NW / 2);
+    nameEl.setAttribute('y', 16);
+    nameEl.setAttribute('text-anchor', 'middle');
+    nameEl.setAttribute('dominant-baseline', 'middle');
+    nameEl.textContent = p.name;
+    g.appendChild(nameEl);
+
+    // Role — truncated to fit
+    const roleEl = document.createElementNS(NS, 'text');
+    roleEl.setAttribute('class', 'org-node-role');
+    roleEl.setAttribute('x', NW / 2);
+    roleEl.setAttribute('y', 28);
+    roleEl.setAttribute('text-anchor', 'middle');
+    roleEl.setAttribute('dominant-baseline', 'middle');
+    // Truncate role text to ~10 chars to prevent overflow
+    const roleStr = p.role.length > 12 ? p.role.slice(0, 11) + '…' : p.role;
+    roleEl.textContent = roleStr;
+    g.appendChild(roleEl);
+
+    // Badge row — shift + site
+    let badgeX = 4;
+    const badgeY = 38;
+    const badges = [];
+    if (shift) badges.push({ type: shift, label: shift.toUpperCase() });
+    if (isSLC)  badges.push({ type: 'slc', label: 'SLC' });
+
+    // Center badges
+    const totalBadgeW = badges.reduce((s,b) => s + b.label.length * 5 + 10, 0) + Math.max(0, badges.length - 1) * 3;
+    badgeX = (NW - totalBadgeW) / 2;
+
+    badges.forEach(b => {
+      const bw = b.label.length * 5 + 8;
+      const br = document.createElementNS(NS, 'rect');
+      br.setAttribute('class', `org-badge-rect-${b.type}`);
+      br.setAttribute('x', badgeX); br.setAttribute('y', badgeY - 5);
+      br.setAttribute('width', bw); br.setAttribute('height', 11);
+      br.setAttribute('rx', 3);
+      g.appendChild(br);
+
+      const bt = document.createElementNS(NS, 'text');
+      bt.setAttribute('class', `org-badge-text-${b.type}`);
+      bt.setAttribute('x', badgeX + bw / 2);
+      bt.setAttribute('y', badgeY + 1);
+      bt.setAttribute('text-anchor', 'middle');
+      bt.setAttribute('dominant-baseline', 'middle');
+      bt.textContent = b.label;
+      g.appendChild(bt);
+
+      badgeX += bw + 3;
+    });
+
+    svg.appendChild(g);
+  });
+
+  wrap.appendChild(svg);
+}
+
+// ══════════════════════════════════════════════════════════════
+// ORG SCOPE UTILITY
+
+// ══════════════════════════════════════════════════════════════
+function getScope(managerId) {
+  const mgr = TEAM.find(p => p.id === managerId);
+  if (!mgr) return [];
+  let scope = [managerId];
+  (mgr.managerOf || []).forEach(childId => { scope = scope.concat(getScope(childId)); });
+  return [...new Set(scope)];
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODE TOGGLE
+// ══════════════════════════════════════════════════════════════
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeReport').classList.toggle('active', mode === 'report');
+  document.getElementById('modeManager').classList.toggle('active', mode === 'manager');
+  document.getElementById('reporterPicker').style.display = mode === 'report' ? 'block' : 'none';
+  document.getElementById('managerPicker').style.display = mode === 'manager' ? 'block' : 'none';
+}
+
+function renderNameGrid(containerId, people, managerMode) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = people.map(p => `
+    <button class="name-btn" onclick="${managerMode ? 'selectManager' : 'selectPerson'}('${p.id}')">
+      <div class="nb-name">${p.name}</div>
+      <div class="nb-role">${p.role}</div>
+    </button>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// REPORT FLOW
+// ══════════════════════════════════════════════════════════════
+function selectPerson(id) {
+  currentPerson = TEAM.find(p => p.id === id);
+  answers = {}; currentQ = 0;
+  document.getElementById('chatName').textContent = currentPerson.name;
+  document.getElementById('chatRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
+  showScreen('screenChat');
+  loadQuestions(id);
+}
+
+function loadQuestions(personId) {
+  questions = [...(STD_QUESTIONS[personId] || [])];
+  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    fetch(`${SCRIPT_URL}?action=getQuestions&personId=${personId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.adhoc && data.adhoc.length > 0) {
+          questions = [...questions, ...data.adhoc.map(q => ({ id:'adhoc_'+q.id, text:q.question, type:q.answerType||'text', isAdhoc:true }))];
+        }
+        renderQuestion();
+      }).catch(() => renderQuestion());
+  } else { renderQuestion(); }
+}
+
+function renderQuestion() {
+  const total = questions.length;
+  const i = currentQ;
+  const pct = Math.round((i / total) * 100);
+  document.getElementById('progressLabel').textContent = `Question ${i+1} of ${total}`;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+  const q = questions[i];
+  let inputHtml = '';
+  if (q.type === 'yesno') {
+    const yVal = answers[q.id]==='Yes', nVal = answers[q.id]==='No';
+    inputHtml = `<div class="quick-btns"><button class="quick-btn${yVal?' selected':''}" onclick="selectQuick('${q.id}','Yes',this)">Yes</button><button class="quick-btn${nVal?' selected':''}" onclick="selectQuick('${q.id}','No',this)">No</button></div>`;
+  } else if (q.type === 'number') {
+    inputHtml = `<div class="answer-area"><input type="number" id="ansInput" placeholder="Enter a number" value="${answers[q.id]||''}" oninput="answers['${q.id}']=this.value"/></div>`;
+  } else {
+    const rows = q.type === 'textarea' ? 4 : 2;
+    const minH = q.type === 'textarea' ? '80px' : '56px';
+    inputHtml = `<div class="answer-area"><textarea id="ansInput" rows="${rows}" placeholder="Type your answer..." style="min-height:${minH}" oninput="answers['${q.id}']=this.value">${answers[q.id]||''}</textarea></div>`;
+  }
+  const optBadge = q.optional ? ' <span style="font-size:9px;padding:2px 6px;background:rgba(100,116,139,0.15);color:var(--text3);border-radius:10px;border:0.5px solid rgba(100,116,139,0.25);font-family:\x27IBM Plex Mono\x27,monospace;margin-left:6px">optional</span>' : '';
+  const adhocBadge = q.isAdhoc ? ' <span style="font-size:9px;padding:2px 6px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:10px;border:0.5px solid rgba(251,191,36,0.25);font-family:\'IBM Plex Mono\',monospace;margin-left:6px">ad-hoc</span>' : '';
+  document.getElementById('questionArea').innerHTML = `
+    <div class="bubble-q"><div class="q-label">Question ${i+1}${adhocBadge}${optBadge}</div>${q.text}</div>
+    ${inputHtml}
+    <button class="btn-next" id="btnNext" onclick="nextQuestion()">${i===total-1?'Submit report':'Next →'}</button>
+    <div style="display:flex;gap:16px;margin-top:4px">
+      ${i>0?'<button class="btn-back" onclick="prevQuestion()">← back</button>':''}
+      ${q.optional?'<button class="btn-back" style="color:var(--text3);opacity:0.7" onclick="skipQuestion()">skip →</button>':''}
+    </div>
+  `;
+  const inp = document.getElementById('ansInput');
+  if (inp) {
+    inp.focus();
+    inp.addEventListener('keydown', e => { if (e.key==='Enter'&&!e.shiftKey&&q.type!=='textarea'){e.preventDefault();nextQuestion();} });
+  }
+}
+
+function selectQuick(qid, val, btn) {
+  answers[qid] = val;
+  btn.closest('.quick-btns').querySelectorAll('.quick-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function nextQuestion() {
+  const q = questions[currentQ];
+  if (q.type !== 'yesno') { const inp=document.getElementById('ansInput'); if(inp) answers[q.id]=inp.value.trim(); }
+  if (!answers[q.id] && answers[q.id]!==0){ if(q.optional){ answers[q.id]=''; } else { showToast('Please answer before continuing.'); return; } }
+  if (currentQ < questions.length-1){currentQ++;renderQuestion();}else{submitReport();}
+}
+
+function prevQuestion() { if(currentQ>0){currentQ--;renderQuestion();} }
+
+function skipQuestion() {
+  const q = questions[currentQ];
+  answers[q.id] = '';
+  if(currentQ < questions.length-1){ currentQ++; renderQuestion(); } else { submitReport(); }
+}
+
+function submitReport() {
+  const overlay = document.getElementById('submittingOverlay');
+  overlay.classList.add('show');
+  const answersMap = {};
+  questions.forEach(q => { answersMap[q.id] = answers[q.id] || ''; });
+
+  // Extract labor metrics for Ricardo/Norman
+  let laborMetrics = null;
+  const laborQs = questions.filter(q => q.laborField);
+  if (laborQs.length) {
+    laborMetrics = {};
+    laborQs.forEach(q => { laborMetrics[q.laborField] = answers[q.id] || ''; });
+    const hrs = parseFloat(laborMetrics.hours) || 0;
+    const sp  = parseFloat(laborMetrics.spend) || 0;
+    const ord = parseFloat(laborMetrics.orders) || 0;
+    laborMetrics.cpo           = ord > 0 ? (sp / ord).toFixed(2) : '';
+    laborMetrics.orders_per_hr = hrs > 0 ? (ord / hrs).toFixed(2) : '';
+    laborMetrics.units_per_hr  = hrs > 0 ? (ord / hrs).toFixed(2) : '';
+    laborMetrics.site          = currentPerson.site;
+  }
+
+  const payload = {
+    action:'submitReport',
+    personId:currentPerson.id,
+    personName:currentPerson.name,
+    role:currentPerson.role,
+    site:currentPerson.site,
+    date:new Date().toISOString().split('T')[0],
+    timestamp:new Date().toISOString(),
+    answers: answersMap,
+    questions: questions.map(q=>({ id:q.id, text:q.text, type:q.type, isAdhoc:!!q.isAdhoc, laborField:q.laborField||null })),
+    laborMetrics: laborMetrics
+  };
+  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'application/json'}})
+      .then(r=>r.json()).then(()=>{overlay.classList.remove('show');showComplete();})
+      .catch(()=>{overlay.classList.remove('show');showToast('Submit failed — check connection.');});
+  } else { setTimeout(()=>{overlay.classList.remove('show');showComplete();},900); }
+}
+
+function showComplete() {
+  document.getElementById('completeName').textContent = currentPerson.name + ' — report submitted.';
+  document.getElementById('completeSub').textContent = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) + ' · ' + currentPerson.site;
+  showScreen('screenComplete');
+  renderLaborSummary();
+}
+
+function renderLaborSummary() {
+  const block = document.getElementById('laborSummaryBlock');
+  if (!['ricardo','norman'].includes(currentPerson.id)) { block.style.display='none'; return; }
+
+  const prefix = currentPerson.id === 'ricardo' ? 'r' : 'n';
+  const site   = currentPerson.id === 'ricardo' ? 'MKE' : 'SLC';
+  const hours  = parseFloat(answers[prefix+'_hours']) || 0;
+  const spend  = parseFloat(answers[prefix+'_spend']) || 0;
+  const orders = parseFloat(answers[prefix+'_orders']) || 0;
+  const rawDate = answers[prefix+'_date'] || '';
+
+  // Format the date for display (yyyy-mm-dd → human readable)
+  let dateLabel = rawDate;
+  if (rawDate && rawDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const d = new Date(rawDate + 'T12:00:00');
+    dateLabel = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+  }
+
+  const cpo  = orders > 0 ? '$' + (spend / orders).toFixed(2) : '—';
+  const oph  = hours > 0  ? (orders / hours).toFixed(1)       : '—';
+  // Units/Hr = Orders/Hr until a separate units field is added
+  const uph  = hours > 0  ? (orders / hours).toFixed(1)       : '—';
+
+  block.style.display = 'block';
+  block.innerHTML = `
+    <div class="labor-card">
+      <div class="labor-title">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        ${site} Labor Metrics · ${dateLabel || '—'}
+      </div>
+      <div class="labor-grid">
+        <div class="labor-metric highlight">
+          <div class="lm-val">${cpo}</div>
+          <div class="lm-lbl">Cost / Order</div>
+        </div>
+        <div class="labor-metric highlight">
+          <div class="lm-val">${oph}</div>
+          <div class="lm-lbl">Orders / Hr</div>
+        </div>
+        <div class="labor-metric highlight">
+          <div class="lm-val">${uph}</div>
+          <div class="lm-lbl">Units / Hr</div>
+        </div>
+      </div>
+      <div class="labor-grid">
+        <div class="labor-metric">
+          <div class="lm-val">${orders.toLocaleString()}</div>
+          <div class="lm-lbl">Orders Shipped</div>
+        </div>
+        <div class="labor-metric">
+          <div class="lm-val">${hours.toLocaleString()}</div>
+          <div class="lm-lbl">Hours Worked</div>
+        </div>
+        <div class="labor-metric">
+          <div class="lm-val">$${spend.toLocaleString()}</div>
+          <div class="lm-lbl">Labor Spend</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════
+// MANAGER VIEW
+// ══════════════════════════════════════════════════════════════
+function selectManager(id) {
+  currentPerson = TEAM.find(p => p.id === id);
+  document.getElementById('qedName').textContent = currentPerson.name;
+  document.getElementById('qedRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
+  showScreen('screenQuestions');
+  renderQedStd();
+  renderQedAdhoc();
+}
+
+function loadManagerData() {
+  const scope = getScope(currentPerson.id);
+  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    const today = new Date().toISOString().split('T')[0];
+    fetch(`${SCRIPT_URL}?action=getStatus&date=${today}`)
+      .then(r=>r.json())
+      .then(data=>{snapshotData=data;renderSnapshot(data);loadAdhocList();})
+      .catch(()=>renderSnapshotOffline(scope));
+  } else { renderSnapshotOffline(scope); }
+}
+
+function renderSnapshotOffline(scope) {
+  const people = TEAM.filter(p=>scope.includes(p.id));
+  document.getElementById('snapSubmitted').textContent = 0;
+  document.getElementById('snapMissing').textContent = people.length;
+  document.getElementById('snapTotal').textContent = people.length;
+  document.getElementById('snapshotList').innerHTML = people.map(p=>`
+    <div class="person-row">
+      <div class="person-left"><div class="avatar ${p.av}">${p.initials}</div><div><div class="pname">${p.name}</div><div class="prole">${p.role}</div></div></div>
+      <span class="pill pill-live">no data</span>
+    </div>`).join('');
+  document.getElementById('reportsList').innerHTML = '<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:12px 0">Wire up the Apps Script URL to see live submissions.</div>';
+  buildEmailPreviews(scope, {});
+  document.getElementById('adhocList').innerHTML = '<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:12px 0">No active ad-hoc questions.</div>';
+}
+
+function renderSnapshot(data) {
+  const scope = getScope(currentPerson.id);
+  const people = TEAM.filter(p=>scope.includes(p.id));
+  const submittedIds = new Set((data.reports||[]).map(r=>r.personId));
+  const submitted = people.filter(p=>submittedIds.has(p.id)).length;
+  document.getElementById('snapSubmitted').textContent = submitted;
+  document.getElementById('snapMissing').textContent = people.length-submitted;
+  document.getElementById('snapTotal').textContent = people.length;
+  document.getElementById('snapshotList').innerHTML = people.map(p=>{
+    const sub = submittedIds.has(p.id);
+    const report = (data.reports||[]).find(r=>r.personId===p.id);
+    const expandBtn = sub?`<button class="expand-btn" onclick="toggleQA('qa-${p.id}',this)">▸ view</button>`:'';
+    const qaBlock = sub&&report?`<div class="qa-block" id="qa-${p.id}">${(report.answers||[]).map(a=>`<div class="qa-item"><div class="qa-q">${a.question}</div><div class="qa-a">${a.answer||'—'}</div></div>`).join('')}</div>`:'';
+    return `<div class="person-row"><div class="person-left"><div class="avatar ${p.av}">${p.initials}</div><div><div class="pname">${p.name}</div><div class="prole">${p.role}</div></div></div><div style="display:flex;align-items:center;gap:4px"><span class="pill ${sub?'pill-ok':'pill-no'}">${sub?'submitted':'missing'}</span>${expandBtn}</div></div>${qaBlock}`;
+  }).join('');
+  const submittedReports=(data.reports||[]).filter(r=>scope.includes(r.personId));
+  document.getElementById('reportsList').innerHTML=submittedReports.length===0?'<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:12px 0">No reports submitted yet today.</div>':submittedReports.map(r=>{const p=TEAM.find(p2=>p2.id===r.personId)||{};return`<div class="card card-sm" style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="avatar ${p.av||'av-g'}">${p.initials||'?'}</div><div><div class="pname">${r.personName||p.name}</div><div class="prole">${p.role||''}</div></div></div>${(r.answers||[]).map(a=>`<div class="qa-item"><div class="qa-q">${a.question}</div><div class="qa-a">${a.answer||'—'}</div></div>`).join('')}</div>`;}).join('');
+  buildEmailPreviews(scope,data);
+}
+
+function toggleQA(id,btn){const el=document.getElementById(id);const open=el.classList.toggle('open');btn.textContent=open?'▾ hide':'▸ view';}
+
+// ══════════════════════════════════════════════════════════════
+// EMAIL PREVIEWS
+// ══════════════════════════════════════════════════════════════
+const EMAIL_RECIPIENTS = {
+  kody:    { label:'Kody — AM Outbound',    scopeFn: ()=>getScope('kody') },
+  hugh:    { label:'Hugh — PM Lead',        scopeFn: ()=>getScope('hugh') },
+  emyly:   { label:'Emyly — Inbound',       scopeFn: ()=>getScope('emyly') },
+  luis:    { label:'Luis — Inventory',      scopeFn: ()=>getScope('luis') },
+  adam:    { label:'Adam — Special Projects',scopeFn: ()=>getScope('adam') },
+  norman:  { label:'Norman — SLC',          scopeFn: ()=>getScope('norman') },
+  ricardo: { label:'Ricardo — MKE Rollup',  scopeFn: ()=>getScope('ricardo') },
+  drake:   { label:'Drake — Executive EOD', scopeFn: ()=>TEAM.map(p=>p.id) },
+};
+
+function buildEmailPreviews(scope, data) {
+  const reports = data.reports||[];
+  const byPerson = {};
+  reports.forEach(r=>{byPerson[r.personId]=r;});
+  const relevantRecipients = Object.entries(EMAIL_RECIPIENTS).filter(([id])=>scope.includes(id));
+  if (relevantRecipients.length===0){document.getElementById('emailsList').innerHTML='<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:12px 0">No email recipients in your scope.</div>';return;}
+  document.getElementById('emailsList').innerHTML = relevantRecipients.map(([rid,cfg])=>{
+    const rscope=cfg.scopeFn().filter(id=>TEAM.find(p=>p.id===id));
+    const submitted=rscope.filter(id=>byPerson[id]);
+    const missing=rscope.filter(id=>!byPerson[id]).map(id=>TEAM.find(p=>p.id===id)?.name||id);
+    const lines=submitted.flatMap(id=>{const r=byPerson[id];const person=TEAM.find(p=>p.id===id);return(r.answers||[]).slice(0,2).map(a=>`${person?.name||id}: ${a.answer||'—'}`);});
+    const missingHtml=missing.length?`<div class="email-missing">Not submitted: ${missing.join(', ')}</div>`:`<div class="email-ok">All reports received.</div>`;
+    const bodyId='eb-'+rid;
+    return `<div class="email-card"><div class="email-head"><div><div class="email-to">To: ${rid}@atomix.com</div><div class="email-subj">ShiftFlow EOD — ${cfg.label}</div></div><button class="preview-btn" onclick="toggleEmailBody('${bodyId}',this)">preview</button></div><div class="email-body" id="${bodyId}">${missingHtml}<div class="email-section"><div class="email-section-title">Scope: ${rscope.map(id=>TEAM.find(p=>p.id===id)?.name||id).join(', ')}</div>${lines.length?lines.map(l=>`<div class="email-line">${l}</div>`).join(''):'<div class="email-line" style="color:var(--text3)">No answers yet.</div>'}</div></div></div>`;
+  }).join('');
+}
+
+function toggleEmailBody(id,btn){const el=document.getElementById(id);const open=el.classList.toggle('open');btn.textContent=open?'close':'preview';}
+
+// ══════════════════════════════════════════════════════════════
+// AD-HOC QUESTIONS
+// ══════════════════════════════════════════════════════════════
+function populateAqTarget() {
+  const scope = currentPerson.id==='drake' ? TEAM.map(p=>p.id) : getScope(currentPerson.id);
+  const sel = document.getElementById('aqTarget');
+  sel.innerHTML = '<option value="">Select a person...</option>' +
+    scope.map(id=>{const p=TEAM.find(p2=>p2.id===id);const isSelf=id===currentPerson.id?' (you)':'';return `<option value="${id}">${p.name}${isSelf} — ${p.role}</option>`;}).join('');
+}
+
+function loadAdhocList() {
+  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    fetch(`${SCRIPT_URL}?action=getAdhoc&managerId=${currentPerson.id}`)
+      .then(r=>r.json()).then(data=>{adhocQuestions=data.adhoc||[];renderAdhocList();})
+      .catch(()=>renderAdhocList());
+  } else { renderAdhocList(); }
+}
+
+function renderAdhocList() {
+  const el = document.getElementById('adhocList');
+  if (!el) return;
+  if (adhocQuestions.length===0){el.innerHTML='<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:4px 0">No active ad-hoc questions.</div>';return;}
+  el.innerHTML=adhocQuestions.map(q=>{const target=TEAM.find(p=>p.id===q.targetPersonId);return`<div class="adhoc-item"><div><div class="adhoc-q-text">${q.question}</div><div class="adhoc-meta">→ ${target?.name||q.targetPersonId} · ${q.cadence} · ${q.answerType||'text'}</div></div><button class="del-btn" onclick="deleteAdhoc('${q.id}',this)" title="Remove">×</button></div>`;}).join('');
+}
+
+function submitAdhocQuestion() {
+  const target=document.getElementById('aqTarget').value;
+  const cadence=document.getElementById('aqCadence').value;
+  const type=document.getElementById('aqType').value;
+  const question=document.getElementById('aqQuestion').value.trim();
+  const confirm=document.getElementById('aqConfirm');
+  if (!target||!question){confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Select a person and enter a question.';return;}
+  const payload={action:'addAdhoc',managerId:currentPerson.id,targetPersonId:target,question,cadence,answerType:type,date:new Date().toISOString().split('T')[0],timestamp:new Date().toISOString()};
+  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'application/json'}})
+      .then(r=>r.json()).then(data=>{adhocQuestions.push({...payload,id:data.id||Date.now()});renderAdhocList();const tname=TEAM.find(p=>p.id===target)?.name||target;confirm.style.display='block';confirm.style.color='var(--green)';confirm.textContent='Added — shows in '+tname+"'s report tonight.";document.getElementById('aqTarget').value='';document.getElementById('aqQuestion').value='';setTimeout(()=>{confirm.style.display='none';},4000);})
+      .catch(()=>{confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Failed to save.';});
+  } else {
+    adhocQuestions.push({...payload,id:Date.now()});renderAdhocList();const tname=TEAM.find(p=>p.id===target)?.name||target;confirm.style.display='block';confirm.style.color='var(--green)';confirm.textContent='(Preview) Added for '+tname+'.';document.getElementById('aqTarget').value='';document.getElementById('aqQuestion').value='';setTimeout(()=>{confirm.style.display='none';},4000);
+  }
+}
+
+function deleteAdhoc(id,btn) {
+  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'deleteAdhoc',id}),headers:{'Content-Type':'application/json'}}).catch(()=>{});}
+  adhocQuestions=adhocQuestions.filter(q=>String(q.id)!==String(id));renderAdhocList();
+}
+
+// ══════════════════════════════════════════════════════════════
+// QUESTIONS EDITOR
+// ══════════════════════════════════════════════════════════════
+function showQedTab(tab, btn) {
+  document.getElementById('qedTabStd').style.display   = tab==='std'   ? 'block' : 'none';
+  document.getElementById('qedTabAdhoc').style.display = tab==='adhoc' ? 'block' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function renderQedStd() {
+  const pid=currentPerson.id;
+  const qs=STD_QUESTIONS[pid]||[];
+  const el=document.getElementById('qedStdList');
+  if(qs.length===0){el.innerHTML='<div class="card"><div class="qed-empty">No standard questions yet. Add one below.</div></div>';return;}
+  el.innerHTML='<div class="card" style="padding:4px 16px">'+qs.map((q,i)=>`
+    <div class="qed-item" id="qitem-${q.id}">
+      <div class="qed-num">${i+1}</div>
+      <div class="qed-body">
+        <div class="qed-text" id="qtext-${q.id}" contenteditable="true" spellcheck="false">${q.text}</div>
+        <div class="qed-meta">${typeLabel(q.type)}</div>
+      </div>
+      <div class="qed-actions">
+        <select class="qed-type-sel" id="qtype-${q.id}" style="font-size:11px;padding:3px 6px;background:var(--navy2);border:0.5px solid var(--border2);border-radius:6px;color:var(--text2);font-family:'IBM Plex Mono',monospace">
+          <option value="text"     ${q.type==='text'    ?'selected':''}>Short</option>
+          <option value="textarea" ${q.type==='textarea'?'selected':''}>Long</option>
+          <option value="number"   ${q.type==='number'  ?'selected':''}>Number</option>
+          <option value="yesno"    ${q.type==='yesno'   ?'selected':''}>Yes/No</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;cursor:pointer">
+          <input type="checkbox" id="qopt-${q.id}" ${q.optional?'checked':''} style="accent-color:var(--green)"> opt
+        </label>
+        <button class="qed-btn save" onclick="saveQedItem('${q.id}')">save</button>
+        <button class="qed-btn del"  onclick="deleteQedItem('${q.id}')">&#x2715;</button>
+      </div>
+    </div>`).join('')+'</div>';
+}
+
+function renderQedAdhoc() {
+  const pid=currentPerson.id;
+  const el=document.getElementById('qedAdhocList');
+  const myAdhoc=adhocQuestions.filter(q=>q.targetPersonId===pid);
+  if(myAdhoc.length===0){el.innerHTML='<div class="card"><div class="qed-empty">No ad-hoc questions active for tonight.</div></div>';return;}
+  el.innerHTML='<div class="card" style="padding:4px 16px">'+myAdhoc.map(q=>`<div class="qed-item"><div class="qed-body"><div class="qed-text">${q.question}</div><div class="qed-meta">${q.cadence} · ${typeLabel(q.answerType||'text')}</div></div><div class="qed-actions"><button class="qed-btn del" onclick="deleteAdhocFromEditor('${q.id}')">&#x2715;</button></div></div>`).join('')+'</div>';
+}
+
+function saveQedItem(qid) {
+  const pid=currentPerson.id;
+  const textEl=document.getElementById('qtext-'+qid);
+  const typeEl=document.getElementById('qtype-'+qid);
+  const optEl=document.getElementById('qopt-'+qid);
+  const newText=textEl.textContent.trim();
+  const newType=typeEl.value;
+  const newOpt=optEl ? optEl.checked : false;
+  if(!newText){showToast('Question text cannot be empty.');return;}
+  const q=STD_QUESTIONS[pid]?.find(q=>q.id===qid);
+  if(q){q.text=newText;q.type=newType;q.optional=newOpt;}
+  renderQedStd(); showToast('Question saved.');
+}
+
+function deleteQedItem(qid) {
+  const pid=currentPerson.id;
+  STD_QUESTIONS[pid]=(STD_QUESTIONS[pid]||[]).filter(q=>q.id!==qid);
+  renderQedStd(); showToast('Question removed.');
+}
+
+function addStandardQuestion() {
+  const pid=currentPerson.id;
+  const text=document.getElementById('newStdQ').value.trim();
+  const type=document.getElementById('newStdType').value;
+  const confirm=document.getElementById('newStdConfirm');
+  if(!text){confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Enter a question first.';return;}
+  if(!STD_QUESTIONS[pid]) STD_QUESTIONS[pid]=[];
+  STD_QUESTIONS[pid].push({id:'q_'+Date.now(),text,type});
+  document.getElementById('newStdQ').value='';
+  renderQedStd();
+  confirm.style.display='block';confirm.style.color='var(--green)';
+  confirm.textContent='Added.';
+  setTimeout(()=>{confirm.style.display='none';},3500);
+}
+
+function addAdhocFromEditor() {
+  const pid=currentPerson.id;
+  const cadence=document.getElementById('newAdhocCadence').value;
+  const type=document.getElementById('newAdhocType').value;
+  const question=document.getElementById('newAdhocQ').value.trim();
+  const confirm=document.getElementById('newAdhocConfirm');
+  if(!question){confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Enter a question first.';return;}
+  const payload={action:'addAdhoc',managerId:pid,targetPersonId:pid,question,cadence,answerType:type,date:new Date().toISOString().split('T')[0],timestamp:new Date().toISOString()};
+  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(data=>{adhocQuestions.push({...payload,id:data.id||Date.now()});renderQedAdhoc();}).catch(()=>{});}
+  else{adhocQuestions.push({...payload,id:Date.now()});}
+  document.getElementById('newAdhocQ').value='';
+  renderQedAdhoc();
+  confirm.style.display='block';confirm.style.color='var(--green)';confirm.textContent="Added to tonight's report.";
+  setTimeout(()=>{confirm.style.display='none';},3500);
+}
+
+function deleteAdhocFromEditor(id) {
+  adhocQuestions=adhocQuestions.filter(q=>String(q.id)!==String(id));
+  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'deleteAdhoc',id}),headers:{'Content-Type':'application/json'}}).catch(()=>{});}
+  renderQedAdhoc();
+}
+
+function proceedToManager() {
+  document.getElementById('mgrName').textContent = currentPerson.name;
+  document.getElementById('mgrRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
+  showScreen('screenManager');
+  loadManagerData();
+  populateAqTarget();
+}
+
+function typeLabel(t){return{text:'Short answer',textarea:'Long answer',number:'Number',yesno:'Yes / No'}[t]||t;}
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showTab(tabId, btn) {
+  ['tabSnapshot','tabReports','tabEmails','tabAskQ'].forEach(id=>{document.getElementById(id).style.display=id===tabId?'block':'none';});
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function goBack() { showScreen('screenPicker'); }
+function goHome() { showScreen('screenPicker'); }
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+init();
+</script>
+</body>
+</html>
