@@ -1179,17 +1179,33 @@ function selectPerson(id) {
   loadQuestions(id);
 }
 
+// ── JSONP helper — bypasses CORS entirely ─────────────────────────────────────
+function jsonp(url, callback) {
+  const cbName = '_sf_cb_' + Date.now();
+  const script = document.createElement('script');
+  window[cbName] = function(data) {
+    delete window[cbName];
+    document.body.removeChild(script);
+    callback(null, data);
+  };
+  script.onerror = function() {
+    delete window[cbName];
+    document.body.removeChild(script);
+    callback(new Error('JSONP failed'));
+  };
+  script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+  document.body.appendChild(script);
+}
+
 function loadQuestions(personId) {
   questions = [...(STD_QUESTIONS[personId] || [])];
   if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    fetch(`${SCRIPT_URL}?action=getQuestions&personId=${personId}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.adhoc && data.adhoc.length > 0) {
-          questions = [...questions, ...data.adhoc.map(q => ({ id:'adhoc_'+q.id, text:q.question, type:q.answerType||'text', isAdhoc:true }))];
-        }
-        renderQuestion();
-      }).catch(() => renderQuestion());
+    jsonp(`${SCRIPT_URL}?action=getQuestions&personId=${personId}`, (err, data) => {
+      if (!err && data && data.adhoc && data.adhoc.length > 0) {
+        questions = [...questions, ...data.adhoc.map(q => ({ id:'adhoc_'+q.id, text:q.question, type:q.answerType||'text', isAdhoc:true }))];
+      }
+      renderQuestion();
+    });
   } else { renderQuestion(); }
 }
 
@@ -1285,9 +1301,16 @@ function submitReport() {
     laborMetrics: laborMetrics
   };
   if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'application/json'}})
-      .then(r=>r.json()).then(()=>{overlay.classList.remove('show');showComplete();})
-      .catch(()=>{overlay.classList.remove('show');showToast('Submit failed — check connection.');});
+    // Use JSONP GET submit to bypass CORS (Apps Script doesn't support CORS headers)
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, (err, data) => {
+      overlay.classList.remove('show');
+      if (!err && data && data.ok !== false) {
+        showComplete();
+      } else {
+        showToast('Submit failed — check connection.');
+      }
+    });
   } else { setTimeout(()=>{overlay.classList.remove('show');showComplete();},900); }
 }
 
@@ -1376,10 +1399,10 @@ function loadManagerData() {
   const scope = getScope(currentPerson.id);
   if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
     const today = new Date().toISOString().split('T')[0];
-    fetch(`${SCRIPT_URL}?action=getStatus&date=${today}`)
-      .then(r=>r.json())
-      .then(data=>{snapshotData=data;renderSnapshot(data);loadAdhocList();})
-      .catch(()=>renderSnapshotOffline(scope));
+    jsonp(`${SCRIPT_URL}?action=getStatus&date=${today}`, (err, data) => {
+      if (!err && data) { snapshotData=data; renderSnapshot(data); loadAdhocList(); }
+      else { renderSnapshotOffline(scope); }
+    });
   } else { renderSnapshotOffline(scope); }
 }
 
@@ -1465,9 +1488,10 @@ function populateAqTarget() {
 
 function loadAdhocList() {
   if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    fetch(`${SCRIPT_URL}?action=getAdhoc&managerId=${currentPerson.id}`)
-      .then(r=>r.json()).then(data=>{adhocQuestions=data.adhoc||[];renderAdhocList();})
-      .catch(()=>renderAdhocList());
+    jsonp(`${SCRIPT_URL}?action=getAdhoc&managerId=${currentPerson.id}`, (err, data) => {
+      if (!err && data) { adhocQuestions = data.adhoc || []; }
+      renderAdhocList();
+    });
   } else { renderAdhocList(); }
 }
 
@@ -1487,17 +1511,29 @@ function submitAdhocQuestion() {
   if (!target||!question){confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Select a person and enter a question.';return;}
   const payload={action:'addAdhoc',managerId:currentPerson.id,targetPersonId:target,question,cadence,answerType:type,date:new Date().toISOString().split('T')[0],timestamp:new Date().toISOString()};
   if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'application/json'}})
-      .then(r=>r.json()).then(data=>{adhocQuestions.push({...payload,id:data.id||Date.now()});renderAdhocList();const tname=TEAM.find(p=>p.id===target)?.name||target;confirm.style.display='block';confirm.style.color='var(--green)';confirm.textContent='Added — shows in '+tname+"'s report tonight.";document.getElementById('aqTarget').value='';document.getElementById('aqQuestion').value='';setTimeout(()=>{confirm.style.display='none';},4000);})
-      .catch(()=>{confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Failed to save.';});
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, (err, data) => {
+      adhocQuestions.push({...payload, id: (data&&data.id) || Date.now()});
+      renderAdhocList();
+      const tname = TEAM.find(p=>p.id===target)?.name || target;
+      confirm.style.display='block'; confirm.style.color='var(--green)';
+      confirm.textContent = 'Added — shows in ' + tname + "'s report tonight.";
+      document.getElementById('aqTarget').value=''; document.getElementById('aqQuestion').value='';
+      setTimeout(()=>{ confirm.style.display='none'; }, 4000);
+      if (err) { confirm.style.color='#f87171'; confirm.textContent='Saved locally only — check connection.'; }
+    });
   } else {
     adhocQuestions.push({...payload,id:Date.now()});renderAdhocList();const tname=TEAM.find(p=>p.id===target)?.name||target;confirm.style.display='block';confirm.style.color='var(--green)';confirm.textContent='(Preview) Added for '+tname+'.';document.getElementById('aqTarget').value='';document.getElementById('aqQuestion').value='';setTimeout(()=>{confirm.style.display='none';},4000);
   }
 }
 
-function deleteAdhoc(id,btn) {
-  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'deleteAdhoc',id}),headers:{'Content-Type':'application/json'}}).catch(()=>{});}
-  adhocQuestions=adhocQuestions.filter(q=>String(q.id)!==String(id));renderAdhocList();
+function deleteAdhoc(id, btn) {
+  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    const encoded = encodeURIComponent(JSON.stringify({action:'deleteAdhoc', id}));
+    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, ()=>{});
+  }
+  adhocQuestions = adhocQuestions.filter(q => String(q.id) !== String(id));
+  renderAdhocList();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1589,8 +1625,12 @@ function addAdhocFromEditor() {
   const confirm=document.getElementById('newAdhocConfirm');
   if(!question){confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Enter a question first.';return;}
   const payload={action:'addAdhoc',managerId:pid,targetPersonId:pid,question,cadence,answerType:type,date:new Date().toISOString().split('T')[0],timestamp:new Date().toISOString()};
-  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(data=>{adhocQuestions.push({...payload,id:data.id||Date.now()});renderQedAdhoc();}).catch(()=>{});}
-  else{adhocQuestions.push({...payload,id:Date.now()});}
+  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){
+    const encoded=encodeURIComponent(JSON.stringify(payload));
+    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`,(err,data)=>{
+      adhocQuestions.push({...payload,id:(data&&data.id)||Date.now()});renderQedAdhoc();
+    });
+  } else { adhocQuestions.push({...payload,id:Date.now()}); }
   document.getElementById('newAdhocQ').value='';
   renderQedAdhoc();
   confirm.style.display='block';confirm.style.color='var(--green)';confirm.textContent="Added to tonight's report.";
@@ -1599,7 +1639,10 @@ function addAdhocFromEditor() {
 
 function deleteAdhocFromEditor(id) {
   adhocQuestions=adhocQuestions.filter(q=>String(q.id)!==String(id));
-  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'deleteAdhoc',id}),headers:{'Content-Type':'application/json'}}).catch(()=>{});}
+  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){
+    const encoded=encodeURIComponent(JSON.stringify({action:'deleteAdhoc',id}));
+    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`,()=>{});
+  }
   renderQedAdhoc();
 }
 
