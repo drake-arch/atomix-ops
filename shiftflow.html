@@ -1,1715 +1,1269 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ShiftFlow EOD — Atomix OPS</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-/* ── ATX OPS Design System ─────────────────────────────────── */
-:root {
-  --navy:    #0f172a;
-  --navy2:   #1e293b;
-  --navy3:   #334155;
-  --green:   #A3F3C5;
-  --green2:  #6ee7b7;
-  --text:    #e2e8f0;
-  --text2:   #94a3b8;
-  --text3:   #64748b;
-  --border:  rgba(163,243,197,0.12);
-  --border2: rgba(163,243,197,0.22);
-  --glass:   rgba(30,41,59,0.7);
-  --radius:  12px;
-  --radius-sm: 8px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { background: var(--navy); color: var(--text); font-family: 'Syne', sans-serif; }
-body { min-height: 100vh; background: var(--navy); }
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  ShiftFlow EOD — Apps Script                                                ║
+// ║  Atomix Logistics · drake-arch.github.io/atomix-ops                        ║
+// ║                                                                              ║
+// ║  SETUP STEPS:                                                                ║
+// ║  1. New Google Sheet → name it "ShiftFlow EOD"                              ║
+// ║  2. Extensions > Apps Script → paste this file                              ║
+// ║  3. Fill in EMAIL_MAP below with real addresses                             ║
+// ║  4. Run setupSheetTabs()  — creates all tabs                                ║
+// ║  5. Project Settings → set Script Timezone to America/New_York (EST)       ║
+// ║  6. Deploy > New Deployment > Web App                                       ║
+// ║       Execute as: Me  |  Who has access: Anyone                             ║
+// ║     Copy the Web App URL → paste into shiftflow.html SCRIPT_URL            ║
+// ║  7. Run setupTriggers()  — installs single 8:00 AM EST daily send          ║
+// ║  8. When ready: set DRY_RUN=false in Config tab, then run sendAllNow()     ║
+// ║     to confirm emails look right before the first live trigger fires        ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
 
-/* ── Layout ─────────────────────────────────────────────────── */
-.page { max-width: 680px; margin: 0 auto; padding: 0 16px 60px; }
-
-/* ── Header ─────────────────────────────────────────────────── */
-.topbar {
-  padding: 20px 0 16px;
-  border-bottom: 0.5px solid var(--border);
-  margin-bottom: 24px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.topbar-left { display: flex; align-items: center; gap: 12px; }
-.logo-mark {
-  width: 36px; height: 36px; border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%);
-  display: flex; align-items: center; justify-content: center;
-}
-.logo-mark svg { width: 18px; height: 18px; }
-.logo-text { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
-.logo-sub { font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
-.topbar-date { font-size: 12px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
-
-/* ── Glass card ─────────────────────────────────────────────── */
-.card {
-  background: var(--glass);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius);
-  backdrop-filter: blur(12px);
-  padding: 20px;
-  margin-bottom: 12px;
-}
-.card-sm { padding: 14px 16px; }
-
-/* ── Section label ───────────────────────────────────────────── */
-.section-label {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
-  color: var(--green); text-transform: uppercase;
-  font-family: 'IBM Plex Mono', monospace;
-  margin-bottom: 12px;
-}
-
-/* ── Screens ─────────────────────────────────────────────────── */
-.screen { display: none; }
-.screen.active { display: block; }
-
-/* ── Name picker ─────────────────────────────────────────────── */
-.site-label {
-  font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace;
-  letter-spacing: 0.08em; margin-bottom: 6px; text-transform: uppercase;
-}
-.name-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-  margin-bottom: 8px;
-}
-.name-btn {
-  background: var(--glass);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  cursor: pointer;
-  text-align: left;
-  transition: border-color 0.15s, background 0.15s;
-}
-.name-btn:hover { border-color: var(--border2); background: rgba(163,243,197,0.06); }
-.name-btn .nb-name { font-size: 14px; font-weight: 600; color: var(--text); }
-.name-btn .nb-role { font-size: 11px; color: var(--text2); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
-
-/* ── Chat flow ────────────────────────────────────────────────── */
-.chat-header {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
-}
-.chat-name { font-size: 18px; font-weight: 700; color: var(--text); }
-.chat-role { font-size: 12px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
-.progress-wrap { margin-bottom: 24px; }
-.progress-meta { display: flex; justify-content: space-between; margin-bottom: 6px; }
-.progress-meta span { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
-.progress-bar { height: 3px; background: var(--navy3); border-radius: 2px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.4s ease; }
-
-.bubble-q {
-  background: rgba(163,243,197,0.08);
-  border: 0.5px solid var(--border2);
-  border-radius: 0 var(--radius) var(--radius) var(--radius);
-  padding: 12px 14px;
-  font-size: 14px; color: var(--text);
-  margin-bottom: 14px;
-  animation: fadeUp 0.2s ease;
-}
-.bubble-q .q-label { font-size: 10px; color: var(--green); font-family: 'IBM Plex Mono', monospace; margin-bottom: 4px; letter-spacing: 0.06em; }
-
-.answer-area textarea {
-  width: 100%;
-  background: var(--navy2);
-  border: 0.5px solid var(--border2);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  color: var(--text);
-  font-family: 'Syne', sans-serif;
-  font-size: 14px;
-  resize: none;
-  outline: none;
-  transition: border-color 0.15s;
-  min-height: 80px;
-}
-.answer-area textarea:focus { border-color: var(--green); }
-.answer-area input[type=number] {
-  width: 100%;
-  background: var(--navy2);
-  border: 0.5px solid var(--border2);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  color: var(--text);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.answer-area input[type=number]:focus { border-color: var(--green); }
-
-.quick-btns { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-.quick-btn {
-  padding: 8px 16px; border-radius: 20px;
-  border: 0.5px solid var(--border2);
-  background: transparent; color: var(--text);
-  font-family: 'Syne', sans-serif; font-size: 13px;
-  cursor: pointer; transition: background 0.15s, border-color 0.15s;
-}
-.quick-btn:hover, .quick-btn.selected {
-  background: rgba(163,243,197,0.12); border-color: var(--green);
-  color: var(--green);
-}
-
-.btn-next {
-  width: 100%; margin-top: 12px;
-  background: var(--green); color: var(--navy);
-  border: none; border-radius: var(--radius-sm);
-  padding: 13px; font-family: 'Syne', sans-serif;
-  font-size: 14px; font-weight: 700;
-  cursor: pointer; transition: opacity 0.15s;
-}
-.btn-next:hover { opacity: 0.9; }
-.btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.btn-back {
-  background: none; border: none; color: var(--text3);
-  font-size: 12px; font-family: 'IBM Plex Mono', monospace;
-  cursor: pointer; padding: 4px 0; margin-top: 8px;
-}
-.btn-back:hover { color: var(--text2); }
-
-/* ── Complete screen ──────────────────────────────────────────── */
-.complete-card { text-align: center; padding: 40px 20px; }
-.complete-icon {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: rgba(163,243,197,0.12);
-  border: 0.5px solid var(--green);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px;
-}
-.complete-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
-.complete-sub { font-size: 13px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; }
-.complete-another {
-  margin-top: 24px;
-  background: none; border: 0.5px solid var(--border2);
-  border-radius: var(--radius-sm); color: var(--text2);
-  font-family: 'Syne', sans-serif; font-size: 13px;
-  padding: 10px 20px; cursor: pointer; transition: color 0.15s, border-color 0.15s;
-}
-.complete-another:hover { color: var(--text); border-color: var(--border2); }
-
-/* ── Manager view ─────────────────────────────────────────────── */
-.tab-row { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 0.5px solid var(--border); padding-bottom: 0; }
-.tab-btn {
-  font-size: 12px; padding: 7px 14px;
-  background: none; border: none; color: var(--text3);
-  font-family: 'IBM Plex Mono', monospace;
-  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px;
-  transition: color 0.15s;
-}
-.tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
-
-.person-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 0; border-bottom: 0.5px solid var(--border);
-}
-.person-row:last-child { border-bottom: none; }
-.person-left { display: flex; align-items: center; gap: 10px; }
-.avatar {
-  width: 34px; height: 34px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; flex-shrink: 0;
-  font-family: 'IBM Plex Mono', monospace;
-}
-.av-g { background: rgba(163,243,197,0.12); color: var(--green); border: 0.5px solid rgba(163,243,197,0.3); }
-.av-b { background: rgba(56,189,248,0.1); color: #38bdf8; border: 0.5px solid rgba(56,189,248,0.25); }
-.av-a { background: rgba(251,191,36,0.1); color: #fbbf24; border: 0.5px solid rgba(251,191,36,0.25); }
-.av-r { background: rgba(248,113,113,0.1); color: #f87171; border: 0.5px solid rgba(248,113,113,0.25); }
-.av-p { background: rgba(167,139,250,0.1); color: #a78bfa; border: 0.5px solid rgba(167,139,250,0.25); }
-.pname { font-size: 13px; font-weight: 600; color: var(--text); }
-.prole { font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; }
-.pill {
-  font-size: 10px; padding: 3px 8px; border-radius: 20px;
-  font-family: 'IBM Plex Mono', monospace; font-weight: 500;
-}
-.pill-ok  { background: rgba(163,243,197,0.1); color: var(--green); border: 0.5px solid rgba(163,243,197,0.25); }
-.pill-no  { background: rgba(248,113,113,0.1); color: #f87171; border: 0.5px solid rgba(248,113,113,0.25); }
-.pill-live{ background: rgba(251,191,36,0.1); color: #fbbf24; border: 0.5px solid rgba(251,191,36,0.25); }
-
-.expand-btn {
-  background: none; border: none; color: var(--text3);
-  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
-  cursor: pointer; margin-left: 8px; padding: 2px 4px;
-}
-.expand-btn:hover { color: var(--text2); }
-.qa-block { padding: 8px 0 4px 44px; display: none; }
-.qa-block.open { display: block; }
-.qa-item { margin-bottom: 10px; }
-.qa-q { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; margin-bottom: 3px; }
-.qa-a { font-size: 13px; color: var(--text); }
-
-/* ── Add question ─────────────────────────────────────────────── */
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; margin-bottom: 6px; letter-spacing: 0.04em; }
-.field select, .field textarea, .field input[type=text] {
-  width: 100%;
-  background: var(--navy2);
-  border: 0.5px solid var(--border2);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  color: var(--text);
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.15s;
-  appearance: none;
-}
-.field select:focus, .field textarea:focus, .field input[type=text]:focus { border-color: var(--green); }
-.field textarea { resize: none; min-height: 70px; }
-.field select option { background: var(--navy2); }
-
-.btn-add {
-  width: 100%; padding: 12px;
-  background: rgba(163,243,197,0.08);
-  border: 0.5px solid var(--green);
-  border-radius: var(--radius-sm);
-  color: var(--green); font-family: 'Syne', sans-serif;
-  font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: background 0.15s;
-}
-.btn-add:hover { background: rgba(163,243,197,0.14); }
-
-.adhoc-item {
-  padding: 10px 12px;
-  background: rgba(163,243,197,0.04);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  margin-bottom: 8px;
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-}
-.adhoc-q-text { font-size: 13px; color: var(--text); margin-bottom: 4px; }
-.adhoc-meta { font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
-.del-btn {
-  background: none; border: none; color: var(--text3);
-  font-size: 16px; cursor: pointer; line-height: 1; padding: 0 2px; flex-shrink: 0;
-}
-.del-btn:hover { color: #f87171; }
-
-/* ── Email preview ────────────────────────────────────────────── */
-.email-card {
-  background: var(--glass);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-.email-head {
-  padding: 12px 16px;
-  background: rgba(15,23,42,0.6);
-  border-bottom: 0.5px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-}
-.email-to { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
-.email-subj { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; }
-.email-body { padding: 14px 16px; display: none; }
-.email-body.open { display: block; }
-.email-section { margin-bottom: 12px; }
-.email-section-title { font-size: 10px; color: var(--green); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 6px; }
-.email-line { font-size: 13px; color: var(--text2); padding: 4px 0; border-bottom: 0.5px solid var(--border); }
-.email-line:last-child { border-bottom: none; }
-.email-missing { font-size: 12px; color: #f87171; padding: 6px 10px; background: rgba(248,113,113,0.06); border-radius: var(--radius-sm); margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; }
-.email-ok { font-size: 12px; color: var(--green); padding: 6px 10px; background: rgba(163,243,197,0.06); border-radius: var(--radius-sm); margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; }
-.preview-btn {
-  font-size: 11px; padding: 5px 12px; border-radius: 20px;
-  border: 0.5px solid var(--border2); background: transparent;
-  color: var(--text3); font-family: 'IBM Plex Mono', monospace;
-  cursor: pointer; transition: color 0.15s, border-color 0.15s;
-}
-.preview-btn:hover { color: var(--green); border-color: rgba(163,243,197,0.4); }
-
-/* ── Status / toast ───────────────────────────────────────────── */
-.toast {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  background: var(--navy2); border: 0.5px solid var(--green);
-  border-radius: var(--radius-sm); padding: 10px 20px;
-  color: var(--green); font-size: 13px; font-family: 'IBM Plex Mono', monospace;
-  opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999;
-  white-space: nowrap;
-}
-.toast.show { opacity: 1; }
-
-/* ── Mode toggle ──────────────────────────────────────────────── */
-.mode-toggle { display: flex; gap: 4px; margin-bottom: 20px; }
-.mode-btn {
-  flex: 1; padding: 9px; border-radius: var(--radius-sm);
-  border: 0.5px solid var(--border);
-  background: transparent; color: var(--text3);
-  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: all 0.15s;
-}
-.mode-btn.active {
-  background: rgba(163,243,197,0.08);
-  border-color: var(--green); color: var(--green);
-}
-
-/* ── Loading ──────────────────────────────────────────────────── */
-.loading { text-align: center; padding: 40px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
-.dot-anim::after { content: ''; animation: dots 1.2s steps(4,end) infinite; }
-@keyframes dots { 0%,100%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
-@keyframes fadeUp { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
-
-/* ── Submitting overlay ───────────────────────────────────────── */
-.submitting-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(15,23,42,0.85); z-index: 998;
-  align-items: center; justify-content: center;
-  flex-direction: column; gap: 12px;
-}
-.submitting-overlay.show { display: flex; }
-.submitting-text { color: var(--green); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
-.spinner {
-  width: 32px; height: 32px; border: 2px solid var(--border2);
-  border-top-color: var(--green); border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-/* ── Questions editor ─────────────────────────────────────────── */
-.qed-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 10px 0;
-  border-bottom: 0.5px solid var(--border);
-}
-.qed-item:last-child { border-bottom: none; }
-.qed-num {
-  font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace;
-  min-width: 22px; padding-top: 2px; flex-shrink: 0;
-}
-.qed-body { flex: 1; min-width: 0; }
-.qed-text {
-  font-size: 13px; color: var(--text); margin-bottom: 4px;
-  word-break: break-word;
-}
-.qed-text[contenteditable="true"] {
-  outline: none;
-  border-bottom: 1px solid var(--green);
-  padding-bottom: 2px;
-  cursor: text;
-}
-.qed-meta { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
-.qed-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
-.qed-btn {
-  background: none; border: none; cursor: pointer;
-  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
-  padding: 3px 7px; border-radius: var(--radius-sm);
-  border: 0.5px solid var(--border);
-  color: var(--text3); transition: color 0.1s, border-color 0.1s;
-}
-.qed-btn:hover { color: var(--text); border-color: var(--border2); }
-.qed-btn.save  { color: var(--green); border-color: rgba(163,243,197,0.3); }
-.qed-btn.save:hover { background: rgba(163,243,197,0.08); }
-.qed-btn.del:hover  { color: #f87171; border-color: rgba(248,113,113,0.3); }
-.qed-move { color: var(--text3); cursor: grab; font-size: 14px; padding: 0 2px; }
-.qed-empty { font-size:12px; color:var(--text3); font-family:'IBM Plex Mono',monospace; padding:12px 0; }
-
-/* ── Org chart ────────────────────────────────────────── */
-.org-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.org-node-btn {
-  cursor: pointer; overflow: visible;
-}
-.org-node-rect {
-  fill: rgba(30,41,59,0.92);
-  stroke: rgba(163,243,197,0.2);
-  stroke-width: 0.5;
-  rx: 7; ry: 7;
-  transition: fill 0.15s, stroke 0.15s;
-}
-.org-node-btn:hover .org-node-rect { fill: rgba(163,243,197,0.07); stroke: rgba(163,243,197,0.55); }
-.org-node-btn.root .org-node-rect  { fill: rgba(163,243,197,0.06); stroke: rgba(163,243,197,0.5); }
-.org-node-btn.mgr  .org-node-rect  { stroke: rgba(163,243,197,0.3); }
-.org-node-name { font-size: 11px; font-weight: 700; fill: #e2e8f0; font-family: Syne, sans-serif; }
-.org-node-role { font-size: 9px;  fill: #64748b; font-family: "IBM Plex Mono", monospace; }
-.org-badge-rect-am { fill: rgba(251,191,36,0.15); rx:3; ry:3; }
-.org-badge-text-am { font-size: 8px; fill: #fbbf24; font-family: "IBM Plex Mono", monospace; }
-.org-badge-rect-pm { fill: rgba(56,189,248,0.15); rx:3; ry:3; }
-.org-badge-text-pm { font-size: 8px; fill: #38bdf8; font-family: "IBM Plex Mono", monospace; }
-.org-badge-rect-slc{ fill: rgba(163,243,197,0.1); rx:3; ry:3; }
-.org-badge-text-slc{ font-size: 8px; fill: #A3F3C5; font-family: "IBM Plex Mono", monospace; }
-.org-line { stroke: rgba(163,243,197,0.28); stroke-width: 0.75; fill: none; }
-
-/* ── Labor metrics card ──────────────────────────────────────── */
-.labor-card {
-  background: rgba(163,243,197,0.04);
-  border: 0.5px solid rgba(163,243,197,0.3);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  margin-bottom: 12px;
-  animation: fadeUp 0.3s ease;
-}
-.labor-title {
-  font-size: 10px; font-weight: 600; letter-spacing: .1em;
-  color: var(--green); text-transform: uppercase;
-  font-family: 'IBM Plex Mono', monospace; margin-bottom: 14px;
-  display: flex; align-items: center; gap: 8px;
-}
-.labor-grid {
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px; margin-bottom: 10px;
-}
-.labor-metric {
-  background: rgba(15,23,42,0.6);
-  border: 0.5px solid rgba(163,243,197,0.12);
-  border-radius: 8px; padding: 10px 12px; text-align: center;
-}
-.labor-metric.highlight {
-  border-color: rgba(163,243,197,0.35);
-  background: rgba(163,243,197,0.06);
-}
-.lm-val {
-  font-size: 20px; font-weight: 700;
-  font-family: 'IBM Plex Mono', monospace;
-  color: var(--green); line-height: 1.1;
-}
-.lm-lbl {
-  font-size: 9px; color: var(--text3);
-  font-family: 'IBM Plex Mono', monospace;
-  text-transform: uppercase; letter-spacing: .07em;
-  margin-top: 3px;
-}
-.labor-row {
-  display: flex; gap: 10px; margin-top: 8px;
-}
-.labor-input-wrap { flex: 1; }
-.labor-input-wrap label {
-  font-size: 10px; color: var(--text2);
-  font-family: 'IBM Plex Mono', monospace;
-  display: block; margin-bottom: 4px;
-}
-</style>
-</head>
-<body>
-
-<!-- ── SUBMITTING OVERLAY ───────────────────────────────────── -->
-<div class="submitting-overlay" id="submittingOverlay">
-  <div class="spinner"></div>
-  <div class="submitting-text dot-anim">Submitting report</div>
-</div>
-
-<!-- ── TOAST ─────────────────────────────────────────────────── -->
-<div class="toast" id="toast"></div>
-
-<div class="page">
-
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="logo-mark">
-        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="2" width="6" height="6" rx="1.5" fill="#0f172a"/>
-          <rect x="10" y="2" width="6" height="6" rx="1.5" fill="#0f172a"/>
-          <rect x="2" y="10" width="6" height="6" rx="1.5" fill="#0f172a"/>
-          <rect x="10" y="10" width="6" height="6" rx="1.5" fill="#0f172a" opacity="0.4"/>
-        </svg>
-      </div>
-      <div>
-        <div class="logo-text">ShiftFlow EOD</div>
-        <div class="logo-sub">Atomix Logistics</div>
-      </div>
-    </div>
-    <div class="topbar-date" id="topbarDate"></div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- SCREEN: PICKER                                            -->
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <div class="screen active" id="screenPicker">
-
-    <div class="mode-toggle">
-      <button class="mode-btn active" id="modeReport" onclick="setMode('report')">Submit my report</button>
-      <button class="mode-btn" id="modeManager" onclick="setMode('manager')">Manager view</button>
-    </div>
-
-    <div id="reporterPicker">
-      <p class="section-label">Who's checking out?</p>
-      <div id="mke-label" class="site-label">MKE — Milwaukee</div>
-      <div class="name-grid" id="nameGridMKE"></div>
-      <div id="slc-label" class="site-label" style="margin-top:12px">SLC — Salt Lake City</div>
-      <div class="name-grid" id="nameGridSLC"></div>
-    </div>
-
-    <div id="managerPicker" style="display:none">
-      <p class="section-label">Select a person to manage</p>
-      <div id="orgChartWrap"></div>
-    </div>
-
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- SCREEN: CHAT (report submission)                          -->
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <div class="screen" id="screenChat">
-    <div class="chat-header">
-      <div>
-        <div class="chat-name" id="chatName"></div>
-        <div class="chat-role" id="chatRole"></div>
-      </div>
-      <button class="btn-back" onclick="goBack()">← back</button>
-    </div>
-
-    <div class="progress-wrap">
-      <div class="progress-meta">
-        <span id="progressLabel">Question 1 of 3</span>
-        <span id="progressPct">0%</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    </div>
-
-    <div id="questionArea"></div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- SCREEN: COMPLETE                                          -->
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <div class="screen" id="screenComplete">
-    <div class="card complete-card">
-      <div class="complete-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M5 13l4 4L19 7" stroke="#A3F3C5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="complete-title" id="completeName">Report submitted.</div>
-      <div class="complete-sub" id="completeSub">Thanks — have a good night.</div>
-      <button class="complete-another" onclick="goHome()">Submit another report</button>
-    </div>
-    <div id="laborSummaryBlock" style="display:none"></div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- SCREEN: MANAGER                                           -->
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- SCREEN: QUESTIONS EDITOR -->
-  <div class="screen" id="screenQuestions">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div>
-        <div class="chat-name" id="qedName"></div>
-        <div class="chat-role" id="qedRole"></div>
-      </div>
-      <button class="btn-back" onclick="goBack()">&#8592; back</button>
-    </div>
-
-    <div class="tab-row">
-      <button class="tab-btn active" onclick="showQedTab('std',this)">Standard questions</button>
-      <button class="tab-btn" onclick="showQedTab('adhoc',this)">Tonight's ad-hoc</button>
-    </div>
-
-    <!-- Standard questions list -->
-    <div id="qedTabStd">
-      <div id="qedStdList"></div>
-      <div class="card" style="margin-top:12px">
-        <p class="section-label" style="margin-bottom:12px">Add a standard question</p>
-        <div class="field">
-          <label>Question text</label>
-          <textarea id="newStdQ" rows="2" placeholder="e.g. What should leadership know about today?"></textarea>
-        </div>
-        <div class="field">
-          <label>Answer type</label>
-          <select id="newStdType">
-            <option value="text">Short answer</option>
-            <option value="textarea">Long answer</option>
-            <option value="number">Number</option>
-            <option value="yesno">Yes / No</option>
-          </select>
-        </div>
-        <button class="btn-add" onclick="addStandardQuestion()">Add question</button>
-        <div id="newStdConfirm" style="display:none;margin-top:8px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--green)"></div>
-      </div>
-    </div>
-
-    <!-- Ad-hoc questions -->
-    <div id="qedTabAdhoc" style="display:none">
-      <div id="qedAdhocList"></div>
-      <div class="card" style="margin-top:12px">
-        <p class="section-label" style="margin-bottom:12px">Add an ad-hoc question for tonight</p>
-        <div class="field">
-          <label>Cadence</label>
-          <select id="newAdhocCadence">
-            <option value="tonight">Tonight only</option>
-            <option value="weekdays">Every weekday</option>
-            <option value="daily">Every day</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Answer type</label>
-          <select id="newAdhocType">
-            <option value="text">Short answer</option>
-            <option value="textarea">Long answer</option>
-            <option value="number">Number</option>
-            <option value="yesno">Yes / No</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Question text</label>
-          <textarea id="newAdhocQ" rows="2" placeholder="e.g. How many unscanned pallets remain on the dock?"></textarea>
-        </div>
-        <button class="btn-add" onclick="addAdhocFromEditor()">Add to tonight's report</button>
-        <div id="newAdhocConfirm" style="display:none;margin-top:8px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--green)"></div>
-      </div>
-    </div>
-
-    <div style="margin-top:20px">
-      <button class="btn-next" onclick="proceedToManager()">Go to manager view &#8594;</button>
-    </div>
-  </div>
-
-  <div class="screen" id="screenManager">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div>
-        <div class="chat-name" id="mgrName"></div>
-        <div class="chat-role" id="mgrRole"></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button id="btnSendRecap" onclick="triggerRecapNow()" style="display:none;padding:7px 14px;background:var(--green);color:#0a1a0f;border:none;border-radius:8px;font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:600;cursor:pointer;letter-spacing:0.03em" title="Send all recap emails now">
-          ✉ Send recap now
-        </button>
-        <button class="btn-back" onclick="goBack()">← back</button>
-      </div>
-    </div>
-
-    <div class="tab-row">
-      <button class="tab-btn active" onclick="showTab('tabSnapshot',this)">Snapshot</button>
-      <button class="tab-btn" onclick="showTab('tabReports',this)">Reports</button>
-      <button class="tab-btn" onclick="showTab('tabEmails',this)">Email preview</button>
-      <button class="tab-btn" onclick="showTab('tabAskQ',this)">Ask a question</button>
-    </div>
-
-    <!-- TAB: SNAPSHOT -->
-    <div id="tabSnapshot">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-        <div class="card card-sm" style="text-align:center">
-          <div style="font-size:24px;font-weight:700;color:var(--green)" id="snapSubmitted">—</div>
-          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px">submitted</div>
-        </div>
-        <div class="card card-sm" style="text-align:center">
-          <div style="font-size:24px;font-weight:700;color:#f87171" id="snapMissing">—</div>
-          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px">missing</div>
-        </div>
-        <div class="card card-sm" style="text-align:center">
-          <div style="font-size:24px;font-weight:700;color:var(--text)" id="snapTotal">—</div>
-          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px">total</div>
-        </div>
-      </div>
-      <p class="section-label">Team status</p>
-      <div class="card" style="padding:4px 16px" id="snapshotList">
-        <div class="loading dot-anim">Loading</div>
-      </div>
-    </div>
-
-    <!-- TAB: REPORTS -->
-    <div id="tabReports" style="display:none">
-      <p class="section-label">Submitted answers — today</p>
-      <div id="reportsList"><div class="loading dot-anim">Loading</div></div>
-    </div>
-
-    <!-- TAB: EMAIL PREVIEW -->
-    <div id="tabEmails" style="display:none">
-      <p class="section-label">Tonight's recap emails</p>
-      <div id="emailsList"><div class="loading dot-anim">Loading</div></div>
-    </div>
-
-    <!-- TAB: ASK A QUESTION -->
-    <div id="tabAskQ" style="display:none">
-      <p class="section-label">Add a question to tonight's report</p>
-      <div class="card">
-        <div class="field">
-          <label>Who gets this question?</label>
-          <select id="aqTarget"></select>
-        </div>
-        <div class="field">
-          <label>When does it show?</label>
-          <select id="aqCadence">
-            <option value="tonight">Tonight only</option>
-            <option value="weekdays">Every weekday</option>
-            <option value="daily">Every day</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Answer type</label>
-          <select id="aqType">
-            <option value="text">Short answer</option>
-            <option value="textarea">Long answer</option>
-            <option value="number">Number</option>
-            <option value="yesno">Yes / No</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Your question</label>
-          <textarea id="aqQuestion" placeholder="e.g. How many unscanned pallets remain on the dock?"></textarea>
-        </div>
-        <button class="btn-add" onclick="submitAdhocQuestion()">Add to tonight's report</button>
-        <div id="aqConfirm" style="display:none;margin-top:10px;font-size:12px;font-family:'IBM Plex Mono',monospace;"></div>
-      </div>
-
-      <p class="section-label" style="margin-top:16px">Active ad-hoc questions</p>
-      <div id="adhocList"><div class="loading dot-anim">Loading</div></div>
-    </div>
-
-  </div>
-
-</div><!-- /page -->
-
-<script>
-// ══════════════════════════════════════════════════════════════
-// CONFIG — replace with your deployed Apps Script Web App URL
-// ══════════════════════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVjKckCjo6FiYvrcGfNILjf7jCR7yxvZeYgO7QzWJkkcJFqIxBSY0NqKVNhM8RvYv2g/exec';
-
-// ══════════════════════════════════════════════════════════════
-// TEAM DATA — edit to match your actual team
-// ══════════════════════════════════════════════════════════════
-const TEAM = [
-  // ── Drake (root) ──────────────────────────────────────────
-  { id:'drake',    name:'Drake',    role:'Ops Lead',        site:'MKE', av:'av-g', initials:'D',  reportsTo:null,      managerOf:['ricardo','norman'] },
-  // ── Ricardo ───────────────────────────────────────────────
-  { id:'ricardo',  name:'Ricardo',  role:'Site Lead',       site:'MKE', av:'av-r', initials:'RM', reportsTo:'drake',   managerOf:['kody','hugh','emyly','luis','adam'] },
-  // ── Kody (AM) ─────────────────────────────────────────────
-  { id:'kody',     name:'Kody',     role:'AM Outbound',     site:'MKE', av:'av-b', initials:'KM', reportsTo:'ricardo', managerOf:['ana','yaniel'] },
-  { id:'ana',      name:'Ana',      role:'AM Outbound',     site:'MKE', av:'av-p', initials:'AN', reportsTo:'kody',    managerOf:[] },
-  { id:'yaniel',   name:'Yaniel',   role:'AM Outbound',     site:'MKE', av:'av-a', initials:'YN', reportsTo:'kody',    managerOf:[] },
-  // ── Hugh (PM) — lateral to Kody ───────────────────────────
-  { id:'hugh',     name:'Hugh',     role:'PM Lead',         site:'MKE', av:'av-a', initials:'HM', reportsTo:'ricardo', managerOf:['christine'] },
-  { id:'christine',name:'Christine',role:'PM Shift',        site:'MKE', av:'av-p', initials:'CH', reportsTo:'hugh',    managerOf:[] },
-  // ── Emyly subtree ─────────────────────────────────────────
-  { id:'emyly',    name:'Emyly',    role:'Inbound',         site:'MKE', av:'av-g', initials:'EH', reportsTo:'ricardo', managerOf:['relly'] },
-  { id:'relly',    name:'Relly',    role:'Inbound',         site:'MKE', av:'av-b', initials:'RL', reportsTo:'emyly',   managerOf:[] },
-  // ── Luis subtree ──────────────────────────────────────────
-  { id:'luis',     name:'Luis',     role:'Inventory',       site:'MKE', av:'av-p', initials:'LG', reportsTo:'ricardo', managerOf:['ramar','brenda','ofelia','david'] },
-  { id:'ramar',    name:'Ramar',    role:'Inventory',       site:'MKE', av:'av-b', initials:'RA', reportsTo:'luis',    managerOf:[] },
-  { id:'brenda',   name:'Brenda',   role:'Inventory',       site:'MKE', av:'av-g', initials:'BR', reportsTo:'luis',    managerOf:[] },
-  { id:'ofelia',   name:'Ofelia',   role:'Inventory',       site:'MKE', av:'av-a', initials:'OF', reportsTo:'luis',    managerOf:[] },
-  { id:'david',    name:'David',    role:'Inventory',       site:'MKE', av:'av-b', initials:'DV', reportsTo:'luis',    managerOf:[] },
-  // ── Adam subtree ──────────────────────────────────────────
-  { id:'adam',     name:'Adam',     role:'Special Projects',site:'MKE', av:'av-p', initials:'AG', reportsTo:'ricardo', managerOf:['nate','maria'] },
-  { id:'nate',     name:'Nate',     role:'B2B',             site:'MKE', av:'av-r', initials:'NT', reportsTo:'adam',    managerOf:[] },
-  { id:'maria',    name:'Maria',    role:'Kitting',         site:'MKE', av:'av-g', initials:'MA', reportsTo:'adam',    managerOf:[] },
-  // ── Norman / SLC ──────────────────────────────────────────
-  { id:'norman',   name:'Norman',   role:'SLC Site Manager',site:'SLC', av:'av-b', initials:'NM', reportsTo:'drake',   managerOf:['santana'] },
-  { id:'santana',  name:'Santana',  role:'SLC Outbound',    site:'SLC', av:'av-a', initials:'SA', reportsTo:'norman',  managerOf:[] },
-];
-
-// ══════════════════════════════════════════════════════════════
-// STANDARD QUESTIONS PER ROLE
-// ══════════════════════════════════════════════════════════════
-const STD_QUESTIONS = {
-  drake: [
-    { id:'d1', text:'Top priority for tomorrow?', type:'textarea', optional:true },
-    { id:'d2', text:'Any leadership decisions needed?', type:'text', optional:true },
-    { id:'d3', text:'Weekly grade so far?', type:'text', optional:true },
-  ],
-  ricardo: [
-    { id:'r_date',  text:'Date you are reporting for', type:'date', laborField:'report_date' },
-    { id:'r_hours', text:'Total labor hours worked (MKE)', type:'number', laborField:'hours' },
-    { id:'r_spend', text:'Total labor spend $ (MKE)', type:'number', laborField:'spend' },
-    { id:'r_orders',text:'Total orders shipped (MKE)', type:'number', laborField:'orders' },
-    { id:'r1', text:'Overall site performance today?', type:'textarea' },
-    { id:'r2', text:'Any issues requiring Drake\'s attention?', type:'text' },
-    { id:'r3', text:'Team accountability notes?', type:'text' },
-    { id:'r4', text:'Site readiness for tomorrow?', type:'textarea' },
-  ],
-  kody: [
-    { id:'k1', text:'How was AM outbound throughput today?', type:'textarea' },
-    { id:'k2', text:'Any staffing issues on your shift?', type:'text' },
-    { id:'k3', text:'Any equipment or process issues to flag?', type:'text' },
-    { id:'k4', text:'What should leadership know from outbound?', type:'textarea' },
-  ],
-  ana: [
-    { id:'an1', text:'How did your shift go today?', type:'textarea' },
-    { id:'an2', text:'Any issues or blockers to flag?', type:'text' },
-    { id:'an3', text:'Anything for Kody to know?', type:'text' },
-  ],
-  yaniel: [
-    { id:'yn1', text:'How did your shift go today?', type:'textarea' },
-    { id:'yn2', text:'Any issues or blockers to flag?', type:'text' },
-    { id:'yn3', text:'Anything for Kody to know?', type:'text' },
-  ],
-  hugh: [
-    { id:'h1', text:'How was PM outbound volume?', type:'textarea' },
-    { id:'h2', text:'Any handoff issues from AM shift?', type:'text' },
-    { id:'h3', text:'Staffing and overtime status?', type:'text' },
-    { id:'h4', text:'Anything to flag before tomorrow?', type:'textarea' },
-  ],
-  christine: [
-    { id:'ch1', text:'How did your shift go today?', type:'textarea' },
-    { id:'ch2', text:'Any issues or blockers to flag?', type:'text' },
-    { id:'ch3', text:'Anything for Hugh to know?', type:'text' },
-  ],
-  emyly: [
-    { id:'e1', text:'How was inbound volume today?', type:'textarea' },
-    { id:'e2', text:'Any receiving discrepancies or holds?', type:'text' },
-    { id:'e3', text:'Cold chain or temperature flags?', type:'text' },
-    { id:'e4', text:'What should leadership know from inbound?', type:'textarea' },
-  ],
-  relly: [
-    { id:'rl1', text:'How did inbound go on your shift?', type:'textarea' },
-    { id:'rl2', text:'Any receiving issues to flag?', type:'text' },
-    { id:'rl3', text:'Anything for Emyly to know?', type:'text' },
-  ],
-  luis: [
-    { id:'l1', text:'Any inventory discrepancies found today?', type:'textarea' },
-    { id:'l2', text:'Cycle count progress?', type:'text' },
-    { id:'l3', text:'IMS / OMS sync issues?', type:'text' },
-    { id:'l4', text:'What should leadership know from inventory?', type:'textarea' },
-  ],
-  ramar: [
-    { id:'rm1', text:'What did you work on in inventory today?', type:'textarea' },
-    { id:'rm2', text:'Any discrepancies or issues found?', type:'text' },
-    { id:'rm3', text:'Anything for Luis to know?', type:'text' },
-  ],
-  brenda: [
-    { id:'br1', text:'What did you work on in inventory today?', type:'textarea' },
-    { id:'br2', text:'Any discrepancies or issues found?', type:'text' },
-    { id:'br3', text:'Anything for Luis to know?', type:'text' },
-  ],
-  ofelia: [
-    { id:'of1', text:'What did you work on in inventory today?', type:'textarea' },
-    { id:'of2', text:'Any discrepancies or issues found?', type:'text' },
-    { id:'of3', text:'Anything for Luis to know?', type:'text' },
-  ],
-  david: [
-    { id:'dv1', text:'What did you work on in inventory today?', type:'textarea' },
-    { id:'dv2', text:'Any discrepancies or issues found?', type:'text' },
-    { id:'dv3', text:'Anything for Luis to know?', type:'text' },
-  ],
-  adam: [
-    { id:'a1', text:'Special projects status update?', type:'textarea' },
-    { id:'a2', text:'Any B2B or retail issues?', type:'text' },
-    { id:'a3', text:'Blockers or escalations needed?', type:'text' },
-  ],
-  nate: [
-    { id:'nt1', text:'What did you work on today?', type:'textarea' },
-    { id:'nt2', text:'Any blockers or issues?', type:'text' },
-    { id:'nt3', text:'Anything for Adam to know?', type:'text' },
-  ],
-  maria: [
-    { id:'mr1', text:'What did you work on today?', type:'textarea' },
-    { id:'mr2', text:'Any blockers or issues?', type:'text' },
-    { id:'mr3', text:'Anything for Adam to know?', type:'text' },
-  ],
-  santana: [
-    { id:'sa1', text:'How was SLC outbound today?', type:'textarea' },
-    { id:'sa2', text:'Any issues to flag for Norman?', type:'text' },
-    { id:'sa3', text:'Staffing and shift notes?', type:'text' },
-  ],
-  norman: [
-    { id:'n_date',  text:'Date you are reporting for', type:'date', laborField:'report_date' },
-    { id:'n_hours', text:'Total labor hours worked (SLC)', type:'number', laborField:'hours' },
-    { id:'n_spend', text:'Total labor spend $ (SLC)', type:'number', laborField:'spend' },
-    { id:'n_orders',text:'Total orders shipped (SLC)', type:'number', laborField:'orders' },
-    { id:'n1', text:'SLC site performance today?', type:'textarea' },
-    { id:'n2', text:'Staffing and labor notes?', type:'text' },
-    { id:'n3', text:'Any issues requiring Drake\'s attention?', type:'text' },
-    { id:'n4', text:'SLC readiness for tomorrow?', type:'text' },
-  ],
+// ── Email addresses ────────────────────────────────────────────────────────────
+const EMAIL_MAP = {
+  drake:     'drake@atomixlogistics.com',
+  ricardo:   'ricardo@atomixlogistics.com',
+  norman:    'norman@atomixlogistics.com',
+  kody:      'kody@atomixlogistics.com',
+  hugh:      'hugh@atomixlogistics.com',
+  emyly:     'emyly@atomixlogistics.com',
+  luis:      'luis@atomixlogistics.com',
+  adam:      'adam@atomixlogistics.com',
+  santana:   'santana@atomixlogistics.com',
+  // ICs — no recap email sent to them, but stored for upstream rollups
+  ana:       'ana@atomixlogistics.com',       // add real email when known
+  yaniel:    'yaniel@atomixlogistics.com',    // add real email when known
+  christine: 'christine@atomixlogistics.com', // add real email when known
+  relly:     'relly@atomixlogistics.com',     // add real email when known
+  ramar:     'ramar@atomixlogistics.com',     // add real email when known
+  brenda:    'brenda@atomixlogistics.com',    // add real email when known
+  ofelia:    'ofelia@atomixlogistics.com',    // add real email when known
+  david:     'david@atomixlogistics.com',     // add real email when known
+  nate:      'nate@atomixlogistics.com',      // add real email when known
+  maria:     'maria@atomixlogistics.com',     // add real email when known
 };
 
-// ══════════════════════════════════════════════════════════════
-// APP STATE
-// ══════════════════════════════════════════════════════════════
-let currentPerson = null;
-let currentMode = 'report';
-let questions = [];
-let answers = {};
-let currentQ = 0;
-let adhocQuestions = [];
-let snapshotData = {};
+// ── Org tree ───────────────────────────────────────────────────────────────────
+// reportsTo: who is their direct manager
+// recapEmail: do they receive a recap email?
+const ORG = {
+  drake:     { name:'Drake',     role:'Ops Lead',         site:'MKE', reportsTo:null,      recapEmail:true  },
+  ricardo:   { name:'Ricardo',   role:'Site Lead',         site:'MKE', reportsTo:'drake',   recapEmail:true  },
+  kody:      { name:'Kody',      role:'AM Outbound',       site:'MKE', reportsTo:'ricardo', recapEmail:true  },
+  hugh:      { name:'Hugh',      role:'PM Lead',           site:'MKE', reportsTo:'ricardo', recapEmail:true  },
+  emyly:     { name:'Emyly',     role:'Inbound',           site:'MKE', reportsTo:'ricardo', recapEmail:true  },
+  luis:      { name:'Luis',      role:'Inventory',         site:'MKE', reportsTo:'ricardo', recapEmail:true  },
+  adam:      { name:'Adam',      role:'Special Projects',  site:'MKE', reportsTo:'ricardo', recapEmail:true  },
+  norman:    { name:'Norman',    role:'SLC Site Manager',  site:'SLC', reportsTo:'drake',   recapEmail:true  },
+  santana:   { name:'Santana',   role:'SLC Outbound',      site:'SLC', reportsTo:'norman',  recapEmail:true },
+  ana:       { name:'Ana',       role:'AM Outbound',       site:'MKE', reportsTo:'kody',    recapEmail:false },
+  yaniel:    { name:'Yaniel',    role:'AM Outbound',       site:'MKE', reportsTo:'kody',    recapEmail:false },
+  christine: { name:'Christine', role:'PM Shift',          site:'MKE', reportsTo:'hugh',    recapEmail:false },
+  relly:     { name:'Relly',     role:'Inbound',           site:'MKE', reportsTo:'emyly',   recapEmail:false },
+  ramar:     { name:'Ramar',     role:'Inventory',         site:'MKE', reportsTo:'luis',    recapEmail:false },
+  brenda:    { name:'Brenda',    role:'Inventory',         site:'MKE', reportsTo:'luis',    recapEmail:false },
+  ofelia:    { name:'Ofelia',    role:'Inventory',         site:'MKE', reportsTo:'luis',    recapEmail:false },
+  david:     { name:'David',     role:'Inventory',         site:'MKE', reportsTo:'luis',    recapEmail:false },
+  nate:      { name:'Nate',      role:'B2B',               site:'MKE', reportsTo:'adam',    recapEmail:false },
+  maria:     { name:'Maria',     role:'Kitting',           site:'MKE', reportsTo:'adam',    recapEmail:false },
+};
 
-// ══════════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════════
-document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+// ── Who gets what in their recap email ────────────────────────────────────────
+// directReports: these people's full reports appear expanded in the email
+// visibilityOnly: these people appear as collapsible "dig deeper" cards
+const RECAP_SCOPE = {
+  kody:    { directReports:['ana','yaniel'],                     visibilityOnly:[] },
+  hugh:    { directReports:['christine'],                        visibilityOnly:[] },
+  emyly:   { directReports:['relly'],                            visibilityOnly:[] },
+  luis:    { directReports:['ramar','brenda','ofelia','david'],  visibilityOnly:[] },
+  adam:    { directReports:['nate','maria'],                     visibilityOnly:[] },
+  norman:  { directReports:['santana'],                          visibilityOnly:[] },
+  ricardo: { directReports:['kody','hugh','emyly','luis','adam'],
+             visibilityOnly:['ana','yaniel','christine','relly','ramar','brenda','ofelia','david','nate','maria'] },
+  drake:   { directReports:['ricardo','norman'],
+             managerRollup:['kody','hugh','emyly','luis','adam','santana'],
+             visibilityOnly:['ana','yaniel','christine','relly','ramar','brenda','ofelia','david','nate','maria'] },
+};
 
-function init() {
-  const mke = TEAM.filter(p => p.site === 'MKE');
-  const slc = TEAM.filter(p => p.site === 'SLC');
-  renderNameGrid('nameGridMKE', mke, false);
-  renderNameGrid('nameGridSLC', slc, false);
-  buildOrgChart();
+// ── Sheet tab names ────────────────────────────────────────────────────────────
+const TABS = {
+  REPORTS:   'Reports',
+  ANSWERS:   'Answers',
+  QUESTIONS: 'AdHocQuestions',
+  STDQ:      'StandardQuestions',
+  PEOPLE:    'People',
+  CONFIG:    'Config',
+  LOG:       'EmailLog',
+  LABOR:     'LaborMetrics',
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SETUP — run once
+// ══════════════════════════════════════════════════════════════════════════════
+
+function setupSheetTabs() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  function ensureTab(name, headers) {
+    let sh = ss.getSheetByName(name);
+    if (!sh) sh = ss.insertSheet(name);
+    sh.clearContents();
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sh.getRange(1, 1, 1, headers.length)
+      .setBackground('#0f172a').setFontColor('#A3F3C5')
+      .setFontWeight('bold').setFontFamily('Courier New');
+    sh.setFrozenRows(1);
+    return sh;
+  }
+
+  ensureTab(TABS.REPORTS, [
+    'report_id','date','person_id','person_name','role','site','submitted_at','ip_hint'
+  ]);
+  ensureTab(TABS.ANSWERS, [
+    'answer_id','report_id','date','person_id','person_name','question_id','question_text','answer','is_adhoc'
+  ]);
+  ensureTab(TABS.QUESTIONS, [
+    'question_id','created_at','created_by','target_person_id','question_text','answer_type','cadence','active_date','used'
+  ]);
+  ensureTab(TABS.PEOPLE, [
+    'person_id','name','role','site','reports_to','recap_email','email'
+  ]);
+  ensureTab(TABS.CONFIG, [
+    'key','value'
+  ]);
+  ensureTab(TABS.LOG, [
+    'log_id','sent_at','recipient_id','recipient_email','email_type','report_date','status','notes'
+  ]);
+
+  // Populate People tab
+  const psh = ss.getSheetByName(TABS.PEOPLE);
+  const pRows = Object.entries(ORG).map(([id, p]) => [
+    id, p.name, p.role, p.site, p.reportsTo || '', p.recapEmail, EMAIL_MAP[id] || ''
+  ]);
+  if (pRows.length) psh.getRange(2, 1, pRows.length, 7).setValues(pRows);
+
+  ensureTab(TABS.STDQ, [
+    'question_id','person_id','question_text','answer_type','optional','sort_order','created_at','updated_at'
+  ]);
+
+  ensureTab(TABS.LABOR, [
+    'entry_id','date','report_date','site','person_id','person_name',
+    'hours_worked','labor_spend','orders_shipped',
+    'cpo','orders_per_hr','units_per_hr','submitted_at'
+  ]);
+
+  // Populate Config tab
+  const csh = ss.getSheetByName(TABS.CONFIG);
+  csh.getRange(2, 1, 3, 2).setValues([
+    ['SEND_HOUR', '8'],
+    ['DRY_RUN', 'true'],   // flip to false when ready to go live
+    ['TIMEZONE', 'America/New_York'],
+  ]);
+
+  SpreadsheetApp.flush();
+  SpreadsheetApp.getUi().alert('✅ ShiftFlow EOD tabs created. Next: Deploy as Web App, then run setupTriggers().');
 }
 
-// ══════════════════════════════════════════════════════════════
-// ORG CHART BUILDER — SVG-based, pixel-perfect fit
-// ══════════════════════════════════════════════════════════════
-function buildOrgChart() {
-  const wrap = document.getElementById('orgChartWrap');
-  wrap.innerHTML = '';
-
-  // ── Layout constants ─────────────────────────────────────────
-  const NW = 76, NH = 50;   // node width / height
-  const HGAP = 6;            // horizontal gap between siblings
-  const VGAP = 32;           // vertical gap between levels
-
-  // ── Tree definition (ordered left→right) ─────────────────────
-  // Each node: { id, children? }
-  const TREE = {
-    id: 'drake',
-    children: [
-      {
-        id: 'ricardo',
-        children: [
-          { id: 'kody',  children: [ {id:'ana'}, {id:'yaniel'} ] },
-          { id: 'hugh',  children: [ {id:'christine'} ] },
-          { id: 'emyly', children: [ {id:'relly'} ] },
-          { id: 'luis',  children: [ {id:'ramar'}, {id:'brenda'}, {id:'ofelia'}, {id:'david'} ] },
-          { id: 'adam',  children: [ {id:'nate'}, {id:'maria'} ] },
-        ]
-      },
-      {
-        id: 'norman',
-        children: [ {id:'santana'} ]
-      }
-    ]
-  };
-
-  // ── Step 1: compute subtree widths ────────────────────────────
-  function subtreeWidth(node) {
-    if (!node.children || node.children.length === 0) return NW;
-    const total = node.children.reduce((s, c) => s + subtreeWidth(c), 0)
-                  + HGAP * (node.children.length - 1);
-    return Math.max(NW, total);
-  }
-
-  // ── Step 2: assign x,y to every node ─────────────────────────
-  function layout(node, x, y) {
-    const sw = subtreeWidth(node);
-    node._x = x + sw / 2 - NW / 2;
-    node._y = y;
-    node._sw = sw;
-    if (node.children && node.children.length > 0) {
-      let cx = x;
-      node.children.forEach(child => {
-        const csw = subtreeWidth(child);
-        layout(child, cx, y + NH + VGAP);
-        cx += csw + HGAP;
-      });
-    }
-  }
-
-  layout(TREE, 0, 0);
-
-  // ── Step 3: compute total canvas size ────────────────────────
-  function allNodes(node) {
-    let list = [node];
-    if (node.children) node.children.forEach(c => { list = list.concat(allNodes(c)); });
-    return list;
-  }
-  const nodes = allNodes(TREE);
-  const maxX = Math.max(...nodes.map(n => n._x + NW));
-  const maxY = Math.max(...nodes.map(n => n._y + NH));
-  const SVG_W = maxX;
-  const SVG_H = maxY + 4;
-
-  // ── Step 4: build SVG ─────────────────────────────────────────
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${SVG_W} ${SVG_H}`);
-  svg.setAttribute('xmlns', NS);
-  svg.style.cssText = `display:block;width:100%;height:auto;max-width:${SVG_W}px;`;
-
-  // Lines layer
-  const lineG = document.createElementNS(NS, 'g');
-  svg.appendChild(lineG);
-
-  function drawLines(node) {
-    if (!node.children || node.children.length === 0) return;
-    const px = node._x + NW / 2;
-    const py = node._y + NH;
-    const midY = py + VGAP / 2;
-
-    // vertical from parent down to mid
-    const vl = document.createElementNS(NS, 'line');
-    vl.setAttribute('x1', px); vl.setAttribute('y1', py);
-    vl.setAttribute('x2', px); vl.setAttribute('y2', midY);
-    vl.setAttribute('class', 'org-line');
-    lineG.appendChild(vl);
-
-    if (node.children.length > 1) {
-      // horizontal line spanning all children
-      const leftX  = node.children[0]._x + NW / 2;
-      const rightX = node.children[node.children.length - 1]._x + NW / 2;
-      const hl = document.createElementNS(NS, 'line');
-      hl.setAttribute('x1', leftX); hl.setAttribute('y1', midY);
-      hl.setAttribute('x2', rightX); hl.setAttribute('y2', midY);
-      hl.setAttribute('class', 'org-line');
-      lineG.appendChild(hl);
-    }
-
-    node.children.forEach(child => {
-      const cx = child._x + NW / 2;
-      const cl = document.createElementNS(NS, 'line');
-      cl.setAttribute('x1', cx); cl.setAttribute('y1', midY);
-      cl.setAttribute('x2', cx); cl.setAttribute('y2', child._y);
-      cl.setAttribute('class', 'org-line');
-      lineG.appendChild(cl);
-      drawLines(child);
-    });
-  }
-  drawLines(TREE);
-
-  // Nodes layer
-  nodes.forEach(node => {
-    const p = TEAM.find(t => t.id === node.id);
-    if (!p) return;
-
-    const isRoot = node.id === 'drake';
-    const isMgr  = p.managerOf && p.managerOf.length > 0;
-    const shift  = p.role.includes('AM') ? 'am'
-                 : (p.role.includes('PM') || p.role === 'PM Lead' || p.role === 'PM Shift') ? 'pm'
-                 : '';
-    const isSLC  = p.site === 'SLC';
-
-    const g = document.createElementNS(NS, 'g');
-    g.setAttribute('class', 'org-node-btn' + (isRoot ? ' root' : isMgr ? ' mgr' : ''));
-    g.setAttribute('transform', `translate(${node._x},${node._y})`);
-    g.style.cursor = 'pointer';
-    g.addEventListener('click', () => selectManager(node.id));
-
-    // Rect
-    const rect = document.createElementNS(NS, 'rect');
-    rect.setAttribute('class', 'org-node-rect');
-    rect.setAttribute('width', NW);
-    rect.setAttribute('height', NH);
-    rect.setAttribute('rx', 7);
-    g.appendChild(rect);
-
-    // Name — centered
-    const nameEl = document.createElementNS(NS, 'text');
-    nameEl.setAttribute('class', 'org-node-name');
-    nameEl.setAttribute('x', NW / 2);
-    nameEl.setAttribute('y', 16);
-    nameEl.setAttribute('text-anchor', 'middle');
-    nameEl.setAttribute('dominant-baseline', 'middle');
-    nameEl.textContent = p.name;
-    g.appendChild(nameEl);
-
-    // Role — truncated to fit
-    const roleEl = document.createElementNS(NS, 'text');
-    roleEl.setAttribute('class', 'org-node-role');
-    roleEl.setAttribute('x', NW / 2);
-    roleEl.setAttribute('y', 28);
-    roleEl.setAttribute('text-anchor', 'middle');
-    roleEl.setAttribute('dominant-baseline', 'middle');
-    // Truncate role text to ~10 chars to prevent overflow
-    const roleStr = p.role.length > 12 ? p.role.slice(0, 11) + '…' : p.role;
-    roleEl.textContent = roleStr;
-    g.appendChild(roleEl);
-
-    // Badge row — shift + site
-    let badgeX = 4;
-    const badgeY = 38;
-    const badges = [];
-    if (shift) badges.push({ type: shift, label: shift.toUpperCase() });
-    if (isSLC)  badges.push({ type: 'slc', label: 'SLC' });
-
-    // Center badges
-    const totalBadgeW = badges.reduce((s,b) => s + b.label.length * 5 + 10, 0) + Math.max(0, badges.length - 1) * 3;
-    badgeX = (NW - totalBadgeW) / 2;
-
-    badges.forEach(b => {
-      const bw = b.label.length * 5 + 8;
-      const br = document.createElementNS(NS, 'rect');
-      br.setAttribute('class', `org-badge-rect-${b.type}`);
-      br.setAttribute('x', badgeX); br.setAttribute('y', badgeY - 5);
-      br.setAttribute('width', bw); br.setAttribute('height', 11);
-      br.setAttribute('rx', 3);
-      g.appendChild(br);
-
-      const bt = document.createElementNS(NS, 'text');
-      bt.setAttribute('class', `org-badge-text-${b.type}`);
-      bt.setAttribute('x', badgeX + bw / 2);
-      bt.setAttribute('y', badgeY + 1);
-      bt.setAttribute('text-anchor', 'middle');
-      bt.setAttribute('dominant-baseline', 'middle');
-      bt.textContent = b.label;
-      g.appendChild(bt);
-
-      badgeX += bw + 3;
-    });
-
-    svg.appendChild(g);
+function setupTriggers() {
+  // Remove existing ShiftFlow triggers
+  ScriptApp.getProjectTriggers().forEach(t => {
+    if (t.getHandlerFunction().startsWith('trigger')) ScriptApp.deleteTrigger(t);
   });
 
-  wrap.appendChild(svg);
+  // Single morning send — 8:00 AM EST every day
+  // Apps Script trigger hours run in the script timezone; set script TZ to
+  // America/New_York in Project Settings so atHour(8) = 8:00 AM EST/EDT.
+  ScriptApp.newTrigger('triggerAllRecaps')
+    .timeBased().atHour(8).nearMinute(0).everyDays(1).create();
+
+  SpreadsheetApp.getUi().alert('✅ Trigger installed. All recap emails will send at 8:00 AM EST every morning.\n\nIMPORTANT: In Apps Script → Project Settings → Script Properties, set the timezone to America/New_York.');
 }
 
-// ══════════════════════════════════════════════════════════════
-// ORG SCOPE UTILITY
+// ══════════════════════════════════════════════════════════════════════════════
+// WEB APP — receives POST from shiftflow.html
+// ══════════════════════════════════════════════════════════════════════════════
 
-// ══════════════════════════════════════════════════════════════
-function getScope(managerId) {
-  const mgr = TEAM.find(p => p.id === managerId);
-  if (!mgr) return [];
-  let scope = [managerId];
-  (mgr.managerOf || []).forEach(childId => { scope = scope.concat(getScope(childId)); });
-  return [...new Set(scope)];
-}
+function doGet(e) {
+  const action = e.parameter.action || '';
+  let data;
 
-// ══════════════════════════════════════════════════════════════
-// MODE TOGGLE
-// ══════════════════════════════════════════════════════════════
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('modeReport').classList.toggle('active', mode === 'report');
-  document.getElementById('modeManager').classList.toggle('active', mode === 'manager');
-  document.getElementById('reporterPicker').style.display = mode === 'report' ? 'block' : 'none';
-  document.getElementById('managerPicker').style.display = mode === 'manager' ? 'block' : 'none';
-}
-
-function renderNameGrid(containerId, people, managerMode) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  el.innerHTML = people.map(p => `
-    <button class="name-btn" onclick="${managerMode ? 'selectManager' : 'selectPerson'}('${p.id}')">
-      <div class="nb-name">${p.name}</div>
-      <div class="nb-role">${p.role}</div>
-    </button>
-  `).join('');
-}
-
-// ══════════════════════════════════════════════════════════════
-// REPORT FLOW
-// ══════════════════════════════════════════════════════════════
-function selectPerson(id) {
-  currentPerson = TEAM.find(p => p.id === id);
-  answers = {}; currentQ = 0;
-  document.getElementById('chatName').textContent = currentPerson.name;
-  document.getElementById('chatRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
-  showScreen('screenChat');
-  loadQuestions(id);
-}
-
-// ── JSONP helper — bypasses CORS entirely ─────────────────────────────────────
-function jsonp(url, callback) {
-  const cbName = '_sf_cb_' + Date.now();
-  const script = document.createElement('script');
-  window[cbName] = function(data) {
-    delete window[cbName];
-    document.body.removeChild(script);
-    callback(null, data);
-  };
-  script.onerror = function() {
-    delete window[cbName];
-    document.body.removeChild(script);
-    callback(new Error('JSONP failed'));
-  };
-  script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
-  document.body.appendChild(script);
-}
-
-function loadQuestions(personId) {
-  questions = [...(STD_QUESTIONS[personId] || [])];
-  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    jsonp(`${SCRIPT_URL}?action=getQuestions&personId=${personId}`, (err, data) => {
-      if (!err && data && data.adhoc && data.adhoc.length > 0) {
-        questions = [...questions, ...data.adhoc.map(q => ({ id:'adhoc_'+q.id, text:q.question, type:q.answerType||'text', isAdhoc:true }))];
-      }
-      renderQuestion();
-    });
-  } else { renderQuestion(); }
-}
-
-function renderQuestion() {
-  const total = questions.length;
-  const i = currentQ;
-  const pct = Math.round((i / total) * 100);
-  document.getElementById('progressLabel').textContent = `Question ${i+1} of ${total}`;
-  document.getElementById('progressPct').textContent = pct + '%';
-  document.getElementById('progressFill').style.width = pct + '%';
-  const q = questions[i];
-  let inputHtml = '';
-  if (q.type === 'yesno') {
-    const yVal = answers[q.id]==='Yes', nVal = answers[q.id]==='No';
-    inputHtml = `<div class="quick-btns"><button class="quick-btn${yVal?' selected':''}" onclick="selectQuick('${q.id}','Yes',this)">Yes</button><button class="quick-btn${nVal?' selected':''}" onclick="selectQuick('${q.id}','No',this)">No</button></div>`;
-  } else if (q.type === 'number') {
-    inputHtml = `<div class="answer-area"><input type="number" id="ansInput" placeholder="Enter a number" value="${answers[q.id]||''}" oninput="answers['${q.id}']=this.value"/></div>`;
+  if (action === 'getQuestions') {
+    const personId = e.parameter.personId || '';
+    data = getAdhocQuestions_(personId);
+  } else if (action === 'getStatus') {
+    const date = e.parameter.date || today_();
+    data = getSubmissionStatus_(date);
+  } else if (action === 'getStdQ') {
+    const personId = e.parameter.personId || '';
+    data = getStandardQuestions_(personId);
+  } else if (action === 'getAdhoc') {
+    const managerId = e.parameter.managerId || '';
+    data = getAdhocByManager_(managerId);
+  } else if (action === 'submitViaGet') {
+    data = submitViaGet_(e);
   } else {
-    const rows = q.type === 'textarea' ? 4 : 2;
-    const minH = q.type === 'textarea' ? '80px' : '56px';
-    inputHtml = `<div class="answer-area"><textarea id="ansInput" rows="${rows}" placeholder="Type your answer..." style="min-height:${minH}" oninput="answers['${q.id}']=this.value">${answers[q.id]||''}</textarea></div>`;
-  }
-  const optBadge = q.optional ? ' <span style="font-size:9px;padding:2px 6px;background:rgba(100,116,139,0.15);color:var(--text3);border-radius:10px;border:0.5px solid rgba(100,116,139,0.25);font-family:\x27IBM Plex Mono\x27,monospace;margin-left:6px">optional</span>' : '';
-  const adhocBadge = q.isAdhoc ? ' <span style="font-size:9px;padding:2px 6px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:10px;border:0.5px solid rgba(251,191,36,0.25);font-family:\'IBM Plex Mono\',monospace;margin-left:6px">ad-hoc</span>' : '';
-  document.getElementById('questionArea').innerHTML = `
-    <div class="bubble-q"><div class="q-label">Question ${i+1}${adhocBadge}${optBadge}</div>${q.text}</div>
-    ${inputHtml}
-    <button class="btn-next" id="btnNext" onclick="nextQuestion()">${i===total-1?'Submit report':'Next →'}</button>
-    <div style="display:flex;gap:16px;margin-top:4px">
-      ${i>0?'<button class="btn-back" onclick="prevQuestion()">← back</button>':''}
-      ${q.optional?'<button class="btn-back" style="color:var(--text3);opacity:0.7" onclick="skipQuestion()">skip →</button>':''}
-    </div>
-  `;
-  const inp = document.getElementById('ansInput');
-  if (inp) {
-    inp.focus();
-    inp.addEventListener('keydown', e => { if (e.key==='Enter'&&!e.shiftKey&&q.type!=='textarea'){e.preventDefault();nextQuestion();} });
-  }
-}
-
-function selectQuick(qid, val, btn) {
-  answers[qid] = val;
-  btn.closest('.quick-btns').querySelectorAll('.quick-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-}
-
-function nextQuestion() {
-  const q = questions[currentQ];
-  if (q.type !== 'yesno') { const inp=document.getElementById('ansInput'); if(inp) answers[q.id]=inp.value.trim(); }
-  if (!answers[q.id] && answers[q.id]!==0){ if(q.optional){ answers[q.id]=''; } else { showToast('Please answer before continuing.'); return; } }
-  if (currentQ < questions.length-1){currentQ++;renderQuestion();}else{submitReport();}
-}
-
-function prevQuestion() { if(currentQ>0){currentQ--;renderQuestion();} }
-
-function skipQuestion() {
-  const q = questions[currentQ];
-  answers[q.id] = '';
-  if(currentQ < questions.length-1){ currentQ++; renderQuestion(); } else { submitReport(); }
-}
-
-function submitReport() {
-  const overlay = document.getElementById('submittingOverlay');
-  overlay.classList.add('show');
-  const answersMap = {};
-  questions.forEach(q => { answersMap[q.id] = answers[q.id] || ''; });
-
-  // Extract labor metrics for Ricardo/Norman
-  let laborMetrics = null;
-  const laborQs = questions.filter(q => q.laborField);
-  if (laborQs.length) {
-    laborMetrics = {};
-    laborQs.forEach(q => { laborMetrics[q.laborField] = answers[q.id] || ''; });
-    const hrs = parseFloat(laborMetrics.hours) || 0;
-    const sp  = parseFloat(laborMetrics.spend) || 0;
-    const ord = parseFloat(laborMetrics.orders) || 0;
-    laborMetrics.cpo           = ord > 0 ? (sp / ord).toFixed(2) : '';
-    laborMetrics.orders_per_hr = hrs > 0 ? (ord / hrs).toFixed(2) : '';
-    laborMetrics.units_per_hr  = hrs > 0 ? (ord / hrs).toFixed(2) : '';
-    laborMetrics.site          = currentPerson.site;
+    data = { ok: true, message: 'ShiftFlow EOD Web App' };
   }
 
-  const payload = {
-    action:'submitReport',
-    personId:currentPerson.id,
-    personName:currentPerson.name,
-    role:currentPerson.role,
-    site:currentPerson.site,
-    date:new Date().toISOString().split('T')[0],
-    timestamp:new Date().toISOString(),
-    answers: answersMap,
-    questions: questions.map(q=>({ id:q.id, text:q.text, type:q.type, isAdhoc:!!q.isAdhoc, laborField:q.laborField||null })),
-    laborMetrics: laborMetrics
-  };
-  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    // Use JSONP GET submit to bypass CORS (Apps Script doesn't support CORS headers)
-    const encoded = encodeURIComponent(JSON.stringify(payload));
-    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, (err, data) => {
-      overlay.classList.remove('show');
-      if (!err && data && data.ok !== false) {
-        showComplete();
-      } else {
-        showToast('Submit failed — check connection.');
+  const cb = e.parameter.callback;
+  if (cb) {
+    return ContentService
+      .createTextOutput(cb + '(' + JSON.stringify(data) + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonResponse(data);
+}
+
+function doPost(e) {
+  try {
+    // no-cors fetch sends Content-Type: text/plain but body is JSON — parse it
+    const raw     = e.postData ? e.postData.contents : '{}';
+    const payload = JSON.parse(raw);
+    const action  = payload.action || '';
+
+    if (action === 'submitReport') return jsonResponse(submitReport_(payload));
+    if (action === 'addAdhoc')     return jsonResponse(addAdhocQuestion_(payload));
+    if (action === 'deleteAdhoc')  return jsonResponse(deleteAdhocQuestion_(payload));
+    if (action === 'saveStdQ')     return jsonResponse(saveStandardQuestion_(payload));
+    if (action === 'deleteStdQ')   return jsonResponse(deleteStandardQuestion_(payload));
+
+    return jsonResponse({ ok: false, error: 'Unknown action: ' + action });
+  } catch (err) {
+    return jsonResponse({ ok: false, error: err.message });
+  }
+}
+
+// ── GET-based submit fallback (JSONP) ─────────────────────────────────────────
+// The HTML will call: SCRIPT_URL?action=submitViaGet&payload=...&callback=cb
+// This lets us bypass CORS entirely for the submit path.
+function submitViaGet_(e) {
+  try {
+    const raw     = e.parameter.payload || '{}';
+    const payload = JSON.parse(decodeURIComponent(raw));
+    const action  = payload.action || '';
+
+    if (action === 'submitReport')  return submitReport_(payload);
+    if (action === 'addAdhoc')      return addAdhocQuestion_(payload);
+    if (action === 'deleteAdhoc')   return deleteAdhocQuestion_(payload);
+    if (action === 'saveStdQ')      return saveStandardQuestion_(payload);
+    if (action === 'deleteStdQ')    return deleteStandardQuestion_(payload);
+    if (action === 'sendAllNow') {
+      // Only Drake and Ricardo can trigger this
+      const allowed = ['drake','ricardo'];
+      if (!allowed.includes(payload.requestedBy)) return { ok: false, error: 'Not authorized' };
+      sendLeaderRecapsOnly_();
+      return { ok: true, message: 'Leader recap emails sent by ' + payload.requestedBy };
+    }
+
+    return { ok: false, error: 'Unknown action: ' + action };
+  } catch(err) {
+    return { ok: false, error: err.message };
+  }
+}
+
+function jsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// REPORT SUBMISSION
+// ══════════════════════════════════════════════════════════════════════════════
+
+function submitReport_(payload) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const ss        = SpreadsheetApp.getActiveSpreadsheet();
+    const rsh       = ss.getSheetByName(TABS.REPORTS);
+    const ash       = ss.getSheetByName(TABS.ANSWERS);
+    const date      = today_();
+    const now       = new Date().toISOString();
+    const personId  = payload.personId  || '';
+    const answers   = payload.answers   || {};
+    const questions = payload.questions || [];
+
+    if (!personId) return { ok: false, error: 'personId required' };
+
+    const person   = ORG[personId];
+    const reportId = 'r_' + personId + '_' + date.replace(/-/g,'') + '_' + Date.now();
+
+    // Compute a simple answer hash — concatenate all answer values sorted by question id
+    const hashStr  = questions
+      .sort((a, b) => a.id < b.id ? -1 : 1)
+      .map(q => String(answers[q.id] || '').trim().toLowerCase())
+      .join('||');
+    const answerHash = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.MD5,
+      hashStr
+    ).map(b => ('0' + (b & 0xff).toString(16)).slice(-2)).join('');
+
+    // Write report row (col 8 = answer_hash)
+    rsh.appendRow([
+      reportId, date, personId,
+      person ? person.name : personId,
+      person ? person.role : '',
+      person ? person.site : '',
+      now,
+      answerHash
+    ]);
+
+    // Write answer rows
+    questions.forEach(q => {
+      const ans = answers[q.id] !== undefined ? answers[q.id] : '';
+      ash.appendRow([
+        'a_' + q.id + '_' + date.replace(/-/g,''),
+        reportId, date, personId,
+        person ? person.name : personId,
+        q.id, q.text, ans, q.isAdhoc ? 'true' : 'false'
+      ]);
+    });
+
+    // Write labor metrics row if present
+    if (payload.laborMetrics) {
+      const lsh = ss.getSheetByName(TABS.LABOR);
+      const lm  = payload.laborMetrics;
+      lsh.appendRow([
+        'lm_' + personId + '_' + date.replace(/-/g,''),
+        date,
+        lm.report_date || date,
+        lm.site || (person ? person.site : ''),
+        personId,
+        person ? person.name : personId,
+        parseFloat(lm.hours)  || 0,
+        parseFloat(lm.spend)  || 0,
+        parseFloat(lm.orders) || 0,
+        parseFloat(lm.cpo)           || 0,
+        parseFloat(lm.orders_per_hr) || 0,
+        parseFloat(lm.units_per_hr)  || 0,
+        now
+      ]);
+    }
+
+    // Mark ad-hoc questions used
+    markAdhocUsed_(personId, date);
+
+    SpreadsheetApp.flush();
+    return { ok: true, reportId };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AD-HOC QUESTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getAdhocByManager_(managerId) {
+  const ss   = SpreadsheetApp.getActiveSpreadsheet();
+  const sh   = ss.getSheetByName(TABS.QUESTIONS);
+  const rows = sh.getDataRange().getValues();
+  const results = [];
+  for (let i = 1; i < rows.length; i++) {
+    const [qid, createdAt, createdBy, target, qtext, ansType, cadence, activeDate, used] = rows[i];
+    if (String(createdBy) !== managerId) continue;
+    if (used === true || used === 'true') continue;
+    results.push({ id: qid, question: qtext, answerType: ansType, cadence, targetPersonId: target, activeDate });
+  }
+  return { adhoc: results };
+}
+
+// ── Standard Questions (persisted per person) ─────────────────────────────────
+function getStandardQuestions_(personId) {
+  const ss   = SpreadsheetApp.getActiveSpreadsheet();
+  const sh   = ss.getSheetByName(TABS.STDQ);
+  if (!sh) return { questions: [] };
+  const rows = sh.getDataRange().getValues();
+  const results = [];
+  for (let i = 1; i < rows.length; i++) {
+    const [qid, pid, text, type, optional, order] = rows[i];
+    if (String(pid) !== personId) continue;
+    results.push({ id: String(qid), text: String(text), type: String(type||'text'), optional: optional===true||optional==='true', order: Number(order)||i });
+  }
+  results.sort((a,b) => a.order - b.order);
+  return { questions: results };
+}
+
+function saveStandardQuestion_(payload) {
+  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const sh  = ss.getSheetByName(TABS.STDQ);
+  if (!sh) return { ok: false, error: 'StandardQuestions tab missing — run setupSheetTabs()' };
+  const rows = sh.getDataRange().getValues();
+  const now  = new Date().toISOString();
+
+  if (payload.qid) {
+    // Update existing
+    for (let i = 1; i < rows.length; i++) {
+      if (String(rows[i][0]) === String(payload.qid)) {
+        sh.getRange(i+1, 3).setValue(payload.text   || rows[i][2]);
+        sh.getRange(i+1, 4).setValue(payload.qtype  || rows[i][3]);
+        sh.getRange(i+1, 5).setValue(payload.optional === true);
+        sh.getRange(i+1, 8).setValue(now);
+        SpreadsheetApp.flush();
+        return { ok: true, id: payload.qid };
       }
-    });
-  } else { setTimeout(()=>{overlay.classList.remove('show');showComplete();},900); }
-}
-
-function showComplete() {
-  document.getElementById('completeName').textContent = currentPerson.name + ' — report submitted.';
-  document.getElementById('completeSub').textContent = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) + ' · ' + currentPerson.site;
-  showScreen('screenComplete');
-  renderLaborSummary();
-}
-
-function renderLaborSummary() {
-  const block = document.getElementById('laborSummaryBlock');
-  if (!['ricardo','norman'].includes(currentPerson.id)) { block.style.display='none'; return; }
-
-  const prefix = currentPerson.id === 'ricardo' ? 'r' : 'n';
-  const site   = currentPerson.id === 'ricardo' ? 'MKE' : 'SLC';
-  const hours  = parseFloat(answers[prefix+'_hours']) || 0;
-  const spend  = parseFloat(answers[prefix+'_spend']) || 0;
-  const orders = parseFloat(answers[prefix+'_orders']) || 0;
-  const rawDate = answers[prefix+'_date'] || '';
-
-  // Format the date for display (yyyy-mm-dd → human readable)
-  let dateLabel = rawDate;
-  if (rawDate && rawDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const d = new Date(rawDate + 'T12:00:00');
-    dateLabel = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+    }
   }
 
-  const cpo  = orders > 0 ? '$' + (spend / orders).toFixed(2) : '—';
-  const oph  = hours > 0  ? (orders / hours).toFixed(1)       : '—';
-  // Units/Hr = Orders/Hr until a separate units field is added
-  const uph  = hours > 0  ? (orders / hours).toFixed(1)       : '—';
-
-  block.style.display = 'block';
-  block.innerHTML = `
-    <div class="labor-card">
-      <div class="labor-title">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-        ${site} Labor Metrics · ${dateLabel || '—'}
-      </div>
-      <div class="labor-grid">
-        <div class="labor-metric highlight">
-          <div class="lm-val">${cpo}</div>
-          <div class="lm-lbl">Cost / Order</div>
-        </div>
-        <div class="labor-metric highlight">
-          <div class="lm-val">${oph}</div>
-          <div class="lm-lbl">Orders / Hr</div>
-        </div>
-        <div class="labor-metric highlight">
-          <div class="lm-val">${uph}</div>
-          <div class="lm-lbl">Units / Hr</div>
-        </div>
-      </div>
-      <div class="labor-grid">
-        <div class="labor-metric">
-          <div class="lm-val">${orders.toLocaleString()}</div>
-          <div class="lm-lbl">Orders Shipped</div>
-        </div>
-        <div class="labor-metric">
-          <div class="lm-val">${hours.toLocaleString()}</div>
-          <div class="lm-lbl">Hours Worked</div>
-        </div>
-        <div class="labor-metric">
-          <div class="lm-val">$${spend.toLocaleString()}</div>
-          <div class="lm-lbl">Labor Spend</div>
-        </div>
-      </div>
-    </div>
-  `;
+  // Insert new
+  const qid = 'stdq_' + payload.personId + '_' + Date.now();
+  const maxOrder = rows.slice(1).filter(r => String(r[1]) === payload.personId).reduce((m,r) => Math.max(m, Number(r[5])||0), 0);
+  sh.appendRow([qid, payload.personId, payload.text, payload.qtype||'text', false, maxOrder+1, now, now]);
+  SpreadsheetApp.flush();
+  return { ok: true, id: qid };
 }
 
-// ══════════════════════════════════════════════════════════════
-// MANAGER VIEW
-// ══════════════════════════════════════════════════════════════
-function selectManager(id) {
-  currentPerson = TEAM.find(p => p.id === id);
-  document.getElementById('qedName').textContent = currentPerson.name;
-  document.getElementById('qedRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
-  showScreen('screenQuestions');
-  renderQedStd();
-  renderQedAdhoc();
+function deleteStandardQuestion_(payload) {
+  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const sh  = ss.getSheetByName(TABS.STDQ);
+  if (!sh) return { ok: false };
+  const rows = sh.getDataRange().getValues();
+  for (let i = rows.length - 1; i >= 1; i--) {
+    if (String(rows[i][0]) === String(payload.qid)) {
+      sh.deleteRow(i+1);
+      SpreadsheetApp.flush();
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: 'Not found' };
 }
 
-function loadManagerData() {
-  const scope = getScope(currentPerson.id);
-  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    const today = new Date().toISOString().split('T')[0];
-    jsonp(`${SCRIPT_URL}?action=getStatus&date=${today}`, (err, data) => {
-      if (!err && data) { snapshotData=data; renderSnapshot(data); loadAdhocList(); }
-      else { renderSnapshotOffline(scope); }
+function getAdhocQuestions_(personId) {
+  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const sh  = ss.getSheetByName(TABS.QUESTIONS);
+  const rows = sh.getDataRange().getValues();
+  const today = today_();
+  const results = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const [qid,,,target,qtext,ansType,cadence,activeDate,used] = rows[i];
+    if (String(target) !== personId) continue;
+    if (used === true || used === 'true') continue;
+    // active_date: blank = always, or specific date
+    if (activeDate && String(activeDate).slice(0,10) !== today) continue;
+    results.push({ id: qid, question: qtext, answerType: ansType, cadence });
+  }
+  return { adhoc: results };
+}
+
+function addAdhocQuestion_(payload) {
+  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const sh  = ss.getSheetByName(TABS.QUESTIONS);
+  const qid = 'adhoc_' + Date.now();
+  const row = [
+    qid,
+    new Date().toISOString(),
+    payload.managerId || '',
+    payload.targetPersonId || '',
+    payload.question || '',
+    payload.answerType || 'text',
+    payload.cadence || 'once',
+    payload.cadence === 'once' ? today_() : '',
+    false
+  ];
+  sh.appendRow(row);
+  SpreadsheetApp.flush();
+  return { ok: true, id: qid };
+}
+
+function deleteAdhocQuestion_(payload) {
+  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const sh  = ss.getSheetByName(TABS.QUESTIONS);
+  const rows = sh.getDataRange().getValues();
+  for (let i = rows.length - 1; i >= 1; i--) {
+    if (String(rows[i][0]) === String(payload.id)) {
+      sh.deleteRow(i + 1);
+      break;
+    }
+  }
+  SpreadsheetApp.flush();
+  return { ok: true };
+}
+
+function markAdhocUsed_(personId, date) {
+  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const sh  = ss.getSheetByName(TABS.QUESTIONS);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    const [qid,,, target,,,,activeDate, used] = rows[i];
+    if (String(target) !== personId) continue;
+    if (used === true || used === 'true') continue;
+    const cadence = rows[i][6];
+    if (cadence === 'once' || (activeDate && String(activeDate).slice(0,10) === date)) {
+      sh.getRange(i + 1, 9).setValue(true);
+    }
+  }
+}
+
+function getSubmissionStatus_(date) {
+  const ss   = SpreadsheetApp.getActiveSpreadsheet();
+  const rsh  = ss.getSheetByName(TABS.REPORTS);
+  const rows = rsh.getDataRange().getValues();
+  const win  = reportWindow_();
+  const submitted = {};
+
+  for (let i = 1; i < rows.length; i++) {
+    const personId = rows[i][2];
+    const ts       = new Date(rows[i][6]);
+    if (isNaN(ts)) continue;
+    // Include if within 32-hour window OR matches the requested date exactly
+    const inWindow  = ts >= win.from && ts <= win.to;
+    const onDate    = String(rows[i][1]).slice(0,10) === date;
+    if (inWindow || onDate) {
+      // Keep latest submission per person
+      if (!submitted[personId] || new Date(submitted[personId]) < ts) {
+        submitted[personId] = rows[i][6];
+      }
+    }
+  }
+  return { date, submitted };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EMAIL TRIGGERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Single trigger — fires at 8:00 AM EST, sends all recap emails for yesterday
+function triggerAllRecaps() {
+  const date = yesterday_();
+  const isDry = isDryRun_();
+
+  // 1. Lead-level emails (Kody, Hugh, Emyly, Luis, Adam, Norman → their ICs)
+  ['kody','hugh','emyly','luis','adam','norman'].forEach(mgr => {
+    const scope = RECAP_SCOPE[mgr];
+    if (!scope || !scope.directReports.length) return;
+    try {
+      const html = buildLeadEmail_(mgr, scope.directReports, date);
+      sendEmail_(mgr, html, 'EOD Lead Recap', date, isDry);
+    } catch(e) { logEmail_(mgr, 'lead', date, 'ERROR', e.message); }
+  });
+
+  // 2. Site rollup emails (Ricardo, Norman)
+  ['ricardo','norman'].forEach(mgr => {
+    try {
+      const html = buildManagerEmail_(mgr, date);
+      sendEmail_(mgr, html, 'EOD Site Rollup', date, isDry);
+    } catch(e) { logEmail_(mgr, 'manager', date, 'ERROR', e.message); }
+  });
+
+  // 3. Drake executive recap
+  try {
+    const html = buildDrakeEmail_(date);
+    sendEmail_('drake', html, 'Atomix EOD Executive Recap', date, isDry);
+  } catch(e) { logEmail_('drake', 'exec', date, 'ERROR', e.message); }
+}
+
+// ── On-demand button send — Drake + Ricardo only, no supervisor/IC emails ─────
+function sendLeaderRecapsOnly_() {
+  const date  = yesterday_();
+  const isDry = isDryRun_();
+
+  // Ricardo gets full MKE rollup
+  try {
+    const html = buildManagerEmail_('ricardo', date);
+    sendEmail_('ricardo', html, 'EOD Site Rollup', date, isDry);
+  } catch(e) { logEmail_('ricardo', 'manager', date, 'ERROR', e.message); }
+
+  // Drake gets the full executive recap
+  try {
+    const html = buildDrakeEmail_(date);
+    sendEmail_('drake', html, 'Atomix EOD Executive Recap', date, isDry);
+  } catch(e) { logEmail_('drake', 'exec', date, 'ERROR', e.message); }
+}
+
+// Manual on-demand send — run from Apps Script editor, sends all emails for yesterday
+function sendAllNow() {
+  const date = yesterday_();
+  const isDry = false;
+
+  ['kody','hugh','emyly','luis','adam','norman'].forEach(mgr => {
+    const scope = RECAP_SCOPE[mgr];
+    if (!scope) return;
+    try {
+      const html = buildLeadEmail_(mgr, scope.directReports, date);
+      sendEmail_(mgr, html, 'EOD Lead Recap', date, isDry);
+    } catch(e) { logEmail_(mgr, 'lead', date, 'ERROR', e.message); }
+  });
+  ['ricardo','norman'].forEach(mgr => {
+    try {
+      const html = buildManagerEmail_(mgr, date);
+      sendEmail_(mgr, html, 'EOD Site Rollup', date, isDry);
+    } catch(e) { logEmail_(mgr, 'manager', date, 'ERROR', e.message); }
+  });
+  try {
+    const drakeHtml = buildDrakeEmail_(date);
+    sendEmail_('drake', drakeHtml, 'Atomix EOD Executive Recap', date, isDry);
+  } catch(e) { logEmail_('drake', 'exec', date, 'ERROR', e.message); }
+
+  SpreadsheetApp.getUi().alert('✅ All recap emails sent for ' + date);
+}
+
+// Dry-run preview — logs everything, sends nothing
+function previewAllDry() {
+  const date = yesterday_();
+  ['kody','hugh','emyly','luis','adam','norman'].forEach(mgr => {
+    const scope = RECAP_SCOPE[mgr];
+    if (!scope) return;
+    logEmail_(mgr, EMAIL_MAP[mgr], date, 'DRY_PREVIEW', 'Lead recap preview');
+  });
+  ['ricardo','norman'].forEach(mgr => {
+    logEmail_(mgr, EMAIL_MAP[mgr], date, 'DRY_PREVIEW', 'Site rollup preview');
+  });
+  logEmail_('drake', EMAIL_MAP['drake'], date, 'DRY_PREVIEW', 'Exec recap preview');
+  SpreadsheetApp.getUi().alert('✅ Dry run logged for ' + date + '. Check EmailLog tab.');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DATA FETCHERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getPersonReport_(personId, date) {
+  // Returns { submitted, submittedAt, answers, isDuplicate }
+  // Uses 32-hour window so morning submitters are included.
+  const ss   = SpreadsheetApp.getActiveSpreadsheet();
+  const rsh  = ss.getSheetByName(TABS.REPORTS);
+  const ash  = ss.getSheetByName(TABS.ANSWERS);
+  const win  = reportWindow_();
+
+  const rRows = rsh.getDataRange().getValues();
+  let submitted   = false;
+  let submittedAt = '';
+  let reportId    = '';
+  let answerHash  = '';
+  let prevHash    = '';
+
+  // Find the most recent submission for this person within the window
+  // Rows are appended in order so iterate backwards to get latest first
+  for (let i = rRows.length - 1; i >= 1; i--) {
+    if (rRows[i][2] !== personId) continue;
+    const ts = new Date(rRows[i][6]);
+    if (isNaN(ts)) continue;
+    if (ts >= win.from && ts <= win.to) {
+      submitted   = true;
+      submittedAt = rRows[i][6];
+      reportId    = rRows[i][0];
+      answerHash  = String(rRows[i][7] || ''); // col 8 = answer_hash
+      break;
+    }
+  }
+
+  // Also check the submission immediately before this one for duplicate detection
+  if (submitted) {
+    for (let i = rRows.length - 1; i >= 1; i--) {
+      if (rRows[i][2] !== personId) continue;
+      if (rRows[i][0] === reportId) continue; // skip current
+      const ts = new Date(rRows[i][6]);
+      if (isNaN(ts)) continue;
+      prevHash = String(rRows[i][7] || '');
+      break;
+    }
+  }
+
+  const isDuplicate = !!(submitted && answerHash && prevHash && answerHash === prevHash);
+
+  const answers = [];
+  if (submitted) {
+    const aRows = ash.getDataRange().getValues();
+    for (let i = 1; i < aRows.length; i++) {
+      if (aRows[i][1] === reportId) {
+        answers.push({ q: aRows[i][6], a: aRows[i][7] });
+      }
+    }
+  }
+
+  return { submitted, submittedAt: fmtTime_(submittedAt), answers, isDuplicate };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LABOR METRICS FETCHER + RENDERER
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getLaborMetrics_(date) {
+  const ss   = SpreadsheetApp.getActiveSpreadsheet();
+  const sh   = ss.getSheetByName(TABS.LABOR);
+  if (!sh) return { mke: null, slc: null };
+  const rows = sh.getDataRange().getValues();
+  const result = { mke: null, slc: null };
+  for (let i = 1; i < rows.length; i++) {
+    const [,rowDate,,site,,name,hours,spend,orders,cpo,oph,uph] = rows[i];
+    if (String(rowDate).slice(0,10) !== date) continue;
+    const m = {
+      name, hours, spend, orders,
+      cpo:     '$' + Number(cpo).toFixed(2),
+      oph:     Number(oph).toFixed(1),
+      uph:     Number(uph).toFixed(1),
+      hoursF:  Number(hours).toLocaleString(),
+      spendF:  '$' + Number(spend).toLocaleString(),
+      ordersF: Number(orders).toLocaleString(),
+    };
+    if (String(site).toUpperCase() === 'MKE') result.mke = m;
+    if (String(site).toUpperCase() === 'SLC') result.slc = m;
+  }
+  return result;
+}
+
+function laborMetricsBlock_(lm) {
+  if (!lm) return '<p style="font-size:12px;color:#475569;font-family:monospace;padding:6px 0">No labor data submitted yet.</p>';
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px">
+    <tr>
+      <td width="33%" style="padding:0 4px 0 0">
+        <div style="background:#172033;border:0.5px solid rgba(163,243,197,0.35);border-radius:8px;padding:10px 12px;text-align:center">
+          <div style="font-size:20px;font-weight:700;font-family:monospace;color:#A3F3C5">${lm.cpo}</div>
+          <div style="font-size:9px;color:#475569;font-family:monospace;text-transform:uppercase;letter-spacing:.07em;margin-top:3px">Cost / Order</div>
+        </div>
+      </td>
+      <td width="33%" style="padding:0 4px">
+        <div style="background:#172033;border:0.5px solid rgba(163,243,197,0.35);border-radius:8px;padding:10px 12px;text-align:center">
+          <div style="font-size:20px;font-weight:700;font-family:monospace;color:#A3F3C5">${lm.oph}</div>
+          <div style="font-size:9px;color:#475569;font-family:monospace;text-transform:uppercase;letter-spacing:.07em;margin-top:3px">Orders / Hr</div>
+        </div>
+      </td>
+      <td width="33%" style="padding:0 0 0 4px">
+        <div style="background:#172033;border:0.5px solid rgba(163,243,197,0.35);border-radius:8px;padding:10px 12px;text-align:center">
+          <div style="font-size:20px;font-weight:700;font-family:monospace;color:#A3F3C5">${lm.uph}</div>
+          <div style="font-size:9px;color:#475569;font-family:monospace;text-transform:uppercase;letter-spacing:.07em;margin-top:3px">Units / Hr</div>
+        </div>
+      </td>
+    </tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px">
+    <tr>
+      <td width="33%" style="padding:0 4px 0 0">
+        <div style="background:#111827;border:0.5px solid rgba(163,243,197,0.1);border-radius:8px;padding:8px 12px;text-align:center">
+          <div style="font-size:16px;font-weight:600;font-family:monospace;color:#cbd5e1">${lm.ordersF}</div>
+          <div style="font-size:9px;color:#475569;font-family:monospace;text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Orders Shipped</div>
+        </div>
+      </td>
+      <td width="33%" style="padding:0 4px">
+        <div style="background:#111827;border:0.5px solid rgba(163,243,197,0.1);border-radius:8px;padding:8px 12px;text-align:center">
+          <div style="font-size:16px;font-weight:600;font-family:monospace;color:#cbd5e1">${lm.hoursF}</div>
+          <div style="font-size:9px;color:#475569;font-family:monospace;text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Hours Worked</div>
+        </div>
+      </td>
+      <td width="33%" style="padding:0 0 0 4px">
+        <div style="background:#111827;border:0.5px solid rgba(163,243,197,0.1);border-radius:8px;padding:8px 12px;text-align:center">
+          <div style="font-size:16px;font-weight:600;font-family:monospace;color:#cbd5e1">${lm.spendF}</div>
+          <div style="font-size:9px;color:#475569;font-family:monospace;text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Labor Spend</div>
+        </div>
+      </td>
+    </tr>
+  </table>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EMAIL BUILDERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function buildLeadEmail_(managerId, icIds, date) {
+  const mgr      = ORG[managerId];
+  const dateLabel = fmtDate_(date);
+  const reports  = icIds.map(id => ({ id, person: ORG[id], report: getPersonReport_(id, date) }));
+  const submitted = reports.filter(r => r.report.submitted).length;
+  const missing   = reports.filter(r => !r.report.submitted).map(r => r.person.name);
+
+  let body = '';
+
+  // Submission status
+  body += sectionOpen_('Submission Status');
+  body += statRow_([
+    { val: submitted,           lbl: 'Submitted', color: submitted === reports.length ? '#10b981' : '#f59e0b' },
+    { val: reports.length - submitted, lbl: 'Missing',   color: reports.length - submitted > 0 ? '#f87171' : '#10b981' },
+  ]);
+  if (missing.length) body += flagBox_('Missing', missing.join(', ') + ' — no report submitted');
+  else body += okBox_('All team members submitted on time');
+  body += sectionClose_();
+
+  // Per-person reports
+  reports.forEach(({ id, person, report }) => {
+    body += sectionOpen_(person.name + ' — ' + person.role);
+    if (!report.submitted) {
+      body += '<p style="font-family:monospace;font-size:12px;color:#94a3b8;padding:8px 0">No report submitted.</p>';
+    } else {
+      body += kvTimestamp_('Submitted', report.submittedAt);
+      report.answers.forEach(({ q, a }) => body += kvRow_(q, a || '—'));
+    }
+    body += sectionClose_();
+  });
+
+  return wrapEmail_(
+    mgr.name + "'s Lead Recap · " + mgr.role,
+    dateLabel,
+    body
+  );
+}
+
+function buildManagerEmail_(managerId, date) {
+  const mgr       = ORG[managerId];
+  const scope     = RECAP_SCOPE[managerId];
+  const dateLabel = fmtDate_(date);
+  const directs   = scope.directReports.map(id => ({ id, person: ORG[id], report: getPersonReport_(id, date) }));
+  const vis       = (scope.visibilityOnly || []).map(id => ({ id, person: ORG[id], report: getPersonReport_(id, date) }));
+
+  const submitted = directs.filter(r => r.report.submitted).length;
+  const missing   = directs.filter(r => !r.report.submitted).map(r => r.person.name);
+  const mgrReport = getPersonReport_(managerId, date);
+
+  let body = '';
+
+  // Labor metrics for Ricardo + Norman at top of their own email
+  if (managerId === 'ricardo' || managerId === 'norman') {
+    const labor = getLaborMetrics_(date);
+    const lm    = managerId === 'ricardo' ? labor.mke : labor.slc;
+    const site  = managerId === 'ricardo' ? 'MKE' : 'SLC';
+    body += sectionOpen_('⚡ ' + site + ' Labor Metrics · ' + fmtDate_(date));
+    body += laborMetricsBlock_(lm);
+    body += sectionClose_();
+  }
+
+  // Status
+  body += sectionOpen_('Submission Status');
+  body += statRow_([
+    { val: submitted,                   lbl: 'Submitted', color: '#10b981' },
+    { val: directs.length - submitted,  lbl: 'Missing',   color: directs.length - submitted > 0 ? '#f87171' : '#64748b' },
+    { val: directs.length,              lbl: 'Total',      color: '#94a3b8' },
+  ]);
+  if (missing.length) body += flagBox_('Missing', missing.join(', ') + ' — no report as of send time');
+  body += sectionClose_();
+
+  // Manager's own report
+  body += sectionOpen_(mgr.name + "'s Own Report");
+  if (!mgrReport.submitted) {
+    body += '<p style="font-family:monospace;font-size:12px;color:#94a3b8">No report submitted.</p>';
+  } else {
+    mgrReport.answers.forEach(({ q, a }) => body += kvRow_(q, a || '—'));
+  }
+  body += sectionClose_();
+
+  // Direct report cards
+  body += sectionOpen_('Direct Reports — Click to Expand');
+  directs.forEach(({ id, person, report }) => {
+    body += personCard_(person, report, id === directs[0].id);
+  });
+  body += sectionClose_();
+
+  // Visibility-only (Ricardo only)
+  if (vis.length) {
+    body += sectionOpen_('Full Org Visibility — Individual Contributors');
+    body += infoBox_('For Reference', 'Individual contributor reports. Not your primary focus but available if you need to dig in.');
+    const groups = groupByManager_(vis);
+    groups.forEach(g => {
+      body += dividerLabel_(g.label);
+      g.people.forEach(({ person, report }) => body += personCard_(person, report, false));
     });
-  } else { renderSnapshotOffline(scope); }
+    body += sectionClose_();
+  }
+
+  return wrapEmail_(
+    mgr.name + "'s Site Rollup · " + (managerId === 'ricardo' ? 'MKE' : 'SLC'),
+    dateLabel,
+    body
+  );
 }
 
-function renderSnapshotOffline(scope) {
-  const people = TEAM.filter(p=>scope.includes(p.id));
-  document.getElementById('snapSubmitted').textContent = 0;
-  document.getElementById('snapMissing').textContent = people.length;
-  document.getElementById('snapTotal').textContent = people.length;
-  document.getElementById('snapshotList').innerHTML = people.map(p=>`
-    <div class="person-row">
-      <div class="person-left"><div class="avatar ${p.av}">${p.initials}</div><div><div class="pname">${p.name}</div><div class="prole">${p.role}</div></div></div>
-      <span class="pill pill-live">no data</span>
-    </div>`).join('');
-  document.getElementById('reportsList').innerHTML = '<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:12px 0">Wire up the Apps Script URL to see live submissions.</div>';
-  buildEmailPreviews(scope, {});
-  document.getElementById('adhocList').innerHTML = '<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:12px 0">No active ad-hoc questions.</div>';
+function buildDrakeEmail_(date) {
+  const dateLabel = fmtDate_(date);
+
+  // Gather all data upfront
+  const allReports = {};
+  Object.keys(ORG).forEach(id => { allReports[id] = getPersonReport_(id, date); });
+
+  const totalSubmitted = Object.values(allReports).filter(r => r.submitted).length;
+  const totalPeople    = Object.keys(ORG).length;
+  const missing        = Object.entries(allReports).filter(([,r]) => !r.submitted).map(([id]) => ORG[id].name);
+
+  let body = '';
+  const labor = getLaborMetrics_(date);
+
+  // Labor metrics — very top of Drake's email
+  body += sectionOpen_('⚡ Labor Metrics — ' + fmtDate_(date));
+  body += dividerLabel_('MKE — Ricardo');
+  body += laborMetricsBlock_(labor.mke);
+  body += dividerLabel_('SLC — Norman');
+  body += laborMetricsBlock_(labor.slc);
+  body += sectionClose_();
+
+  // Headline stats
+  body += '<div style="display:flex;gap:10px;padding:14px 20px 8px;flex-wrap:wrap">';
+  body += statCard_(totalSubmitted, 'Submitted', '#10b981');
+  body += statCard_(totalPeople - totalSubmitted, 'Missing', totalPeople - totalSubmitted > 0 ? '#f87171' : '#10b981');
+  body += statCard_('—', 'SLA Misses', '#f87171');
+  body += statCard_('—', 'Open Issues', '#f59e0b');
+  body += '</div>';
+
+  if (missing.length) {
+    body += '<div style="padding:0 20px 8px">' + flagBox_('Not Submitted', missing.join(', ')) + '</div>';
+  }
+
+  // Labor data — Ricardo + Norman
+  body += sectionOpen_('⚡ Labor Data — MKE + SLC');
+  body += dividerLabel_('MKE — Ricardo');
+  const rr = allReports['ricardo'];
+  if (rr.submitted) {
+    rr.answers.forEach(({ q, a }) => body += kvRow_(q, a || '—'));
+  } else {
+    body += '<p style="font-family:monospace;font-size:12px;color:#f87171">⚠ Ricardo has not submitted</p>';
+  }
+  body += dividerLabel_('SLC — Norman');
+  const nr = allReports['norman'];
+  if (nr.submitted) {
+    nr.answers.forEach(({ q, a }) => body += kvRow_(q, a || '—'));
+  } else {
+    body += '<p style="font-family:monospace;font-size:12px;color:#f87171">⚠ Norman has not submitted</p>';
+  }
+  body += sectionClose_();
+
+  // Out-of-SLA — Kody + Norman flag this
+  body += sectionOpen_('🚨 Out-of-SLA');
+  body += infoBox_('Source', 'SLA misses are reported by Kody (AM Outbound) and Norman (SLC). Expand their reports below for details.');
+  const kodyR = allReports['kody'];
+  body += dividerLabel_('MKE — Kody (AM Outbound)');
+  if (kodyR.submitted) {
+    const slaQ = kodyR.answers.find(a => a.q.toLowerCase().includes('sla') || a.q.toLowerCase().includes('issue') || a.q.toLowerCase().includes('equipment'));
+    body += kvRow_('SLA / Issues', slaQ ? slaQ.a : 'See full report below');
+  } else {
+    body += flagBox_('Not Submitted', 'Kody has not submitted — SLA data unavailable');
+  }
+  body += dividerLabel_('SLC — Norman');
+  if (nr.submitted) {
+    const slaQ = nr.answers.find(a => a.q.toLowerCase().includes('sla') || a.q.toLowerCase().includes('issue'));
+    body += kvRow_('SLA / Issues', slaQ ? slaQ.a : 'See full report below');
+  } else {
+    body += flagBox_('Not Submitted', 'Norman has not submitted — SLA data unavailable');
+  }
+  body += sectionClose_();
+
+  // Site Lead Recaps
+  body += sectionOpen_('Site Lead Recaps');
+  ['ricardo','norman'].forEach(id => {
+    body += personCard_(ORG[id], allReports[id], true);
+  });
+  body += sectionClose_();
+
+  // MKE Manager Rollup
+  body += sectionOpen_('MKE Managers — Kody · Hugh · Emyly · Luis · Adam');
+  ['kody','hugh','emyly','luis','adam'].forEach(id => {
+    body += personCard_(ORG[id], allReports[id], false);
+  });
+  body += sectionClose_();
+
+  // SLC — Norman + Santana
+  body += sectionOpen_('SLC — Norman · Santana');
+  body += dividerLabel_('Norman — Site Lead');
+  body += personCard_(ORG['norman'], allReports['norman'], false);
+  body += dividerLabel_("Santana — SLC Outbound · Norman's Team");
+  body += personCard_(ORG['santana'], allReports['santana'], false);
+  body += sectionClose_();
+
+  // Dig Deeper — all ICs
+  body += sectionOpen_('Dig Deeper — Individual Contributor Reports');
+  body += infoBox_('On Demand', 'Click any name to see their full submission.');
+  const icGroups = [
+    { label: "AM Outbound — Kody's Team",   ids: ['ana','yaniel'] },
+    { label: "PM Lead — Hugh's Team",       ids: ['christine'] },
+    { label: "Inbound — Emyly's Team",      ids: ['relly'] },
+    { label: "Inventory — Luis's Team",     ids: ['ramar','brenda','ofelia','david'] },
+    { label: "Special Projects — Adam's Team", ids: ['nate','maria'] },
+  ];
+  icGroups.forEach(g => {
+    body += dividerLabel_(g.label);
+    g.ids.forEach(id => body += personCard_(ORG[id], allReports[id], false));
+  });
+  body += sectionClose_();
+
+  return wrapEmail_('Atomix EOD Executive Recap · Full Org', dateLabel, body);
 }
 
-function renderSnapshot(data) {
-  const scope = getScope(currentPerson.id);
-  const people = TEAM.filter(p=>scope.includes(p.id));
-  const submittedIds = new Set((data.reports||[]).map(r=>r.personId));
-  const submitted = people.filter(p=>submittedIds.has(p.id)).length;
-  document.getElementById('snapSubmitted').textContent = submitted;
-  document.getElementById('snapMissing').textContent = people.length-submitted;
-  document.getElementById('snapTotal').textContent = people.length;
-  document.getElementById('snapshotList').innerHTML = people.map(p=>{
-    const sub = submittedIds.has(p.id);
-    const report = (data.reports||[]).find(r=>r.personId===p.id);
-    const expandBtn = sub?`<button class="expand-btn" onclick="toggleQA('qa-${p.id}',this)">▸ view</button>`:'';
-    const qaBlock = sub&&report?`<div class="qa-block" id="qa-${p.id}">${(report.answers||[]).map(a=>`<div class="qa-item"><div class="qa-q">${a.question}</div><div class="qa-a">${a.answer||'—'}</div></div>`).join('')}</div>`:'';
-    return `<div class="person-row"><div class="person-left"><div class="avatar ${p.av}">${p.initials}</div><div><div class="pname">${p.name}</div><div class="prole">${p.role}</div></div></div><div style="display:flex;align-items:center;gap:4px"><span class="pill ${sub?'pill-ok':'pill-no'}">${sub?'submitted':'missing'}</span>${expandBtn}</div></div>${qaBlock}`;
-  }).join('');
-  const submittedReports=(data.reports||[]).filter(r=>scope.includes(r.personId));
-  document.getElementById('reportsList').innerHTML=submittedReports.length===0?'<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:12px 0">No reports submitted yet today.</div>':submittedReports.map(r=>{const p=TEAM.find(p2=>p2.id===r.personId)||{};return`<div class="card card-sm" style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="avatar ${p.av||'av-g'}">${p.initials||'?'}</div><div><div class="pname">${r.personName||p.name}</div><div class="prole">${p.role||''}</div></div></div>${(r.answers||[]).map(a=>`<div class="qa-item"><div class="qa-q">${a.question}</div><div class="qa-a">${a.answer||'—'}</div></div>`).join('')}</div>`;}).join('');
-  buildEmailPreviews(scope,data);
-}
+// ══════════════════════════════════════════════════════════════════════════════
+// HTML EMAIL COMPONENTS — Gmail-safe, white/light, table-based
+// Matches Atomix Daily Operations Report design language
+// ══════════════════════════════════════════════════════════════════════════════
 
-function toggleQA(id,btn){const el=document.getElementById(id);const open=el.classList.toggle('open');btn.textContent=open?'▾ hide':'▸ view';}
-
-// ══════════════════════════════════════════════════════════════
-// EMAIL PREVIEWS
-// ══════════════════════════════════════════════════════════════
-const EMAIL_RECIPIENTS = {
-  kody:    { label:'Kody — AM Outbound',    scopeFn: ()=>getScope('kody') },
-  hugh:    { label:'Hugh — PM Lead',        scopeFn: ()=>getScope('hugh') },
-  emyly:   { label:'Emyly — Inbound',       scopeFn: ()=>getScope('emyly') },
-  luis:    { label:'Luis — Inventory',      scopeFn: ()=>getScope('luis') },
-  adam:    { label:'Adam — Special Projects',scopeFn: ()=>getScope('adam') },
-  norman:  { label:'Norman — SLC',          scopeFn: ()=>getScope('norman') },
-  ricardo: { label:'Ricardo — MKE Rollup',  scopeFn: ()=>getScope('ricardo') },
-  drake:   { label:'Drake — Executive EOD', scopeFn: ()=>TEAM.map(p=>p.id) },
+const S = {
+  bg:        '#ffffff',
+  bgPage:    '#f4f6f9',
+  bgHeader:  '#1e3a5f',
+  bgSection: '#2d4a6e',
+  bgRowAlt:  '#eef2f7',
+  bgAlert:   '#fffbeb',
+  bgAlertRed:'#fff5f5',
+  green:     '#10b981',
+  red:       '#ef4444',
+  amber:     '#f59e0b',
+  blue:      '#1e3a5f',
+  text:      '#1a2332',
+  textMid:   '#4a5568',
+  textDim:   '#718096',
+  border:    '#e2e8f0',
+  fontSans:  "Arial,Helvetica,sans-serif",
+  fontMono:  "'Courier New',Courier,monospace",
 };
 
-function buildEmailPreviews(scope, data) {
-  const reports = data.reports||[];
-  const byPerson = {};
-  reports.forEach(r=>{byPerson[r.personId]=r;});
-  const relevantRecipients = Object.entries(EMAIL_RECIPIENTS).filter(([id])=>scope.includes(id));
-  if (relevantRecipients.length===0){document.getElementById('emailsList').innerHTML='<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:12px 0">No email recipients in your scope.</div>';return;}
-  document.getElementById('emailsList').innerHTML = relevantRecipients.map(([rid,cfg])=>{
-    const rscope=cfg.scopeFn().filter(id=>TEAM.find(p=>p.id===id));
-    const submitted=rscope.filter(id=>byPerson[id]);
-    const missing=rscope.filter(id=>!byPerson[id]).map(id=>TEAM.find(p=>p.id===id)?.name||id);
-    const lines=submitted.flatMap(id=>{const r=byPerson[id];const person=TEAM.find(p=>p.id===id);return(r.answers||[]).slice(0,2).map(a=>`${person?.name||id}: ${a.answer||'—'}`);});
-    const missingHtml=missing.length?`<div class="email-missing">Not submitted: ${missing.join(', ')}</div>`:`<div class="email-ok">All reports received.</div>`;
-    const bodyId='eb-'+rid;
-    return `<div class="email-card"><div class="email-head"><div><div class="email-to">To: ${rid}@atomix.com</div><div class="email-subj">ShiftFlow EOD — ${cfg.label}</div></div><button class="preview-btn" onclick="toggleEmailBody('${bodyId}',this)">preview</button></div><div class="email-body" id="${bodyId}">${missingHtml}<div class="email-section"><div class="email-section-title">Scope: ${rscope.map(id=>TEAM.find(p=>p.id===id)?.name||id).join(', ')}</div>${lines.length?lines.map(l=>`<div class="email-line">${l}</div>`).join(''):'<div class="email-line" style="color:var(--text3)">No answers yet.</div>'}</div></div></div>`;
+function wrapEmail_(subtitle, dateLabel, body) {
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
+    + '<body style="margin:0;padding:0;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif">'
+    + '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:20px 0"><tr><td align="center">'
+    + '<table width="640" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:6px;overflow:hidden;border:1px solid #e2e8f0">'
+    + '<tr><td style="background:#1e3a5f;padding:20px 28px">'
+    + '<table cellpadding="0" cellspacing="0" width="100%"><tr>'
+    + '<td style="vertical-align:middle">'
+    + '<div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:\'Courier New\',Courier,monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Atomix Logistics</div>'
+    + '<div style="font-size:20px;font-weight:700;color:#ffffff">DAILY OPERATIONS REPORT</div>'
+    + '<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px">' + subtitle + '</div>'
+    + '</td>'
+    + '<td style="text-align:right;vertical-align:middle">'
+    + '<div style="font-size:13px;color:rgba(255,255,255,0.8);font-family:\'Courier New\',Courier,monospace">' + dateLabel + '</div>'
+    + '</td></tr></table>'
+    + '</td></tr>'
+    + '<tr><td style="padding:0">' + body + '</td></tr>'
+    + '<tr><td style="padding:14px 28px;background:#f4f6f9;border-top:1px solid #e2e8f0">'
+    + '<span style="font-size:11px;color:#718096;font-family:\'Courier New\',Courier,monospace">ShiftFlow EOD · Atomix OPS · Auto-generated · drake-arch.github.io/atomix-ops</span>'
+    + '</td></tr>'
+    + '</table></td></tr></table></body></html>';
+}
+
+function sectionOpen_(label) {
+  return '<table width="100%" cellpadding="0" cellspacing="0" style="border-top:3px solid #1e3a5f;margin-top:0">'
+    + '<tr><td style="background:#2d4a6e;padding:10px 28px">'
+    + '<span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:.08em;text-transform:uppercase">' + label + '</span>'
+    + '</td></tr>'
+    + '<tr><td style="padding:16px 28px 20px">';
+}
+
+function sectionClose_() { return '</td></tr></table>'; }
+
+function statRow_(stats) {
+  var cells = stats.map(function(s) {
+    return '<td style="text-align:center;padding:14px 10px;background:#eef2f7;border-radius:4px;border:1px solid #e2e8f0">'
+      + '<div style="font-size:26px;font-weight:700;color:' + (s.color||'#1e3a5f') + ';font-family:\'Courier New\',Courier,monospace">' + s.val + '</div>'
+      + '<div style="font-size:10px;color:#718096;text-transform:uppercase;letter-spacing:.07em;margin-top:4px">' + s.lbl + '</div>'
+      + '</td><td width="10"></td>';
   }).join('');
+  return '<table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:14px"><tr>' + cells + '</tr></table>';
 }
 
-function toggleEmailBody(id,btn){const el=document.getElementById(id);const open=el.classList.toggle('open');btn.textContent=open?'close':'preview';}
-
-// ══════════════════════════════════════════════════════════════
-// AD-HOC QUESTIONS
-// ══════════════════════════════════════════════════════════════
-function populateAqTarget() {
-  const scope = currentPerson.id==='drake' ? TEAM.map(p=>p.id) : getScope(currentPerson.id);
-  const sel = document.getElementById('aqTarget');
-  sel.innerHTML = '<option value="">Select a person...</option>' +
-    scope.map(id=>{const p=TEAM.find(p2=>p2.id===id);const isSelf=id===currentPerson.id?' (you)':'';return `<option value="${id}">${p.name}${isSelf} — ${p.role}</option>`;}).join('');
+function statCard_(val, lbl, color) {
+  return '<td style="text-align:center;padding:14px 10px;background:#eef2f7;border-radius:4px;border:1px solid #e2e8f0">'
+    + '<div style="font-size:26px;font-weight:700;color:' + (color||'#1e3a5f') + ';font-family:\'Courier New\',Courier,monospace">' + val + '</div>'
+    + '<div style="font-size:10px;color:#718096;text-transform:uppercase;letter-spacing:.07em;margin-top:4px">' + lbl + '</div>'
+    + '</td><td width="10"></td>';
 }
 
-function loadAdhocList() {
-  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    jsonp(`${SCRIPT_URL}?action=getAdhoc&managerId=${currentPerson.id}`, (err, data) => {
-      if (!err && data) { adhocQuestions = data.adhoc || []; }
-      renderAdhocList();
-    });
-  } else { renderAdhocList(); }
+function dataTable_(headers, rows) {
+  var thead = headers.map(function(h, i) {
+    return '<td style="padding:10px 12px;background:#1e3a5f;color:#fff;font-size:12px;font-weight:700' + (i>0?';text-align:right':'') + '"><b>' + h + '</b></td>';
+  }).join('');
+  var tbody = rows.map(function(row, ri) {
+    var bg = ri % 2 === 0 ? '#ffffff' : '#eef2f7';
+    return '<tr style="background:' + bg + '">' + row.map(function(cell, ci) {
+      return '<td style="padding:9px 12px;font-size:13px;color:#1a2332;border-bottom:1px solid #e2e8f0' + (ci>0?';text-align:right':'') + '">' + cell + '</td>';
+    }).join('') + '</tr>';
+  }).join('');
+  return '<table cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #e2e8f0;border-radius:4px;margin-bottom:12px;overflow:hidden">'
+    + '<tr>' + thead + '</tr>' + tbody + '</table>';
 }
 
-function renderAdhocList() {
-  const el = document.getElementById('adhocList');
-  if (!el) return;
-  if (adhocQuestions.length===0){el.innerHTML='<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:4px 0">No active ad-hoc questions.</div>';return;}
-  el.innerHTML=adhocQuestions.map(q=>{const target=TEAM.find(p=>p.id===q.targetPersonId);return`<div class="adhoc-item"><div><div class="adhoc-q-text">${q.question}</div><div class="adhoc-meta">→ ${target?.name||q.targetPersonId} · ${q.cadence} · ${q.answerType||'text'}</div></div><button class="del-btn" onclick="deleteAdhoc('${q.id}',this)" title="Remove">×</button></div>`;}).join('');
+function kvRow_(key, val) {
+  return '<table cellpadding="0" cellspacing="0" width="100%" style="border-bottom:1px solid #e2e8f0"><tr>'
+    + '<td width="180" style="padding:8px 0;vertical-align:top"><b style="font-size:12px;color:#1a2332">' + key + '</b></td>'
+    + '<td style="padding:8px 0;vertical-align:top"><span style="font-size:13px;color:#4a5568;line-height:1.55">' + escHtml_(String(val||'—')) + '</span></td>'
+    + '</tr></table>';
+}
+function kvTimestamp_(key, val) { return kvRow_(key, val); }
+
+function flagBox_(label, msg) {
+  return '<table cellpadding="0" cellspacing="0" width="100%" style="margin:8px 0"><tr>'
+    + '<td style="padding:12px 16px;background:#fff5f5;border-left:4px solid #ef4444;border-radius:0 4px 4px 0">'
+    + '<div style="font-size:11px;color:#ef4444;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">&#9888; ' + label + '</div>'
+    + '<div style="font-size:13px;color:#1a2332;line-height:1.5">' + escHtml_(msg) + '</div>'
+    + '</td></tr></table>';
 }
 
-function submitAdhocQuestion() {
-  const target=document.getElementById('aqTarget').value;
-  const cadence=document.getElementById('aqCadence').value;
-  const type=document.getElementById('aqType').value;
-  const question=document.getElementById('aqQuestion').value.trim();
-  const confirm=document.getElementById('aqConfirm');
-  if (!target||!question){confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Select a person and enter a question.';return;}
-  const payload={action:'addAdhoc',managerId:currentPerson.id,targetPersonId:target,question,cadence,answerType:type,date:new Date().toISOString().split('T')[0],timestamp:new Date().toISOString()};
-  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    const encoded = encodeURIComponent(JSON.stringify(payload));
-    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, (err, data) => {
-      adhocQuestions.push({...payload, id: (data&&data.id) || Date.now()});
-      renderAdhocList();
-      const tname = TEAM.find(p=>p.id===target)?.name || target;
-      confirm.style.display='block'; confirm.style.color='var(--green)';
-      confirm.textContent = 'Added — shows in ' + tname + "'s report tonight.";
-      document.getElementById('aqTarget').value=''; document.getElementById('aqQuestion').value='';
-      setTimeout(()=>{ confirm.style.display='none'; }, 4000);
-      if (err) { confirm.style.color='#f87171'; confirm.textContent='Saved locally only — check connection.'; }
-    });
+function okBox_(msg) {
+  return '<table cellpadding="0" cellspacing="0" width="100%" style="margin:8px 0"><tr>'
+    + '<td style="padding:12px 16px;background:#f0fdf4;border-left:4px solid #10b981">'
+    + '<div style="font-size:13px;color:#166534;line-height:1.5">&#10003; ' + escHtml_(msg) + '</div>'
+    + '</td></tr></table>';
+}
+
+function infoBox_(label, msg) {
+  return '<table cellpadding="0" cellspacing="0" width="100%" style="margin:8px 0"><tr>'
+    + '<td style="padding:12px 16px;background:#eff6ff;border-left:4px solid #3b82f6">'
+    + '<div style="font-size:11px;color:#1d4ed8;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">' + label + '</div>'
+    + '<div style="font-size:13px;color:#1a2332;line-height:1.5">' + escHtml_(msg) + '</div>'
+    + '</td></tr></table>';
+}
+
+function alertBox_(msg) {
+  return '<table cellpadding="0" cellspacing="0" width="100%" style="margin:8px 0"><tr>'
+    + '<td style="padding:12px 16px;background:#fffbeb;border-left:4px solid #f59e0b">'
+    + '<div style="font-size:13px;color:#92400e;line-height:1.5">&#9888; ' + escHtml_(msg) + '</div>'
+    + '</td></tr></table>';
+}
+
+function dividerLabel_(label) {
+  return '<table cellpadding="0" cellspacing="0" width="100%" style="margin:16px 0 8px"><tr>'
+    + '<td style="padding-bottom:6px;border-bottom:2px solid #1e3a5f">'
+    + '<span style="font-size:12px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:.07em">' + label + '</span>'
+    + '</td></tr></table>';
+}
+
+function personCard_(person, report, defaultOpen) {
+  var initials  = person.name.slice(0,2).toUpperCase();
+  var pillBg    = report.submitted ? '#dcfce7' : '#fee2e2';
+  var pillColor = report.submitted ? '#166534' : '#991b1b';
+  var pillText  = report.submitted ? '&#10003; Submitted ' + report.submittedAt : '&#10007; Not Submitted';
+
+  var answersHtml = '';
+  if (!report.submitted) {
+    answersHtml = '<p style="font-size:13px;color:#718096;margin:8px 0 0;font-style:italic">No report submitted.</p>';
   } else {
-    adhocQuestions.push({...payload,id:Date.now()});renderAdhocList();const tname=TEAM.find(p=>p.id===target)?.name||target;confirm.style.display='block';confirm.style.color='var(--green)';confirm.textContent='(Preview) Added for '+tname+'.';document.getElementById('aqTarget').value='';document.getElementById('aqQuestion').value='';setTimeout(()=>{confirm.style.display='none';},4000);
-  }
-}
-
-function deleteAdhoc(id, btn) {
-  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    const encoded = encodeURIComponent(JSON.stringify({action:'deleteAdhoc', id}));
-    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, ()=>{});
-  }
-  adhocQuestions = adhocQuestions.filter(q => String(q.id) !== String(id));
-  renderAdhocList();
-}
-
-// ══════════════════════════════════════════════════════════════
-// QUESTIONS EDITOR
-// ══════════════════════════════════════════════════════════════
-function showQedTab(tab, btn) {
-  document.getElementById('qedTabStd').style.display   = tab==='std'   ? 'block' : 'none';
-  document.getElementById('qedTabAdhoc').style.display = tab==='adhoc' ? 'block' : 'none';
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-function renderQedStd() {
-  const pid=currentPerson.id;
-  const qs=STD_QUESTIONS[pid]||[];
-  const el=document.getElementById('qedStdList');
-  if(qs.length===0){el.innerHTML='<div class="card"><div class="qed-empty">No standard questions yet. Add one below.</div></div>';return;}
-  el.innerHTML='<div class="card" style="padding:4px 16px">'+qs.map((q,i)=>`
-    <div class="qed-item" id="qitem-${q.id}">
-      <div class="qed-num">${i+1}</div>
-      <div class="qed-body">
-        <div class="qed-text" id="qtext-${q.id}" contenteditable="true" spellcheck="false">${q.text}</div>
-        <div class="qed-meta">${typeLabel(q.type)}</div>
-      </div>
-      <div class="qed-actions">
-        <select class="qed-type-sel" id="qtype-${q.id}" style="font-size:11px;padding:3px 6px;background:var(--navy2);border:0.5px solid var(--border2);border-radius:6px;color:var(--text2);font-family:'IBM Plex Mono',monospace">
-          <option value="text"     ${q.type==='text'    ?'selected':''}>Short</option>
-          <option value="textarea" ${q.type==='textarea'?'selected':''}>Long</option>
-          <option value="number"   ${q.type==='number'  ?'selected':''}>Number</option>
-          <option value="yesno"    ${q.type==='yesno'   ?'selected':''}>Yes/No</option>
-        </select>
-        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;cursor:pointer">
-          <input type="checkbox" id="qopt-${q.id}" ${q.optional?'checked':''} style="accent-color:var(--green)"> opt
-        </label>
-        <button class="qed-btn save" onclick="saveQedItem('${q.id}')">save</button>
-        <button class="qed-btn del"  onclick="deleteQedItem('${q.id}')">&#x2715;</button>
-      </div>
-    </div>`).join('')+'</div>';
-}
-
-function renderQedAdhoc() {
-  const pid=currentPerson.id;
-  const el=document.getElementById('qedAdhocList');
-  const myAdhoc=adhocQuestions.filter(q=>q.targetPersonId===pid);
-  if(myAdhoc.length===0){el.innerHTML='<div class="card"><div class="qed-empty">No ad-hoc questions active for tonight.</div></div>';return;}
-  el.innerHTML='<div class="card" style="padding:4px 16px">'+myAdhoc.map(q=>`<div class="qed-item"><div class="qed-body"><div class="qed-text">${q.question}</div><div class="qed-meta">${q.cadence} · ${typeLabel(q.answerType||'text')}</div></div><div class="qed-actions"><button class="qed-btn del" onclick="deleteAdhocFromEditor('${q.id}')">&#x2715;</button></div></div>`).join('')+'</div>';
-}
-
-function saveQedItem(qid) {
-  const pid=currentPerson.id;
-  const textEl=document.getElementById('qtext-'+qid);
-  const typeEl=document.getElementById('qtype-'+qid);
-  const optEl=document.getElementById('qopt-'+qid);
-  const newText=textEl.textContent.trim();
-  const newType=typeEl.value;
-  const newOpt=optEl ? optEl.checked : false;
-  if(!newText){showToast('Question text cannot be empty.');return;}
-  const q=STD_QUESTIONS[pid]?.find(q=>q.id===qid);
-  if(q){q.text=newText;q.type=newType;q.optional=newOpt;}
-  renderQedStd(); showToast('Question saved.');
-}
-
-function deleteQedItem(qid) {
-  const pid=currentPerson.id;
-  STD_QUESTIONS[pid]=(STD_QUESTIONS[pid]||[]).filter(q=>q.id!==qid);
-  renderQedStd(); showToast('Question removed.');
-}
-
-function addStandardQuestion() {
-  const pid=currentPerson.id;
-  const text=document.getElementById('newStdQ').value.trim();
-  const type=document.getElementById('newStdType').value;
-  const confirm=document.getElementById('newStdConfirm');
-  if(!text){confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Enter a question first.';return;}
-  if(!STD_QUESTIONS[pid]) STD_QUESTIONS[pid]=[];
-  STD_QUESTIONS[pid].push({id:'q_'+Date.now(),text,type});
-  document.getElementById('newStdQ').value='';
-  renderQedStd();
-  confirm.style.display='block';confirm.style.color='var(--green)';
-  confirm.textContent='Added.';
-  setTimeout(()=>{confirm.style.display='none';},3500);
-}
-
-function addAdhocFromEditor() {
-  const pid=currentPerson.id;
-  const cadence=document.getElementById('newAdhocCadence').value;
-  const type=document.getElementById('newAdhocType').value;
-  const question=document.getElementById('newAdhocQ').value.trim();
-  const confirm=document.getElementById('newAdhocConfirm');
-  if(!question){confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Enter a question first.';return;}
-  const payload={action:'addAdhoc',managerId:pid,targetPersonId:pid,question,cadence,answerType:type,date:new Date().toISOString().split('T')[0],timestamp:new Date().toISOString()};
-  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){
-    const encoded=encodeURIComponent(JSON.stringify(payload));
-    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`,(err,data)=>{
-      adhocQuestions.push({...payload,id:(data&&data.id)||Date.now()});renderQedAdhoc();
+    if (report.isDuplicate) {
+      answersHtml += '<table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px"><tr>'
+        + '<td style="padding:8px 12px;background:#fffbeb;border-left:4px solid #f59e0b">'
+        + '<span style="font-size:12px;color:#92400e">&#9888; Identical to prior submission — may not reflect today\'s activity</span>'
+        + '</td></tr></table>';
+    }
+    report.answers.forEach(function(qa) {
+      answersHtml += '<div style="font-size:11px;color:#718096;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 3px">' + escHtml_(qa.q) + '</div>'
+        + '<div style="font-size:13px;color:#1a2332;line-height:1.6;padding-left:8px;border-left:3px solid #e2e8f0">' + escHtml_(qa.a||'—') + '</div>';
     });
-  } else { adhocQuestions.push({...payload,id:Date.now()}); }
-  document.getElementById('newAdhocQ').value='';
-  renderQedAdhoc();
-  confirm.style.display='block';confirm.style.color='var(--green)';confirm.textContent="Added to tonight's report.";
-  setTimeout(()=>{confirm.style.display='none';},3500);
-}
-
-function deleteAdhocFromEditor(id) {
-  adhocQuestions=adhocQuestions.filter(q=>String(q.id)!==String(id));
-  if(SCRIPT_URL&&SCRIPT_URL!=='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){
-    const encoded=encodeURIComponent(JSON.stringify({action:'deleteAdhoc',id}));
-    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`,()=>{});
   }
-  renderQedAdhoc();
+
+  return '<table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:4px;overflow:hidden">'
+    + '<tr style="background:#eef2f7">'
+    + '<td width="44" style="padding:12px;vertical-align:middle">'
+    + '<div style="width:32px;height:32px;border-radius:50%;background:#1e3a5f;text-align:center;line-height:32px">'
+    + '<span style="font-size:11px;font-weight:700;color:#fff;font-family:\'Courier New\',Courier,monospace">' + initials + '</span>'
+    + '</div></td>'
+    + '<td style="padding:12px 8px;vertical-align:middle">'
+    + '<div style="font-size:14px;font-weight:700;color:#1a2332">' + person.name + '</div>'
+    + '<div style="font-size:11px;color:#718096;margin-top:2px">' + person.role + ' &middot; ' + person.site + '</div>'
+    + '</td>'
+    + '<td style="padding:12px;text-align:right;vertical-align:middle">'
+    + '<span style="font-size:11px;padding:4px 10px;border-radius:20px;background:' + pillBg + ';color:' + pillColor + ';font-weight:700">' + pillText + '</span>'
+    + '</td></tr>'
+    + '<tr><td colspan="3" style="padding:14px 16px;border-top:1px solid #e2e8f0">' + answersHtml + '</td></tr>'
+    + '</table>';
 }
 
-function proceedToManager() {
-  document.getElementById('mgrName').textContent = currentPerson.name;
-  document.getElementById('mgrRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
-  // Show "Send recap now" only for Drake and Ricardo
-  const btn = document.getElementById('btnSendRecap');
-  btn.style.display = ['drake','ricardo'].includes(currentPerson.id) ? 'inline-block' : 'none';
-  showScreen('screenManager');
-  loadManagerData();
-  populateAqTarget();
+
+
+function groupByManager_(peopleArr) {
+  // Group IC people by their reportsTo manager for display
+  const groups = {};
+  peopleArr.forEach(({ id, person, report }) => {
+    const mgr = person.reportsTo || 'other';
+    if (!groups[mgr]) groups[mgr] = [];
+    groups[mgr].push({ person, report });
+  });
+  return Object.entries(groups).map(([mgr, people]) => ({
+    label: ORG[mgr] ? ORG[mgr].name + "'s team" : mgr,
+    people
+  }));
 }
 
-function triggerRecapNow() {
-  const btn = document.getElementById('btnSendRecap');
-  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    showToast('No Apps Script URL configured.');
+// ══════════════════════════════════════════════════════════════════════════════
+// EMAIL SEND + LOG
+// ══════════════════════════════════════════════════════════════════════════════
+
+function sendEmail_(recipientId, htmlBody, subjectPrefix, date, isDry) {
+  const email   = EMAIL_MAP[recipientId];
+  const person  = ORG[recipientId];
+  const subject = subjectPrefix + ' · ' + fmtDate_(date);
+
+  if (!email) {
+    logEmail_(recipientId, 'unknown', date, 'SKIP', 'No email address configured');
     return;
   }
-  btn.disabled = true;
-  btn.textContent = '⏳ Sending…';
-  const payload = { action: 'sendAllNow', requestedBy: currentPerson.id };
-  const encoded = encodeURIComponent(JSON.stringify(payload));
-  jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, (err, data) => {
-    btn.disabled = false;
-    btn.textContent = '✉ Send recap now';
-    if (!err && data && data.ok !== false) {
-      showToast('✓ Recap emails sent successfully.');
-    } else {
-      showToast('Recap triggered — check Apps Script logs if emails are missing.');
-    }
+
+  if (isDry) {
+    logEmail_(recipientId, 'dry', date, 'DRY_RUN', 'DRY_RUN=true — not sent');
+    return;
+  }
+
+  MailApp.sendEmail({
+    to:       email,
+    subject:  subject,
+    htmlBody: htmlBody,
+    name:     'ShiftFlow EOD · Atomix OPS',
+    noReply:  true,
   });
+
+  logEmail_(recipientId, email, date, 'SENT', subject);
 }
 
-function typeLabel(t){return{text:'Short answer',textarea:'Long answer',number:'Number',yesno:'Yes / No'}[t]||t;}
-
-// ══════════════════════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════════════════════
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
+function logEmail_(recipientId, recipientEmail, date, status, notes) {
+  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const sh  = ss.getSheetByName(TABS.LOG);
+  sh.appendRow([
+    'log_' + Date.now(),
+    new Date().toISOString(),
+    recipientId,
+    recipientEmail,
+    recipientId,
+    date,
+    status,
+    notes
+  ]);
 }
 
-function showTab(tabId, btn) {
-  ['tabSnapshot','tabReports','tabEmails','tabAskQ'].forEach(id=>{document.getElementById(id).style.display=id===tabId?'block':'none';});
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+// ══════════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════════════════════════════
+
+function today_() {
+  return Utilities.formatDate(new Date(), 'America/New_York', 'yyyy-MM-dd');
 }
 
-function goBack() { showScreen('screenPicker'); }
-function goHome() { showScreen('screenPicker'); }
-
-function showToast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
+function yesterday_() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return Utilities.formatDate(d, 'America/New_York', 'yyyy-MM-dd');
 }
 
-init();
-</script>
-</body>
-</html>
+// Returns the date string this morning's recap should cover.
+// At 8 AM EST we look back 32 hours — captures anyone who submitted
+// yesterday evening OR early this morning before the send.
+function recapDate_() {
+  return yesterday_();
+}
+
+// Returns { from: Date, to: Date } covering the 32-hour window ending now.
+// Any submission with submitted_at inside this window counts for today's recap.
+function reportWindow_() {
+  const now  = new Date();
+  const from = new Date(now.getTime() - 32 * 60 * 60 * 1000);
+  return { from, to: now };
+}
+
+function fmtDate_(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return Utilities.formatDate(d, 'America/New_York', 'EEE MMM d, yyyy');
+}
+
+function fmtTime_(isoStr) {
+  if (!isoStr) return '';
+  try {
+    return Utilities.formatDate(new Date(isoStr), 'America/New_York', 'h:mm a z');
+  } catch(e) { return ''; }
+}
+
+function isDryRun_() {
+  try {
+    const ss  = SpreadsheetApp.getActiveSpreadsheet();
+    const sh  = ss.getSheetByName(TABS.CONFIG);
+    const rows = sh.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][0] === 'DRY_RUN') return String(rows[i][1]).toLowerCase() === 'true';
+    }
+  } catch(e) {}
+  return true; // default safe
+}
+
+function escHtml_(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/\n/g,'<br>');
+}
