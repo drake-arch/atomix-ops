@@ -578,6 +578,12 @@ body { min-height: 100vh; background: var(--navy); }
       <div class="complete-title" id="completeName">Report submitted.</div>
       <div class="complete-sub" id="completeSub">Thanks — have a good night.</div>
       <button class="complete-another" onclick="goHome()">Submit another report</button>
+      <div id="recapBtnWrap" style="display:none;margin-top:12px">
+        <button id="btnGetMyRecap" onclick="requestMyRecap()" style="width:100%;padding:12px;background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:.04em">
+          ✉ Send me my team recap
+        </button>
+        <div id="recapBtnStatus" style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;text-align:center;margin-top:8px;display:none"></div>
+      </div>
     </div>
     <div id="laborSummaryBlock" style="display:none"></div>
   </div>
@@ -1402,8 +1408,35 @@ function submitReport() {
 function showComplete() {
   document.getElementById('completeName').textContent = currentPerson.name + ' — report submitted.';
   document.getElementById('completeSub').textContent = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) + ' · ' + currentPerson.site;
+  // Show recap button only for people who receive recap emails (supervisors, site leads, Drake)
+  const hasRecap = ['drake','ricardo','norman','kody','hugh','emyly','luis','adam'].includes(currentPerson.id);
+  const wrap = document.getElementById('recapBtnWrap');
+  if (wrap) wrap.style.display = hasRecap ? 'block' : 'none';
   showScreen('screenComplete');
   renderLaborSummary();
+}
+
+function requestMyRecap() {
+  const btn    = document.getElementById('btnGetMyRecap');
+  const status = document.getElementById('recapBtnStatus');
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    status.style.display = 'block';
+    status.textContent = 'No script URL configured.';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '⏳ Sending...';
+  status.style.display = 'none';
+  persistToSheet({ action:'sendMyRecap', personId: currentPerson.id });
+  // Give the server 3 seconds then confirm optimistically
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = '✉ Send me my team recap';
+    status.style.display = 'block';
+    status.style.color = 'var(--green)';
+    status.textContent = '✓ Recap sent to your email';
+    setTimeout(() => { status.style.display = 'none'; }, 5000);
+  }, 3000);
 }
 
 function renderLaborSummary() {
