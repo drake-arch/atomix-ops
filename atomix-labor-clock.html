@@ -34,6 +34,8 @@
   .zoom-btn { width:26px; height:26px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--green); font-size:14px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.15s,border-color 0.15s; flex-shrink:0; font-family:monospace; }
   .zoom-btn:hover { background:rgba(163,243,197,0.1); border-color:var(--green); }
   .zoom-btn:active { transform:scale(0.93); }
+  .sync-btn { width:auto; min-width:62px; padding:0 10px; font-size:10px; letter-spacing:0.05em; font-family:'DM Mono',monospace; }
+  .sync-btn.syncing { opacity:0.75; pointer-events:none; }
   .zoom-val { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); min-width:34px; text-align:center; }
   .heat-toggle { display:flex; align-items:center; gap:4px; padding:4px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--muted); font-size:10px; font-family:'DM Mono',monospace; cursor:pointer; letter-spacing:0.04em; transition:all 0.15s; height:26px; }
   .heat-toggle:hover { color:var(--text); border-color:var(--text); }
@@ -435,6 +437,8 @@
       <span class="lbl" id="backendLbl">Backend</span>
     </div>
     <div class="stat-divider"></div>
+    <button class="zoom-btn sync-btn" id="syncNowBtn" title="Sync from backend now">↻ Sync</button>
+    <div class="stat-divider"></div>
     <div class="clock-display" id="clockDisplay">00:00:00</div>
     <div class="stat-divider"></div>
     <div class="zoom-controls">
@@ -612,7 +616,13 @@ const FACILITY_KEY = 'atomix_facility';
 const FACILITY_LABELS = { MKE:'Milwaukee', SLC:'Salt Lake City', BAL:'Baltimore' };
 
 function getFacility() {
-  try { const s=localStorage.getItem(FACILITY_KEY); if(s)return s; } catch(e){}
+  try {
+    const s=localStorage.getItem(FACILITY_KEY);
+    if(s){
+      const up=String(s).toUpperCase().trim();
+      if(FACILITIES.includes(up))return up;
+    }
+  } catch(e){}
   try { const p=new URLSearchParams(window.location.search).get('facility'); if(p&&FACILITIES.includes(p.toUpperCase()))return p.toUpperCase(); } catch(e){}
   return '';
 }
@@ -627,6 +637,13 @@ let backendOk=null, lastBackendCheck=0, flushInFlight=false;
 function getEventQueue(){ try{return JSON.parse(localStorage.getItem(EVENT_QUEUE_KEY)||'[]');}catch(e){return[];} }
 function setEventQueue(q){ try{localStorage.setItem(EVENT_QUEUE_KEY,JSON.stringify(q));}catch(e){} }
 function genEventId(){ if(window.crypto&&crypto.randomUUID)return crypto.randomUUID(); return Date.now()+'-'+Math.random().toString(36).slice(2,10); }
+async function postForm(data){
+  return fetch(SCRIPT_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+    body:new URLSearchParams(data),
+  });
+}
 
 async function logEvent(type,data={}){
   let billable=data.billable;
@@ -641,17 +658,41 @@ async function flushEventQueue(){
     while(queue.length>0){
       const event=queue[0];
       try{
-        const url=new URL(SCRIPT_URL);url.searchParams.set('method','post');
-        Object.entries(event).forEach(([k,v])=>{url.searchParams.set(k,v==null?'':String(v));});
-        const res=await fetch(url.toString()); if(!res.ok)throw new Error('HTTP '+res.status);
+        const postData={method:'post'};
+        Object.entries(event).forEach(([k,v])=>{postData[k]=v==null?'':String(v);});
+        const res=await postForm(postData);
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        let respJson=null;
+        try{respJson=await res.json();}catch(_){throw new Error('Non-JSON response from backend');}
+        if(!respJson||respJson.ok!==true)throw new Error((respJson&&respJson.error)?respJson.error:'Backend returned ok=false');
         queue.shift();setEventQueue(queue);backendOk=true;
       }catch(err){backendOk=false;break;}
     }
   }finally{flushInFlight=false;updateBackendDot();}
 }
 async function pingBackend(){
-  try{const url=new URL(SCRIPT_URL);url.searchParams.set('action','live');const res=await fetch(url.toString());backendOk=res.ok;lastBackendCheck=Date.now();if(backendOk&&getEventQueue().length>0)flushEventQueue();}catch(e){backendOk=false;}
+  try{
+    const url=new URL(SCRIPT_URL);url.searchParams.set('action','live');
+    const res=await fetch(url.toString());
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const payload=await res.json();
+    backendOk=!!(payload&&payload.ok===true);
+    lastBackendCheck=Date.now();
+    if(backendOk&&getEventQueue().length>0)flushEventQueue();
+  }catch(e){backendOk=false;}
   updateBackendDot();
+}
+async function syncNow(){
+  const btn=document.getElementById('syncNowBtn');
+  if(btn){btn.classList.add('syncing');btn.textContent='Syncing';}
+  try{
+    await pingBackend();
+    await flushEventQueue();
+    await syncFromBackend();
+  }catch(e){}
+  finally{
+    if(btn){btn.classList.remove('syncing');btn.textContent='↻ Sync';}
+  }
 }
 function updateBackendDot(){
   const dot=document.getElementById('backendDot'),pill=document.getElementById('backendPill'),lbl=document.getElementById('backendLbl');
@@ -666,6 +707,7 @@ setInterval(()=>{if(getEventQueue().length)flushEventQueue();},15000);
 window.addEventListener('online',()=>{pingBackend();flushEventQueue();});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pingBackend();flushEventQueue();}});
 document.addEventListener('DOMContentLoaded',()=>{const p=document.getElementById('backendPill');if(p)p.addEventListener('click',()=>{pingBackend();flushEventQueue();});});
+document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('syncNowBtn');if(b)b.addEventListener('click',syncNow);});
 
 // ════════════════════════════════════════════
 // COLORS / DATA
@@ -740,17 +782,17 @@ const DEFAULT_EMPLOYEES_MKE=[
 ];
 
 const DEFAULT_EMPLOYEES_SLC = [
-  {id:'s1',name:'Norman L.',  fullName:'Norman Longshaw',   dept:null,clockIn:null,totalHrs:0,color:'#63b3ed',shiftStart:'06:00',shiftEnd:'14:30',isManager:true},
-  {id:'s2',name:'S. Assoc 1', fullName:'SLC Associate 1',   dept:null,clockIn:null,totalHrs:0,color:'#6ee8d8',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
-  {id:'s3',name:'S. Assoc 2', fullName:'SLC Associate 2',   dept:null,clockIn:null,totalHrs:0,color:'#a8d4e8',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
-  {id:'s4',name:'S. Assoc 3', fullName:'SLC Associate 3',   dept:null,clockIn:null,totalHrs:0,color:'#d4a8e8',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
-  {id:'s5',name:'S. Assoc 4', fullName:'SLC Associate 4',   dept:null,clockIn:null,totalHrs:0,color:'#a8e8d4',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
+  {id:'e57',name:'Norman L.',  fullName:'Norman Longshaw',   dept:null,clockIn:null,totalHrs:0,color:'#63b3ed',shiftStart:'06:00',shiftEnd:'14:30',isManager:true},
+  {id:'e58',name:'S. Assoc 1', fullName:'SLC Associate 1',   dept:null,clockIn:null,totalHrs:0,color:'#6ee8d8',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
+  {id:'e59',name:'S. Assoc 2', fullName:'SLC Associate 2',   dept:null,clockIn:null,totalHrs:0,color:'#a8d4e8',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
+  {id:'e60',name:'S. Assoc 3', fullName:'SLC Associate 3',   dept:null,clockIn:null,totalHrs:0,color:'#d4a8e8',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
+  {id:'e61',name:'S. Assoc 4', fullName:'SLC Associate 4',   dept:null,clockIn:null,totalHrs:0,color:'#a8e8d4',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
 ];
 
 const DEFAULT_EMPLOYEES_BAL = [
-  {id:'b_1',name:'BAL Mgr',    fullName:'BAL Manager',       dept:null,clockIn:null,totalHrs:0,color:'#f6ad55',shiftStart:'06:00',shiftEnd:'14:30',isManager:true},
-  {id:'b_2',name:'B. Assoc 1', fullName:'BAL Associate 1',   dept:null,clockIn:null,totalHrs:0,color:'#e8d4a8',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
-  {id:'b_3',name:'B. Assoc 2', fullName:'BAL Associate 2',   dept:null,clockIn:null,totalHrs:0,color:'#e8a8d4',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
+  {id:'e62',name:'BAL Mgr',    fullName:'BAL Manager',       dept:null,clockIn:null,totalHrs:0,color:'#f6ad55',shiftStart:'06:00',shiftEnd:'14:30',isManager:true},
+  {id:'e63',name:'B. Assoc 1', fullName:'BAL Associate 1',   dept:null,clockIn:null,totalHrs:0,color:'#e8d4a8',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
+  {id:'e64',name:'B. Assoc 2', fullName:'BAL Associate 2',   dept:null,clockIn:null,totalHrs:0,color:'#e8a8d4',shiftStart:'06:00',shiftEnd:'14:30',isManager:false},
 ];
 
 const DEPTS_DEFAULT=[
@@ -770,14 +812,9 @@ function loadRoster(f){
     if(raw){
       const p=JSON.parse(raw);
       if(Array.isArray(p)&&p.length>0){
-        // Guard: if roster contains IDs from a different facility, wipe and use defaults
-        const mkeIds=['e1','e2','e3','e4','e5','e6','e7','e8'];
-        const slcIds=['s1','s2','s3','s4','s5'];
-        const balIds=['b_1','b_2','b_3'];
-        const hasMKE=p.some(e=>mkeIds.includes(e.id));
-        const hasSLC=p.some(e=>slcIds.includes(e.id));
-        const hasBAL=p.some(e=>balIds.includes(e.id));
-        if((hasMKE&&f!=='MKE')||(hasSLC&&f!=='SLC')||(hasBAL&&f!=='BAL')){
+        // Guard: clear old-format IDs from legacy builds before loading.
+        const hasLegacyIds=p.some(e=>/^s\d+$/i.test(String(e&&e.id||''))||/^b_\d+$/i.test(String(e&&e.id||''))||/^e_\d+$/i.test(String(e&&e.id||'')));
+        if(hasLegacyIds){
           localStorage.removeItem(rosterKey(f));return[];
         }
         return p;
@@ -789,6 +826,22 @@ function loadRoster(f){
   if(f==='BAL')return JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES_BAL));
   return[];
 }
+function defaultRosterForFacility(f){
+  if(f==='MKE')return JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES_MKE));
+  if(f==='SLC')return JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES_SLC));
+  if(f==='BAL')return JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES_BAL));
+  return[];
+}
+function normalizeEmpName(v){
+  return String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+}
+function layoutOnlyBubbles(src){
+  return (src||[]).map(b=>{
+    const c=Object.assign({},b);
+    c.employees=[];
+    return c;
+  });
+}
 function loadBubbles(f){
   if(!f)return JSON.parse(JSON.stringify(DEPTS_DEFAULT));
   try{
@@ -796,16 +849,8 @@ function loadBubbles(f){
     if(raw){
       const p=JSON.parse(raw);
       if(Array.isArray(p)&&p.length>0){
-        // Load the correct roster for this facility to know which employee IDs are valid
-        const validRoster=loadRoster(f);
-        const validIds=new Set(validRoster.map(e=>e.id));
-        // Strip any employee IDs from bubbles that don't belong to this facility
-        p.forEach(b=>{
-          if(b.employees&&b.employees.length){
-            b.employees=b.employees.filter(eid=>validIds.has(eid));
-          }
-        });
-        return p;
+        // Layout is persisted; employee membership is derived from LiveState.
+        return layoutOnlyBubbles(p);
       }
     }
   }catch(e){}
@@ -814,35 +859,38 @@ function loadBubbles(f){
 function saveRoster(){if(!CURRENT_FACILITY)return;try{const c=EMPLOYEES.map(e=>{const x=Object.assign({},e);delete x._breakTimer;return x;});localStorage.setItem(rosterKey(CURRENT_FACILITY),JSON.stringify(c));}catch(e){}}
 function saveBubbles(){
   if(!CURRENT_FACILITY)return;
-  try{localStorage.setItem(bubblesKey(CURRENT_FACILITY),JSON.stringify(bubbles));}catch(e){}
+  const layout=layoutOnlyBubbles(bubbles);
+  try{localStorage.setItem(bubblesKey(CURRENT_FACILITY),JSON.stringify(layout));}catch(e){}
   syncBubblesToBackend();
 }
 
 function syncBubblesToBackend(){
   if(!CURRENT_FACILITY)return;
   try{
-    const url=new URL(SCRIPT_URL);
-    url.searchParams.set('action','saveBubbles');
-    url.searchParams.set('facility',CURRENT_FACILITY);
-    url.searchParams.set('bubblesJson',JSON.stringify(bubbles));
-    fetch(url.toString()).catch(()=>{});
+    const layout=layoutOnlyBubbles(bubbles);
+    postForm({
+      action:'saveBubbles',
+      facility:CURRENT_FACILITY,
+      bubblesJson:JSON.stringify(layout),
+    }).catch(()=>{});
   }catch(e){}
 }
 
 function syncSpLinksToBackend(){
   if(!CURRENT_FACILITY)return;
   try{
-    const url=new URL(SCRIPT_URL);
-    url.searchParams.set('action','saveSpLinks');
-    url.searchParams.set('facility',CURRENT_FACILITY);
-    url.searchParams.set('linksJson',JSON.stringify(spBubbleLinks));
-    fetch(url.toString()).catch(()=>{});
+    postForm({
+      action:'saveSpLinks',
+      facility:CURRENT_FACILITY,
+      linksJson:JSON.stringify(spBubbleLinks),
+    }).catch(()=>{});
   }catch(e){}
 }
 
-let EMPLOYEES=loadRoster(CURRENT_FACILITY);
+let EMPLOYEES=[];
 let bubbles=loadBubbles(CURRENT_FACILITY);
 let bubbleIdCounter=10,selectedColorIdx=0,logEntries=[],totalWeeklyHrs=0,dragData=null,ctxTarget=null;
+let hasAuthoritativeSync=false;
 const AVATAR_STYLES=[{key:'personas',label:'Persona'},{key:'avataaars',label:'Cartoon'},{key:'pixel-art',label:'Pixel'},{key:'bottts',label:'Robot'},{key:'fun-emoji',label:'Emoji'}];
 let activeAvatarStyle='personas',selectedAvatarSeed=null;
 function avatarUrl(emp){const style=emp.avatarStyle||'personas';const seed=emp.avatarSeed||encodeURIComponent(emp.fullName||emp.name);return`https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;}
@@ -874,16 +922,78 @@ function updateOTAlert(){
 }
 
 let empIdCounter=100;
+function empCounterKey(){return 'atomix_emp_counter_v2_global';}
+function parseEmpIdNumber(id){
+  const m=String(id||'').match(/(\d+)$/);
+  return m?parseInt(m[1],10):0;
+}
+function maxEmpIdFromList(list){
+  let max=0;
+  (list||[]).forEach(item=>{
+    const raw=(typeof item==='string')?item:(item&&item.id);
+    const n=parseEmpIdNumber(raw);
+    if(n>max)max=n;
+  });
+  return max;
+}
+function readEmpCounter(){
+  try{return parseInt(localStorage.getItem(empCounterKey())||'0',10)||0;}catch(e){return 0;}
+}
+function writeEmpCounter(n){
+  try{localStorage.setItem(empCounterKey(),String(n));}catch(e){}
+}
+function ensureEmpCounterAtLeast(minValue){
+  const n=Math.max(parseInt(minValue,10)||0,empIdCounter,readEmpCounter());
+  if(n!==empIdCounter)empIdCounter=n;
+  writeEmpCounter(empIdCounter);
+}
+function initializeEmpCounter(){
+  const defaults=defaultRosterForFacility(CURRENT_FACILITY);
+  const maxSeen=Math.max(maxEmpIdFromList(defaults),maxEmpIdFromList(EMPLOYEES));
+  ensureEmpCounterAtLeast(maxSeen);
+}
+function nextEmployeeId(){
+  initializeEmpCounter();
+  empIdCounter+=1;
+  writeEmpCounter(empIdCounter);
+  return 'e'+empIdCounter;
+}
+function isEmployeeIdInUse(id){
+  return EMPLOYEES.some(e=>String(e.id||'')===String(id||''));
+}
+async function requestNextEmployeeId(){
+  try{
+    const res=await postForm({action:'nextEmployeeId'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const payload=await res.json();
+    if(!payload||payload.ok!==true||!/^e\d+$/i.test(String(payload.id||'')))throw new Error((payload&&payload.error)||'Invalid nextEmployeeId response');
+    const claimed=String(payload.id).toLowerCase();
+    ensureEmpCounterAtLeast(parseEmpIdNumber(claimed));
+    if(!isEmployeeIdInUse(claimed))return claimed;
+  }catch(e){}
+
+  let fallback=nextEmployeeId();
+  while(isEmployeeIdInUse(fallback))fallback=nextEmployeeId();
+  return fallback;
+}
 function setupEmpCreator(){
+  initializeEmpCounter();
   const btn=document.getElementById('showEmpCreatorBtn'),form=document.getElementById('newEmpForm'),cancel=document.getElementById('neCancel');
   btn.addEventListener('click',()=>{form.classList.toggle('show');if(form.classList.contains('show'))document.getElementById('neName').focus();});
   cancel.addEventListener('click',()=>{form.classList.remove('show');document.getElementById('neName').value='';});
-  document.getElementById('neCreate').addEventListener('click',()=>{
+  document.getElementById('neCreate').addEventListener('click',async()=>{
     const name=document.getElementById('neName').value.trim();if(!name){document.getElementById('neName').focus();return;}
+    const createBtn=document.getElementById('neCreate');
+    if(createBtn)createBtn.disabled=true;
     const shiftStart=document.getElementById('neShiftStart').value||'06:00',shiftEnd=document.getElementById('neShiftEnd').value||'14:30',isManager=document.getElementById('neRole').value==='true';
     const colors=['#e89b6e','#6eb5e8','#7be87a','#e86eae','#b56ee8','#e8c56e','#6ee8d8','#e86e6e','#6e8ee8','#8ee86e'];
-    const newEmp={id:'e_'+(++empIdCounter),name:name.length>12?name.split(' ')[0]+' '+(name.split(' ')[1]?.[0]||'')+'.':name,fullName:name,dept:null,clockIn:null,totalHrs:0,weeklyHrs:0,color:colors[EMPLOYEES.length%colors.length],shiftStart,shiftEnd,isManager};
-    EMPLOYEES.push(newEmp);document.getElementById('neName').value='';form.classList.remove('show');addLog(`${newEmp.name} added`,'');renderAll();
+    try{
+      const allocatedId=await requestNextEmployeeId();
+      const newEmp={id:allocatedId,name:name.length>12?name.split(' ')[0]+' '+(name.split(' ')[1]?.[0]||'')+'.':name,fullName:name,dept:null,clockIn:null,totalHrs:0,weeklyHrs:0,color:colors[EMPLOYEES.length%colors.length],shiftStart,shiftEnd,isManager};
+      EMPLOYEES.push(newEmp);document.getElementById('neName').value='';form.classList.remove('show');addLog(`${newEmp.name} added`,'');renderAll();
+    }finally{
+      if(createBtn)createBtn.disabled=false;
+    }
   });
   document.getElementById('neName').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('neCreate').click();});
 }
@@ -892,6 +1002,10 @@ function removeEmployee(empId){
   if(!confirm(`Remove ${emp.fullName||emp.name}?`))return;
   if(emp.clockIn||emp.dept)unassignEmployee(empId);
   EMPLOYEES.splice(EMPLOYEES.findIndex(e=>e.id===empId),1);
+  postForm({action:'removeEmployee',facility:CURRENT_FACILITY||'',empId:String(empId||'')})
+    .then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status)))
+    .then(resp=>{if(!resp||resp.ok!==true)throw new Error((resp&&resp.error)||'removeEmployee failed');})
+    .catch(err=>{addLog(`Backend remove failed for ${emp.name}: ${err.message||err}`,'');});
   addLog(`${emp.name} removed`,'out');closeEmpModal();renderAll();
 }
 
@@ -1111,13 +1225,18 @@ function logSpHoursForBubble(emp, bubbleName, hrs){
     const task=(spTasks||[]).find(t=>t.id===taskId);if(!task)return;
     const client=(task.name.match(/^([^-–]+)/)?.[1]||task.name).trim();
     try{
-      const url=new URL(SCRIPT_URL);
-      url.searchParams.set('action','logSpHours');url.searchParams.set('facility',CURRENT_FACILITY);
-      url.searchParams.set('empId',emp.id);url.searchParams.set('empName',emp.fullName||emp.name);
-      url.searchParams.set('bubbleName',bubbleName);url.searchParams.set('spTaskId',taskId);
-      url.searchParams.set('spTaskName',task.name.slice(0,80));url.searchParams.set('client',client);
-      url.searchParams.set('hours',hrsEach.toFixed(4));url.searchParams.set('hourlyRate',rate.toFixed(2));
-      fetch(url.toString()).catch(()=>{});
+      postForm({
+        action:'logSpHours',
+        facility:CURRENT_FACILITY,
+        empId:emp.id,
+        empName:emp.fullName||emp.name,
+        bubbleName:bubbleName,
+        spTaskId:taskId,
+        spTaskName:task.name.slice(0,80),
+        client:client,
+        hours:hrsEach.toFixed(4),
+        hourlyRate:rate.toFixed(2),
+      }).catch(()=>{});
     }catch(e){}
     if(task)task.spentHrs=(task.spentHrs||0)+hrsEach;
   });
@@ -1219,7 +1338,13 @@ function drawBg(){
   for(let y=0;y<canvas.height;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
 }
 
-function renderAll(){renderBubbles();renderPool();renderBreakZones();if(document.getElementById('rosterPanel')?.classList.contains('open'))renderRoster();updateStats();updateTubes();updateOTAlert();saveRoster();saveBubbles();renderSpPanel();}
+function renderAll(){
+  renderBubbles();renderPool();renderBreakZones();
+  if(document.getElementById('rosterPanel')?.classList.contains('open'))renderRoster();
+  updateStats();updateTubes();updateOTAlert();
+  if(hasAuthoritativeSync){saveRoster();saveBubbles();}
+  renderSpPanel();
+}
 
 let zoomLevel=0.55,panX=0,panY=0,lastSyncPause=0;
 const ZOOM_MIN=0.2,ZOOM_MAX=3.0,ZOOM_STEP=0.1;
@@ -1358,7 +1483,23 @@ function makeMemberRow(emp,accentColor){
 }
 function toggleRoster(){document.getElementById('rosterPanel').classList.toggle('open');renderRoster();}
 
-async function fetchLive(){try{const url=new URL(SCRIPT_URL);url.searchParams.set('action','live');if(CURRENT_FACILITY)url.searchParams.set('facility',CURRENT_FACILITY);return await(await fetch(url.toString())).json();}catch(e){return null;}}
+async function fetchLive(includePositions=false){
+  try{
+    const url=new URL(SCRIPT_URL);
+    url.searchParams.set('action','live');
+    if(CURRENT_FACILITY)url.searchParams.set('facility',CURRENT_FACILITY);
+    if(includePositions)url.searchParams.set('include_positions','1');
+    return await(await fetch(url.toString())).json();
+  }catch(e){return null;}
+}
+async function fetchLiveStateRaw(){
+  try{
+    const url=new URL(SCRIPT_URL);
+    url.searchParams.set('action','live_state');
+    if(CURRENT_FACILITY)url.searchParams.set('facility',CURRENT_FACILITY);
+    return await(await fetch(url.toString())).json();
+  }catch(e){return null;}
+}
 async function fetchOrdersToday(){
   if(!CURRENT_FACILITY)return;
   try{
@@ -1375,40 +1516,87 @@ setInterval(fetchOrdersToday,5*60*1000);setTimeout(fetchOrdersToday,3000);
 
 let syncInFlight=false;
 async function syncFromBackend(){
-  // No sync pause needed — backend cannot move names
   if(syncInFlight)return;
   syncInFlight=true;
   try{
-    const live=await fetchLive();
+    const live=await fetchLiveStateRaw();
     if(!live||!live.ok){backendOk=false;updateBackendDot();return;}
     backendOk=true;updateBackendDot();
 
     const backendEmps=live.employees||[];
+    ensureEmpCounterAtLeast(maxEmpIdFromList(backendEmps));
 
-    // (empty backend check removed — sync is now position-safe)
+    // Refresh layout first so dept-name mapping uses latest bubble metadata.
+    await syncBubblesFromBackend();
 
-    const backendTs=live.serverTimestamp?new Date(live.serverTimestamp).getTime():0;
-    // No longer need to skip reconcile — sync cannot move names anyway
-
-    backendEmps.forEach(s=>{
-      const emp=EMPLOYEES.find(e=>e.id===s.id||(s.name&&(e.fullName===s.name||e.name===s.name)));
-      if(!emp)return;
-
-      // ── BOUNCE-BACK FIX (nuclear) ──
-      // Backend NEVER moves names. Only break/lunch status is accepted from sync.
-      // All position assignments come exclusively from local drag-and-drop.
-      // This is the only rule that matters for preventing bounce-back.
-
-      // Already placed locally — completely untouchable
-      if(emp.dept||emp.clockIn) return;
-
-      // Only accept break/lunch status for unassigned employees
-      if(s.onBreak&&!emp.breakStatus){emp.breakStatus='break';emp.breakStart=emp.breakStart||Date.now();}
-      else if(s.onLunch&&!emp.breakStatus){emp.breakStatus='lunch';emp.breakStart=emp.breakStart||Date.now();}
-      // dept and clockIn from backend are INTENTIONALLY IGNORED — no position sync
+    // Build employee metadata lookup from existing/default roster for UX-only fields.
+    const defaults=defaultRosterForFacility(CURRENT_FACILITY);
+    const metaById=new Map();
+    [...EMPLOYEES,...defaults].forEach(emp=>{
+      const id=String(emp.id||'');
+      if(id&&!metaById.has(id))metaById.set(id,emp);
     });
 
-    await syncBubblesFromBackend();
+    // LiveState is authoritative for who exists in the UI.
+    EMPLOYEES=backendEmps
+      .filter(s=>String(s.id||'')||String(s.name||''))
+      .map(s=>{
+        const sid=String(s.id||'');
+        const meta=metaById.get(sid)||{};
+        const fullName=String(s.name||meta.fullName||meta.name||'Unknown').trim();
+        const shortName=(meta.name&&String(meta.name).trim())
+          ? String(meta.name).trim()
+          : (fullName.length>12
+              ? fullName.split(' ')[0]+' '+((fullName.split(' ')[1]||'')[0]||'')+'.'
+              : fullName);
+        return {
+          id:sid||('ls_'+Math.random().toString(36).slice(2,8)),
+          name:shortName,
+          fullName:fullName,
+          dept:null,
+          clockIn:null,
+          totalHrs:Math.max(0,parseFloat(s.hoursTodayRaw||0)||0),
+          weeklyHrs:Math.max(0,parseFloat(s.hoursWeekRaw||0)||0),
+          color:meta.color||'#6eb5e8',
+          shiftStart:meta.shiftStart||'06:00',
+          shiftEnd:meta.shiftEnd||'14:30',
+          isManager:!!meta.isManager,
+          breakStatus:null,
+          breakStart:null,
+          breakReturnBubble:null,
+        };
+      });
+
+    ensureEmpCounterAtLeast(maxEmpIdFromList(EMPLOYEES));
+
+    bubbles.forEach(b=>{b.employees=[];});
+    EMPLOYEES.forEach(emp=>{
+      if(emp._breakTimer){clearTimeout(emp._breakTimer);emp._breakTimer=null;}
+    });
+
+    EMPLOYEES.forEach(emp=>{
+      const s=backendEmps.find(x=>String(x.id||'')===String(emp.id||''));
+      if(!s)return;
+      const parsedClockIn=Date.parse(s.clockIn||'');
+      if(!isNaN(parsedClockIn))emp.clockIn=parsedClockIn;
+
+      if(s.status==='break'){
+        emp.breakStatus='break';
+        emp.breakStart=Date.now();
+      }else if(s.status==='lunch'){
+        emp.breakStatus='lunch';
+        emp.breakStart=Date.now();
+      }else if(s.status==='active'){
+        const deptName=(s.dept||'').trim();
+        const target=deptName?bubbles.find(b=>b.name===deptName):null;
+        if(target){
+          emp.dept=target.id;
+          if(!target.employees.includes(emp.id))target.employees.push(emp.id);
+        }
+      }
+    });
+
+    hasAuthoritativeSync=true;
     renderAll();
   }finally{syncInFlight=false;}
 }
@@ -1426,7 +1614,11 @@ async function syncBubblesFromBackend(){
       const bb=dataB.bubbles;
       bb.forEach(b=>{
         const local=bubbles.find(x=>x.id===b.id);
-        if(!local){bubbles.push({...b,employees:[]});}
+        if(!local){
+          const clean=Object.assign({},b);
+          clean.employees=[];
+          bubbles.push(clean);
+        }
         else{
           local.name=b.name;local.colorIdx=b.colorIdx;
           if(!recentDrag){local.bx=b.bx;local.by=b.by;}
@@ -1436,7 +1628,7 @@ async function syncBubblesFromBackend(){
         }
       });
       const bIds=bb.map(x=>x.id);
-      bubbles=bubbles.filter(b=>bIds.includes(b.id)||b.employees.length>0);
+      bubbles=bubbles.filter(b=>bIds.includes(b.id));
     }
   }catch(e){console.warn('[sync] bubble load failed:',e.message);}
 
@@ -1479,12 +1671,13 @@ window.addEventListener('load',()=>{
   // Mode badge
   const mb=document.getElementById('modeBadge');
   if(mb){
-    mb.textContent='⟳ LIVE · '+DEVICE_ID.slice(-4);
+    const m=String(SCRIPT_URL||'').match(/\/s\/([^/]+)\//);
+    const endpointTag=m&&m[1]?m[1].slice(-6):'local';
+    mb.textContent='⟳ LIVE · '+DEVICE_ID.slice(-4)+' · '+endpointTag;
     mb.style.cssText+='background:rgba(163,243,197,0.1);border:1px solid rgba(163,243,197,0.3);color:var(--green);';
   }
   addLog('System started · '+DEVICE_ID,'');
   syncFromBackend();
-  setInterval(syncFromBackend, 5000); // 5s sync for real-time collab
   spFetchAll();setInterval(spFetchAll,5*60*1000);
 });
 setInterval(renderAll,30000);
