@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ship Decision — Atomix OPS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .gradient-bg {
+      background: linear-gradient(-45deg, #0D2D53, #1a4d7a, #0D2D53, #164a6e);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(163, 243, 197, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(163, 243, 197, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+    .scale-in { animation: scaleIn 0.5s ease-out forwards; }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glass-green {
+      background: rgba(163, 243, 197, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(163, 243, 197, 0.25);
+    }
+    .glass-red {
+      background: rgba(252, 129, 129, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(252, 129, 129, 0.25);
+    }
+    .glass-amber {
+      background: rgba(246, 173, 85, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(246, 173, 85, 0.25);
+    }
+    .glass-blue {
+      background: rgba(99, 179, 237, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(99, 179, 237, 0.25);
+    }
+    .glow { box-shadow: 0 0 30px rgba(163, 243, 197, 0.2); }
+    .glow-red { box-shadow: 0 0 30px rgba(252, 129, 129, 0.2); }
+    .glow-amber { box-shadow: 0 0 30px rgba(246, 173, 85, 0.2); }
+    .glow-blue { box-shadow: 0 0 30px rgba(99, 179, 237, 0.2); }
+    .big-num {
+      font-size: 5rem;
+      font-weight: 200;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    input[type="number"], input[type="text"], select {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #EDEFED;
+      border-radius: 1rem;
+      padding: 0.75rem 1.25rem;
+      outline: none;
+      width: 100%;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    input[type="number"]:focus, input[type="text"]:focus, select:focus {
+      border-color: rgba(163, 243, 197, 0.5);
+    }
+    select option { background: #101314; color: #EDEFED; }
+    .tab-btn {
+      padding: 0.5rem 1.5rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      cursor: pointer;
+      color: #9D9F9E;
+      background: transparent;
+    }
+    .tab-btn.active {
+      background: rgba(163, 243, 197, 0.1);
+      border-color: rgba(163, 243, 197, 0.3);
+      color: #A3F3C5;
+    }
+    .tab-btn:not(.active):hover { color: #EDEFED; }
+    .rule-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 2fr auto;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .rule-row input[type="number"], .rule-row input[type="text"] {
+      font-size: 0.875rem;
+      padding: 0.5rem 0.875rem;
+    }
+    @media (max-width: 640px) {
+      .rule-row { grid-template-columns: 1fr 1fr; }
+      .big-num { font-size: 3.5rem; }
+    }
+  </style>
+</head>
+<body class="bg-[#101314] text-[#EDEFED] overflow-x-hidden min-h-screen">
+
+  <div class="gradient-bg grid-bg min-h-screen">
+    <div class="relative z-10 max-w-3xl mx-auto px-6 py-16">
+
+      <!-- Header -->
+      <div class="fade-in-up mb-12">
+        <a href="./index.html" class="text-[#9D9F9E] text-sm tracking-widest uppercase hover:text-[#A3F3C5] transition-colors">← Atomix OPS</a>
+        <div class="mt-6 inline-block px-6 py-2 glass rounded-full text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-6 glow">
+          B2B Shipping
+        </div>
+        <h1 class="text-6xl md:text-7xl font-extralight leading-none tracking-tight bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent mb-3">
+          Ship<br/>Decision
+        </h1>
+        <p class="text-[#9D9F9E] text-lg font-light">Parcel or freight — no guessing.</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-3 mb-10 scale-in">
+        <button class="tab-btn active" id="tab-decide" onclick="switchTab('decide')">Decision</button>
+        <button class="tab-btn" id="tab-rules" onclick="switchTab('rules')">Customer Rules</button>
+      </div>
+
+      <!-- DECISION PANEL -->
+      <div id="panel-decide" class="scale-in">
+
+        <!-- Client -->
+        <div class="mb-6">
+          <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Customer</div>
+          <select id="clientSel" onchange="calc()">
+            <option value="">— Select customer —</option>
+          </select>
+        </div>
+
+        <!-- Weight -->
+        <div class="mb-6">
+          <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Total Order Weight</div>
+          <div class="flex items-center gap-4">
+            <input type="number" id="wt" placeholder="0" min="1" step="1"
+              oninput="calc()"
+              class="text-4xl font-light py-4 px-6"
+              style="font-size:2.5rem; font-weight:200; letter-spacing:-0.02em;">
+            <span class="text-[#9D9F9E] text-2xl font-light">lbs</span>
+          </div>
+        </div>
+
+        <!-- Units (shown for clients with unit cap) -->
+        <div id="unitsWrap" class="mb-6 hidden">
+          <div class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-3">Number of Units</div>
+          <div class="flex items-center gap-4">
+            <input type="number" id="units" placeholder="0" min="1" step="1"
+              oninput="calc()"
+              style="font-size:2rem; font-weight:200;">
+            <span class="text-[#9D9F9E] text-xl font-light">units</span>
+          </div>
+        </div>
+
+        <!-- Verdict -->
+        <div id="verdict" class="rounded-3xl p-10 mb-6 glass text-center transition-all duration-300">
+          <div class="text-[#9D9F9E] text-4xl font-extralight">Enter weight above</div>
+          <div class="text-[#9D9F9E] text-lg font-light mt-2">Routing decision will appear here</div>
+        </div>
+
+        <!-- Meta rows -->
+        <div id="metaWrap" class="hidden space-y-3">
+          <div class="glass rounded-2xl px-6 py-4 flex justify-between items-center" id="metaRow1"></div>
+          <div class="glass rounded-2xl px-6 py-4 flex justify-between items-center hidden" id="metaRow2"></div>
+          <div class="glass rounded-2xl px-6 py-4 flex justify-between items-center hidden" id="metaRow3"></div>
+        </div>
+
+      </div>
+
+      <!-- RULES PANEL -->
+      <div id="panel-rules" class="hidden scale-in">
+
+        <div class="text-[#9D9F9E] text-sm mb-6 font-light">
+          Set per-customer LTL thresholds and unit caps. Changes apply immediately and persist in your browser.
+        </div>
+
+        <!-- Rules table header -->
+        <div class="rule-row mb-3 px-1">
+          <span class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Customer</span>
+          <span class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">LTL lbs</span>
+          <span class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Unit cap</span>
+          <span class="text-[#A3F3C5] text-xs font-medium tracking-widest uppercase">Note</span>
+          <span></span>
+        </div>
+
+        <div id="rulesBody" class="space-y-3"></div>
+
+        <!-- Add client -->
+        <button onclick="addClient()"
+          class="mt-6 w-full glass rounded-2xl py-4 text-[#A3F3C5] text-sm font-medium tracking-widest uppercase hover:bg-[#A3F3C5] hover:bg-opacity-10 transition-all">
+          + Add Customer
+        </button>
+
+        <!-- Save note -->
+        <p class="text-[#9D9F9E] text-xs mt-4 text-center font-light">Rules are saved to your browser automatically.</p>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  // ── Default clients ────────────────────────────────────────────────
+  const DEFAULT_CLIENTS = [
+    { id:'stakt',     name:'Stakt',     ltl:150, unitCap:null, note:'Flag large B2B to CX' },
+    { id:'iqbar',     name:'IQ Bar',    ltl:150, unitCap:30,   note:'Max 30 units small parcel' },
+    { id:'kinders',   name:"Kinder's",  ltl:150, unitCap:null, note:"Exclude Sam's Club orders" },
+    { id:'dandylion', name:'Dandylion', ltl:150, unitCap:null, note:'' },
+    { id:'browcode',  name:'Brow Code', ltl:150, unitCap:null, note:'' },
+  ];
+
+  function loadClients() {
+    try {
+      const saved = localStorage.getItem('atomix_ship_clients');
+      return saved ? JSON.parse(saved) : DEFAULT_CLIENTS;
+    } catch { return DEFAULT_CLIENTS; }
+  }
+
+  function saveClients() {
+    try { localStorage.setItem('atomix_ship_clients', JSON.stringify(clients)); } catch {}
+  }
+
+  let clients = loadClients();
+
+  // ── Tab switching ──────────────────────────────────────────────────
+  function switchTab(t) {
+    document.getElementById('panel-decide').classList.toggle('hidden', t !== 'decide');
+    document.getElementById('panel-rules').classList.toggle('hidden', t !== 'rules');
+    document.getElementById('tab-decide').classList.toggle('active', t === 'decide');
+    document.getElementById('tab-rules').classList.toggle('active', t === 'rules');
+    if (t === 'rules') renderRules();
+    if (t === 'decide') populateSelect();
+  }
+
+  // ── Populate select ────────────────────────────────────────────────
+  function populateSelect() {
+    const sel = document.getElementById('clientSel');
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">— Select customer —</option>' +
+      clients.map(c => `<option value="${c.id}" ${c.id === prev ? 'selected' : ''}>${c.name}</option>`).join('');
+  }
+
+  function getClient() {
+    return clients.find(c => c.id === document.getElementById('clientSel').value) || null;
+  }
+
+  // ── Cost estimates ─────────────────────────────────────────────────
+  function estParcel(lbs) { return Math.round(lbs * 6.8); }
+  function estLTL(lbs)    { return Math.round(85 + lbs * 1.1); }
+
+  // ── Decision logic ─────────────────────────────────────────────────
+  function calc() {
+    const c = getClient();
+    const w = parseFloat(document.getElementById('wt').value) || 0;
+    const u = parseInt(document.getElementById('units').value) || 0;
+
+    // Show units input only for clients with a unit cap
+    const unitsWrap = document.getElementById('unitsWrap');
+    unitsWrap.classList.toggle('hidden', !(c && c.unitCap));
+
+    const verdict  = document.getElementById('verdict');
+    const metaWrap = document.getElementById('metaWrap');
+    const m1 = document.getElementById('metaRow1');
+    const m2 = document.getElementById('metaRow2');
+    const m3 = document.getElementById('metaRow3');
+
+    if (!c || !w) {
+      verdict.className = 'rounded-3xl p-10 mb-6 glass text-center transition-all duration-300';
+      verdict.innerHTML = `<div class="text-[#9D9F9E] text-4xl font-extralight">Select customer + enter weight</div><div class="text-[#9D9F9E] text-lg font-light mt-2">Routing decision will appear here</div>`;
+      metaWrap.classList.add('hidden');
+      return;
+    }
+
+    const overWeight = w >= c.ltl;
+    const overUnits  = c.unitCap && u > c.unitCap;
+    const nearThresh = !overWeight && w >= c.ltl * 0.8;
+
+    let mode, headline, sub;
+
+    if (overWeight) {
+      mode = 'freight';
+      headline = 'Ship Freight (LTL)';
+      sub = `${w} lbs ≥ ${c.ltl} lb threshold — do not split into parcels`;
+    } else if (overUnits) {
+      mode = 'blocked';
+      headline = 'Needs Approval';
+      sub = `${u} units exceeds ${c.name}'s ${c.unitCap}-unit small parcel cap — escalate to Patrick`;
+    } else {
+      mode = 'parcel';
+      headline = 'Ship Parcel';
+      sub = nearThresh
+        ? `${w} lbs — only ${c.ltl - w} lbs under threshold. Confirm order won't grow.`
+        : `${w} lbs — under ${c.ltl} lb threshold`;
+    }
+
+    const styles = {
+      parcel:  { card: 'glass-green glow',  headCol: 'text-[#A3F3C5]', icon: '📦' },
+      freight: { card: 'glass-blue glow-blue', headCol: 'text-[#63B3ED]', icon: '🚛' },
+      blocked: { card: 'glass-red glow-red',   headCol: 'text-[#FC8181]', icon: '⚠️' },
+    };
+    const s = styles[mode];
+
+    verdict.className = `rounded-3xl p-10 mb-6 ${s.card} text-center transition-all duration-300`;
+    verdict.innerHTML = `
+      <div class="text-5xl mb-4">${s.icon}</div>
+      <div class="${s.headCol} text-5xl md:text-6xl font-extralight tracking-tight mb-3">${headline}</div>
+      <div class="text-[#9D9F9E] text-lg font-light">${sub}</div>
+    `;
+
+    metaWrap.classList.remove('hidden');
+
+    // Meta row 1 — cost comparison
+    if (mode === 'freight') {
+      const saved = estParcel(w) - estLTL(w);
+      m1.innerHTML = `<span class="text-[#9D9F9E] text-sm">Est. savings vs. parcel splits</span><span class="text-[#A3F3C5] font-light text-lg">~$${saved.toLocaleString()} saved</span>`;
+      m1.classList.remove('hidden');
+    } else {
+      m1.innerHTML = `<span class="text-[#9D9F9E] text-sm">Est. parcel cost</span><span class="text-[#EDEFED] font-light text-lg">~$${estParcel(w)}</span>`;
+      m1.classList.remove('hidden');
+    }
+
+    // Meta row 2 — threshold comparison
+    m2.innerHTML = `<span class="text-[#9D9F9E] text-sm">LTL threshold for ${c.name}</span><span class="text-[#EDEFED] font-light text-lg">${c.ltl} lbs</span>`;
+    m2.classList.remove('hidden');
+
+    // Meta row 3 — client note
+    if (c.note) {
+      m3.innerHTML = `<span class="text-[#9D9F9E] text-sm">${c.name} rule</span><span class="text-[#9D9F9E] font-light text-sm text-right max-w-xs">${c.note}</span>`;
+      m3.classList.remove('hidden');
+    } else {
+      m3.classList.add('hidden');
+    }
+  }
+
+  // ── Render rules table ─────────────────────────────────────────────
+  function renderRules() {
+    document.getElementById('rulesBody').innerHTML = clients.map((c, i) => `
+      <div class="glass rounded-2xl p-4">
+        <div class="rule-row">
+          <input type="text" value="${escHtml(c.name)}"
+            placeholder="Customer name"
+            onchange="clients[${i}].name=this.value; clients[${i}].id=slugify(this.value); saveClients(); populateSelect();">
+          <input type="number" value="${c.ltl}" min="1" step="1" placeholder="150"
+            onchange="clients[${i}].ltl=parseInt(this.value)||150; saveClients();">
+          <input type="number" value="${c.unitCap || ''}" min="1" step="1" placeholder="none"
+            onchange="clients[${i}].unitCap=parseInt(this.value)||null; saveClients();">
+          <input type="text" value="${escHtml(c.note || '')}" placeholder="Optional note"
+            onchange="clients[${i}].note=this.value; saveClients();">
+          <button onclick="removeClient(${i})"
+            class="text-[#FC8181] hover:text-white text-lg transition-colors px-2">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function addClient() {
+    clients.push({ id: 'client_' + Date.now(), name: '', ltl: 150, unitCap: null, note: '' });
+    saveClients();
+    renderRules();
+    // Focus the new name field
+    const rows = document.getElementById('rulesBody').querySelectorAll('.rule-row');
+    if (rows.length) {
+      const lastInput = rows[rows.length - 1].querySelector('input[type="text"]');
+      if (lastInput) lastInput.focus();
+    }
+  }
+
+  function removeClient(i) {
+    clients.splice(i, 1);
+    saveClients();
+    renderRules();
+    populateSelect();
+  }
+
+  function slugify(s) { return s.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') || 'client_' + Date.now(); }
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ── Init ───────────────────────────────────────────────────────────
+  populateSelect();
+</script>
+</body>
+</html>
