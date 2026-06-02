@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Order Routing — Atomix OPS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes gradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .gradient-bg { background:linear-gradient(-45deg,#0D2D53,#1a4d7a,#0D2D53,#164a6e); background-size:400% 400%; animation:gradient 15s ease infinite; }
+    .grid-bg { background-image:linear-gradient(rgba(163,243,197,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(163,243,197,0.03) 1px,transparent 1px); background-size:50px 50px; }
+    .fade-in { animation:fadeInUp 0.6s ease-out forwards; }
+    .glass { background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
+    .glass-red { background:rgba(252,129,129,0.08); border:1px solid rgba(252,129,129,0.25); }
+    .glass-green { background:rgba(163,243,197,0.07); border:1px solid rgba(163,243,197,0.2); }
+    .glow { box-shadow:0 0 30px rgba(163,243,197,0.2); }
+    .glow-red { box-shadow:0 0 20px rgba(252,129,129,0.2); }
+    table { border-collapse:collapse; width:100%; }
+    th { font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#9D9F9E; padding:0.75rem 1rem; text-align:left; border-bottom:1px solid rgba(255,255,255,0.08); white-space:nowrap; }
+    td { padding:0.75rem 1rem; font-size:0.875rem; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:middle; }
+    tr:hover td { background:rgba(255,255,255,0.03); }
+    .badge { display:inline-block; font-size:0.65rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:9999px; }
+    .badge-red { background:rgba(252,129,129,0.15); color:#FC8181; border:1px solid rgba(252,129,129,0.3); }
+    .badge-green { background:rgba(163,243,197,0.12); color:#A3F3C5; border:1px solid rgba(163,243,197,0.25); }
+    .badge-blue { background:rgba(99,179,237,0.12); color:#63B3ED; border:1px solid rgba(99,179,237,0.25); }
+    .filter-btn { padding:0.35rem 1rem; border-radius:9999px; font-size:0.7rem; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; transition:all 0.2s; border:1px solid transparent; cursor:pointer; color:#9D9F9E; background:transparent; }
+    .filter-btn.active { background:rgba(163,243,197,0.1); border-color:rgba(163,243,197,0.3); color:#A3F3C5; }
+    .filter-btn:not(.active):hover { color:#EDEFED; border-color:rgba(255,255,255,0.15); }
+    input[type=text] { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#EDEFED; border-radius:0.75rem; padding:0.5rem 1rem; font-size:0.875rem; outline:none; }
+    input[type=text]:focus { border-color:rgba(163,243,197,0.4); }
+    input[type=text]::placeholder { color:rgba(255,255,255,0.25); }
+    select { background:#101314; border:1px solid rgba(255,255,255,0.1); color:#EDEFED; border-radius:0.75rem; padding:0.5rem 1rem; font-size:0.875rem; outline:none; cursor:pointer; }
+    select option { background:#101314; }
+    .drop-zone { border:2px dashed rgba(163,243,197,0.3); border-radius:1.5rem; transition:all 0.2s; }
+    .drop-zone:hover, .drop-zone.drag-over { border-color:rgba(163,243,197,0.7); background:rgba(163,243,197,0.05); }
+    .drop-zone.drag-over { box-shadow:0 0 30px rgba(163,243,197,0.15); }
+  </style>
+</head>
+<body class="bg-[#101314] text-[#EDEFED] min-h-screen overflow-x-hidden">
+<div class="gradient-bg grid-bg min-h-screen">
+<div class="relative z-10 max-w-7xl mx-auto px-6 py-12">
+
+  <!-- Header -->
+  <div class="fade-in mb-10">
+    <a href="./index.html" class="text-[#9D9F9E] text-xs tracking-widest uppercase hover:text-[#A3F3C5] transition-colors">← Atomix OPS</a>
+    <div class="mt-5 flex items-end justify-between flex-wrap gap-4">
+      <div>
+        <div class="inline-block px-4 py-1.5 glass rounded-full text-[#A3F3C5] text-xs font-medium tracking-widest uppercase mb-4 glow">B2B Shipping</div>
+        <h1 class="text-5xl md:text-6xl font-extralight tracking-tight bg-gradient-to-r from-white to-[#A3F3C5] bg-clip-text text-transparent">Order Routing</h1>
+        <p class="text-[#9D9F9E] font-light mt-1">Parcel vs. freight — by order</p>
+      </div>
+      <div class="text-right" id="wasteBlock" style="display:none">
+        <div class="text-xs text-[#9D9F9E] tracking-widest uppercase mb-1">Est. overspend on mis-routed</div>
+        <div id="totalWaste" class="text-4xl font-extralight text-[#FC8181]"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload zone (shown when no data) -->
+  <div id="uploadSection" class="fade-in mb-8">
+    <div class="drop-zone p-12 text-center cursor-pointer" id="dropZone" onclick="document.getElementById('csvInput').click()">
+      <input type="file" id="csvInput" accept=".csv" class="hidden" onchange="handleFile(this.files[0])">
+      <div class="text-4xl mb-4 opacity-50">📂</div>
+      <div class="text-xl font-extralight text-[#EDEFED] mb-2">Drop your orders CSV here</div>
+      <div class="text-[#9D9F9E] text-sm font-light mb-4">or click to browse</div>
+      <div class="text-xs text-[#9D9F9E] opacity-60">Expects standard Atomix orders export · analyzes instantly in-browser</div>
+    </div>
+    <div class="mt-4 text-center">
+      <button onclick="loadSampleData()" class="text-xs text-[#A3F3C5] hover:underline opacity-70 hover:opacity-100 transition-opacity">Use sample data from last upload →</button>
+    </div>
+  </div>
+
+  <!-- Dashboard (hidden until data loaded) -->
+  <div id="dashboard" style="display:none">
+
+    <!-- Top bar: file info + re-upload -->
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-[#A3F3C5] text-xs tracking-widest uppercase">📄</span>
+        <span id="fileLabel" class="text-[#9D9F9E] text-sm font-light"></span>
+      </div>
+      <button onclick="resetUpload()" class="filter-btn border border-white/10 hover:border-[#A3F3C5]/40 hover:text-[#A3F3C5]">↑ Upload new CSV</button>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 fade-in">
+      <div class="glass rounded-2xl p-5">
+        <div class="text-[#9D9F9E] text-xs tracking-widest uppercase mb-2">Total Orders</div>
+        <div id="cTotal" class="text-3xl font-extralight"></div>
+      </div>
+      <div class="glass-red rounded-2xl p-5 glow-red">
+        <div class="text-[#FC8181] text-xs tracking-widest uppercase mb-2">Flag: Use Freight</div>
+        <div id="cFlagged" class="text-3xl font-extralight text-[#FC8181]"></div>
+      </div>
+      <div class="glass-green rounded-2xl p-5">
+        <div class="text-[#A3F3C5] text-xs tracking-widest uppercase mb-2">Ship Parcel ✓</div>
+        <div id="cParcel" class="text-3xl font-extralight text-[#A3F3C5]"></div>
+      </div>
+      <div class="glass rounded-2xl p-5" style="border-color:rgba(99,179,237,0.2);background:rgba(99,179,237,0.07)">
+        <div class="text-[#63B3ED] text-xs tracking-widest uppercase mb-2">Already Freight</div>
+        <div id="cFreight" class="text-3xl font-extralight text-[#63B3ED]"></div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap items-center gap-3 mb-6">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('flag',this)">🚨 Flag: Use Freight</button>
+      <button class="filter-btn" onclick="setFilter('parcel',this)">Parcel OK</button>
+      <button class="filter-btn" onclick="setFilter('freight',this)">Already Freight</button>
+      <div class="flex-1"></div>
+      <select id="clientFilter" onchange="renderTable()">
+        <option value="">All clients</option>
+      </select>
+      <input type="text" id="search" placeholder="Search order / name…" oninput="renderTable()" style="width:200px">
+    </div>
+
+    <!-- Table -->
+    <div class="glass rounded-3xl overflow-hidden fade-in">
+      <div class="overflow-x-auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Client</th>
+              <th>Ship To</th>
+              <th>Qty</th>
+              <th>Est. Splits</th>
+              <th>Est. Parcel Cost</th>
+              <th>Current Method</th>
+              <th>Verdict</th>
+              <th>Est. Savings</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div id="emptyState" class="hidden text-center py-12 text-[#9D9F9E]">No orders match this filter.</div>
+    </div>
+
+    <p class="text-[#9D9F9E] text-xs mt-4 font-light text-center">Est. parcel cost = splits × $35/label · LTL threshold = $200 · ~20 units/box assumed for split estimate</p>
+  </div>
+
+  <!-- Parse error -->
+  <div id="errorBlock" style="display:none" class="glass-red rounded-2xl p-6 text-[#FC8181] text-sm font-light mt-4"></div>
+
+</div>
+</div>
+
+<script>
+const THRESHOLD = 200;
+const LABEL_COST = 35;
+const UNITS_PER_BOX = 20;
+let ORDERS = [];
+let activeFilter = 'all';
+
+// ── Drag & drop wiring ────────────────────────────────────────────
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+// ── CSV parsing ───────────────────────────────────────────────────
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => parseCSV(e.target.result, file.name);
+  reader.readAsText(file);
+}
+
+function parseCSV(text, filename) {
+  try {
+    const lines = text.trim().split('\n');
+    const header = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+
+    // Column index helpers
+    const col = name => header.findIndex(h => h.includes(name));
+    const iClient  = col('client');
+    const iOrder   = col('order number') !== -1 ? col('order number') : col('order');
+    const iQty     = col('quantity');
+    const iMethod  = col('shipping method');
+    const iName    = col('name');
+    const iState   = col('ship to state');
+    const iTags    = col('order tags');
+    const iSLA     = col('sla');
+    const iStatus  = col('order status');
+
+    if (iClient === -1 || iQty === -1) throw new Error('Could not find required columns (Client Name, Quantity). Check CSV format.');
+
+    // Aggregate by order number
+    const map = {};
+    for (let i = 1; i < lines.length; i++) {
+      const row = splitCSVRow(lines[i]);
+      if (!row || row.length < 3) continue;
+      const get = idx => idx >= 0 ? (row[idx]||'').trim().replace(/^"|"$/g,'') : '';
+      const orderNum = get(iOrder) || `row-${i}`;
+      if (!map[orderNum]) {
+        map[orderNum] = {
+          order: orderNum,
+          client: get(iClient),
+          name: get(iName),
+          method: get(iMethod),
+          tags: get(iTags),
+          sla: get(iSLA),
+          state: get(iState),
+          status: get(iStatus),
+          qty: 0,
+        };
+      }
+      const q = parseInt(get(iQty).replace(/,/g,'')) || 0;
+      map[orderNum].qty += q;
+    }
+
+    ORDERS = Object.values(map).filter(o => o.client).map(o => {
+      const splits = Math.ceil(o.qty / UNITS_PER_BOX) || 1;
+      const est_parcel_cost = splits * LABEL_COST;
+      const method_lc = o.method.toLowerCase();
+      const currently_freight = method_lc.includes('freight') || method_lc.includes('ltl');
+      const currently_parcel = !currently_freight;
+      const should_ltl = est_parcel_cost > THRESHOLD;
+      const tags_lc = o.tags.toLowerCase();
+      const is_b2b = tags_lc.includes('b2b') || tags_lc.includes('wholesale') || o.qty >= 30;
+      const wrong_routing = should_ltl && currently_parcel;
+      return { ...o, splits, est_parcel_cost, currently_parcel, currently_freight, should_ltl, wrong_routing, is_b2b };
+    });
+
+    showDashboard(filename);
+  } catch(err) {
+    showError(err.message);
+  }
+}
+
+// Handle quoted CSV fields properly
+function splitCSVRow(row) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < row.length; i++) {
+    if (row[i] === '"') { inQ = !inQ; }
+    else if (row[i] === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += row[i]; }
+  }
+  result.push(cur);
+  return result;
+}
+
+// ── Sample data ───────────────────────────────────────────────────
+const SAMPLE = [{"order":"067554","client":"IQ Bar","name":"Accardi Foods","qty":360,"method":"Atomix Ground","tags":"","sla":"2026-06-08","state":"MA"},{"order":"#FNY145679","client":"Frejanyc","name":"Eminent / Revolve","qty":231,"method":"Atomix Parcel","tags":"b2b, fnew","sla":"2026-06-02","state":"CA"},{"order":"#FNY145678","client":"Frejanyc","name":"Eminent / Revolve","qty":1166,"method":"Atomix Parcel","tags":"b2b, fnew","sla":"2026-06-08","state":"CA"},{"order":"ATM-MLG-2000","client":"Go Swag","name":"Materialogic","qty":25424,"method":"Atomix Parcel","tags":"VIP, B2B","sla":"2026-06-04","state":"MO"},{"order":"ATX060126","client":"IQ Bar","name":"IQBAR c/o ZonPrep","qty":20160,"method":"Atomix Parcel","tags":"","sla":"2026-05-28","state":"GA"},{"order":"FBA-5.29SMLPCL-MDW2","client":"IQ Bar","name":"MDW2","qty":945,"method":"Atomix Parcel","tags":"","sla":"2026-06-03","state":"IL"},{"order":"FBA-6.2SMLPCL-PSP3","client":"IQ Bar","name":"PSP3","qty":420,"method":"Atomix Parcel","tags":"","sla":"2026-06-05","state":"CA"},{"order":"Studioinvoices11898","client":"Stakt","name":"Conner Huber","qty":200,"method":"Atomix Parcel","tags":"","sla":"2026-06-02","state":"CA"},{"order":"StyluxTransfer5.27","client":"Stakt","name":"Stylux","qty":925,"method":"Atomix Freight","tags":"MAT","sla":"2026-05-28","state":"OH"},{"order":"LIGHTSOFFBOARDORDERPART3","client":"Lights Lacquer","name":"Moshipco","qty":534933,"method":"Atomix Freight","tags":"LS, QUAD","sla":"2026-05-26","state":"UT"},{"order":"SO-13414","client":"Cleverpup","name":"Pet Supplies Plus","qty":36,"method":"Atomix Ground","tags":"","sla":"2026-06-08","state":"SC"},{"order":"RS42422333","client":"Dandylion","name":"CHEWY Dayton","qty":52,"method":"PARCEL","tags":"","sla":"2026-06-02","state":"OH"},{"order":"RS42415341","client":"Dandylion","name":"CHEWY Nashville","qty":5,"method":"PARCEL","tags":"","sla":"2026-06-03","state":"TN"},{"order":"#109728","client":"Stakt","name":"Leah Craw","qty":50,"method":"Shipping","tags":"B2B, Onward","sla":"2026-06-03","state":"WV"},{"order":"ELV-CAT-DA85FE8A","client":"Go Swag","name":"Lauren Kiefer","qty":71,"method":"Free Shipping","tags":"B2B","sla":"2026-05-29","state":"CA"}];
+
+function loadSampleData() {
+  ORDERS = SAMPLE.map(o => {
+    const splits = Math.ceil(o.qty / UNITS_PER_BOX) || 1;
+    const est_parcel_cost = splits * LABEL_COST;
+    const method_lc = o.method.toLowerCase();
+    const currently_freight = method_lc.includes('freight') || method_lc.includes('ltl');
+    const currently_parcel = !currently_freight;
+    const should_ltl = est_parcel_cost > THRESHOLD;
+    const tags_lc = o.tags.toLowerCase();
+    const is_b2b = tags_lc.includes('b2b') || o.qty >= 30;
+    const wrong_routing = should_ltl && currently_parcel;
+    return { ...o, splits, est_parcel_cost, currently_parcel, currently_freight, should_ltl, wrong_routing, is_b2b };
+  });
+  showDashboard('Sample data (last upload)');
+}
+
+// ── UI state ──────────────────────────────────────────────────────
+function showDashboard(filename) {
+  document.getElementById('uploadSection').style.display = 'none';
+  document.getElementById('errorBlock').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('fileLabel').textContent = filename;
+  renderSummary();
+  renderTable();
+}
+
+function resetUpload() {
+  document.getElementById('uploadSection').style.display = 'block';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('wasteBlock').style.display = 'none';
+  document.getElementById('csvInput').value = '';
+  activeFilter = 'all';
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorBlock');
+  el.style.display = 'block';
+  el.textContent = '⚠ ' + msg;
+}
+
+// ── Render ────────────────────────────────────────────────────────
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+
+function getVerdict(o) {
+  if (o.currently_freight) return { label:'Freight ✓', cls:'badge-blue', sort:2 };
+  if (o.wrong_routing) return { label:'Use Freight', cls:'badge-red', sort:0 };
+  return { label:'Parcel OK', cls:'badge-green', sort:1 };
+}
+
+function renderSummary() {
+  const flagged = ORDERS.filter(o => o.wrong_routing);
+  const waste = flagged.reduce((s,o) => s + (o.est_parcel_cost - THRESHOLD), 0);
+  const wb = document.getElementById('wasteBlock');
+  wb.style.display = waste > 0 ? 'block' : 'none';
+  document.getElementById('totalWaste').textContent = fmt(waste);
+  document.getElementById('cTotal').textContent = ORDERS.length;
+  document.getElementById('cFlagged').textContent = flagged.length;
+  document.getElementById('cParcel').textContent = ORDERS.filter(o => !o.wrong_routing && o.currently_parcel).length;
+  document.getElementById('cFreight').textContent = ORDERS.filter(o => o.currently_freight).length;
+
+  const clients = [...new Set(ORDERS.map(o => o.client))].sort();
+  const sel = document.getElementById('clientFilter');
+  sel.innerHTML = '<option value="">All clients</option>' + clients.map(c => `<option>${c}</option>`).join('');
+}
+
+function renderTable() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const clientF = document.getElementById('clientFilter').value;
+
+  let rows = ORDERS.filter(o => {
+    if (activeFilter === 'flag' && !o.wrong_routing) return false;
+    if (activeFilter === 'parcel' && (o.wrong_routing || o.currently_freight)) return false;
+    if (activeFilter === 'freight' && !o.currently_freight) return false;
+    if (clientF && o.client !== clientF) return false;
+    if (search && !o.order.toLowerCase().includes(search) && !(o.name||'').toLowerCase().includes(search) && !o.client.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  rows.sort((a,b) => {
+    const va = getVerdict(a).sort, vb = getVerdict(b).sort;
+    if (va !== vb) return va - vb;
+    return b.est_parcel_cost - a.est_parcel_cost;
+  });
+
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+
+  if (!rows.length) { tbody.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  tbody.innerHTML = rows.map(o => {
+    const v = getVerdict(o);
+    const savings = o.wrong_routing ? fmt(o.est_parcel_cost - THRESHOLD) : '—';
+    const savCls = o.wrong_routing ? 'text-[#A3F3C5] font-medium' : 'text-[#9D9F9E]';
+    const costCls = o.wrong_routing ? 'text-[#FC8181] font-medium' : 'text-[#EDEFED]';
+    const rowHighlight = o.wrong_routing ? 'style="background:rgba(252,129,129,0.04)"' : '';
+    return `<tr ${rowHighlight}>
+      <td class="font-mono text-xs text-[#9D9F9E]">${o.order}</td>
+      <td class="font-light">${o.client}</td>
+      <td class="text-[#9D9F9E] text-xs">${o.name||'—'}<br><span class="opacity-60">${o.state||''}</span></td>
+      <td class="text-right font-light">${o.qty.toLocaleString()}</td>
+      <td class="text-right text-[#9D9F9E]">${o.splits}</td>
+      <td class="text-right ${costCls}">${fmt(o.est_parcel_cost)}</td>
+      <td class="text-xs text-[#9D9F9E]">${o.method}</td>
+      <td><span class="badge ${v.cls}">${v.label}</span></td>
+      <td class="text-right ${savCls}">${savings}</td>
+    </tr>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
