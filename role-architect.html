@@ -345,6 +345,12 @@ table.raci-table{border-collapse:collapse;width:100%;min-width:600px;}
     <div class="step" onclick="goStep(5)" data-step="5"><div class="step-num">5</div><div class="step-label">RACI Matrix</div></div>
   </div>
   <div class="hdr-right">
+    <div id="syncStatus" style="display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--textd);flex-shrink:0;">
+      <div id="syncDot" style="width:7px;height:7px;border-radius:50%;background:var(--textd);flex-shrink:0;transition:background .3s;"></div>
+      <span id="syncLabel">local</span>
+    </div>
+    <div id="presenceBar" style="display:flex;gap:4px;align-items:center;"></div>
+    <button class="btn" onclick="openSyncSetup()" style="display:flex;align-items:center;gap:4px;" title="Configure cloud sync">⚙ Sync</button>
     <button class="btn btn-warm" onclick="openOrgsLibrary()" style="display:flex;align-items:center;gap:5px;">📁 My Orgs</button>
     <button class="btn" onclick="exportJSON()">Export</button>
     <button class="btn" onclick="clearAll()">Reset</button>
@@ -500,19 +506,70 @@ const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&g
 const uid=()=>'_'+Math.random().toString(36).slice(2,9);
 const ini=n=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 
+// ── CLOUD SYNC CONFIG ─────────────────────────────────────────────────────────
+// Paste your deployed Google Apps Script Web App URL here:
+const GAS_URL = localStorage.getItem('ra_gasUrl') || '';
+let serverVersion = 0;
+let syncPending = false;
+let syncTimeout = null;
+let currentUser = localStorage.getItem('ra_userName') || '';
+let pollInterval = null;
+
+// Ask for user name and GAS URL on first load
+function ensureIdentity(){
+  if(!currentUser){
+    const name = prompt('Your name (so teammates can see who\'s editing):','e.g. Drake');
+    if(name && name.trim()){
+      currentUser = name.trim();
+      localStorage.setItem('ra_userName', currentUser);
+    }
+  }
+  if(!GAS_URL){
+    const url = prompt(
+      'Paste your Google Apps Script Web App URL to enable live sync.\n\n'+
+      'Skip (Cancel) to work locally only — you can add it later in the sync menu.',
+      ''
+    );
+    if(url && url.trim().startsWith('https://')){
+      localStorage.setItem('ra_gasUrl', url.trim());
+      location.reload();
+    }
+  }
+}
+
+function setSyncStatus(status){
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  if(!dot||!lbl)return;
+  const states = {
+    local:  {color:'var(--textd)',  text:'local only'},
+    syncing:{color:'var(--warm)',   text:'syncing…'},
+    live:   {color:'var(--accent)', text:'live ✓'},
+    error:  {color:'var(--red)',    text:'sync error'},
+    nourl:  {color:'var(--textd)',  text:'local — add URL to sync'},
+  };
+  const s = states[status]||states.local;
+  dot.style.background = s.color;
+  lbl.textContent = s.text;
+}
+
 // ── MULTI-CHART STATE ─────────────────────────────────────────────────────────
-// charts: [{id, name, data:{duties,persons,roles,titles,nodes,edges,step,raci}}]
-// raci: { [dutyId]: { [personId]: 'R'|'A'|'C'|'I'|'' } }
 let ALL = { charts:[], activeChartId:null };
-let S = {}; // current chart data — reference into ALL.charts[x].data
+let S = {};
 
 function newChartData(name){
   return {id:uid(),name,data:{duties:[],persons:[],roles:[],titles:[],nodes:[],edges:[],step:1,raci:{}}};
 }
+
+// Write local + push to cloud (debounced 800ms)
 function saveAll(){
   ALL.charts.find(c=>c.id===ALL.activeChartId).data = S;
-  localStorage.setItem('ra_v6',JSON.stringify(ALL));
+  localStorage.setItem('ra_v6', JSON.stringify(ALL));
+  if(!GAS_URL){setSyncStatus('nourl');return;}
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(pushToCloud, 800);
 }
+
 function loadAll(){
   try{const r=localStorage.getItem('ra_v6');if(r)ALL=JSON.parse(r);}catch(e){}
   if(!ALL.charts||!ALL.charts.length){
@@ -522,18 +579,131 @@ function loadAll(){
   S=ALL.charts.find(c=>c.id===ALL.activeChartId).data;
   if(!S.raci)S.raci={};
 }
+
 function switchChart(id){
   ALL.charts.find(c=>c.id===ALL.activeChartId).data=S;
   ALL.activeChartId=id;
   S=ALL.charts.find(c=>c.id===id).data;
   if(!S.raci)S.raci={};
-  // reset bad nodes
   if(S.nodes&&S.nodes.some(n=>n.x>600||n.y>500))S.nodes=S.nodes.map(n=>({...n,x:-9999,y:-9999}));
   localStorage.setItem('ra_v6',JSON.stringify(ALL));
   renderChartTabs();renderSteps();render();
   if(S.step===4)requestAnimationFrame(()=>requestAnimationFrame(renderOrg));
   if(S.step===5)renderRaciMatrix();
 }
+
+// ── CLOUD PUSH ────────────────────────────────────────────────────────────────
+async function pushToCloud(){
+  if(!GAS_URL||syncPending)return;
+  syncPending=true;setSyncStatus('syncing');
+  try{
+    const res=await fetch(GAS_URL,{
+      method:'POST',
+      body:JSON.stringify({action:'save',data:ALL}),
+    });
+    const json=await res.json();
+    if(json.ok){serverVersion=json.version;setSyncStatus('live');}
+    else{setSyncStatus('error');console.warn('Sync error:',json.error);}
+  }catch(e){setSyncStatus('error');console.warn('Push failed:',e);}
+  syncPending=false;
+}
+
+// ── CLOUD POLL (every 4s) ─────────────────────────────────────────────────────
+async function pollCloud(){
+  if(!GAS_URL||syncPending)return;
+  try{
+    const res=await fetch(GAS_URL+'?action=get&_='+Date.now());
+    const json=await res.json();
+    if(!json.ok||!json.data)return;
+    if(json.version>serverVersion){
+      serverVersion=json.version;
+      const remote=json.data;
+      mergeRemote(remote);
+    }
+    setSyncStatus('live');
+    renderPresence(json.data);
+  }catch(e){
+    setSyncStatus('error');
+  }
+}
+
+// Merge: remote wins on charts, preserve local activeChartId if still valid
+function mergeRemote(remote){
+  if(!remote||!remote.charts)return;
+  // merge charts by id — remote content wins, but keep any local-only charts
+  const merged=[];
+  remote.charts.forEach(rc=>{
+    const local=ALL.charts.find(c=>c.id===rc.id);
+    // keep node positions from local (they're per-session UI state)
+    if(local){
+      rc.data.nodes=local.data.nodes; // preserve local drag positions
+    }
+    merged.push(rc);
+  });
+  // add any local charts not on server yet
+  ALL.charts.forEach(lc=>{
+    if(!merged.find(c=>c.id===lc.id))merged.push(lc);
+  });
+  ALL.charts=merged;
+  if(!ALL.charts.find(c=>c.id===ALL.activeChartId))ALL.activeChartId=ALL.charts[0].id;
+  S=ALL.charts.find(c=>c.id===ALL.activeChartId).data;
+  if(!S.raci)S.raci={};
+  localStorage.setItem('ra_v6',JSON.stringify(ALL));
+  render();renderChartTabs();renderSteps();
+  if(S.step===4)requestAnimationFrame(()=>requestAnimationFrame(renderOrg));
+  if(S.step===5)renderRaciMatrix();
+  if(document.getElementById('orgsOverlay')?.classList.contains('open'))renderOrgsGrid();
+}
+
+// ── PRESENCE (show who else is active) ───────────────────────────────────────
+// We piggyback a lightweight presence on the chart objects (lastSeen, editingBy)
+function renderPresence(remoteData){
+  const bar=document.getElementById('presenceBar');if(!bar)return;
+  // count unique editors seen in last 30s across all charts
+  const now=Date.now();const active=new Set();
+  (remoteData?.charts||[]).forEach(c=>{
+    (c.data?.presence||[]).forEach(p=>{
+      if(p.name&&p.name!==currentUser&&(now-p.ts)<30000)active.add(p.name);
+    });
+  });
+  bar.innerHTML=[...active].map(name=>
+    `<div title="${name} is active" style="width:22px;height:22px;border-radius:50%;background:var(--navy3);border:1.5px solid var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:8px;font-weight:700;color:var(--accent);">${ini(name)}</div>`
+  ).join('');
+}
+
+function heartbeat(){
+  if(!currentUser||!GAS_URL)return;
+  const now=Date.now();
+  ALL.charts.forEach(c=>{
+    if(!c.data.presence)c.data.presence=[];
+    c.data.presence=c.data.presence.filter(p=>now-p.ts<60000);
+    const me=c.data.presence.find(p=>p.name===currentUser);
+    if(me)me.ts=now;else c.data.presence.push({name:currentUser,ts:now});
+  });
+  pushToCloud();
+}
+
+// ── SYNC SETUP UI ─────────────────────────────────────────────────────────────
+function openSyncSetup(){
+  const cur=localStorage.getItem('ra_gasUrl')||'';
+  const curName=localStorage.getItem('ra_userName')||'';
+  openModal('Cloud Sync Setup',`
+    <div style="font-size:11px;color:var(--textd);line-height:1.7;margin-bottom:14px;">
+      To sync across Kody, Hugh, Emyly and the rest of the team, deploy the Google Apps Script backend and paste the URL below.
+      <br><br>
+      <b style="color:var(--textm)">Steps:</b><br>
+      1. Go to <a href="https://script.google.com" target="_blank" style="color:var(--accent)">script.google.com</a> → New Project<br>
+      2. Paste the Apps Script code (use the .gs file from this session)<br>
+      3. Deploy → New Deployment → Web App<br>
+      4. Execute as: <b>Me</b> · Access: <b>Anyone</b><br>
+      5. Copy the Web App URL and paste below
+    </div>
+    <div class="field"><label>Your Name</label><input id="mi1" value="${esc(curName)}" placeholder="e.g. Drake"/></div>
+    <div class="field"><label>Apps Script Web App URL</label><input id="mi2" value="${esc(cur)}" placeholder="https://script.google.com/macros/s/…/exec"/></div>
+  `,'syncSetup');
+}
+
+
 
 // ── DRAG ──────────────────────────────────────────────────────────────────────
 let dragData=null;
@@ -592,16 +762,20 @@ function renderPersons(){
   const l=document.getElementById('personList');l.innerHTML='';
   if(!S.persons.length){l.innerHTML='<div class="empty-msg">No team yet.<br>Click + to add names.</div>';return;}
   S.persons.forEach((p,i)=>{
-    const placedIn=S.roles.find(r=>r.personId===p.id);
+    const rolesIn=S.roles.filter(r=>(r.personIds||[]).includes(p.id));
     const color=COLORS[i%COLORS.length];
     const counts=getPersonRaciCounts(p.id);
-    const el=document.createElement('div');el.className='person-chip'+(placedIn?' placed':'');el.draggable=!placedIn;
+    const el=document.createElement('div');
+    // person is "placed" only if they have at least one role — but can still be dragged to MORE roles
+    el.className='person-chip';el.draggable=true;
     const raciSummary=['R','A','C','I'].filter(v=>counts[v]>0).map(v=>
       `<span class="pc-raci-item" style="color:${RACI_COLORS[v]}"><span style="font-weight:700">${v}</span>${counts[v]}</span>`).join('');
-    el.innerHTML=`<div class="pc-top"><div class="p-av" style="background:${color}22;border:1.5px solid ${color}55;color:${color}">${ini(p.name)}</div><div><div class="p-name">${esc(p.name)}</div>${placedIn?`<div class="p-role">${esc(placedIn.name)}</div>`:''}</div></div>`
+    const roleNames=rolesIn.map(r=>`<span style="font-size:9px;color:var(--adim);font-style:italic;">${esc(r.name)}</span>`).join(', ');
+    el.innerHTML=`<div class="pc-top"><div class="p-av" style="background:${color}22;border:1.5px solid ${color}55;color:${color}">${ini(p.name)}</div><div><div class="p-name">${esc(p.name)}</div>${rolesIn.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:1px;">${roleNames}</div>`:''}</div></div>`
       +(raciSummary?`<div class="pc-raci">${raciSummary}</div>`:'')
       +`<button class="p-del" onclick="removePerson('${p.id}')">✕</button>`;
-    if(!placedIn){el.addEventListener('dragstart',e=>startDrag(e,'person',p.id,p.name));el.addEventListener('dragend',endDrag);}
+    el.addEventListener('dragstart',e=>startDrag(e,'person',p.id,p.name));
+    el.addEventListener('dragend',endDrag);
     l.appendChild(el);
   });
 }
@@ -641,11 +815,155 @@ function drawPie(canvas,role){
 }
 
 function buildRoleCard(role){
-  const person=role.personId?S.persons.find(p=>p.id===role.personId):null;
+  if(!role.personIds)role.personIds=role.personId?[role.personId]:[];
+  const people=role.personIds.map(id=>S.persons.find(p=>p.id===id)).filter(Boolean);
   const ttl=role.titleId?S.titles.find(t=>t.id===role.titleId):null;
-  const pIdx=person?S.persons.indexOf(person):-1;
-  const pColor=pIdx>=0?COLORS[pIdx%COLORS.length]:null;
   const card=document.createElement('div');card.className='role-card';card.dataset.roleId=role.id;
+
+  // header
+  const top=document.createElement('div');top.className='rc-top';
+  top.innerHTML=`<input class="rc-name" value="${esc(role.name)}" placeholder="Role name..." onchange="updateRoleName('${role.id}',this.value)"/><button class="rc-del" onclick="deleteRole('${role.id}')">✕</button>`;
+  card.appendChild(top);
+
+  // pie
+  const pa=document.createElement('div');pa.className='rc-pie-area';
+  if(role.duties.length){
+    normPct(role);
+    const canvas=document.createElement('canvas');canvas.className='pie-canvas';canvas.width=76;canvas.height=76;
+    pa.appendChild(canvas);drawPie(canvas,role);
+    canvas.addEventListener('click',e=>{
+      const rect=canvas.getBoundingClientRect();
+      const ang=Math.atan2(e.clientY-(rect.top+38),e.clientX-(rect.left+38));
+      const deg=((ang*180/Math.PI)+360+90)%360;let acc=0;
+      for(let i=0;i<role.duties.length;i++){const dId=role.duties[i],slice=(role.pct[dId]||0)/100*360;
+        if(deg>=acc&&deg<acc+slice){role.pct[dId]=((role.pct[dId]||0)+10)%110;normPct(role);saveAll();renderRoles();return;}acc+=slice;}
+    });
+    const leg=document.createElement('div');leg.className='pie-legend';
+    role.duties.forEach((dId,i)=>{
+      const d=S.duties.find(x=>x.id===dId);if(!d)return;
+      const row=document.createElement('div');row.className='pl-row';
+      row.innerHTML=`<div class="pl-dot" style="background:${COLORS[i%COLORS.length]}"></div><div class="pl-name">${esc(d.title)}</div><input class="pl-pct" type="number" min="0" max="100" value="${role.pct[dId]||0}"/>%`;
+      const inp=row.querySelector('input');
+      inp.addEventListener('change',()=>{role.pct[dId]=Math.max(0,Math.min(100,parseInt(inp.value)||0));saveAll();renderRoles();});
+      inp.addEventListener('click',e=>e.stopPropagation());
+      leg.appendChild(row);
+    });
+    const tot=role.duties.reduce((s,dId)=>s+(role.pct[dId]||0),0);
+    const tc=Math.abs(tot-100)<1?'var(--accent)':tot>100?'var(--red)':'var(--warm)';
+    const totRow=document.createElement('div');totRow.className='pie-total';totRow.innerHTML=`Total: <span style="color:${tc};font-weight:600">${tot}%</span>`;
+    leg.appendChild(totRow);
+    pa.appendChild(leg);
+  } else {
+    pa.innerHTML='<div class="pie-empty">Drop duties to set time allocation</div>';
+  }
+  card.appendChild(pa);
+
+  // RACI summary bars — one per person
+  if(people.length && role.duties.length){
+    people.forEach(person=>{
+      const pIdx=S.persons.indexOf(person);
+      const pColor=COLORS[pIdx%COLORS.length];
+      const counts=getPersonRaciCounts(person.id);
+      const raciSection=document.createElement('div');raciSection.style.cssText='padding:0 10px 4px;';
+      raciSection.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--textd);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:${pColor};display:inline-block;flex-shrink:0;"></span>RACI — ${esc(person.name.split(' ')[0])}</div>`;
+      const raciBar=document.createElement('div');raciBar.className='rc-raci-bar';raciBar.style.padding='0';
+      ['R','A','C','I'].forEach(v=>{
+        const btn=document.createElement('button');
+        btn.className=`rc-raci-pill rp-${v}`;btn.title=`${RACI_LABELS[v]}: ${counts[v]}`;
+        btn.innerHTML=`<span style="font-size:10px;">${v}</span><span style="font-size:11px;font-weight:700;">${counts[v]}</span>`;
+        btn.onclick=()=>openRaciEditor(role.id,person.id);
+        raciBar.appendChild(btn);
+      });
+      raciSection.appendChild(raciBar);
+      card.appendChild(raciSection);
+    });
+  }
+
+  // people zone — shows all assigned, drop to add more
+  const pz=document.createElement('div');pz.className='rc-pzone'+(people.length?' has-p':'');
+  pz.style.flexDirection='column';pz.style.alignItems='stretch';pz.style.gap='4px';pz.style.minHeight='36px';
+  const pzInner=document.createElement('div');pzInner.style.cssText='display:flex;flex-direction:column;gap:3px;';
+  people.forEach(person=>{
+    const pIdx=S.persons.indexOf(person);
+    const pColor=COLORS[pIdx%COLORS.length];
+    const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:6px;';
+    row.innerHTML=`<div class="rpz-av" style="background:${pColor}22;border:1.5px solid ${pColor}55;color:${pColor}">${ini(person.name)}</div><div class="rpz-name">${esc(person.name)}</div><button class="rpz-rm" onclick="unassignPersonFromRole('${role.id}','${person.id}')">✕</button>`;
+    pzInner.appendChild(row);
+  });
+  if(!people.length)pzInner.innerHTML=`<div class="rpz-ph">← drop people here (multiple allowed)</div>`;
+  else {
+    const addHint=document.createElement('div');addHint.style.cssText='font-size:9px;color:var(--textd);font-style:italic;padding:2px 0;';addHint.textContent='drop to add another person';pzInner.appendChild(addHint);
+  }
+  pz.appendChild(pzInner);
+  pz.addEventListener('dragover',e=>{if(dragData?.type==='person'){e.preventDefault();pz.classList.add('drop-hi');}});
+  pz.addEventListener('dragleave',()=>pz.classList.remove('drop-hi'));
+  pz.addEventListener('drop',e=>{
+    e.preventDefault();pz.classList.remove('drop-hi');
+    if(dragData?.type==='person'){
+      if((role.personIds||[]).includes(dragData.id)){toast('Already in this role');return;}
+      if(!role.personIds)role.personIds=[];
+      role.personIds.push(dragData.id);
+      saveAll();render();
+    }
+  });
+  card.appendChild(pz);
+
+  // duties — show RACI row per person in this role
+  const dz=document.createElement('div');dz.className='rc-duties';
+  role.duties.forEach(dId=>{
+    const d=S.duties.find(x=>x.id===dId);if(!d)return;
+    const tag=document.createElement('div');tag.className='duty-tag';tag.style.flexDirection='column';tag.style.alignItems='stretch';tag.style.gap='5px';
+    // duty name row
+    const nameRow=document.createElement('div');nameRow.style.cssText='display:flex;align-items:center;gap:4px;';
+    nameRow.innerHTML=`<div class="dt-name">${esc(d.title)}</div><button class="dt-rm" onclick="removeDutyFromRole('${role.id}','${dId}')">✕</button>`;
+    tag.appendChild(nameRow);
+    // RACI row per person
+    if(people.length){
+      people.forEach(person=>{
+        const pIdx=S.persons.indexOf(person);const pColor=COLORS[pIdx%COLORS.length];
+        const rVal=getRaci(dId,person.id);
+        const personRow=document.createElement('div');personRow.style.cssText='display:flex;align-items:center;gap:4px;';
+        const avEl=document.createElement('div');avEl.style.cssText=`width:14px;height:14px;border-radius:50%;background:${pColor}33;border:1px solid ${pColor}66;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:${pColor};flex-shrink:0;`;avEl.textContent=ini(person.name)[0];
+        personRow.appendChild(avEl);
+        ['R','A','C','I'].forEach(v=>{
+          const btn=document.createElement('button');
+          const isActive=rVal===v;
+          btn.style.cssText=`font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:pointer;transition:all .15s;border:1px solid ${isActive?'transparent':'rgba(255,255,255,.07)'};background:${isActive?RACI_BG[v]:'rgba(255,255,255,.02)'};color:${isActive?RACI_COLORS[v]:'rgba(223,240,232,.25)'};`;
+          btn.textContent=v;btn.title=`${person.name}: ${RACI_LABELS[v]}`;
+          btn.onclick=(e)=>{e.stopPropagation();setRaci(dId,person.id,isActive?'':v);saveAll();renderRoles();renderPersons();renderDuties();if(S.step===5)renderRaciMatrix();};
+          personRow.appendChild(btn);
+        });
+        const hint=document.createElement('span');hint.style.cssText='font-size:8px;color:rgba(223,240,232,.2);margin-left:1px;font-family:IBM Plex Mono,monospace;';
+        hint.textContent=rVal?RACI_LABELS[rVal]:'–';
+        personRow.appendChild(hint);
+        tag.appendChild(personRow);
+      });
+    } else {
+      const noP=document.createElement('div');noP.style.cssText='font-size:9px;color:rgba(223,240,232,.2);font-style:italic;font-family:IBM Plex Mono,monospace;';noP.textContent='assign people to set RACI';tag.appendChild(noP);
+    }
+    dz.appendChild(tag);
+  });
+  if(!role.duties.length)dz.innerHTML='<div class="dz-hint">← drag duties from the left</div>';
+  dz.addEventListener('dragover',e=>{if(dragData?.type==='duty'){e.preventDefault();card.classList.add('drop-hi');}});
+  dz.addEventListener('dragleave',()=>card.classList.remove('drop-hi'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();card.classList.remove('drop-hi');
+    if(dragData?.type==='duty'){
+      if(role.duties.includes(dragData.id)){toast('Already in this role');return;}
+      role.duties.push(dragData.id);
+      if(!role.pct)role.pct={};
+      const n=role.duties.length;role.duties.forEach(dId=>role.pct[dId]=Math.floor(100/n));
+      saveAll();renderRoles();
+    }
+  });
+  card.appendChild(dz);
+
+  // footer
+  const ft=document.createElement('div');ft.className='rc-foot';
+  ft.innerHTML=`<div style="font-size:9px;color:var(--textd);font-family:'IBM Plex Mono',monospace;">${people.length} ${people.length===1?'person':'people'}</div><div class="title-badge ${ttl?'tb-set':'tb-empty'}" onclick="openTitlePicker('${role.id}')">${ttl?esc(ttl.name):'+ assign title'}</div>`;
+  card.appendChild(ft);
+  return card;
+}
 
   // header
   const top=document.createElement('div');top.className='rc-top';
@@ -702,49 +1020,7 @@ function buildRoleCard(role){
     card.appendChild(raciSection);
   }
 
-  // person zone
-  const pz=document.createElement('div');pz.className='rc-pzone'+(person?' has-p':'');
-  pz.innerHTML=person
-    ?`<div class="rpz-av" style="background:${pColor}22;border:1.5px solid ${pColor}55;color:${pColor}">${ini(person.name)}</div><div class="rpz-name">${esc(person.name)}</div><button class="rpz-rm" onclick="unassignPerson('${role.id}')">✕</button>`
-    :`<div class="rpz-ph">← drop a team member here</div>`;
-  pz.addEventListener('dragover',e=>{if(dragData?.type==='person'){e.preventDefault();pz.classList.add('drop-hi');}});
-  pz.addEventListener('dragleave',()=>pz.classList.remove('drop-hi'));
-  pz.addEventListener('drop',e=>{e.preventDefault();pz.classList.remove('drop-hi');if(dragData?.type==='person'){role.personId=dragData.id;saveAll();render();}});
-  card.appendChild(pz);
 
-  // duties
-  const dz=document.createElement('div');dz.className='rc-duties';
-  role.duties.forEach(dId=>{
-    const d=S.duties.find(x=>x.id===dId);if(!d)return;
-    const rVal=role.personId?getRaci(dId,role.personId):'';
-    const tag=document.createElement('div');tag.className='duty-tag';tag.style.flexDirection='column';tag.style.alignItems='stretch';tag.style.gap='5px';
-    // duty name row
-    const nameRow=document.createElement('div');nameRow.style.cssText='display:flex;align-items:center;gap:4px;';
-    nameRow.innerHTML=`<div class="dt-name">${esc(d.title)}</div><button class="dt-rm" onclick="removeDutyFromRole('${role.id}','${dId}')">✕</button>`;
-    tag.appendChild(nameRow);
-    // RACI row — always show if person assigned, prompt if not
-    const raciRow=document.createElement('div');raciRow.style.cssText='display:flex;align-items:center;gap:4px;';
-    if(role.personId){
-      // 4 clickable RACI buttons — highlight active one
-      ['R','A','C','I'].forEach(v=>{
-        const btn=document.createElement('button');
-        const isActive=rVal===v;
-        btn.style.cssText=`font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:pointer;transition:all .15s;border:1px solid ${isActive?'transparent':'rgba(255,255,255,.08)'};background:${isActive?RACI_BG[v]:'rgba(255,255,255,.03)'};color:${isActive?RACI_COLORS[v]:'rgba(223,240,232,.3)'};`;
-        btn.textContent=v;
-        btn.title=RACI_LABELS[v];
-        btn.onclick=(e)=>{e.stopPropagation();setRaci(dId,role.personId,isActive?'':v);saveAll();renderRoles();renderPersons();renderDuties();if(S.step===5)renderRaciMatrix();};
-        raciRow.appendChild(btn);
-      });
-      const hint=document.createElement('span');hint.style.cssText='font-size:8px;color:rgba(223,240,232,.25);margin-left:2px;font-family:IBM Plex Mono,monospace;';
-      hint.textContent=rVal?RACI_LABELS[rVal]:'click to assign';
-      raciRow.appendChild(hint);
-    } else {
-      raciRow.innerHTML=`<span style="font-size:9px;color:rgba(223,240,232,.25);font-style:italic;font-family:'IBM Plex Mono',monospace;">assign person first to set RACI</span>`;
-    }
-    tag.appendChild(raciRow);
-    dz.appendChild(tag);
-  });
-  if(!role.duties.length)dz.innerHTML='<div class="dz-hint">← drag duties from the left</div>';
   dz.addEventListener('dragover',e=>{if(dragData?.type==='duty'){e.preventDefault();card.classList.add('drop-hi');}});
   dz.addEventListener('dragleave',()=>card.classList.remove('drop-hi'));
   dz.addEventListener('drop',e=>{
@@ -881,17 +1157,23 @@ function renderOrg(){
   const canvas=document.getElementById('orgPanel');
   canvas.querySelectorAll('.bubble').forEach(el=>el.remove());
   document.getElementById('edgeGroup').innerHTML='';
-  const hasRoles=S.roles.some(r=>r.personId);
+  const hasRoles=S.roles.some(r=>(r.personIds||[]).length>0);
   document.getElementById('orgEmptyMsg').style.display=hasRoles?'none':'flex';
   const W=Math.max(canvas.clientWidth,canvas.offsetWidth,600);
   const H=Math.max(canvas.clientHeight,canvas.offsetHeight,400);
+  // sync nodes — one per person per role
   S.roles.forEach(r=>{
-    if(!r.personId)return;
-    if(!S.nodes.find(n=>n.roleId===r.id))S.nodes.push({id:uid(),roleId:r.id,x:60+Math.random()*(W-320),y:60+Math.random()*(H-160)});
+    if(!r.personIds)r.personIds=r.personId?[r.personId]:[];
+    (r.personIds||[]).forEach(pId=>{
+      if(!S.nodes.find(n=>n.roleId===r.id&&n.personId===pId))
+        S.nodes.push({id:uid(),roleId:r.id,personId:pId,x:60+Math.random()*(W-320),y:60+Math.random()*(H-160)});
+    });
   });
-  S.nodes=S.nodes.filter(n=>S.roles.find(r=>r.id===n.roleId&&r.personId));
+  S.nodes=S.nodes.filter(n=>{
+    const r=S.roles.find(x=>x.id===n.roleId);
+    return r&&(r.personIds||[]).includes(n.personId);
+  });
   S.edges=S.edges.filter(e=>S.nodes.find(n=>n.id===e.from)&&S.nodes.find(n=>n.id===e.to));
-  // sanitize
   S.nodes.forEach(node=>{if(node.x<-10||node.y<-10||node.x>W+200||node.y>H+200){node.x=60+Math.random()*(W-320);node.y=60+Math.random()*(H-160);}});
   saveAll();
   // edges
@@ -904,10 +1186,10 @@ function renderOrg(){
     if(orgMode!=='deleteEdge')path.setAttribute('marker-end','url(#arr)');
     document.getElementById('edgeGroup').appendChild(path);
   });
-  // bubbles
+  // bubbles — one per node (person+role combo)
   S.nodes.forEach(node=>{
     const role=S.roles.find(r=>r.id===node.roleId);if(!role)return;
-    const person=S.persons.find(p=>p.id===role.personId);if(!person)return;
+    const person=S.persons.find(p=>p.id===node.personId);if(!person)return;
     const pIdx=S.persons.indexOf(person),color=COLORS[pIdx%COLORS.length];
     const ttl=role.titleId?S.titles.find(t=>t.id===role.titleId):null;
     const counts=getPersonRaciCounts(person.id);
@@ -997,7 +1279,7 @@ function renderOrgsGrid(){
     const dutyCount=d.duties?.length||0;
     const personCount=d.persons?.length||0;
     const roleCount=d.roles?.length||0;
-    const placedCount=d.roles?.filter(r=>r.personId)?.length||0;
+    const placedCount=d.roles?.filter(r=>(r.personIds||[]).length>0)?.length||0;
     const edgeCount=d.edges?.length||0;
     const step=d.step||1;
     // RACI totals
@@ -1137,11 +1419,31 @@ function hintAction(){
 
 // ── ACTIONS ───────────────────────────────────────────────────────────────────
 function updateRoleName(id,n){const r=S.roles.find(x=>x.id===id);if(r){r.name=n;saveAll();}}
-function unassignPerson(roleId){const r=S.roles.find(x=>x.id===roleId);if(r){r.personId=null;saveAll();render();}}
+
+// Migrate old single personId → personIds array
+function migrateRoles(){
+  S.roles.forEach(r=>{
+    if(!r.personIds){
+      r.personIds = r.personId ? [r.personId] : [];
+      delete r.personId;
+    }
+  });
+}
+
+function unassignPersonFromRole(roleId, personId){
+  const r=S.roles.find(x=>x.id===roleId);
+  if(r){r.personIds=(r.personIds||[]).filter(id=>id!==personId);saveAll();render();}
+}
 function removeDutyFromRole(rId,dId){const r=S.roles.find(x=>x.id===rId);if(r){r.duties=r.duties.filter(d=>d!==dId);if(r.pct)delete r.pct[dId];normPct(r);}saveAll();renderRoles();renderDuties();}
 function deleteRole(id){S.roles=S.roles.filter(r=>r.id!==id);S.nodes=S.nodes.filter(n=>n.roleId!==id);saveAll();render();}
 function removeDuty(id){S.duties=S.duties.filter(d=>d.id!==id);S.roles.forEach(r=>{r.duties=r.duties.filter(d=>d!==id);if(r.pct)delete r.pct[id];});if(S.raci)delete S.raci[id];saveAll();render();}
-function removePerson(id){S.persons=S.persons.filter(p=>p.id!==id);S.roles.forEach(r=>{if(r.personId===id)r.personId=null;});S.nodes=S.nodes.filter(n=>{const r=S.roles.find(x=>x.id===n.roleId);return r&&r.personId;});if(S.raci)Object.values(S.raci).forEach(d=>delete d[id]);saveAll();render();}
+function removePerson(id){
+  S.persons=S.persons.filter(p=>p.id!==id);
+  S.roles.forEach(r=>{r.personIds=(r.personIds||[]).filter(pid=>pid!==id);});
+  S.nodes=S.nodes.filter(n=>{const r=S.roles.find(x=>x.id===n.roleId);return r&&(r.personIds||[]).length>0;});
+  if(S.raci)Object.values(S.raci).forEach(d=>delete d[id]);
+  saveAll();render();
+}
 function removeTitle(id){S.titles=S.titles.filter(t=>t.id!==id);S.roles.forEach(r=>{if(r.titleId===id)r.titleId=null;});saveAll();render();}
 function assignTitle(roleId,titleId){const r=S.roles.find(x=>x.id===roleId);if(r){r.titleId=titleId;saveAll();render();}closeModal();}
 
@@ -1168,9 +1470,16 @@ function openTitlePicker(roleId){
 function confirmModal(){
   if(mMode==='addDuty'){const t=document.getElementById('mi1')?.value.trim();if(!t)return;S.duties.push({id:uid(),title:t,desc:document.getElementById('mi2')?.value.trim()||''});}
   else if(mMode==='addPerson'){const n=document.getElementById('mi1')?.value.trim();if(!n)return;S.persons.push({id:uid(),name:n});}
-  else if(mMode==='addRole'){const n=document.getElementById('mi1')?.value.trim()||'New Role';S.roles.push({id:uid(),name:n,personId:null,duties:[],pct:{},titleId:null});toast('Role created — drag duties and a person onto it');}
+  else if(mMode==='addRole'){const n=document.getElementById('mi1')?.value.trim()||'New Role';S.roles.push({id:uid(),name:n,personIds:[],duties:[],pct:{},titleId:null});toast('Role created — drag duties and people onto it');}
   else if(mMode==='addTitle'){const n=document.getElementById('mi1')?.value.trim();if(!n)return;S.titles.push({id:uid(),name:n});}
   else if(mMode==='addChart'){const n=document.getElementById('mi1')?.value.trim();if(!n)return;const c=newChartData(n);ALL.charts.push(c);switchChart(c.id);closeModal();return;}
+  else if(mMode==='syncSetup'){
+    const name=document.getElementById('mi1')?.value.trim();
+    const url=document.getElementById('mi2')?.value.trim();
+    if(name){currentUser=name;localStorage.setItem('ra_userName',name);}
+    if(url&&url.startsWith('https://')){localStorage.setItem('ra_gasUrl',url);location.reload();return;}
+    closeModal();return;
+  }
   saveAll();render();closeModal();
 }
 document.addEventListener('keydown',e=>{
@@ -1205,7 +1514,18 @@ function seed(){
   saveAll();
 }
 
-loadAll();seed();render();renderSteps();renderChartTabs();
+loadAll();migrateRoles();seed();render();renderSteps();renderChartTabs();
+ensureIdentity();
+if(GAS_URL){
+  // initial pull from cloud
+  pollCloud().then(()=>{setSyncStatus('live');});
+  // poll every 4s for changes from other users
+  pollInterval=setInterval(pollCloud, 4000);
+  // heartbeat every 20s so teammates can see you're active
+  setInterval(heartbeat, 20000);
+} else {
+  setSyncStatus('nourl');
+}
 </script>
 </body>
 </html>
