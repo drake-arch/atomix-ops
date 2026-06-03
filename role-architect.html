@@ -1,3 +1,34 @@
+<!--
+  Role Architect — Atomix
+  ========================
+  Repository : https://github.com/drake-arch/atomix-ops
+  File       : role-architect.html
+  Backend    : Google Apps Script + Google Sheets
+  Sheet ID   : 1LguI4rbvyOdZoPVVnz4MdHzhNhOqmb5MXVm4QKP7VV4
+
+  HOW IT WORKS
+  ------------
+  This file is the UI only. All data is persisted to the Google Sheet above
+  via Apps Script (Code.gs). This file must be hosted inside the paired
+  Apps Script project as an HTML file named "index" for google.script.run
+  to function. GitHub is the source of truth for the code — Apps Script
+  is the runtime.
+
+  TO DEPLOY A CHANGE
+  ------------------
+  1. Edit this file and commit to main in the repo above.
+  2. Open the paired Apps Script project:
+       https://script.google.com (find project "Role Architect — Atomix")
+  3. Open the "index" HTML file in the editor.
+  4. Select all, delete, paste the updated contents of this file.
+  5. Save, then Deploy → Manage Deployments → create new version.
+
+  DEPENDENCIES
+  ------------
+  - Code.gs must be present in the same Apps Script project.
+  - The Apps Script must have access to the Sheet (same Google account or shared).
+  - The Sheet tab must be named "Charts" (created automatically on first run).
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,8 +109,7 @@ header{display:flex;align-items:center;gap:12px;padding:0 16px;height:52px;backg
 /* DUTY CHIP */
 .duty-chip{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:grab;transition:all .2s;position:relative;animation:chipIn .2s ease;}
 @keyframes chipIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-.duty-chip.used{opacity:.38;border-style:dashed;cursor:default;}
-.duty-chip:not(.used):hover{border-color:var(--adim);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3);}
+.duty-chip:hover{border-color:var(--adim);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3);}
 .duty-chip.dragging{opacity:.25;transform:scale(.95);}
 .dc-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;padding-right:16px;}
 .dc-desc{font-size:10px;color:var(--textd);line-height:1.3;}
@@ -92,7 +122,7 @@ header{display:flex;align-items:center;gap:12px;padding:0 16px;height:52px;backg
 .rb-C{background:rgba(91,157,239,.15);color:var(--rC);}
 .rb-I{background:rgba(181,123,239,.15);color:var(--rI);}
 .chip-del{position:absolute;top:5px;right:5px;display:none;width:16px;height:16px;border-radius:3px;border:none;background:rgba(255,107,107,.15);color:var(--red);font-size:10px;cursor:pointer;align-items:center;justify-content:center;}
-.duty-chip:not(.used):hover .chip-del{display:flex;}
+.duty-chip:hover .chip-del{display:flex;}
 
 /* PERSON CHIP */
 .person-chip{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 10px;cursor:grab;transition:all .2s;display:flex;flex-direction:column;gap:4px;position:relative;animation:chipIn .2s ease;}
@@ -240,6 +270,22 @@ table.raci-table{border-collapse:collapse;width:100%;min-width:600px;}
 .rph-summary{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:2px;}
 .rph-pill{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;padding:1px 4px;border-radius:3px;}
 .raci-empty{text-align:center;padding:48px 24px;font-size:12px;color:var(--textd);font-style:italic;line-height:1.8;}
+.raci-person-hdr{cursor:pointer;border-radius:8px;padding:4px;transition:background .15s;}
+.raci-person-hdr:hover{background:var(--aglow);}
+.person-detail-panel{background:var(--navy3);border:1px solid var(--border2);border-radius:12px;padding:16px 20px;margin-bottom:18px;animation:chipIn .2s ease;display:flex;flex-direction:column;gap:12px;}
+.pdp-header{display:flex;align-items:center;gap:12px;}
+.pdp-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;flex-shrink:0;}
+.pdp-info{flex:1;}
+.pdp-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);}
+.pdp-meta{font-size:10px;color:var(--textd);margin-top:2px;}
+.pdp-close{background:none;border:none;color:var(--textd);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;transition:color .15s;}
+.pdp-close:hover{color:var(--red);}
+.pdp-raci-row{display:flex;gap:8px;flex-wrap:wrap;}
+.pdp-raci-block{flex:1;min-width:120px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:8px 10px;}
+.pdp-raci-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.pdp-duty-item{font-size:10px;color:var(--textm);padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.pdp-duty-item:last-child{border-bottom:none;}
+.pdp-empty{font-size:10px;color:var(--textd);font-style:italic;}
 
 /* MY ORGS LIBRARY */
 .orgs-overlay{position:fixed;inset:0;background:rgba(11,22,34,.96);backdrop-filter:blur(12px);z-index:500;display:none;flex-direction:column;animation:fadeIn .18s;}
@@ -345,12 +391,6 @@ table.raci-table{border-collapse:collapse;width:100%;min-width:600px;}
     <div class="step" onclick="goStep(5)" data-step="5"><div class="step-num">5</div><div class="step-label">RACI Matrix</div></div>
   </div>
   <div class="hdr-right">
-    <div id="syncStatus" style="display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--textd);flex-shrink:0;">
-      <div id="syncDot" style="width:7px;height:7px;border-radius:50%;background:var(--textd);flex-shrink:0;transition:background .3s;"></div>
-      <span id="syncLabel">local</span>
-    </div>
-    <div id="presenceBar" style="display:flex;gap:4px;align-items:center;"></div>
-    <button class="btn" onclick="openSyncSetup()" style="display:flex;align-items:center;gap:4px;" title="Configure cloud sync">⚙ Sync</button>
     <button class="btn btn-warm" onclick="openOrgsLibrary()" style="display:flex;align-items:center;gap:5px;">📁 My Orgs</button>
     <button class="btn" onclick="exportJSON()">Export</button>
     <button class="btn" onclick="clearAll()">Reset</button>
@@ -506,204 +546,104 @@ const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&g
 const uid=()=>'_'+Math.random().toString(36).slice(2,9);
 const ini=n=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 
-// ── CLOUD SYNC CONFIG ─────────────────────────────────────────────────────────
-// Paste your deployed Google Apps Script Web App URL here:
-const GAS_URL = localStorage.getItem('ra_gasUrl') || '';
-let serverVersion = 0;
-let syncPending = false;
-let syncTimeout = null;
-let currentUser = localStorage.getItem('ra_userName') || '';
-let pollInterval = null;
-
-// Ask for user name and GAS URL on first load
-function ensureIdentity(){
-  if(!currentUser){
-    const name = prompt('Your name (so teammates can see who\'s editing):','e.g. Drake');
-    if(name && name.trim()){
-      currentUser = name.trim();
-      localStorage.setItem('ra_userName', currentUser);
-    }
-  }
-  if(!GAS_URL){
-    const url = prompt(
-      'Paste your Google Apps Script Web App URL to enable live sync.\n\n'+
-      'Skip (Cancel) to work locally only — you can add it later in the sync menu.',
-      ''
-    );
-    if(url && url.trim().startsWith('https://')){
-      localStorage.setItem('ra_gasUrl', url.trim());
-      location.reload();
-    }
-  }
-}
-
-function setSyncStatus(status){
-  const dot = document.getElementById('syncDot');
-  const lbl = document.getElementById('syncLabel');
-  if(!dot||!lbl)return;
-  const states = {
-    local:  {color:'var(--textd)',  text:'local only'},
-    syncing:{color:'var(--warm)',   text:'syncing…'},
-    live:   {color:'var(--accent)', text:'live ✓'},
-    error:  {color:'var(--red)',    text:'sync error'},
-    nourl:  {color:'var(--textd)',  text:'local — add URL to sync'},
-  };
-  const s = states[status]||states.local;
-  dot.style.background = s.color;
-  lbl.textContent = s.text;
-}
-
 // ── MULTI-CHART STATE ─────────────────────────────────────────────────────────
+// charts: [{id, name, data:{duties,persons,roles,titles,nodes,edges,step,raci}}]
+// raci: { [dutyId]: { [personId]: 'R'|'A'|'C'|'I'|'' } }
 let ALL = { charts:[], activeChartId:null };
-let S = {};
+let S = {}; // current chart data — reference into ALL.charts[x].data
 
 function newChartData(name){
   return {id:uid(),name,data:{duties:[],persons:[],roles:[],titles:[],nodes:[],edges:[],step:1,raci:{}}};
 }
+// ── SAVE / LOAD  (Google Apps Script backend) ─────────────────────────────────
+// saveAll() is debounced: rapid interactions (dragging, clicking RACI cells)
+// queue a single Sheets write 800 ms after the last mutation.
 
-// Write local + push to cloud (debounced 800ms)
-function saveAll(){
-  ALL.charts.find(c=>c.id===ALL.activeChartId).data = S;
-  localStorage.setItem('ra_v6', JSON.stringify(ALL));
-  if(!GAS_URL){setSyncStatus('nourl');return;}
-  clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(pushToCloud, 800);
+let _saveTimer = null;
+
+function saveAll() {
+  // Always keep the in-memory ALL up to date immediately
+  ALL.charts.find(c => c.id === ALL.activeChartId).data = S;
+
+  // Debounce the actual Sheets write
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(_flushToSheets, 800);
 }
 
-function loadAll(){
-  try{const r=localStorage.getItem('ra_v6');if(r)ALL=JSON.parse(r);}catch(e){}
-  if(!ALL.charts||!ALL.charts.length){
-    const c=newChartData('Main Org');ALL.charts=[c];ALL.activeChartId=c.id;
+function _flushToSheets() {
+  const snapshot = JSON.parse(JSON.stringify(ALL)); // deep copy for the async call
+  google.script.run
+    .withFailureHandler(err => toast('⚠ Save failed: ' + err.message))
+    .saveAllCharts(snapshot);
+}
+
+// Force an immediate (non-debounced) save — used before tab switches, etc.
+function saveAllNow(callback) {
+  clearTimeout(_saveTimer);
+  ALL.charts.find(c => c.id === ALL.activeChartId).data = S;
+  google.script.run
+    .withSuccessHandler(callback || function(){})
+    .withFailureHandler(err => toast('⚠ Save failed: ' + err.message))
+    .saveAllCharts(JSON.parse(JSON.stringify(ALL)));
+}
+
+function loadAll() {
+  // loadAll is called once at startup; it blocks rendering until data arrives.
+  // The actual async call is in _initApp() below — this is a no-op placeholder
+  // so the existing call site at the bottom of the script still compiles.
+}
+
+function _initApp(allObj) {
+  // Called by the google.script.run success handler with data from Sheets
+  if (allObj && allObj.charts && allObj.charts.length) {
+    ALL = allObj;
+  } else {
+    // First run — no data in Sheets yet; create a default chart
+    const c = newChartData('Main Org');
+    ALL = { charts: [c], activeChartId: c.id };
   }
-  if(!ALL.charts.find(c=>c.id===ALL.activeChartId))ALL.activeChartId=ALL.charts[0].id;
-  S=ALL.charts.find(c=>c.id===ALL.activeChartId).data;
-  if(!S.raci)S.raci={};
-}
 
+  if (!ALL.charts.find(c => c.id === ALL.activeChartId)) {
+    ALL.activeChartId = ALL.charts[0].id;
+  }
+
+  S = ALL.charts.find(c => c.id === ALL.activeChartId).data;
+  if (!S.raci) S.raci = {};
+
+  seed();
+  render();
+  renderSteps();
+  renderChartTabs();
+
+  // Show the spreadsheet link in the header (optional quality-of-life)
+  google.script.run
+    .withSuccessHandler(url => {
+      if (url) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.title = 'Open backing spreadsheet';
+        a.style.cssText = 'font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--textd);text-decoration:none;padding:4px 8px;border:1px solid var(--border);border-radius:5px;transition:all .2s;';
+        a.textContent = '⊞ Sheets';
+        a.onmouseover = () => { a.style.borderColor = 'var(--adim)'; a.style.color = 'var(--accent)'; };
+        a.onmouseout  = () => { a.style.borderColor = 'var(--border)'; a.style.color = 'var(--textd)'; };
+        document.querySelector('.hdr-right').prepend(a);
+      }
+    })
+    .getSpreadsheetUrl();
+}
 function switchChart(id){
   ALL.charts.find(c=>c.id===ALL.activeChartId).data=S;
   ALL.activeChartId=id;
   S=ALL.charts.find(c=>c.id===id).data;
   if(!S.raci)S.raci={};
+  // reset bad nodes
   if(S.nodes&&S.nodes.some(n=>n.x>600||n.y>500))S.nodes=S.nodes.map(n=>({...n,x:-9999,y:-9999}));
-  localStorage.setItem('ra_v6',JSON.stringify(ALL));
+  saveAll();
   renderChartTabs();renderSteps();render();
   if(S.step===4)requestAnimationFrame(()=>requestAnimationFrame(renderOrg));
   if(S.step===5)renderRaciMatrix();
 }
-
-// ── CLOUD PUSH ────────────────────────────────────────────────────────────────
-async function pushToCloud(){
-  if(!GAS_URL||syncPending)return;
-  syncPending=true;setSyncStatus('syncing');
-  try{
-    const res=await fetch(GAS_URL,{
-      method:'POST',
-      body:JSON.stringify({action:'save',data:ALL}),
-    });
-    const json=await res.json();
-    if(json.ok){serverVersion=json.version;setSyncStatus('live');}
-    else{setSyncStatus('error');console.warn('Sync error:',json.error);}
-  }catch(e){setSyncStatus('error');console.warn('Push failed:',e);}
-  syncPending=false;
-}
-
-// ── CLOUD POLL (every 4s) ─────────────────────────────────────────────────────
-async function pollCloud(){
-  if(!GAS_URL||syncPending)return;
-  try{
-    const res=await fetch(GAS_URL+'?action=get&_='+Date.now());
-    const json=await res.json();
-    if(!json.ok||!json.data)return;
-    if(json.version>serverVersion){
-      serverVersion=json.version;
-      const remote=json.data;
-      mergeRemote(remote);
-    }
-    setSyncStatus('live');
-    renderPresence(json.data);
-  }catch(e){
-    setSyncStatus('error');
-  }
-}
-
-// Merge: remote wins on charts, preserve local activeChartId if still valid
-function mergeRemote(remote){
-  if(!remote||!remote.charts)return;
-  // merge charts by id — remote content wins, but keep any local-only charts
-  const merged=[];
-  remote.charts.forEach(rc=>{
-    const local=ALL.charts.find(c=>c.id===rc.id);
-    // keep node positions from local (they're per-session UI state)
-    if(local){
-      rc.data.nodes=local.data.nodes; // preserve local drag positions
-    }
-    merged.push(rc);
-  });
-  // add any local charts not on server yet
-  ALL.charts.forEach(lc=>{
-    if(!merged.find(c=>c.id===lc.id))merged.push(lc);
-  });
-  ALL.charts=merged;
-  if(!ALL.charts.find(c=>c.id===ALL.activeChartId))ALL.activeChartId=ALL.charts[0].id;
-  S=ALL.charts.find(c=>c.id===ALL.activeChartId).data;
-  if(!S.raci)S.raci={};
-  localStorage.setItem('ra_v6',JSON.stringify(ALL));
-  render();renderChartTabs();renderSteps();
-  if(S.step===4)requestAnimationFrame(()=>requestAnimationFrame(renderOrg));
-  if(S.step===5)renderRaciMatrix();
-  if(document.getElementById('orgsOverlay')?.classList.contains('open'))renderOrgsGrid();
-}
-
-// ── PRESENCE (show who else is active) ───────────────────────────────────────
-// We piggyback a lightweight presence on the chart objects (lastSeen, editingBy)
-function renderPresence(remoteData){
-  const bar=document.getElementById('presenceBar');if(!bar)return;
-  // count unique editors seen in last 30s across all charts
-  const now=Date.now();const active=new Set();
-  (remoteData?.charts||[]).forEach(c=>{
-    (c.data?.presence||[]).forEach(p=>{
-      if(p.name&&p.name!==currentUser&&(now-p.ts)<30000)active.add(p.name);
-    });
-  });
-  bar.innerHTML=[...active].map(name=>
-    `<div title="${name} is active" style="width:22px;height:22px;border-radius:50%;background:var(--navy3);border:1.5px solid var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:8px;font-weight:700;color:var(--accent);">${ini(name)}</div>`
-  ).join('');
-}
-
-function heartbeat(){
-  if(!currentUser||!GAS_URL)return;
-  const now=Date.now();
-  ALL.charts.forEach(c=>{
-    if(!c.data.presence)c.data.presence=[];
-    c.data.presence=c.data.presence.filter(p=>now-p.ts<60000);
-    const me=c.data.presence.find(p=>p.name===currentUser);
-    if(me)me.ts=now;else c.data.presence.push({name:currentUser,ts:now});
-  });
-  pushToCloud();
-}
-
-// ── SYNC SETUP UI ─────────────────────────────────────────────────────────────
-function openSyncSetup(){
-  const cur=localStorage.getItem('ra_gasUrl')||'';
-  const curName=localStorage.getItem('ra_userName')||'';
-  openModal('Cloud Sync Setup',`
-    <div style="font-size:11px;color:var(--textd);line-height:1.7;margin-bottom:14px;">
-      To sync across Kody, Hugh, Emyly and the rest of the team, deploy the Google Apps Script backend and paste the URL below.
-      <br><br>
-      <b style="color:var(--textm)">Steps:</b><br>
-      1. Go to <a href="https://script.google.com" target="_blank" style="color:var(--accent)">script.google.com</a> → New Project<br>
-      2. Paste the Apps Script code (use the .gs file from this session)<br>
-      3. Deploy → New Deployment → Web App<br>
-      4. Execute as: <b>Me</b> · Access: <b>Anyone</b><br>
-      5. Copy the Web App URL and paste below
-    </div>
-    <div class="field"><label>Your Name</label><input id="mi1" value="${esc(curName)}" placeholder="e.g. Drake"/></div>
-    <div class="field"><label>Apps Script Web App URL</label><input id="mi2" value="${esc(cur)}" placeholder="https://script.google.com/macros/s/…/exec"/></div>
-  `,'syncSetup');
-}
-
-
 
 // ── DRAG ──────────────────────────────────────────────────────────────────────
 let dragData=null;
@@ -745,15 +685,18 @@ function renderDuties(){
   const l=document.getElementById('dutiesList');l.innerHTML='';
   if(!S.duties.length){l.innerHTML='<div class="empty-msg">No duties yet.<br>Click + to add.</div>';return;}
   S.duties.forEach(d=>{
-    const usedIn=S.roles.find(r=>r.duties.includes(d.id));
+    const usedInRoles=S.roles.filter(r=>r.duties.includes(d.id));
     const raciSummary=getDutyRaciSummary(d.id);
-    const el=document.createElement('div');el.className='duty-chip'+(usedIn?' used':'');el.draggable=!usedIn;
+    const el=document.createElement('div');el.className='duty-chip';el.draggable=true;
     const raci=['R','A','C','I'].map(v=>{const entries=raciSummary.filter(x=>x.val===v);return entries.length?`<span class="raci-badge rb-${v}">${v}:${entries.length}</span>`:''}).join('');
+    const usedLabel=usedInRoles.length
+      ?`<div class="dc-used">→ ${usedInRoles.map(r=>esc(r.name)).join(', ')}</div>`:'';
     el.innerHTML=`<div class="dc-title">${esc(d.title)}</div>${d.desc?`<div class="dc-desc">${esc(d.desc)}</div>`:''}`
-      +(usedIn?`<div class="dc-used">→ ${esc(usedIn.name)}</div>`:'')
+      +usedLabel
       +(raci?`<div class="dc-raci">${raci}</div>`:'')
       +`<button class="chip-del" onclick="removeDuty('${d.id}')">✕</button>`;
-    if(!usedIn){el.addEventListener('dragstart',e=>startDrag(e,'duty',d.id,d.title));el.addEventListener('dragend',endDrag);}
+    el.addEventListener('dragstart',e=>startDrag(e,'duty',d.id,d.title));
+    el.addEventListener('dragend',endDrag);
     l.appendChild(el);
   });
 }
@@ -762,20 +705,16 @@ function renderPersons(){
   const l=document.getElementById('personList');l.innerHTML='';
   if(!S.persons.length){l.innerHTML='<div class="empty-msg">No team yet.<br>Click + to add names.</div>';return;}
   S.persons.forEach((p,i)=>{
-    const rolesIn=S.roles.filter(r=>(r.personIds||[]).includes(p.id));
+    const placedIn=S.roles.find(r=>r.personId===p.id);
     const color=COLORS[i%COLORS.length];
     const counts=getPersonRaciCounts(p.id);
-    const el=document.createElement('div');
-    // person is "placed" only if they have at least one role — but can still be dragged to MORE roles
-    el.className='person-chip';el.draggable=true;
+    const el=document.createElement('div');el.className='person-chip'+(placedIn?' placed':'');el.draggable=!placedIn;
     const raciSummary=['R','A','C','I'].filter(v=>counts[v]>0).map(v=>
       `<span class="pc-raci-item" style="color:${RACI_COLORS[v]}"><span style="font-weight:700">${v}</span>${counts[v]}</span>`).join('');
-    const roleNames=rolesIn.map(r=>`<span style="font-size:9px;color:var(--adim);font-style:italic;">${esc(r.name)}</span>`).join(', ');
-    el.innerHTML=`<div class="pc-top"><div class="p-av" style="background:${color}22;border:1.5px solid ${color}55;color:${color}">${ini(p.name)}</div><div><div class="p-name">${esc(p.name)}</div>${rolesIn.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:1px;">${roleNames}</div>`:''}</div></div>`
+    el.innerHTML=`<div class="pc-top"><div class="p-av" style="background:${color}22;border:1.5px solid ${color}55;color:${color}">${ini(p.name)}</div><div><div class="p-name">${esc(p.name)}</div>${placedIn?`<div class="p-role">${esc(placedIn.name)}</div>`:''}</div></div>`
       +(raciSummary?`<div class="pc-raci">${raciSummary}</div>`:'')
       +`<button class="p-del" onclick="removePerson('${p.id}')">✕</button>`;
-    el.addEventListener('dragstart',e=>startDrag(e,'person',p.id,p.name));
-    el.addEventListener('dragend',endDrag);
+    if(!placedIn){el.addEventListener('dragstart',e=>startDrag(e,'person',p.id,p.name));el.addEventListener('dragend',endDrag);}
     l.appendChild(el);
   });
 }
@@ -815,155 +754,11 @@ function drawPie(canvas,role){
 }
 
 function buildRoleCard(role){
-  if(!role.personIds)role.personIds=role.personId?[role.personId]:[];
-  const people=role.personIds.map(id=>S.persons.find(p=>p.id===id)).filter(Boolean);
+  const person=role.personId?S.persons.find(p=>p.id===role.personId):null;
   const ttl=role.titleId?S.titles.find(t=>t.id===role.titleId):null;
+  const pIdx=person?S.persons.indexOf(person):-1;
+  const pColor=pIdx>=0?COLORS[pIdx%COLORS.length]:null;
   const card=document.createElement('div');card.className='role-card';card.dataset.roleId=role.id;
-
-  // header
-  const top=document.createElement('div');top.className='rc-top';
-  top.innerHTML=`<input class="rc-name" value="${esc(role.name)}" placeholder="Role name..." onchange="updateRoleName('${role.id}',this.value)"/><button class="rc-del" onclick="deleteRole('${role.id}')">✕</button>`;
-  card.appendChild(top);
-
-  // pie
-  const pa=document.createElement('div');pa.className='rc-pie-area';
-  if(role.duties.length){
-    normPct(role);
-    const canvas=document.createElement('canvas');canvas.className='pie-canvas';canvas.width=76;canvas.height=76;
-    pa.appendChild(canvas);drawPie(canvas,role);
-    canvas.addEventListener('click',e=>{
-      const rect=canvas.getBoundingClientRect();
-      const ang=Math.atan2(e.clientY-(rect.top+38),e.clientX-(rect.left+38));
-      const deg=((ang*180/Math.PI)+360+90)%360;let acc=0;
-      for(let i=0;i<role.duties.length;i++){const dId=role.duties[i],slice=(role.pct[dId]||0)/100*360;
-        if(deg>=acc&&deg<acc+slice){role.pct[dId]=((role.pct[dId]||0)+10)%110;normPct(role);saveAll();renderRoles();return;}acc+=slice;}
-    });
-    const leg=document.createElement('div');leg.className='pie-legend';
-    role.duties.forEach((dId,i)=>{
-      const d=S.duties.find(x=>x.id===dId);if(!d)return;
-      const row=document.createElement('div');row.className='pl-row';
-      row.innerHTML=`<div class="pl-dot" style="background:${COLORS[i%COLORS.length]}"></div><div class="pl-name">${esc(d.title)}</div><input class="pl-pct" type="number" min="0" max="100" value="${role.pct[dId]||0}"/>%`;
-      const inp=row.querySelector('input');
-      inp.addEventListener('change',()=>{role.pct[dId]=Math.max(0,Math.min(100,parseInt(inp.value)||0));saveAll();renderRoles();});
-      inp.addEventListener('click',e=>e.stopPropagation());
-      leg.appendChild(row);
-    });
-    const tot=role.duties.reduce((s,dId)=>s+(role.pct[dId]||0),0);
-    const tc=Math.abs(tot-100)<1?'var(--accent)':tot>100?'var(--red)':'var(--warm)';
-    const totRow=document.createElement('div');totRow.className='pie-total';totRow.innerHTML=`Total: <span style="color:${tc};font-weight:600">${tot}%</span>`;
-    leg.appendChild(totRow);
-    pa.appendChild(leg);
-  } else {
-    pa.innerHTML='<div class="pie-empty">Drop duties to set time allocation</div>';
-  }
-  card.appendChild(pa);
-
-  // RACI summary bars — one per person
-  if(people.length && role.duties.length){
-    people.forEach(person=>{
-      const pIdx=S.persons.indexOf(person);
-      const pColor=COLORS[pIdx%COLORS.length];
-      const counts=getPersonRaciCounts(person.id);
-      const raciSection=document.createElement('div');raciSection.style.cssText='padding:0 10px 4px;';
-      raciSection.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--textd);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:${pColor};display:inline-block;flex-shrink:0;"></span>RACI — ${esc(person.name.split(' ')[0])}</div>`;
-      const raciBar=document.createElement('div');raciBar.className='rc-raci-bar';raciBar.style.padding='0';
-      ['R','A','C','I'].forEach(v=>{
-        const btn=document.createElement('button');
-        btn.className=`rc-raci-pill rp-${v}`;btn.title=`${RACI_LABELS[v]}: ${counts[v]}`;
-        btn.innerHTML=`<span style="font-size:10px;">${v}</span><span style="font-size:11px;font-weight:700;">${counts[v]}</span>`;
-        btn.onclick=()=>openRaciEditor(role.id,person.id);
-        raciBar.appendChild(btn);
-      });
-      raciSection.appendChild(raciBar);
-      card.appendChild(raciSection);
-    });
-  }
-
-  // people zone — shows all assigned, drop to add more
-  const pz=document.createElement('div');pz.className='rc-pzone'+(people.length?' has-p':'');
-  pz.style.flexDirection='column';pz.style.alignItems='stretch';pz.style.gap='4px';pz.style.minHeight='36px';
-  const pzInner=document.createElement('div');pzInner.style.cssText='display:flex;flex-direction:column;gap:3px;';
-  people.forEach(person=>{
-    const pIdx=S.persons.indexOf(person);
-    const pColor=COLORS[pIdx%COLORS.length];
-    const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:6px;';
-    row.innerHTML=`<div class="rpz-av" style="background:${pColor}22;border:1.5px solid ${pColor}55;color:${pColor}">${ini(person.name)}</div><div class="rpz-name">${esc(person.name)}</div><button class="rpz-rm" onclick="unassignPersonFromRole('${role.id}','${person.id}')">✕</button>`;
-    pzInner.appendChild(row);
-  });
-  if(!people.length)pzInner.innerHTML=`<div class="rpz-ph">← drop people here (multiple allowed)</div>`;
-  else {
-    const addHint=document.createElement('div');addHint.style.cssText='font-size:9px;color:var(--textd);font-style:italic;padding:2px 0;';addHint.textContent='drop to add another person';pzInner.appendChild(addHint);
-  }
-  pz.appendChild(pzInner);
-  pz.addEventListener('dragover',e=>{if(dragData?.type==='person'){e.preventDefault();pz.classList.add('drop-hi');}});
-  pz.addEventListener('dragleave',()=>pz.classList.remove('drop-hi'));
-  pz.addEventListener('drop',e=>{
-    e.preventDefault();pz.classList.remove('drop-hi');
-    if(dragData?.type==='person'){
-      if((role.personIds||[]).includes(dragData.id)){toast('Already in this role');return;}
-      if(!role.personIds)role.personIds=[];
-      role.personIds.push(dragData.id);
-      saveAll();render();
-    }
-  });
-  card.appendChild(pz);
-
-  // duties — show RACI row per person in this role
-  const dz=document.createElement('div');dz.className='rc-duties';
-  role.duties.forEach(dId=>{
-    const d=S.duties.find(x=>x.id===dId);if(!d)return;
-    const tag=document.createElement('div');tag.className='duty-tag';tag.style.flexDirection='column';tag.style.alignItems='stretch';tag.style.gap='5px';
-    // duty name row
-    const nameRow=document.createElement('div');nameRow.style.cssText='display:flex;align-items:center;gap:4px;';
-    nameRow.innerHTML=`<div class="dt-name">${esc(d.title)}</div><button class="dt-rm" onclick="removeDutyFromRole('${role.id}','${dId}')">✕</button>`;
-    tag.appendChild(nameRow);
-    // RACI row per person
-    if(people.length){
-      people.forEach(person=>{
-        const pIdx=S.persons.indexOf(person);const pColor=COLORS[pIdx%COLORS.length];
-        const rVal=getRaci(dId,person.id);
-        const personRow=document.createElement('div');personRow.style.cssText='display:flex;align-items:center;gap:4px;';
-        const avEl=document.createElement('div');avEl.style.cssText=`width:14px;height:14px;border-radius:50%;background:${pColor}33;border:1px solid ${pColor}66;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:${pColor};flex-shrink:0;`;avEl.textContent=ini(person.name)[0];
-        personRow.appendChild(avEl);
-        ['R','A','C','I'].forEach(v=>{
-          const btn=document.createElement('button');
-          const isActive=rVal===v;
-          btn.style.cssText=`font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:pointer;transition:all .15s;border:1px solid ${isActive?'transparent':'rgba(255,255,255,.07)'};background:${isActive?RACI_BG[v]:'rgba(255,255,255,.02)'};color:${isActive?RACI_COLORS[v]:'rgba(223,240,232,.25)'};`;
-          btn.textContent=v;btn.title=`${person.name}: ${RACI_LABELS[v]}`;
-          btn.onclick=(e)=>{e.stopPropagation();setRaci(dId,person.id,isActive?'':v);saveAll();renderRoles();renderPersons();renderDuties();if(S.step===5)renderRaciMatrix();};
-          personRow.appendChild(btn);
-        });
-        const hint=document.createElement('span');hint.style.cssText='font-size:8px;color:rgba(223,240,232,.2);margin-left:1px;font-family:IBM Plex Mono,monospace;';
-        hint.textContent=rVal?RACI_LABELS[rVal]:'–';
-        personRow.appendChild(hint);
-        tag.appendChild(personRow);
-      });
-    } else {
-      const noP=document.createElement('div');noP.style.cssText='font-size:9px;color:rgba(223,240,232,.2);font-style:italic;font-family:IBM Plex Mono,monospace;';noP.textContent='assign people to set RACI';tag.appendChild(noP);
-    }
-    dz.appendChild(tag);
-  });
-  if(!role.duties.length)dz.innerHTML='<div class="dz-hint">← drag duties from the left</div>';
-  dz.addEventListener('dragover',e=>{if(dragData?.type==='duty'){e.preventDefault();card.classList.add('drop-hi');}});
-  dz.addEventListener('dragleave',()=>card.classList.remove('drop-hi'));
-  dz.addEventListener('drop',e=>{
-    e.preventDefault();card.classList.remove('drop-hi');
-    if(dragData?.type==='duty'){
-      if(role.duties.includes(dragData.id)){toast('Already in this role');return;}
-      role.duties.push(dragData.id);
-      if(!role.pct)role.pct={};
-      const n=role.duties.length;role.duties.forEach(dId=>role.pct[dId]=Math.floor(100/n));
-      saveAll();renderRoles();
-    }
-  });
-  card.appendChild(dz);
-
-  // footer
-  const ft=document.createElement('div');ft.className='rc-foot';
-  ft.innerHTML=`<div style="font-size:9px;color:var(--textd);font-family:'IBM Plex Mono',monospace;">${people.length} ${people.length===1?'person':'people'}</div><div class="title-badge ${ttl?'tb-set':'tb-empty'}" onclick="openTitlePicker('${role.id}')">${ttl?esc(ttl.name):'+ assign title'}</div>`;
-  card.appendChild(ft);
-  return card;
-}
 
   // header
   const top=document.createElement('div');top.className='rc-top';
@@ -1009,7 +804,7 @@ function buildRoleCard(role){
     const raciSection=document.createElement('div');raciSection.style.cssText='padding:0 10px 6px;';
     raciSection.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--textd);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;">RACI Load — ${esc(person.name.split(' ')[0])}</div>`;
     const raciBar=document.createElement('div');raciBar.className='rc-raci-bar';raciBar.style.padding='0';
-    ['R','A','C','I'].forEach(v=>{
+    ['A','R','C','I'].forEach(v=>{
       const btn=document.createElement('button');
       btn.className=`rc-raci-pill rp-${v}`;btn.title=`${RACI_LABELS[v]}\n${RACI_DESC[v]}\nCount: ${counts[v]}`;
       btn.innerHTML=`<span style="font-size:10px;">${v}</span><span style="font-size:11px;font-weight:700;">${counts[v]}</span>`;
@@ -1020,7 +815,49 @@ function buildRoleCard(role){
     card.appendChild(raciSection);
   }
 
+  // person zone
+  const pz=document.createElement('div');pz.className='rc-pzone'+(person?' has-p':'');
+  pz.innerHTML=person
+    ?`<div class="rpz-av" style="background:${pColor}22;border:1.5px solid ${pColor}55;color:${pColor}">${ini(person.name)}</div><div class="rpz-name">${esc(person.name)}</div><button class="rpz-rm" onclick="unassignPerson('${role.id}')">✕</button>`
+    :`<div class="rpz-ph">← drop a team member here</div>`;
+  pz.addEventListener('dragover',e=>{if(dragData?.type==='person'){e.preventDefault();pz.classList.add('drop-hi');}});
+  pz.addEventListener('dragleave',()=>pz.classList.remove('drop-hi'));
+  pz.addEventListener('drop',e=>{e.preventDefault();pz.classList.remove('drop-hi');if(dragData?.type==='person'){role.personId=dragData.id;saveAll();render();}});
+  card.appendChild(pz);
 
+  // duties
+  const dz=document.createElement('div');dz.className='rc-duties';
+  role.duties.forEach(dId=>{
+    const d=S.duties.find(x=>x.id===dId);if(!d)return;
+    const rVal=role.personId?getRaci(dId,role.personId):'';
+    const tag=document.createElement('div');tag.className='duty-tag';tag.style.flexDirection='column';tag.style.alignItems='stretch';tag.style.gap='5px';
+    // duty name row
+    const nameRow=document.createElement('div');nameRow.style.cssText='display:flex;align-items:center;gap:4px;';
+    nameRow.innerHTML=`<div class="dt-name">${esc(d.title)}</div><button class="dt-rm" onclick="removeDutyFromRole('${role.id}','${dId}')">✕</button>`;
+    tag.appendChild(nameRow);
+    // RACI row — always show if person assigned, prompt if not
+    const raciRow=document.createElement('div');raciRow.style.cssText='display:flex;align-items:center;gap:4px;';
+    if(role.personId){
+      // 4 clickable RACI buttons — highlight active one
+      ['A','R','C','I'].forEach(v=>{
+        const btn=document.createElement('button');
+        const isActive=rVal===v;
+        btn.style.cssText=`font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:pointer;transition:all .15s;border:1px solid ${isActive?'transparent':'rgba(255,255,255,.08)'};background:${isActive?RACI_BG[v]:'rgba(255,255,255,.03)'};color:${isActive?RACI_COLORS[v]:'rgba(223,240,232,.3)'};`;
+        btn.textContent=v;
+        btn.title=RACI_LABELS[v];
+        btn.onclick=(e)=>{e.stopPropagation();setRaci(dId,role.personId,isActive?'':v);saveAll();renderRoles();renderPersons();renderDuties();if(S.step===5)renderRaciMatrix();};
+        raciRow.appendChild(btn);
+      });
+      const hint=document.createElement('span');hint.style.cssText='font-size:8px;color:rgba(223,240,232,.25);margin-left:2px;font-family:IBM Plex Mono,monospace;';
+      hint.textContent=rVal?RACI_LABELS[rVal]:'click to assign';
+      raciRow.appendChild(hint);
+    } else {
+      raciRow.innerHTML=`<span style="font-size:9px;color:rgba(223,240,232,.25);font-style:italic;font-family:'IBM Plex Mono',monospace;">assign person first to set RACI</span>`;
+    }
+    tag.appendChild(raciRow);
+    dz.appendChild(tag);
+  });
+  if(!role.duties.length)dz.innerHTML='<div class="dz-hint">← drag duties from the left</div>';
   dz.addEventListener('dragover',e=>{if(dragData?.type==='duty'){e.preventDefault();card.classList.add('drop-hi');}});
   dz.addEventListener('dragleave',()=>card.classList.remove('drop-hi'));
   dz.addEventListener('drop',e=>{
@@ -1074,12 +911,14 @@ function renderRaciMatrix(){
     <div class="rl-item"><div class="rl-badge" style="background:${RACI_BG.C};color:var(--rC)">C</div><span><b style="color:var(--rC)">Consulted</b> — Two-way input before/during</span></div>
     <div class="rl-item"><div class="rl-badge" style="background:${RACI_BG.I};color:var(--rI)">I</div><span><b style="color:var(--rI)">Informed</b> — One-way updates after</span></div>
   </div>
+  ${_detailPersonId?_buildPersonDetailPanel(_detailPersonId):''}
   <table class="raci-table"><thead><tr><th>Duty</th>`;
   persons.forEach((p,i)=>{
     const color=COLORS[i%COLORS.length];
     const counts=getPersonRaciCounts(p.id);
-    const pills=['R','A','C','I'].filter(v=>counts[v]>0).map(v=>`<span class="rph-pill" style="background:${RACI_BG[v]};color:${RACI_COLORS[v]}">${v}:${counts[v]}</span>`).join('');
-    html+=`<th class="person-th"><div class="raci-person-hdr">
+    const pills=['A','R','C','I'].filter(v=>counts[v]>0).map(v=>`<span class="rph-pill" style="background:${RACI_BG[v]};color:${RACI_COLORS[v]}">${v}:${counts[v]}</span>`).join('');
+    const isSelected=_detailPersonId===p.id;
+    html+=`<th class="person-th"><div class="raci-person-hdr" onclick="openPersonDetail('${p.id}')" title="Click to view ${esc(p.name)}'s full RACI summary" style="${isSelected?'background:var(--aglow);outline:1px solid var(--adim);':''}">
       <div class="rph-av" style="background:${color}22;border:1.5px solid ${color}55;color:${color}">${ini(p.name)}</div>
       <div class="rph-name" style="color:${color};font-size:9px;font-weight:700">${esc(p.name.split(' ')[0])}</div>
       <div class="rph-summary">${pills||'<span style="font-size:8px;color:var(--textd)">no RACI</span>'}</div>
@@ -1099,6 +938,37 @@ function renderRaciMatrix(){
   });
   html+='</tbody></table>';
   wrap.innerHTML=html;
+}
+
+let _detailPersonId = null;
+
+function openPersonDetail(personId) {
+  _detailPersonId = (_detailPersonId === personId) ? null : personId;
+  renderRaciMatrix();
+}
+
+function _buildPersonDetailPanel(personId) {
+  const p = S.persons.find(x => x.id === personId); if (!p) return '';
+  const pIdx = S.persons.indexOf(p);
+  const color = COLORS[pIdx % COLORS.length];
+  const role = S.roles.find(r => r.personId === personId);
+  const title = role && role.titleId ? S.titles.find(t => t.id === role.titleId) : null;
+  const meta = [role ? role.name : null, title ? title.name : null].filter(Boolean).join(' · ') || 'No role assigned';
+  const byVal = {A:[], R:[], C:[], I:[]};
+  S.duties.forEach(d => { const v = getRaci(d.id, personId); if (v && byVal[v]) byVal[v].push(d.title); });
+  const blocks = ['A','R','C','I'].map(v => {
+    const items = byVal[v];
+    const itemsHtml = items.length
+      ? items.map(t => '<div class="pdp-duty-item">' + esc(t) + '</div>').join('')
+      : '<div class="pdp-empty">none</div>';
+    return '<div class="pdp-raci-block"><div class="pdp-raci-label" style="color:' + RACI_COLORS[v] + '">' + v + ' — ' + RACI_LABELS[v] + '</div>' + itemsHtml + '</div>';
+  }).join('');
+  return '<div class="person-detail-panel">'
+    + '<div class="pdp-header">'
+    + '<div class="pdp-av" style="background:' + color + '22;border:1.5px solid ' + color + '55;color:' + color + '">' + ini(p.name) + '</div>'
+    + '<div class="pdp-info"><div class="pdp-name">' + esc(p.name) + '</div><div class="pdp-meta">' + esc(meta) + '</div></div>'
+    + '<button class="pdp-close" onclick="openPersonDetail(' + "'" + personId + "'" + ')" title="Close">✕</button>'
+    + '</div><div class="pdp-raci-row">' + blocks + '</div></div>';
 }
 
 function cycleCellRaci(dutyId,personId){
@@ -1157,23 +1027,17 @@ function renderOrg(){
   const canvas=document.getElementById('orgPanel');
   canvas.querySelectorAll('.bubble').forEach(el=>el.remove());
   document.getElementById('edgeGroup').innerHTML='';
-  const hasRoles=S.roles.some(r=>(r.personIds||[]).length>0);
+  const hasRoles=S.roles.some(r=>r.personId);
   document.getElementById('orgEmptyMsg').style.display=hasRoles?'none':'flex';
   const W=Math.max(canvas.clientWidth,canvas.offsetWidth,600);
   const H=Math.max(canvas.clientHeight,canvas.offsetHeight,400);
-  // sync nodes — one per person per role
   S.roles.forEach(r=>{
-    if(!r.personIds)r.personIds=r.personId?[r.personId]:[];
-    (r.personIds||[]).forEach(pId=>{
-      if(!S.nodes.find(n=>n.roleId===r.id&&n.personId===pId))
-        S.nodes.push({id:uid(),roleId:r.id,personId:pId,x:60+Math.random()*(W-320),y:60+Math.random()*(H-160)});
-    });
+    if(!r.personId)return;
+    if(!S.nodes.find(n=>n.roleId===r.id))S.nodes.push({id:uid(),roleId:r.id,x:60+Math.random()*(W-320),y:60+Math.random()*(H-160)});
   });
-  S.nodes=S.nodes.filter(n=>{
-    const r=S.roles.find(x=>x.id===n.roleId);
-    return r&&(r.personIds||[]).includes(n.personId);
-  });
+  S.nodes=S.nodes.filter(n=>S.roles.find(r=>r.id===n.roleId&&r.personId));
   S.edges=S.edges.filter(e=>S.nodes.find(n=>n.id===e.from)&&S.nodes.find(n=>n.id===e.to));
+  // sanitize
   S.nodes.forEach(node=>{if(node.x<-10||node.y<-10||node.x>W+200||node.y>H+200){node.x=60+Math.random()*(W-320);node.y=60+Math.random()*(H-160);}});
   saveAll();
   // edges
@@ -1186,10 +1050,10 @@ function renderOrg(){
     if(orgMode!=='deleteEdge')path.setAttribute('marker-end','url(#arr)');
     document.getElementById('edgeGroup').appendChild(path);
   });
-  // bubbles — one per node (person+role combo)
+  // bubbles
   S.nodes.forEach(node=>{
     const role=S.roles.find(r=>r.id===node.roleId);if(!role)return;
-    const person=S.persons.find(p=>p.id===node.personId);if(!person)return;
+    const person=S.persons.find(p=>p.id===role.personId);if(!person)return;
     const pIdx=S.persons.indexOf(person),color=COLORS[pIdx%COLORS.length];
     const ttl=role.titleId?S.titles.find(t=>t.id===role.titleId):null;
     const counts=getPersonRaciCounts(person.id);
@@ -1279,7 +1143,7 @@ function renderOrgsGrid(){
     const dutyCount=d.duties?.length||0;
     const personCount=d.persons?.length||0;
     const roleCount=d.roles?.length||0;
-    const placedCount=d.roles?.filter(r=>(r.personIds||[]).length>0)?.length||0;
+    const placedCount=d.roles?.filter(r=>r.personId)?.length||0;
     const edgeCount=d.edges?.length||0;
     const step=d.step||1;
     // RACI totals
@@ -1352,7 +1216,7 @@ function duplicateChart(id){
   copy.data.nodes=(copy.data.nodes||[]).map(n=>({...n,id:uid()}));
   copy.data.edges=(copy.data.edges||[]).map(e=>({...e,id:uid()}));
   ALL.charts.push(copy);
-  localStorage.setItem('ra_v6',JSON.stringify(ALL));
+  saveAll();
   renderOrgsGrid();
   renderChartTabs();
   toast('Duplicated — "'+copy.name+'"');
@@ -1363,7 +1227,7 @@ function renameChart(id){
   const name=prompt('Rename org chart:',c.name);
   if(!name||!name.trim())return;
   c.name=name.trim();
-  localStorage.setItem('ra_v6',JSON.stringify(ALL));
+  saveAll();
   renderOrgsGrid();renderChartTabs();
 }
 function renderChartTabs(){
@@ -1419,31 +1283,11 @@ function hintAction(){
 
 // ── ACTIONS ───────────────────────────────────────────────────────────────────
 function updateRoleName(id,n){const r=S.roles.find(x=>x.id===id);if(r){r.name=n;saveAll();}}
-
-// Migrate old single personId → personIds array
-function migrateRoles(){
-  S.roles.forEach(r=>{
-    if(!r.personIds){
-      r.personIds = r.personId ? [r.personId] : [];
-      delete r.personId;
-    }
-  });
-}
-
-function unassignPersonFromRole(roleId, personId){
-  const r=S.roles.find(x=>x.id===roleId);
-  if(r){r.personIds=(r.personIds||[]).filter(id=>id!==personId);saveAll();render();}
-}
+function unassignPerson(roleId){const r=S.roles.find(x=>x.id===roleId);if(r){r.personId=null;saveAll();render();}}
 function removeDutyFromRole(rId,dId){const r=S.roles.find(x=>x.id===rId);if(r){r.duties=r.duties.filter(d=>d!==dId);if(r.pct)delete r.pct[dId];normPct(r);}saveAll();renderRoles();renderDuties();}
 function deleteRole(id){S.roles=S.roles.filter(r=>r.id!==id);S.nodes=S.nodes.filter(n=>n.roleId!==id);saveAll();render();}
 function removeDuty(id){S.duties=S.duties.filter(d=>d.id!==id);S.roles.forEach(r=>{r.duties=r.duties.filter(d=>d!==id);if(r.pct)delete r.pct[id];});if(S.raci)delete S.raci[id];saveAll();render();}
-function removePerson(id){
-  S.persons=S.persons.filter(p=>p.id!==id);
-  S.roles.forEach(r=>{r.personIds=(r.personIds||[]).filter(pid=>pid!==id);});
-  S.nodes=S.nodes.filter(n=>{const r=S.roles.find(x=>x.id===n.roleId);return r&&(r.personIds||[]).length>0;});
-  if(S.raci)Object.values(S.raci).forEach(d=>delete d[id]);
-  saveAll();render();
-}
+function removePerson(id){S.persons=S.persons.filter(p=>p.id!==id);S.roles.forEach(r=>{if(r.personId===id)r.personId=null;});S.nodes=S.nodes.filter(n=>{const r=S.roles.find(x=>x.id===n.roleId);return r&&r.personId;});if(S.raci)Object.values(S.raci).forEach(d=>delete d[id]);saveAll();render();}
 function removeTitle(id){S.titles=S.titles.filter(t=>t.id!==id);S.roles.forEach(r=>{if(r.titleId===id)r.titleId=null;});saveAll();render();}
 function assignTitle(roleId,titleId){const r=S.roles.find(x=>x.id===roleId);if(r){r.titleId=titleId;saveAll();render();}closeModal();}
 
@@ -1470,16 +1314,9 @@ function openTitlePicker(roleId){
 function confirmModal(){
   if(mMode==='addDuty'){const t=document.getElementById('mi1')?.value.trim();if(!t)return;S.duties.push({id:uid(),title:t,desc:document.getElementById('mi2')?.value.trim()||''});}
   else if(mMode==='addPerson'){const n=document.getElementById('mi1')?.value.trim();if(!n)return;S.persons.push({id:uid(),name:n});}
-  else if(mMode==='addRole'){const n=document.getElementById('mi1')?.value.trim()||'New Role';S.roles.push({id:uid(),name:n,personIds:[],duties:[],pct:{},titleId:null});toast('Role created — drag duties and people onto it');}
+  else if(mMode==='addRole'){const n=document.getElementById('mi1')?.value.trim()||'New Role';S.roles.push({id:uid(),name:n,personId:null,duties:[],pct:{},titleId:null});toast('Role created — drag duties and a person onto it');}
   else if(mMode==='addTitle'){const n=document.getElementById('mi1')?.value.trim();if(!n)return;S.titles.push({id:uid(),name:n});}
   else if(mMode==='addChart'){const n=document.getElementById('mi1')?.value.trim();if(!n)return;const c=newChartData(n);ALL.charts.push(c);switchChart(c.id);closeModal();return;}
-  else if(mMode==='syncSetup'){
-    const name=document.getElementById('mi1')?.value.trim();
-    const url=document.getElementById('mi2')?.value.trim();
-    if(name){currentUser=name;localStorage.setItem('ra_userName',name);}
-    if(url&&url.startsWith('https://')){localStorage.setItem('ra_gasUrl',url);location.reload();return;}
-    closeModal();return;
-  }
   saveAll();render();closeModal();
 }
 document.addEventListener('keydown',e=>{
@@ -1514,18 +1351,31 @@ function seed(){
   saveAll();
 }
 
-loadAll();migrateRoles();seed();render();renderSteps();renderChartTabs();
-ensureIdentity();
-if(GAS_URL){
-  // initial pull from cloud
-  pollCloud().then(()=>{setSyncStatus('live');});
-  // poll every 4s for changes from other users
-  pollInterval=setInterval(pollCloud, 4000);
-  // heartbeat every 20s so teammates can see you're active
-  setInterval(heartbeat, 20000);
-} else {
-  setSyncStatus('nourl');
-}
+// ── STARTUP (async via Google Apps Script) ───────────────────────────────────
+// Show a loading state, then call the server to fetch all chart data.
+(function bootstrap() {
+  // Render a simple loading overlay while we wait for Sheets data
+  const body = document.querySelector('.body');
+  const loadEl = document.createElement('div');
+  loadEl.id = 'gasLoading';
+  loadEl.style.cssText = 'position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:9999;';
+  loadEl.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:var(--accent);">Role Architect</div>'
+    + '<div style="font-family:IBM Plex Mono,monospace;font-size:11px;color:var(--textd);">Loading from Sheets…</div>';
+  document.body.appendChild(loadEl);
+
+  google.script.run
+    .withSuccessHandler(function(allObj) {
+      document.getElementById('gasLoading').remove();
+      _initApp(allObj);
+    })
+    .withFailureHandler(function(err) {
+      document.getElementById('gasLoading').innerHTML =
+        '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;color:var(--red);">Failed to load data</div>'
+        + '<div style="font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--textd);max-width:360px;text-align:center">' + (err.message||err) + '</div>'
+        + '<button class="btn btn-accent" style="margin-top:8px" onclick="location.reload()">Retry</button>';
+    })
+    .loadAllCharts();
+})();
 </script>
 </body>
 </html>
