@@ -1,31 +1,29 @@
 <!--
   Role Architect — Atomix
   ========================
-  Repository : https://github.com/drake-arch/atomix-ops
-  File       : role-architect.html
-  Backend    : Google Apps Script + Google Sheets
-  Sheet ID   : 1LguI4rbvyOdZoPVVnz4MdHzhNhOqmb5MXVm4QKP7VV4
+  Repository  : https://github.com/drake-arch/atomix-ops
+  File        : role-architect.html
+  Backend     : Google Apps Script + Google Sheets
+  Sheet ID    : 1LguI4rbvyOdZoPVVnz4MdHzhNhOqmb5MXVm4QKP7VV4
+  Script URL  : https://script.google.com/macros/s/AKfycbzR0HNI4SvEi7Yq0JMD3ycPPXl64WarSLvxHZqVcU0fyVlS8s7zGUQWLTlY0EDfv18v/exec
 
   HOW IT WORKS
   ------------
-  This file is the UI only. All data is persisted to the Google Sheet above
-  via Apps Script (Code.gs). This file must be hosted inside the paired
-  Apps Script project as an HTML file named "index" for google.script.run
-  to function. GitHub is the source of truth for the code — Apps Script
-  is the runtime.
+  This file is the UI only. It runs entirely from GitHub Pages and communicates
+  with the Apps Script backend via fetch() calls to the Script URL above.
+  No Google login or Apps Script hosting required to view the tool —
+  it works like any other HTML file in this repo.
 
   TO DEPLOY A CHANGE
   ------------------
   1. Edit this file and commit to main in the repo above.
-  2. Open the paired Apps Script project:
-       https://script.google.com (find project "Role Architect — Atomix")
-  3. Open the "index" HTML file in the editor.
-  4. Select all, delete, paste the updated contents of this file.
-  5. Save, then Deploy → Manage Deployments → create new version.
+  2. GitHub Pages serves the update automatically.
+  3. If Code.gs also changed, open the Apps Script project, paste the new
+     Code.gs, and Deploy → Manage Deployments → publish a new version.
 
   DEPENDENCIES
   ------------
-  - Code.gs must be present in the same Apps Script project.
+  - Code.gs must be deployed as a Web App (Execute as: Me, Access: Anyone).
   - The Apps Script must have access to the Sheet (same Google account or shared).
   - The Sheet tab must be named "Charts" (created automatically on first run).
 -->
@@ -555,82 +553,69 @@ let S = {}; // current chart data — reference into ALL.charts[x].data
 function newChartData(name){
   return {id:uid(),name,data:{duties:[],persons:[],roles:[],titles:[],nodes:[],edges:[],step:1,raci:{}}};
 }
-// ── SAVE / LOAD  (Google Apps Script backend) ─────────────────────────────────
-// saveAll() is debounced: rapid interactions (dragging, clicking RACI cells)
-// queue a single Sheets write 800 ms after the last mutation.
+// ── SAVE / LOAD  (fetch → Apps Script web app) ───────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0HNI4SvEi7Yq0JMD3ycPPXl64WarSLvxHZqVcU0fyVlS8s7zGUQWLTlY0EDfv18v/exec';
 
 let _saveTimer = null;
 
 function saveAll() {
-  // Always keep the in-memory ALL up to date immediately
   ALL.charts.find(c => c.id === ALL.activeChartId).data = S;
-
-  // Debounce the actual Sheets write
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(_flushToSheets, 800);
 }
 
 function _flushToSheets() {
-  const snapshot = JSON.parse(JSON.stringify(ALL)); // deep copy for the async call
-  google.script.run
-    .withFailureHandler(err => toast('⚠ Save failed: ' + err.message))
-    .saveAllCharts(snapshot);
+  const snapshot = JSON.parse(JSON.stringify(ALL));
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'save', payload: snapshot })
+  })
+  .then(r => r.json())
+  .then(d => { if (!d.ok) toast('⚠ Save failed: ' + (d.error || 'unknown error')); })
+  .catch(err => toast('⚠ Save failed: ' + err.message));
 }
 
-// Force an immediate (non-debounced) save — used before tab switches, etc.
 function saveAllNow(callback) {
   clearTimeout(_saveTimer);
   ALL.charts.find(c => c.id === ALL.activeChartId).data = S;
-  google.script.run
-    .withSuccessHandler(callback || function(){})
-    .withFailureHandler(err => toast('⚠ Save failed: ' + err.message))
-    .saveAllCharts(JSON.parse(JSON.stringify(ALL)));
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'save', payload: JSON.parse(JSON.stringify(ALL)) })
+  })
+  .then(r => r.json())
+  .then(d => { if (callback) callback(d); })
+  .catch(err => toast('⚠ Save failed: ' + err.message));
 }
 
-function loadAll() {
-  // loadAll is called once at startup; it blocks rendering until data arrives.
-  // The actual async call is in _initApp() below — this is a no-op placeholder
-  // so the existing call site at the bottom of the script still compiles.
-}
+function loadAll() {} // no-op — actual load happens in bootstrap below
 
 function _initApp(allObj) {
-  // Called by the google.script.run success handler with data from Sheets
   if (allObj && allObj.charts && allObj.charts.length) {
     ALL = allObj;
   } else {
-    // First run — no data in Sheets yet; create a default chart
     const c = newChartData('Main Org');
     ALL = { charts: [c], activeChartId: c.id };
   }
-
   if (!ALL.charts.find(c => c.id === ALL.activeChartId)) {
     ALL.activeChartId = ALL.charts[0].id;
   }
-
   S = ALL.charts.find(c => c.id === ALL.activeChartId).data;
   if (!S.raci) S.raci = {};
-
   seed();
   render();
   renderSteps();
   renderChartTabs();
 
-  // Show the spreadsheet link in the header (optional quality-of-life)
-  google.script.run
-    .withSuccessHandler(url => {
-      if (url) {
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.title = 'Open backing spreadsheet';
-        a.style.cssText = 'font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--textd);text-decoration:none;padding:4px 8px;border:1px solid var(--border);border-radius:5px;transition:all .2s;';
-        a.textContent = '⊞ Sheets';
-        a.onmouseover = () => { a.style.borderColor = 'var(--adim)'; a.style.color = 'var(--accent)'; };
-        a.onmouseout  = () => { a.style.borderColor = 'var(--border)'; a.style.color = 'var(--textd)'; };
-        document.querySelector('.hdr-right').prepend(a);
-      }
-    })
-    .getSpreadsheetUrl();
+  // Sheets link in header
+  const a = document.createElement('a');
+  a.href = 'https://docs.google.com/spreadsheets/d/1LguI4rbvyOdZoPVVnz4MdHzhNhOqmb5MXVm4QKP7VV4';
+  a.target = '_blank';
+  a.title = 'Open backing spreadsheet';
+  a.style.cssText = 'font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--textd);text-decoration:none;padding:4px 8px;border:1px solid var(--border);border-radius:5px;transition:all .2s;';
+  a.textContent = '⊞ Sheets';
+  a.onmouseover = () => { a.style.borderColor = 'var(--adim)'; a.style.color = 'var(--accent)'; };
+  a.onmouseout  = () => { a.style.borderColor = 'var(--border)'; a.style.color = 'var(--textd)'; };
+  document.querySelector('.hdr-right').prepend(a);
 }
 function switchChart(id){
   ALL.charts.find(c=>c.id===ALL.activeChartId).data=S;
@@ -1351,11 +1336,8 @@ function seed(){
   saveAll();
 }
 
-// ── STARTUP (async via Google Apps Script) ───────────────────────────────────
-// Show a loading state, then call the server to fetch all chart data.
+// ── STARTUP ───────────────────────────────────────────────────────────────────
 (function bootstrap() {
-  // Render a simple loading overlay while we wait for Sheets data
-  const body = document.querySelector('.body');
   const loadEl = document.createElement('div');
   loadEl.id = 'gasLoading';
   loadEl.style.cssText = 'position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:9999;';
@@ -1363,18 +1345,18 @@ function seed(){
     + '<div style="font-family:IBM Plex Mono,monospace;font-size:11px;color:var(--textd);">Loading from Sheets…</div>';
   document.body.appendChild(loadEl);
 
-  google.script.run
-    .withSuccessHandler(function(allObj) {
+  fetch(SCRIPT_URL + '?action=load')
+    .then(r => r.json())
+    .then(allObj => {
       document.getElementById('gasLoading').remove();
       _initApp(allObj);
     })
-    .withFailureHandler(function(err) {
+    .catch(err => {
       document.getElementById('gasLoading').innerHTML =
         '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;color:var(--red);">Failed to load data</div>'
-        + '<div style="font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--textd);max-width:360px;text-align:center">' + (err.message||err) + '</div>'
+        + '<div style="font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--textd);max-width:360px;text-align:center">' + err.message + '</div>'
         + '<button class="btn btn-accent" style="margin-top:8px" onclick="location.reload()">Retry</button>';
-    })
-    .loadAllCharts();
+    });
 })();
 </script>
 </body>
