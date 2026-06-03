@@ -351,6 +351,17 @@ body { min-height: 100vh; background: var(--navy); }
 .qed-btn.save:hover { background: rgba(163,243,197,0.08); }
 .qed-btn.del:hover  { color: #f87171; border-color: rgba(248,113,113,0.3); }
 .qed-empty { font-size:12px; color:var(--text3); font-family:'IBM Plex Mono',monospace; padding:12px 0; }
+
+/* ── drag-to-reorder ── */
+.qed-item.dragging { opacity: 0.4; }
+.qed-item.drag-over { border-top: 2px solid var(--green); }
+.drag-handle {
+  cursor: grab; color: var(--text3); padding: 2px 4px; font-size: 13px; flex-shrink: 0;
+  user-select: none; align-self: center;
+}
+.drag-handle:hover { color: var(--text2); }
+.drag-handle:active { cursor: grabbing; }
+
 .org-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .org-node-btn { cursor: pointer; overflow: visible; }
 .org-node-rect { fill: rgba(30,41,59,0.92); stroke: rgba(163,243,197,0.2); stroke-width: 0.5; rx: 7; ry: 7; transition: fill 0.15s, stroke 0.15s; }
@@ -378,6 +389,19 @@ body { min-height: 100vh; background: var(--navy); }
 .labor-row { display: flex; gap: 10px; margin-top: 8px; }
 .labor-input-wrap { flex: 1; }
 .labor-input-wrap label { font-size: 10px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; display: block; margin-bottom: 4px; }
+
+/* ── My Questions screen banner ── */
+.myq-banner {
+  background: rgba(163,243,197,0.05);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.myq-banner-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.myq-banner-text { font-size: 12px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; line-height: 1.5; }
+.myq-banner-text strong { color: var(--green); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -428,6 +452,49 @@ body { min-height: 100vh; background: var(--navy); }
     </div>
   </div>
 
+  <!-- SCREEN: MY QUESTIONS (employee self-edit) -->
+  <div class="screen" id="screenMyQuestions">
+    <div class="chat-header">
+      <div>
+        <div class="chat-name" id="myqName"></div>
+        <div class="chat-role" id="myqRole"></div>
+      </div>
+      <button class="btn-back" onclick="goBack()">← back</button>
+    </div>
+
+    <div class="myq-banner">
+      <div class="myq-banner-icon">✏️</div>
+      <div class="myq-banner-text">
+        <strong>Your questions, your way.</strong><br>
+        Edit, reorder, or add questions before you start tonight's report. Changes save automatically and carry forward to future reports.
+      </div>
+    </div>
+
+    <p class="section-label">Your report questions</p>
+    <div id="myqStdList"></div>
+
+    <div class="card" style="margin-top:12px">
+      <p class="section-label" style="margin-bottom:12px">Add a question</p>
+      <div class="field">
+        <label>Question text</label>
+        <textarea id="myqNewText" rows="2" placeholder="e.g. What should leadership know about today?"></textarea>
+      </div>
+      <div class="field">
+        <label>Answer type</label>
+        <select id="myqNewType">
+          <option value="text">Short answer</option>
+          <option value="textarea">Long answer</option>
+          <option value="number">Number</option>
+          <option value="yesno">Yes / No</option>
+        </select>
+      </div>
+      <button class="btn-add" onclick="myqAddQuestion()">Add question</button>
+      <div id="myqAddConfirm" style="display:none;margin-top:8px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--green)"></div>
+    </div>
+
+    <button class="btn-next" style="margin-top:20px" onclick="myqProceedToReport()">Start tonight's report →</button>
+  </div>
+
   <!-- SCREEN: CHAT -->
   <div class="screen" id="screenChat">
     <div class="chat-header">
@@ -468,7 +535,7 @@ body { min-height: 100vh; background: var(--navy); }
     <div id="laborSummaryBlock" style="display:none"></div>
   </div>
 
-  <!-- SCREEN: QUESTIONS EDITOR -->
+  <!-- SCREEN: QUESTIONS EDITOR (manager) -->
   <div class="screen" id="screenQuestions">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div>
@@ -625,10 +692,8 @@ body { min-height: 100vh; background: var(--navy); }
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVjKckCjo6FiYvrcGfNILjf7jCR7yxvZeYgO7QzWJkkcJFqIxBSY0NqKVNhM8RvYv2g/exec';
 
-// ── TEAM — Ricardo removed, Burke (BAL) added ─────────────────────────────────
 const TEAM = [
   { id:'drake',    name:'Drake',    role:'Ops Lead',        site:'MKE', av:'av-g', initials:'D',  reportsTo:null,    managerOf:['kody','hugh','emyly','luis','adam','norman','burke'] },
-  // ── MKE — all report directly to Drake ──────────────────────────────────────
   { id:'kody',     name:'Kody',     role:'AM Outbound',     site:'MKE', av:'av-b', initials:'KM', reportsTo:'drake', managerOf:['ana','yaniel'] },
   { id:'ana',      name:'Ana',      role:'AM Outbound',     site:'MKE', av:'av-p', initials:'AN', reportsTo:'kody',  managerOf:[] },
   { id:'yaniel',   name:'Yaniel',   role:'AM Outbound',     site:'MKE', av:'av-a', initials:'YN', reportsTo:'kody',  managerOf:[] },
@@ -644,14 +709,11 @@ const TEAM = [
   { id:'adam',     name:'Adam',     role:'Special Projects',site:'MKE', av:'av-p', initials:'AG', reportsTo:'drake', managerOf:['nate','maria'] },
   { id:'nate',     name:'Nate',     role:'B2B',             site:'MKE', av:'av-r', initials:'NT', reportsTo:'adam',  managerOf:[] },
   { id:'maria',    name:'Maria',    role:'Kitting',         site:'MKE', av:'av-g', initials:'MA', reportsTo:'adam',  managerOf:[] },
-  // ── SLC ─────────────────────────────────────────────────────────────────────
   { id:'norman',   name:'Norman',   role:'SLC Site Manager',site:'SLC', av:'av-b', initials:'NM', reportsTo:'drake', managerOf:['santana'] },
   { id:'santana',  name:'Santana',  role:'SLC Outbound',    site:'SLC', av:'av-a', initials:'SA', reportsTo:'norman',managerOf:[] },
-  // ── BAL ─────────────────────────────────────────────────────────────────────
   { id:'burke',    name:'Burke',    role:'BAL Site Manager',site:'BAL', av:'av-r', initials:'BK', reportsTo:'drake', managerOf:[] },
 ];
 
-// ── STANDARD QUESTIONS ─────────────────────────────────────────────────────────
 const STD_QUESTIONS = {
   drake: [
     { id:'d1', text:'Top priority for tomorrow?', type:'textarea', optional:true },
@@ -766,8 +828,6 @@ function buildOrgChart() {
   const wrap = document.getElementById('orgChartWrap');
   wrap.innerHTML = '';
   const NW = 76, NH = 50, HGAP = 6, VGAP = 32;
-
-  // Flat org — Drake at top, all site managers + MKE leads as direct reports
   const TREE = {
     id: 'drake',
     children: [
@@ -780,7 +840,6 @@ function buildOrgChart() {
       { id: 'burke', children: [] },
     ]
   };
-
   function subtreeWidth(node) {
     if (!node.children || node.children.length === 0) return NW;
     const total = node.children.reduce((s, c) => s + subtreeWidth(c), 0) + HGAP * (node.children.length - 1);
@@ -793,136 +852,68 @@ function buildOrgChart() {
     node._sw = sw;
     if (node.children && node.children.length > 0) {
       let cx = x;
-      node.children.forEach(child => {
-        const csw = subtreeWidth(child);
-        layout(child, cx, y + NH + VGAP);
-        cx += csw + HGAP;
-      });
+      node.children.forEach(child => { const csw = subtreeWidth(child); layout(child, cx, y + NH + VGAP); cx += csw + HGAP; });
     }
   }
   layout(TREE, 0, 0);
-
-  function allNodes(node) {
-    let list = [node];
-    if (node.children) node.children.forEach(c => { list = list.concat(allNodes(c)); });
-    return list;
-  }
+  function allNodes(node) { let list = [node]; if (node.children) node.children.forEach(c => { list = list.concat(allNodes(c)); }); return list; }
   const nodes = allNodes(TREE);
   const maxX = Math.max(...nodes.map(n => n._x + NW));
   const maxY = Math.max(...nodes.map(n => n._y + NH));
-
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('viewBox', `0 0 ${maxX} ${maxY + 4}`);
   svg.setAttribute('xmlns', NS);
   svg.style.cssText = `display:block;width:100%;height:auto;max-width:${maxX}px;`;
-
   const lineG = document.createElementNS(NS, 'g');
   svg.appendChild(lineG);
-
   function drawLines(node) {
     if (!node.children || node.children.length === 0) return;
-    const px = node._x + NW / 2;
-    const py = node._y + NH;
-    const midY = py + VGAP / 2;
+    const px = node._x + NW / 2; const py = node._y + NH; const midY = py + VGAP / 2;
     const vl = document.createElementNS(NS, 'line');
-    vl.setAttribute('x1', px); vl.setAttribute('y1', py);
-    vl.setAttribute('x2', px); vl.setAttribute('y2', midY);
-    vl.setAttribute('class', 'org-line');
-    lineG.appendChild(vl);
+    vl.setAttribute('x1', px); vl.setAttribute('y1', py); vl.setAttribute('x2', px); vl.setAttribute('y2', midY); vl.setAttribute('class', 'org-line'); lineG.appendChild(vl);
     if (node.children.length > 1) {
-      const leftX  = node.children[0]._x + NW / 2;
-      const rightX = node.children[node.children.length - 1]._x + NW / 2;
-      const hl = document.createElementNS(NS, 'line');
-      hl.setAttribute('x1', leftX); hl.setAttribute('y1', midY);
-      hl.setAttribute('x2', rightX); hl.setAttribute('y2', midY);
-      hl.setAttribute('class', 'org-line');
-      lineG.appendChild(hl);
+      const leftX  = node.children[0]._x + NW / 2; const rightX = node.children[node.children.length - 1]._x + NW / 2;
+      const hl = document.createElementNS(NS, 'line'); hl.setAttribute('x1', leftX); hl.setAttribute('y1', midY); hl.setAttribute('x2', rightX); hl.setAttribute('y2', midY); hl.setAttribute('class', 'org-line'); lineG.appendChild(hl);
     }
     node.children.forEach(child => {
-      const cx = child._x + NW / 2;
-      const cl = document.createElementNS(NS, 'line');
-      cl.setAttribute('x1', cx); cl.setAttribute('y1', midY);
-      cl.setAttribute('x2', cx); cl.setAttribute('y2', child._y);
-      cl.setAttribute('class', 'org-line');
-      lineG.appendChild(cl);
+      const cx = child._x + NW / 2; const cl = document.createElementNS(NS, 'line');
+      cl.setAttribute('x1', cx); cl.setAttribute('y1', midY); cl.setAttribute('x2', cx); cl.setAttribute('y2', child._y); cl.setAttribute('class', 'org-line'); lineG.appendChild(cl);
       drawLines(child);
     });
   }
   drawLines(TREE);
-
   nodes.forEach(node => {
-    const p = TEAM.find(t => t.id === node.id);
-    if (!p) return;
-    const isRoot = node.id === 'drake';
-    const isMgr  = p.managerOf && p.managerOf.length > 0;
-    const shift  = p.role.includes('AM') ? 'am' : (p.role.includes('PM') || p.role === 'PM Lead' || p.role === 'PM Shift') ? 'pm' : '';
-    const isSLC  = p.site === 'SLC';
-    const isBAL  = p.site === 'BAL';
-
+    const p = TEAM.find(t => t.id === node.id); if (!p) return;
+    const isRoot = node.id === 'drake'; const isMgr = p.managerOf && p.managerOf.length > 0;
+    const shift = p.role.includes('AM') ? 'am' : (p.role.includes('PM') || p.role === 'PM Lead' || p.role === 'PM Shift') ? 'pm' : '';
+    const isSLC = p.site === 'SLC'; const isBAL = p.site === 'BAL';
     const g = document.createElementNS(NS, 'g');
     g.setAttribute('class', 'org-node-btn' + (isRoot ? ' root' : isMgr ? ' mgr' : ''));
-    g.setAttribute('transform', `translate(${node._x},${node._y})`);
-    g.style.cursor = 'pointer';
+    g.setAttribute('transform', `translate(${node._x},${node._y})`); g.style.cursor = 'pointer';
     g.addEventListener('click', () => selectManager(node.id));
-
-    const rect = document.createElementNS(NS, 'rect');
-    rect.setAttribute('class', 'org-node-rect');
-    rect.setAttribute('width', NW);
-    rect.setAttribute('height', NH);
-    rect.setAttribute('rx', 7);
-    g.appendChild(rect);
-
-    const nameEl = document.createElementNS(NS, 'text');
-    nameEl.setAttribute('class', 'org-node-name');
-    nameEl.setAttribute('x', NW / 2); nameEl.setAttribute('y', 16);
-    nameEl.setAttribute('text-anchor', 'middle'); nameEl.setAttribute('dominant-baseline', 'middle');
-    nameEl.textContent = p.name;
-    g.appendChild(nameEl);
-
-    const roleEl = document.createElementNS(NS, 'text');
-    roleEl.setAttribute('class', 'org-node-role');
-    roleEl.setAttribute('x', NW / 2); roleEl.setAttribute('y', 28);
-    roleEl.setAttribute('text-anchor', 'middle'); roleEl.setAttribute('dominant-baseline', 'middle');
-    roleEl.textContent = p.role.length > 12 ? p.role.slice(0, 11) + '…' : p.role;
-    g.appendChild(roleEl);
-
-    let badgeX = 4;
-    const badgeY = 38;
-    const badges = [];
-    if (shift)  badges.push({ type: shift, label: shift.toUpperCase() });
-    if (isSLC)  badges.push({ type: 'slc',  label: 'SLC' });
-    if (isBAL)  badges.push({ type: 'bal',  label: 'BAL' });
-
+    const rect = document.createElementNS(NS, 'rect'); rect.setAttribute('class', 'org-node-rect'); rect.setAttribute('width', NW); rect.setAttribute('height', NH); rect.setAttribute('rx', 7); g.appendChild(rect);
+    const nameEl = document.createElementNS(NS, 'text'); nameEl.setAttribute('class', 'org-node-name'); nameEl.setAttribute('x', NW / 2); nameEl.setAttribute('y', 16); nameEl.setAttribute('text-anchor', 'middle'); nameEl.setAttribute('dominant-baseline', 'middle'); nameEl.textContent = p.name; g.appendChild(nameEl);
+    const roleEl = document.createElementNS(NS, 'text'); roleEl.setAttribute('class', 'org-node-role'); roleEl.setAttribute('x', NW / 2); roleEl.setAttribute('y', 28); roleEl.setAttribute('text-anchor', 'middle'); roleEl.setAttribute('dominant-baseline', 'middle'); roleEl.textContent = p.role.length > 12 ? p.role.slice(0, 11) + '…' : p.role; g.appendChild(roleEl);
+    let badgeX = 4; const badgeY = 38; const badges = [];
+    if (shift) badges.push({ type: shift, label: shift.toUpperCase() });
+    if (isSLC) badges.push({ type: 'slc', label: 'SLC' });
+    if (isBAL) badges.push({ type: 'bal', label: 'BAL' });
     const totalBadgeW = badges.reduce((s,b) => s + b.label.length * 5 + 10, 0) + Math.max(0, badges.length - 1) * 3;
     badgeX = (NW - totalBadgeW) / 2;
-
     badges.forEach(b => {
       const bw = b.label.length * 5 + 8;
-      const br = document.createElementNS(NS, 'rect');
-      br.setAttribute('class', `org-badge-rect-${b.type}`);
-      br.setAttribute('x', badgeX); br.setAttribute('y', badgeY - 5);
-      br.setAttribute('width', bw); br.setAttribute('height', 11);
-      br.setAttribute('rx', 3);
-      g.appendChild(br);
-      const bt = document.createElementNS(NS, 'text');
-      bt.setAttribute('class', `org-badge-text-${b.type}`);
-      bt.setAttribute('x', badgeX + bw / 2); bt.setAttribute('y', badgeY + 1);
-      bt.setAttribute('text-anchor', 'middle'); bt.setAttribute('dominant-baseline', 'middle');
-      bt.textContent = b.label;
-      g.appendChild(bt);
+      const br = document.createElementNS(NS, 'rect'); br.setAttribute('class', `org-badge-rect-${b.type}`); br.setAttribute('x', badgeX); br.setAttribute('y', badgeY - 5); br.setAttribute('width', bw); br.setAttribute('height', 11); br.setAttribute('rx', 3); g.appendChild(br);
+      const bt = document.createElementNS(NS, 'text'); bt.setAttribute('class', `org-badge-text-${b.type}`); bt.setAttribute('x', badgeX + bw / 2); bt.setAttribute('y', badgeY + 1); bt.setAttribute('text-anchor', 'middle'); bt.setAttribute('dominant-baseline', 'middle'); bt.textContent = b.label; g.appendChild(bt);
       badgeX += bw + 3;
     });
-
     svg.appendChild(g);
   });
-
   wrap.appendChild(svg);
 }
 
 function getScope(managerId) {
-  const mgr = TEAM.find(p => p.id === managerId);
-  if (!mgr) return [];
+  const mgr = TEAM.find(p => p.id === managerId); if (!mgr) return [];
   let scope = [managerId];
   (mgr.managerOf || []).forEach(childId => { scope = scope.concat(getScope(childId)); });
   return [...new Set(scope)];
@@ -937,8 +928,7 @@ function setMode(mode) {
 }
 
 function renderNameGrid(containerId, people, managerMode) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
+  const el = document.getElementById(containerId); if (!el) return;
   el.innerHTML = people.map(p => `
     <button class="name-btn" onclick="${managerMode ? 'selectManager' : 'selectPerson'}('${p.id}')">
       <div class="nb-name">${p.name}</div>
@@ -947,15 +937,132 @@ function renderNameGrid(containerId, people, managerMode) {
   `).join('');
 }
 
+// ── EMPLOYEE SELF-EDIT (My Questions screen) ───────────────────────────────────
 function selectPerson(id) {
   currentPerson = TEAM.find(p => p.id === id);
   answers = {}; currentQ = 0;
+  document.getElementById('myqName').textContent = currentPerson.name;
+  document.getElementById('myqRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
   document.getElementById('chatName').textContent = currentPerson.name;
   document.getElementById('chatRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
-  showScreen('screenChat');
-  loadQuestions(id);
+  showScreen('screenMyQuestions');
+  renderMyqStdList();
 }
 
+function renderMyqStdList() {
+  const pid = currentPerson.id;
+  const qs = STD_QUESTIONS[pid] || [];
+  const el = document.getElementById('myqStdList');
+  if (qs.length === 0) {
+    el.innerHTML = '<div class="card"><div class="qed-empty">No questions yet. Add one below.</div></div>';
+    return;
+  }
+  el.innerHTML = '<div class="card" style="padding:4px 16px" id="myqDragList">' +
+    qs.map((q, i) => `
+      <div class="qed-item" draggable="true" data-qid="${q.id}" id="myqitem-${q.id}">
+        <div class="drag-handle" title="Drag to reorder">⠿</div>
+        <div class="qed-num">${i + 1}</div>
+        <div class="qed-body">
+          <div class="qed-text" id="myqtext-${q.id}" contenteditable="true" spellcheck="false">${q.text}</div>
+          <div class="qed-meta">${typeLabel(q.type)}</div>
+        </div>
+        <div class="qed-actions">
+          <select class="qed-type-sel" id="myqtype-${q.id}" style="font-size:11px;padding:3px 6px;background:var(--navy2);border:0.5px solid var(--border2);border-radius:6px;color:var(--text2);font-family:'IBM Plex Mono',monospace">
+            <option value="text" ${q.type==='text'?'selected':''}>Short</option>
+            <option value="textarea" ${q.type==='textarea'?'selected':''}>Long</option>
+            <option value="number" ${q.type==='number'?'selected':''}>Number</option>
+            <option value="yesno" ${q.type==='yesno'?'selected':''}>Yes/No</option>
+          </select>
+          <button class="qed-btn save" onclick="myqSaveItem('${q.id}')">save</button>
+          <button class="qed-btn del" onclick="myqDeleteItem('${q.id}')">&#x2715;</button>
+        </div>
+      </div>`).join('') + '</div>';
+  initMyqDragDrop();
+}
+
+function myqSaveItem(qid) {
+  const pid = currentPerson.id;
+  const textEl = document.getElementById('myqtext-' + qid);
+  const typeEl = document.getElementById('myqtype-' + qid);
+  const newText = textEl.textContent.trim();
+  const newType = typeEl.value;
+  if (!newText) { showToast('Question text cannot be empty.'); return; }
+  const q = STD_QUESTIONS[pid]?.find(q => q.id === qid);
+  if (q) { q.text = newText; q.type = newType; }
+  persistToSheet({ action:'saveStdQ', personId:pid, qid, text:newText, qtype:newType });
+  renderMyqStdList();
+  showToast('Saved ✓');
+}
+
+function myqDeleteItem(qid) {
+  const pid = currentPerson.id;
+  STD_QUESTIONS[pid] = (STD_QUESTIONS[pid] || []).filter(q => q.id !== qid);
+  persistToSheet({ action:'deleteStdQ', personId:pid, qid });
+  renderMyqStdList();
+  showToast('Removed ✓');
+}
+
+function myqAddQuestion() {
+  const pid = currentPerson.id;
+  const text = document.getElementById('myqNewText').value.trim();
+  const type = document.getElementById('myqNewType').value;
+  const confirm = document.getElementById('myqAddConfirm');
+  if (!text) { confirm.style.display='block'; confirm.style.color='#f87171'; confirm.textContent='Enter a question first.'; return; }
+  const newQ = { id:'q_'+Date.now(), text, type };
+  if (!STD_QUESTIONS[pid]) STD_QUESTIONS[pid] = [];
+  STD_QUESTIONS[pid].push(newQ);
+  persistToSheet({ action:'saveStdQ', personId:pid, text, qtype:type });
+  document.getElementById('myqNewText').value = '';
+  renderMyqStdList();
+  confirm.style.display='block'; confirm.style.color='var(--green)'; confirm.textContent='Added ✓';
+  setTimeout(() => { confirm.style.display='none'; }, 3000);
+}
+
+function myqProceedToReport() {
+  showScreen('screenChat');
+  loadQuestions(currentPerson.id);
+}
+
+// ── DRAG AND DROP REORDER ──────────────────────────────────────────────────────
+let dragSrcQid = null;
+function initMyqDragDrop() {
+  const items = document.querySelectorAll('#myqDragList .qed-item[draggable]');
+  items.forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragSrcQid = item.dataset.qid;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.qed-item').forEach(i => i.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.qed-item').forEach(i => i.classList.remove('drag-over'));
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      const targetQid = item.dataset.qid;
+      if (dragSrcQid && dragSrcQid !== targetQid) {
+        const pid = currentPerson.id;
+        const qs = STD_QUESTIONS[pid];
+        const fromIdx = qs.findIndex(q => q.id === dragSrcQid);
+        const toIdx   = qs.findIndex(q => q.id === targetQid);
+        if (fromIdx !== -1 && toIdx !== -1) {
+          const [moved] = qs.splice(fromIdx, 1);
+          qs.splice(toIdx, 0, moved);
+          persistToSheet({ action:'reorderStdQ', personId:pid, order:qs.map(q=>q.id) });
+          renderMyqStdList();
+          showToast('Order saved ✓');
+        }
+      }
+    });
+  });
+}
+
+// ── JSONP / PERSIST ────────────────────────────────────────────────────────────
 function jsonp(url, callback) {
   const cbName = '_sf_cb_' + Date.now();
   const script = document.createElement('script');
@@ -977,8 +1084,7 @@ function loadQuestions(personId) {
   jsonp(`${SCRIPT_URL}?action=getStdQ&personId=${personId}`, (err, data) => {
     if (!err && data && data.questions && data.questions.length > 0) {
       const sheetQs = data.questions.map(q => ({ id:q.id, text:q.text, type:q.type, optional:q.optional }));
-      questions = sheetQs;
-      STD_QUESTIONS[personId] = sheetQs;
+      questions = sheetQs; STD_QUESTIONS[personId] = sheetQs;
     }
     jsonp(`${SCRIPT_URL}?action=getQuestions&personId=${personId}`, (err2, data2) => {
       if (!err2 && data2 && data2.adhoc && data2.adhoc.length > 0) {
@@ -990,8 +1096,7 @@ function loadQuestions(personId) {
 }
 
 function renderQuestion() {
-  const total = questions.length;
-  const i = currentQ;
+  const total = questions.length; const i = currentQ;
   const pct = Math.round((i / total) * 100);
   document.getElementById('progressLabel').textContent = `Question ${i+1} of ${total}`;
   document.getElementById('progressPct').textContent = pct + '%';
@@ -1040,8 +1145,7 @@ function nextQuestion() {
 }
 function prevQuestion() { if(currentQ>0){currentQ--;renderQuestion();} }
 function skipQuestion() {
-  const q = questions[currentQ];
-  answers[q.id] = '';
+  const q = questions[currentQ]; answers[q.id] = '';
   if(currentQ < questions.length-1){ currentQ++; renderQuestion(); } else { submitReport(); }
 }
 
@@ -1050,7 +1154,6 @@ function submitReport() {
   overlay.classList.add('show');
   const answersMap = {};
   questions.forEach(q => { answersMap[q.id] = answers[q.id] || ''; });
-
   let laborMetrics = null;
   const laborQs = questions.filter(q => q.laborField);
   if (laborQs.length) {
@@ -1064,7 +1167,6 @@ function submitReport() {
     laborMetrics.units_per_hr  = hrs > 0 ? (ord / hrs).toFixed(2) : '';
     laborMetrics.site          = currentPerson.site;
   }
-
   const payload = {
     action:'submitReport',
     personId:currentPerson.id, personName:currentPerson.name,
@@ -1075,7 +1177,6 @@ function submitReport() {
     questions: questions.map(q=>({ id:q.id, text:q.text, type:q.type, isAdhoc:!!q.isAdhoc, laborField:q.laborField||null })),
     laborMetrics: laborMetrics
   };
-
   if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
     fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload) })
       .then(() => {
@@ -1124,24 +1225,20 @@ function requestMyRecap() {
 function renderLaborSummary() {
   const block = document.getElementById('laborSummaryBlock');
   if (!['norman','burke'].includes(currentPerson.id)) { block.style.display='none'; return; }
-
   const prefix = currentPerson.id === 'norman' ? 'n' : 'bk';
   const site   = currentPerson.id === 'norman' ? 'SLC' : 'BAL';
   const hours  = parseFloat(answers[prefix+'_hours']) || 0;
   const spend  = parseFloat(answers[prefix+'_spend']) || 0;
   const orders = parseFloat(answers[prefix+'_orders']) || 0;
   const rawDate = answers[prefix+'_date'] || '';
-
   let dateLabel = rawDate;
   if (rawDate && rawDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
     const d = new Date(rawDate + 'T12:00:00');
     dateLabel = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
   }
-
   const cpo = orders > 0 ? '$' + (spend / orders).toFixed(2) : '—';
   const oph = hours > 0  ? (orders / hours).toFixed(1)       : '—';
   const uph = hours > 0  ? (orders / hours).toFixed(1)       : '—';
-
   block.style.display = 'block';
   block.innerHTML = `
     <div class="labor-card">
@@ -1169,8 +1266,7 @@ function selectManager(id) {
   document.getElementById('qedName').textContent = currentPerson.name;
   document.getElementById('qedRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
   showScreen('screenQuestions');
-  renderQedStd();
-  renderQedAdhoc();
+  renderQedStd(); renderQedAdhoc();
 }
 
 function loadManagerData() {
@@ -1221,7 +1317,6 @@ function renderSnapshot(data) {
 
 function toggleQA(id,btn){const el=document.getElementById(id);const open=el.classList.toggle('open');btn.textContent=open?'▾ hide':'▸ view';}
 
-// ── EMAIL PREVIEWS ─────────────────────────────────────────────────────────────
 const EMAIL_RECIPIENTS = {
   kody:   { label:'Kody — AM Outbound',     scopeFn: ()=>getScope('kody') },
   hugh:   { label:'Hugh — PM Lead',         scopeFn: ()=>getScope('hugh') },
@@ -1269,17 +1364,14 @@ function loadAdhocList() {
 }
 
 function renderAdhocList() {
-  const el = document.getElementById('adhocList');
-  if (!el) return;
+  const el = document.getElementById('adhocList'); if (!el) return;
   if (adhocQuestions.length===0){el.innerHTML='<div style="font-size:12px;color:var(--text3);font-family:\'IBM Plex Mono\',monospace;padding:4px 0">No active ad-hoc questions.</div>';return;}
   el.innerHTML=adhocQuestions.map(q=>{const target=TEAM.find(p=>p.id===q.targetPersonId);return`<div class="adhoc-item"><div><div class="adhoc-q-text">${q.question}</div><div class="adhoc-meta">→ ${target?.name||q.targetPersonId} · ${q.cadence} · ${q.answerType||'text'}</div></div><button class="del-btn" onclick="deleteAdhoc('${q.id}',this)" title="Remove">×</button></div>`;}).join('');
 }
 
 function submitAdhocQuestion() {
-  const target=document.getElementById('aqTarget').value;
-  const cadence=document.getElementById('aqCadence').value;
-  const type=document.getElementById('aqType').value;
-  const question=document.getElementById('aqQuestion').value.trim();
+  const target=document.getElementById('aqTarget').value; const cadence=document.getElementById('aqCadence').value;
+  const type=document.getElementById('aqType').value; const question=document.getElementById('aqQuestion').value.trim();
   const confirm=document.getElementById('aqConfirm');
   if(!target||!question){confirm.style.display='block';confirm.style.color='#f87171';confirm.textContent='Select a person and enter a question.';return;}
   const payload={action:'addAdhoc',managerId:currentPerson.id,targetPersonId:target,question,cadence,answerType:type,date:new Date().toISOString().split('T')[0],timestamp:new Date().toISOString()};
@@ -1295,7 +1387,7 @@ function submitAdhocQuestion() {
 
 function deleteAdhoc(id,btn){persistToSheet({action:'deleteAdhoc',id});adhocQuestions=adhocQuestions.filter(q=>String(q.id)!==String(id));renderAdhocList();}
 
-// ── QUESTIONS EDITOR ───────────────────────────────────────────────────────────
+// ── QUESTIONS EDITOR (manager) ─────────────────────────────────────────────────
 function showQedTab(tab,btn){
   document.getElementById('qedTabStd').style.display=tab==='std'?'block':'none';
   document.getElementById('qedTabAdhoc').style.display=tab==='adhoc'?'block':'none';
