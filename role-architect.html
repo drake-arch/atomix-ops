@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Role Architect — Atomix</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B1622;--navy2:#10203A;--navy3:#162840;--navy4:#1a3050;
+  --border:rgba(163,243,197,0.1);--border2:rgba(163,243,197,0.22);
+  --accent:#A3F3C5;--adim:rgba(163,243,197,0.3);--aglow:rgba(163,243,197,0.07);
+  --warm:#F5A94A;--red:#FF6B6B;--blue:#5B9DEF;--purple:#B57BEF;
+  --text:#DFF0E8;--textd:rgba(223,240,232,0.42);--textm:rgba(223,240,232,0.68);
+  --card:rgba(16,32,58,0.97);--panel:rgba(11,22,34,0.98);
+  --rR:#A3F3C5;--rA:#F5A94A;--rC:#5B9DEF;--rI:#B57BEF;
+  --r:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);display:flex;flex-direction:column;user-select:none;}
+
+/* HEADER */
+header{display:flex;align-items:center;gap:12px;padding:0 16px;height:52px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;z-index:300;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--accent);letter-spacing:.06em;flex-shrink:0;}
+.logo em{color:var(--textm);font-style:normal;font-weight:400;font-size:11px;margin-left:5px;}
+.steps{display:flex;align-items:center;flex:1;justify-content:center;}
+.step{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:8px;cursor:pointer;transition:all .2s;}
+.step-num{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;color:var(--textd);transition:all .2s;flex-shrink:0;}
+.step-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:600;color:var(--textd);letter-spacing:.04em;white-space:nowrap;transition:all .2s;}
+.step.active .step-num{background:var(--accent);border-color:var(--accent);color:var(--navy);}
+.step.active .step-label{color:var(--accent);}
+.step.done .step-num{background:rgba(163,243,197,.15);border-color:var(--adim);color:var(--accent);}
+.step.done .step-label{color:var(--textm);}
+.step-sep{width:22px;height:1px;background:var(--border);flex-shrink:0;}
+.hdr-right{display:flex;gap:7px;align-items:center;}
+.btn{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;padding:5px 11px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--textm);cursor:pointer;transition:all .2s;letter-spacing:.03em;white-space:nowrap;}
+.btn:hover{border-color:var(--adim);color:var(--accent);background:var(--aglow);}
+.btn-accent{background:var(--accent);color:var(--navy);border-color:var(--accent);font-weight:600;}
+.btn-accent:hover{background:#8FEDB5;border-color:#8FEDB5;color:var(--navy);}
+.btn-warm{background:rgba(245,169,74,.12);color:var(--warm);border-color:rgba(245,169,74,.3);}
+.btn-warm:hover{background:rgba(245,169,74,.2);color:var(--warm);}
+
+/* HINT BAR */
+.hint-bar{display:flex;align-items:center;gap:10px;padding:7px 18px;background:rgba(163,243,197,.04);border-bottom:1px solid var(--border);flex-shrink:0;}
+.hint-icon{font-size:14px;flex-shrink:0;}
+.hint-text{font-size:11px;color:var(--textm);line-height:1.4;flex:1;}
+.hint-text b{color:var(--accent);font-weight:600;}
+
+/* CHART SWITCHER BAR */
+.chart-bar{display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
+.chart-bar::-webkit-scrollbar{height:3px;}
+.chart-bar::-webkit-scrollbar-thumb{background:var(--border);}
+.cb-label{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--textd);white-space:nowrap;flex-shrink:0;}
+.chart-tab{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 12px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--textd);cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:5px;}
+.chart-tab.active{background:var(--aglow);border-color:var(--adim);color:var(--accent);}
+.chart-tab:hover{border-color:var(--adim);color:var(--accent);}
+.chart-tab-rm{background:none;border:none;color:rgba(223,240,232,.25);cursor:pointer;font-size:12px;transition:color .15s;padding:0 1px;}
+.chart-tab-rm:hover{color:var(--red);}
+.add-chart-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 10px;border-radius:5px;border:1px dashed var(--border);background:transparent;color:var(--textd);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;}
+.add-chart-btn:hover{border-color:var(--adim);color:var(--accent);}
+
+/* BODY */
+.body{display:flex;flex:1;overflow:hidden;}
+
+/* PANELS */
+.panel-col{width:248px;flex-shrink:0;background:var(--panel);display:flex;flex-direction:column;overflow:hidden;}
+.panel-col.right{border-left:1px solid var(--border);}
+.panel-col.left{border-right:1px solid var(--border);}
+.pcol-hdr{padding:10px 12px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.pcol-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--textd);}
+.pcol-add{width:22px;height:22px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--accent);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.pcol-add:hover{background:var(--aglow);border-color:var(--adim);}
+.pcol-body{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px;}
+.pcol-body::-webkit-scrollbar{width:3px;}
+.pcol-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* DUTY CHIP */
+.duty-chip{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:grab;transition:all .2s;position:relative;animation:chipIn .2s ease;}
+@keyframes chipIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.duty-chip.used{opacity:.38;border-style:dashed;cursor:default;}
+.duty-chip:not(.used):hover{border-color:var(--adim);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3);}
+.duty-chip.dragging{opacity:.25;transform:scale(.95);}
+.dc-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;padding-right:16px;}
+.dc-desc{font-size:10px;color:var(--textd);line-height:1.3;}
+.dc-used{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--adim);margin-top:3px;}
+/* RACI badges on duty chip */
+.dc-raci{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap;}
+.raci-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;}
+.rb-R{background:rgba(163,243,197,.15);color:var(--rR);}
+.rb-A{background:rgba(245,169,74,.15);color:var(--rA);}
+.rb-C{background:rgba(91,157,239,.15);color:var(--rC);}
+.rb-I{background:rgba(181,123,239,.15);color:var(--rI);}
+.chip-del{position:absolute;top:5px;right:5px;display:none;width:16px;height:16px;border-radius:3px;border:none;background:rgba(255,107,107,.15);color:var(--red);font-size:10px;cursor:pointer;align-items:center;justify-content:center;}
+.duty-chip:not(.used):hover .chip-del{display:flex;}
+
+/* PERSON CHIP */
+.person-chip{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 10px;cursor:grab;transition:all .2s;display:flex;flex-direction:column;gap:4px;position:relative;animation:chipIn .2s ease;}
+.person-chip.placed{opacity:.38;border-style:dashed;cursor:default;}
+.person-chip:not(.placed):hover{border-color:var(--adim);transform:translateX(-2px);}
+.person-chip.dragging{opacity:.25;}
+.pc-top{display:flex;align-items:center;gap:8px;}
+.p-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:9px;font-weight:700;flex-shrink:0;}
+.p-name{font-size:11px;font-weight:500;color:var(--text);flex:1;}
+.p-role{font-size:9px;color:var(--textd);font-style:italic;}
+/* RACI summary on person chip */
+.pc-raci{display:flex;gap:4px;}
+.pc-raci-item{font-family:'IBM Plex Mono',monospace;font-size:9px;display:flex;align-items:center;gap:2px;}
+.p-del{position:absolute;top:5px;right:5px;display:none;width:16px;height:16px;border-radius:3px;border:none;background:rgba(255,107,107,.15);color:var(--red);font-size:10px;cursor:pointer;align-items:center;justify-content:center;}
+.person-chip:not(.placed):hover .p-del{display:flex;}
+
+/* CENTER */
+.center{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.step-panel{display:none;overflow:hidden;}
+.step-panel.active{display:flex;flex:1;flex-direction:column;overflow:hidden;}
+
+/* STEP 1 & 2 splash */
+.splash{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;padding:40px;}
+.splash-h{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:rgba(163,243,197,.13);text-align:center;}
+.splash-p{font-size:12px;color:var(--textd);text-align:center;max-width:400px;line-height:1.7;}
+.splash-prog{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--adim);}
+
+/* STEP 3 — BUILD ROLES */
+#panel3{background:var(--navy);overflow:auto;
+  background-image:linear-gradient(rgba(163,243,197,.016) 1px,transparent 1px),linear-gradient(90deg,rgba(163,243,197,.016) 1px,transparent 1px);
+  background-size:30px 30px;}
+#buildInner{padding:28px;display:flex;flex-wrap:wrap;gap:14px;align-content:flex-start;}
+.role-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);width:252px;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s;animation:cardIn .25s ease;}
+@keyframes cardIn{from{opacity:0;transform:scale(.9) translateY(8px)}to{opacity:1;transform:none}}
+.role-card.drop-hi{border-color:var(--adim);box-shadow:0 0 0 2px var(--aglow);}
+.rc-top{padding:10px 10px 0;display:flex;align-items:flex-start;gap:5px;}
+.rc-name{flex:1;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text);background:transparent;border:none;outline:none;}
+.rc-name::placeholder{color:var(--textd);}
+.rc-del{background:none;border:none;color:var(--textd);cursor:pointer;font-size:13px;padding:1px 3px;border-radius:3px;opacity:0;transition:all .15s;}
+.role-card:hover .rc-del{opacity:1;}
+.rc-del:hover{color:var(--red);}
+
+/* PIE on role card */
+.rc-pie-area{display:flex;align-items:flex-start;gap:8px;padding:8px 10px 4px;}
+.pie-canvas{display:block;flex-shrink:0;cursor:pointer;}
+.pie-legend{flex:1;display:flex;flex-direction:column;gap:3px;max-height:90px;overflow-y:auto;}
+.pie-legend::-webkit-scrollbar{width:2px;}
+.pie-legend::-webkit-scrollbar-thumb{background:var(--border);}
+.pl-row{display:flex;align-items:center;gap:4px;}
+.pl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pl-name{font-size:9px;color:var(--textm);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pl-pct{font-family:'IBM Plex Mono',monospace;font-size:9px;width:32px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:3px;color:var(--accent);text-align:right;padding:1px 3px;outline:none;}
+.pl-pct:focus{border-color:var(--adim);}
+.pie-empty{font-size:10px;color:var(--textd);font-style:italic;padding:10px 0;text-align:center;width:100%;}
+.pie-total{font-family:'IBM Plex Mono',monospace;font-size:8px;text-align:right;padding:1px 0;}
+
+/* RACI summary on role card */
+.rc-raci-bar{display:flex;gap:4px;padding:0 10px 6px;flex-wrap:wrap;}
+.rc-raci-pill{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;display:flex;align-items:center;gap:3px;cursor:pointer;transition:all .15s;}
+.rc-raci-pill:hover{opacity:.8;}
+.rp-R{background:rgba(163,243,197,.12);color:var(--rR);border:1px solid rgba(163,243,197,.2);}
+.rp-A{background:rgba(245,169,74,.12);color:var(--rA);border:1px solid rgba(245,169,74,.2);}
+.rp-C{background:rgba(91,157,239,.12);color:var(--rC);border:1px solid rgba(91,157,239,.2);}
+.rp-I{background:rgba(181,123,239,.12);color:var(--rI);border:1px solid rgba(181,123,239,.2);}
+
+/* PERSON ZONE */
+.rc-pzone{margin:4px 10px 6px;min-height:32px;border:1px dashed var(--border);border-radius:7px;display:flex;align-items:center;padding:4px 8px;gap:6px;transition:all .2s;}
+.rc-pzone.drop-hi{border-color:var(--adim);background:var(--aglow);}
+.rc-pzone.has-p{border-style:solid;border-color:rgba(163,243,197,.2);background:rgba(163,243,197,.04);}
+.rpz-av{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:8px;font-weight:700;}
+.rpz-name{font-size:10px;color:var(--textm);flex:1;}
+.rpz-ph{font-size:9px;color:var(--textd);font-style:italic;}
+.rpz-rm{margin-left:auto;background:none;border:none;color:var(--textd);cursor:pointer;font-size:12px;transition:all .15s;padding:1px 2px;}
+.rpz-rm:hover{color:var(--red);}
+
+/* DUTIES ZONE */
+.rc-duties{padding:2px 10px 8px;display:flex;flex-direction:column;gap:3px;min-height:36px;}
+.duty-tag{background:rgba(163,243,197,.06);border:1px solid rgba(163,243,197,.15);border-radius:5px;padding:3px 7px;display:flex;align-items:center;gap:4px;animation:tagIn .15s ease;}
+@keyframes tagIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+.dt-name{font-size:10px;font-weight:500;color:var(--accent);flex:1;}
+.dt-rm{background:none;border:none;color:rgba(163,243,197,.25);cursor:pointer;font-size:11px;transition:color .15s;padding:0 2px;}
+.dt-rm:hover{color:var(--red);}
+.dz-hint{font-size:9px;color:var(--textd);font-style:italic;text-align:center;padding:6px 0;opacity:.5;}
+
+.rc-foot{padding:6px 10px 8px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.title-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;padding:2px 6px;border-radius:4px;cursor:pointer;transition:all .2s;}
+.tb-set{background:rgba(245,169,74,.1);color:var(--warm);border:1px solid rgba(245,169,74,.2);}
+.tb-empty{background:transparent;color:var(--textd);border:1px dashed var(--border);font-style:italic;}
+.add-role-card{width:252px;min-height:80px;border:1.5px dashed rgba(163,243,197,.14);border-radius:var(--r);background:transparent;color:var(--textd);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:all .25s;}
+.add-role-card:hover{border-color:var(--adim);background:var(--aglow);color:var(--accent);transform:scale(1.015);}
+
+/* STEP 4 — ORG */
+#orgPanel{flex:1;background:var(--navy2);position:relative;overflow:hidden;cursor:default;
+  background-image:radial-gradient(circle at 35% 25%,rgba(163,243,197,.05) 0%,transparent 45%),radial-gradient(circle at 75% 75%,rgba(91,157,239,.04) 0%,transparent 40%),linear-gradient(rgba(163,243,197,.014) 1px,transparent 1px),linear-gradient(90deg,rgba(163,243,197,.014) 1px,transparent 1px);
+  background-size:100% 100%,100% 100%,28px 28px,28px 28px;}
+#orgSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+.org-edge{fill:none;stroke:rgba(163,243,197,.2);stroke-width:2;marker-end:url(#arr);}
+.org-edge.del-mode{stroke:rgba(255,107,107,.4);cursor:pointer;pointer-events:stroke;}
+.org-edge.del-mode:hover{stroke:var(--red);}
+#pendingLine{fill:none;stroke:rgba(163,243,197,.45);stroke-width:1.5;stroke-dasharray:5 4;display:none;pointer-events:none;}
+.bubble{position:absolute;cursor:grab;animation:bubIn .28s cubic-bezier(.2,.8,.3,1);}
+@keyframes bubIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+.bubble:active{cursor:grabbing;}
+.bubble-inner{background:var(--card);border:2px solid var(--border);border-radius:100px;padding:8px 16px 8px 10px;display:flex;align-items:center;gap:9px;box-shadow:0 5px 20px rgba(0,0,0,.4);transition:border-color .2s,box-shadow .2s;white-space:nowrap;}
+.bubble:hover .bubble-inner{border-color:var(--adim);}
+.bubble.selected .bubble-inner{border-color:var(--accent);box-shadow:0 0 0 3px rgba(163,243,197,.1),0 5px 20px rgba(0,0,0,.4);}
+.bub-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;flex-shrink:0;}
+.bub-info{display:flex;flex-direction:column;}
+.bub-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text);}
+.bub-role{font-size:9px;color:var(--textd);}
+.bub-title{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--warm);}
+.bub-raci{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;}
+.bub-raci-pill{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;padding:1px 5px;border-radius:3px;}
+.org-toolbar{padding:7px 14px;border-top:1px solid var(--border);background:var(--panel);display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.mode-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--textd);cursor:pointer;transition:all .2s;}
+.mode-btn.active{background:var(--aglow);border-color:var(--adim);color:var(--accent);}
+.mode-btn:hover{border-color:var(--adim);color:var(--accent);}
+.org-hint{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--textd);margin-left:auto;}
+
+/* STEP 5 — RACI MATRIX */
+#panel5{background:var(--navy);overflow:auto;}
+.raci-matrix-wrap{padding:24px;min-width:100%;}
+.raci-matrix-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.raci-matrix-sub{font-size:11px;color:var(--textd);margin-bottom:20px;line-height:1.6;}
+.raci-legend{display:flex;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+.rl-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--textm);}
+.rl-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;}
+table.raci-table{border-collapse:collapse;width:100%;min-width:600px;}
+.raci-table th{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--textd);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;background:var(--panel);white-space:nowrap;}
+.raci-table th.person-th{text-align:center;}
+.raci-table td{padding:7px 12px;border-bottom:1px solid rgba(163,243,197,.05);vertical-align:middle;}
+.raci-table tr:hover td{background:rgba(163,243,197,.03);}
+.raci-duty-cell{font-size:11px;font-weight:500;color:var(--text);}
+.raci-duty-desc{font-size:9px;color:var(--textd);margin-top:2px;}
+.raci-person-cell{text-align:center;}
+.raci-cell-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--textd);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;}
+.raci-cell-btn:hover{border-color:var(--adim);}
+.raci-cell-btn.R{background:rgba(163,243,197,.15);border-color:rgba(163,243,197,.3);color:var(--rR);}
+.raci-cell-btn.A{background:rgba(245,169,74,.15);border-color:rgba(245,169,74,.3);color:var(--rA);}
+.raci-cell-btn.C{background:rgba(91,157,239,.15);border-color:rgba(91,157,239,.3);color:var(--rC);}
+.raci-cell-btn.I{background:rgba(181,123,239,.15);border-color:rgba(181,123,239,.3);color:var(--rI);}
+.raci-person-hdr{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;}
+.rph-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:9px;font-weight:700;margin:0 auto;}
+.rph-name{font-size:10px;font-weight:500;text-align:center;}
+.rph-summary{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:2px;}
+.rph-pill{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;padding:1px 4px;border-radius:3px;}
+.raci-empty{text-align:center;padding:48px 24px;font-size:12px;color:var(--textd);font-style:italic;line-height:1.8;}
+
+/* MY ORGS LIBRARY */
+.orgs-overlay{position:fixed;inset:0;background:rgba(11,22,34,.96);backdrop-filter:blur(12px);z-index:500;display:none;flex-direction:column;animation:fadeIn .18s;}
+.orgs-overlay.open{display:flex;}
+.orgs-header{display:flex;align-items:center;gap:16px;padding:20px 28px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.orgs-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);}
+.orgs-title span{color:var(--accent);}
+.orgs-subtitle{font-size:12px;color:var(--textd);margin-top:2px;}
+.orgs-body{flex:1;overflow-y:auto;padding:28px;}
+.orgs-body::-webkit-scrollbar{width:4px;}
+.orgs-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.orgs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.org-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px;transition:all .2s;cursor:pointer;position:relative;}
+.org-card:hover{border-color:var(--adim);box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(-2px);}
+.org-card.active-card{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 32px rgba(163,243,197,.1);}
+.oc-badge{position:absolute;top:14px;right:14px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(163,243,197,.12);color:var(--accent);border:1px solid var(--adim);}
+.oc-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);padding-right:60px;word-break:break-word;}
+.oc-stats{display:flex;gap:10px;flex-wrap:wrap;}
+.oc-stat{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--textd);display:flex;align-items:center;gap:4px;}
+.oc-stat b{color:var(--textm);font-weight:500;}
+.oc-raci{display:flex;gap:5px;flex-wrap:wrap;}
+.oc-raci-pill{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;}
+.oc-step{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--textd);display:flex;align-items:center;gap:5px;}
+.oc-step-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.oc-actions{display:flex;gap:6px;margin-top:2px;}
+.oc-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--textm);cursor:pointer;transition:all .15s;flex:1;}
+.oc-btn:hover{border-color:var(--adim);color:var(--accent);background:var(--aglow);}
+.oc-btn.open{background:var(--accent);color:var(--navy);border-color:var(--accent);font-weight:600;}
+.oc-btn.open:hover{background:#8FEDB5;}
+.oc-btn.del{border-color:rgba(255,107,107,.15);color:rgba(255,107,107,.5);}
+.oc-btn.del:hover{border-color:var(--red);color:var(--red);background:rgba(255,107,107,.08);}
+.new-org-card{background:transparent;border:1.5px dashed rgba(163,243,197,.15);border-radius:14px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .2s;min-height:160px;}
+.new-org-card:hover{border-color:var(--adim);background:var(--aglow);}
+.new-org-card-icon{font-size:28px;opacity:.3;}
+.new-org-card-label{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--textd);}
+
+/* BOTTOM BAR */
+.bottom-bar{display:flex;align-items:center;gap:9px;padding:7px 16px;border-top:1px solid var(--border);background:var(--panel);flex-shrink:0;overflow-x:auto;}
+.bottom-bar::-webkit-scrollbar{height:3px;}
+.bottom-bar::-webkit-scrollbar-thumb{background:var(--border);}
+.bl{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--textd);white-space:nowrap;flex-shrink:0;}
+.title-chip{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;padding:4px 9px;border-radius:5px;background:rgba(245,169,74,.1);color:var(--warm);border:1px solid rgba(245,169,74,.2);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px;}
+.tc-rm{background:none;border:none;color:rgba(245,169,74,.3);cursor:pointer;font-size:12px;transition:color .15s;}
+.tc-rm:hover{color:var(--red);}
+.add-title-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 9px;border-radius:5px;background:transparent;color:var(--textd);border:1px dashed var(--border);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;}
+.add-title-btn:hover{border-color:rgba(245,169,74,.4);color:var(--warm);}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(11,22,34,.88);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;animation:fadeIn .16s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--navy3);border:1px solid var(--border2);border-radius:14px;padding:22px;width:380px;max-height:80vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.65);animation:slideUp .2s ease;}
+@keyframes slideUp{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.modal-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--textd);margin-bottom:4px;}
+.field input,.field textarea{width:100%;background:var(--navy);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;resize:vertical;transition:border-color .2s;}
+.field input:focus,.field textarea:focus{border-color:var(--adim);box-shadow:0 0 0 2px var(--aglow);}
+.field textarea{min-height:64px;}
+.modal-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;}
+.mli{padding:8px 11px;border-radius:7px;cursor:pointer;border:1px solid var(--border);margin-bottom:4px;transition:all .15s;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--textm);}
+.mli:hover{border-color:var(--adim);background:var(--aglow);color:var(--accent);}
+.mli.sel{border-color:var(--warm);background:rgba(245,169,74,.1);color:var(--warm);}
+
+/* RACI PICKER in modal */
+.raci-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.raci-pick-btn{padding:10px 12px;border-radius:9px;border:1.5px solid var(--border);background:transparent;cursor:pointer;transition:all .2s;text-align:left;}
+.raci-pick-btn:hover{border-color:var(--border2);}
+.raci-pick-btn.active-R{border-color:rgba(163,243,197,.5);background:rgba(163,243,197,.1);}
+.raci-pick-btn.active-A{border-color:rgba(245,169,74,.5);background:rgba(245,169,74,.1);}
+.raci-pick-btn.active-C{border-color:rgba(91,157,239,.5);background:rgba(91,157,239,.1);}
+.raci-pick-btn.active-I{border-color:rgba(181,123,239,.5);background:rgba(181,123,239,.1);}
+.rpb-letter{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;display:block;margin-bottom:3px;}
+.rpb-R .rpb-letter{color:var(--rR);}
+.rpb-A .rpb-letter{color:var(--rA);}
+.rpb-C .rpb-letter{color:var(--rC);}
+.rpb-I .rpb-letter{color:var(--rI);}
+.rpb-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text);display:block;}
+.rpb-desc{font-size:9px;color:var(--textd);line-height:1.4;margin-top:2px;}
+
+/* DRAG GHOST */
+#ghost{position:fixed;pointer-events:none;z-index:9000;background:var(--navy3);border:1px solid var(--adim);border-radius:7px;padding:6px 11px;font-size:11px;font-weight:600;color:var(--accent);font-family:'Syne',sans-serif;box-shadow:0 5px 20px rgba(0,0,0,.5);opacity:0;transform:scale(.9);transition:opacity .1s,transform .1s;}
+#ghost.show{opacity:.92;transform:scale(1);}
+
+/* TOAST */
+#toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--navy3);border:1px solid var(--adim);border-radius:8px;padding:8px 16px;font-size:11px;color:var(--accent);font-family:'IBM Plex Mono',monospace;z-index:8000;opacity:0;transition:all .22s;pointer-events:none;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.empty-msg{text-align:center;padding:20px 0;font-size:11px;color:var(--textd);font-style:italic;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">ROLE ARCHITECT <em>— Atomix</em></div>
+  <div class="steps" id="stepsEl">
+    <div class="step active" onclick="goStep(1)" data-step="1"><div class="step-num">1</div><div class="step-label">Duties</div></div>
+    <div class="step-sep"></div>
+    <div class="step" onclick="goStep(2)" data-step="2"><div class="step-num">2</div><div class="step-label">Team</div></div>
+    <div class="step-sep"></div>
+    <div class="step" onclick="goStep(3)" data-step="3"><div class="step-num">3</div><div class="step-label">Build Roles</div></div>
+    <div class="step-sep"></div>
+    <div class="step" onclick="goStep(4)" data-step="4"><div class="step-num">4</div><div class="step-label">Org Chart</div></div>
+    <div class="step-sep"></div>
+    <div class="step" onclick="goStep(5)" data-step="5"><div class="step-num">5</div><div class="step-label">RACI Matrix</div></div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-warm" onclick="openOrgsLibrary()" style="display:flex;align-items:center;gap:5px;">📁 My Orgs</button>
+    <button class="btn" onclick="exportJSON()">Export</button>
+    <button class="btn" onclick="clearAll()">Reset</button>
+  </div>
+</header>
+
+<!-- MY ORGS LIBRARY OVERLAY -->
+<div class="orgs-overlay" id="orgsOverlay">
+  <div class="orgs-header">
+    <div>
+      <div class="orgs-title">My <span>Org Charts</span></div>
+      <div class="orgs-subtitle">All saved org designs — click to open, build, and compare</div>
+    </div>
+    <button class="btn" style="margin-left:auto;" onclick="closeOrgsLibrary()">✕ Close</button>
+  </div>
+  <div class="orgs-body">
+    <div class="orgs-grid" id="orgsGrid"></div>
+  </div>
+</div>
+
+<!-- CHART SWITCHER -->
+<div class="chart-bar">
+  <span class="cb-label">Org:</span>
+  <div id="chartTabs" style="display:flex;gap:6px;align-items:center;"></div>
+  <button class="add-chart-btn" onclick="openAddChart()">+ New Org</button>
+</div>
+
+<!-- HINT BAR -->
+<div class="hint-bar">
+  <div class="hint-icon" id="hintIcon">📋</div>
+  <div class="hint-text" id="hintText"></div>
+  <button class="btn btn-accent" id="hintBtn" onclick="hintAction()" style="flex-shrink:0;"></button>
+</div>
+
+<div class="body">
+  <!-- LEFT: DUTIES -->
+  <div class="panel-col left">
+    <div class="pcol-hdr">
+      <span class="pcol-title">Job Duties</span>
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--adim);" id="dutyCount">0</span>
+        <button class="pcol-add" onclick="openAddDuty()">+</button>
+      </div>
+    </div>
+    <div class="pcol-body" id="dutiesList"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+    <!-- Step 1 -->
+    <div class="step-panel active" id="panel1">
+      <div class="splash">
+        <div class="splash-h">Step 1: Capture Every Responsibility</div>
+        <div class="splash-p">Before assigning anyone to anything — list every duty that needs to get done in your operation. Don't think about who yet. Just what.<br><br><b style="color:var(--textm)">Use the Job Duties panel on the left.</b></div>
+        <div class="splash-prog" id="p1prog"></div>
+      </div>
+    </div>
+    <!-- Step 2 -->
+    <div class="step-panel" id="panel2">
+      <div class="splash">
+        <div class="splash-h">Step 2: Add Your Team</div>
+        <div class="splash-p">Add every person who will hold a role. Names only for now.<br><br><b style="color:var(--textm)">Use the Team panel on the right.</b></div>
+        <div class="splash-prog" id="p2prog"></div>
+      </div>
+    </div>
+    <!-- Step 3 -->
+    <div class="step-panel" id="panel3">
+      <div id="buildInner">
+        <div id="noRolesMsg" style="width:100%;padding:32px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:rgba(163,243,197,.16);text-align:center;">Step 3: Build Roles</div>
+          <div style="font-size:11px;color:var(--textd);text-align:center;max-width:340px;line-height:1.7;">Create a role → drag duties onto it → drag a person onto it.<br>Repeat until all duties and people are placed.<br><br>Click <b style="color:var(--accent)">+ New Role</b> to start.</div>
+        </div>
+      </div>
+    </div>
+    <!-- Step 4 -->
+    <div class="step-panel" id="panel4">
+      <div id="orgPanel">
+        <svg id="orgSvg">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M0,0 L0,8 L8,4 z" fill="rgba(163,243,197,.35)"/>
+            </marker>
+          </defs>
+          <g id="edgeGroup"></g>
+          <line id="pendingLine"/>
+        </svg>
+        <div id="orgEmptyMsg" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;">
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:rgba(163,243,197,.1);">Complete Step 3 first</div>
+          <div style="font-size:11px;color:rgba(163,243,197,.06);">Build roles, then arrange your org here</div>
+        </div>
+      </div>
+      <div class="org-toolbar">
+        <button class="mode-btn active" id="btnMove" onclick="setOrgMode('move')">Move</button>
+        <button class="mode-btn" id="btnConnect" onclick="setOrgMode('connect')">Connect</button>
+        <button class="mode-btn" id="btnDelEdge" onclick="setOrgMode('deleteEdge')">Delete Link</button>
+        <button class="btn" style="font-size:9px;padding:3px 8px;" onclick="autoLayout()">Auto Layout</button>
+        <span class="org-hint" id="orgHint">Drag bubbles freely • Connect to draw reporting lines</span>
+      </div>
+    </div>
+    <!-- Step 5: RACI Matrix -->
+    <div class="step-panel" id="panel5">
+      <div class="raci-matrix-wrap" id="raciMatrixWrap"></div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+      <span class="bl">Titles</span>
+      <div id="titlesList" style="display:flex;gap:6px;align-items:center;"></div>
+      <button class="add-title-btn" onclick="openAddTitle()">+ Add Title</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: TEAM -->
+  <div class="panel-col right">
+    <div class="pcol-hdr">
+      <span class="pcol-title">Team</span>
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--adim);" id="personCount">0</span>
+        <button class="pcol-add" onclick="openAddPerson()">+</button>
+      </div>
+    </div>
+    <div class="pcol-body" id="personList"></div>
+  </div>
+</div>
+
+<div id="ghost"></div>
+<div class="overlay" id="overlay" style="display:none" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-title" id="mTitle"></div>
+    <div id="mBody"></div>
+    <div class="modal-actions" id="mActions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="confirmModal()">Save</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ── CONSTANTS ──────────────────────────────────────────────────────────────────
+const COLORS=['#A3F3C5','#5B9DEF','#F5A94A','#FF8FAB','#B57BEF','#4DD9D9','#FFD166','#06D6A0','#F0A0E0','#7EC8E3'];
+const RACI_COLORS={R:'var(--rR)',A:'var(--rA)',C:'var(--rC)',I:'var(--rI)'};
+const RACI_BG={R:'rgba(163,243,197,.15)',A:'rgba(245,169,74,.15)',C:'rgba(91,157,239,.15)',I:'rgba(181,123,239,.15)'};
+const RACI_LABELS={R:'Responsible',A:'Accountable',C:'Consulted',I:'Informed'};
+const RACI_DESC={
+  R:'Does the work personally. Executes the task day-to-day.',
+  A:'Owns the outcome. Single owner — the buck stops here. Ensures R gets it done.',
+  C:'Two-way input. Their expertise is needed before/during. They advise.',
+  I:'One-way updates. Needs to be kept in the loop — doesn\'t act on it.'
+};
+const RACI_CYCLE=['','R','A','C','I'];
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid=()=>'_'+Math.random().toString(36).slice(2,9);
+const ini=n=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+// ── MULTI-CHART STATE ─────────────────────────────────────────────────────────
+// charts: [{id, name, data:{duties,persons,roles,titles,nodes,edges,step,raci}}]
+// raci: { [dutyId]: { [personId]: 'R'|'A'|'C'|'I'|'' } }
+let ALL = { charts:[], activeChartId:null };
+let S = {}; // current chart data — reference into ALL.charts[x].data
+
+function newChartData(name){
+  return {id:uid(),name,data:{duties:[],persons:[],roles:[],titles:[],nodes:[],edges:[],step:1,raci:{}}};
+}
+function saveAll(){
+  ALL.charts.find(c=>c.id===ALL.activeChartId).data = S;
+  localStorage.setItem('ra_v6',JSON.stringify(ALL));
+}
+function loadAll(){
+  try{const r=localStorage.getItem('ra_v6');if(r)ALL=JSON.parse(r);}catch(e){}
+  if(!ALL.charts||!ALL.charts.length){
+    const c=newChartData('Main Org');ALL.charts=[c];ALL.activeChartId=c.id;
+  }
+  if(!ALL.charts.find(c=>c.id===ALL.activeChartId))ALL.activeChartId=ALL.charts[0].id;
+  S=ALL.charts.find(c=>c.id===ALL.activeChartId).data;
+  if(!S.raci)S.raci={};
+}
+function switchChart(id){
+  ALL.charts.find(c=>c.id===ALL.activeChartId).data=S;
+  ALL.activeChartId=id;
+  S=ALL.charts.find(c=>c.id===id).data;
+  if(!S.raci)S.raci={};
+  // reset bad nodes
+  if(S.nodes&&S.nodes.some(n=>n.x>600||n.y>500))S.nodes=S.nodes.map(n=>({...n,x:-9999,y:-9999}));
+  localStorage.setItem('ra_v6',JSON.stringify(ALL));
+  renderChartTabs();renderSteps();render();
+  if(S.step===4)requestAnimationFrame(()=>requestAnimationFrame(renderOrg));
+  if(S.step===5)renderRaciMatrix();
+}
+
+// ── DRAG ──────────────────────────────────────────────────────────────────────
+let dragData=null;
+const ghost=document.getElementById('ghost');
+const moveGhost=e=>{ghost.style.left=(e.clientX+14)+'px';ghost.style.top=(e.clientY-10)+'px';};
+function startDrag(e,type,id,label){dragData={type,id,label};e.currentTarget.classList.add('dragging');ghost.textContent=label;ghost.classList.add('show');document.addEventListener('mousemove',moveGhost);e.dataTransfer.effectAllowed='move';}
+function endDrag(){dragData=null;ghost.classList.remove('show');document.removeEventListener('mousemove',moveGhost);document.querySelectorAll('.dragging').forEach(el=>el.classList.remove('dragging'));}
+
+// ── RACI HELPERS ──────────────────────────────────────────────────────────────
+function getRaci(dutyId,personId){return S.raci?.[dutyId]?.[personId]||'';}
+function setRaci(dutyId,personId,val){
+  if(!S.raci)S.raci={};
+  if(!S.raci[dutyId])S.raci[dutyId]={};
+  // enforce single A per duty
+  if(val==='A'){Object.keys(S.raci[dutyId]).forEach(pid=>{if(pid!==personId&&S.raci[dutyId][pid]==='A')S.raci[dutyId][pid]='';});}
+  S.raci[dutyId][personId]=val;
+  saveAll();
+}
+function getPersonRaciCounts(personId){
+  const counts={R:0,A:0,C:0,I:0};
+  (S.duties||[]).forEach(d=>{const v=getRaci(d.id,personId);if(v)counts[v]++;});
+  return counts;
+}
+function getDutyRaciSummary(dutyId){
+  // returns array of {personId,name,val}
+  if(!S.raci?.[dutyId])return[];
+  return Object.entries(S.raci[dutyId]).filter(([,v])=>v).map(([pid,v])=>{
+    const p=S.persons.find(x=>x.id===pid);return p?{personId:pid,name:p.name,val:v}:null;
+  }).filter(Boolean);
+}
+function raciPill(letter,small){
+  return `<span class="raci-badge rb-${letter}"${small?' style="font-size:8px;padding:1px 4px"':''}>${letter}</span>`;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){renderDuties();renderPersons();renderRoles();renderTitles();renderChartTabs();updateCounts();}
+
+function renderDuties(){
+  const l=document.getElementById('dutiesList');l.innerHTML='';
+  if(!S.duties.length){l.innerHTML='<div class="empty-msg">No duties yet.<br>Click + to add.</div>';return;}
+  S.duties.forEach(d=>{
+    const usedIn=S.roles.find(r=>r.duties.includes(d.id));
+    const raciSummary=getDutyRaciSummary(d.id);
+    const el=document.createElement('div');el.className='duty-chip'+(usedIn?' used':'');el.draggable=!usedIn;
+    const raci=['R','A','C','I'].map(v=>{const entries=raciSummary.filter(x=>x.val===v);return entries.length?`<span class="raci-badge rb-${v}">${v}:${entries.length}</span>`:''}).join('');
+    el.innerHTML=`<div class="dc-title">${esc(d.title)}</div>${d.desc?`<div class="dc-desc">${esc(d.desc)}</div>`:''}`
+      +(usedIn?`<div class="dc-used">→ ${esc(usedIn.name)}</div>`:'')
+      +(raci?`<div class="dc-raci">${raci}</div>`:'')
+      +`<button class="chip-del" onclick="removeDuty('${d.id}')">✕</button>`;
+    if(!usedIn){el.addEventListener('dragstart',e=>startDrag(e,'duty',d.id,d.title));el.addEventListener('dragend',endDrag);}
+    l.appendChild(el);
+  });
+}
+
+function renderPersons(){
+  const l=document.getElementById('personList');l.innerHTML='';
+  if(!S.persons.length){l.innerHTML='<div class="empty-msg">No team yet.<br>Click + to add names.</div>';return;}
+  S.persons.forEach((p,i)=>{
+    const placedIn=S.roles.find(r=>r.personId===p.id);
+    const color=COLORS[i%COLORS.length];
+    const counts=getPersonRaciCounts(p.id);
+    const el=document.createElement('div');el.className='person-chip'+(placedIn?' placed':'');el.draggable=!placedIn;
+    const raciSummary=['R','A','C','I'].filter(v=>counts[v]>0).map(v=>
+      `<span class="pc-raci-item" style="color:${RACI_COLORS[v]}"><span style="font-weight:700">${v}</span>${counts[v]}</span>`).join('');
+    el.innerHTML=`<div class="pc-top"><div class="p-av" style="background:${color}22;border:1.5px solid ${color}55;color:${color}">${ini(p.name)}</div><div><div class="p-name">${esc(p.name)}</div>${placedIn?`<div class="p-role">${esc(placedIn.name)}</div>`:''}</div></div>`
+      +(raciSummary?`<div class="pc-raci">${raciSummary}</div>`:'')
+      +`<button class="p-del" onclick="removePerson('${p.id}')">✕</button>`;
+    if(!placedIn){el.addEventListener('dragstart',e=>startDrag(e,'person',p.id,p.name));el.addEventListener('dragend',endDrag);}
+    l.appendChild(el);
+  });
+}
+
+function renderRoles(){
+  const inner=document.getElementById('buildInner');
+  inner.querySelectorAll('.role-card,.add-role-card').forEach(el=>el.remove());
+  document.getElementById('noRolesMsg').style.display=S.roles.length?'none':'flex';
+  S.roles.forEach(r=>inner.appendChild(buildRoleCard(r)));
+  const ab=document.createElement('button');ab.className='add-role-card';
+  ab.innerHTML='<div style="font-size:22px;opacity:.35">+</div><div style="font-size:10px">New Role</div>';
+  ab.onclick=openAddRole;inner.appendChild(ab);
+}
+
+function normPct(role){
+  if(!role.pct)role.pct={};
+  role.duties.forEach(dId=>{if(role.pct[dId]==null)role.pct[dId]=Math.floor(100/role.duties.length);});
+  Object.keys(role.pct).forEach(k=>{if(!role.duties.includes(k))delete role.pct[k];});
+  const tot=role.duties.reduce((s,dId)=>s+(role.pct[dId]||0),0);
+  if(tot===0&&role.duties.length){const sh=Math.floor(100/role.duties.length);role.duties.forEach(dId=>role.pct[dId]=sh);}
+}
+
+function drawPie(canvas,role){
+  const ctx=canvas.getContext('2d'),cx=38,cy=38,r=33,hole=13;
+  ctx.clearRect(0,0,76,76);
+  let ang=-Math.PI/2;
+  role.duties.forEach((dId,i)=>{
+    const pct=(role.pct[dId]||0)/100,end=ang+pct*2*Math.PI;
+    if(pct>0){ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,ang,end);ctx.closePath();ctx.fillStyle=COLORS[i%COLORS.length];ctx.fill();ctx.strokeStyle='rgba(11,22,34,.7)';ctx.lineWidth=1.5;ctx.stroke();}
+    ang=end;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,hole,0,Math.PI*2);ctx.fillStyle='rgba(11,22,34,.9)';ctx.fill();
+  const tot=role.duties.reduce((s,dId)=>s+(role.pct[dId]||0),0);
+  ctx.fillStyle=Math.abs(tot-100)<1?'#A3F3C5':tot>100?'#FF6B6B':'#F5A94A';
+  ctx.font='bold 9px Syne,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(tot+'%',cx,cy);
+}
+
+function buildRoleCard(role){
+  const person=role.personId?S.persons.find(p=>p.id===role.personId):null;
+  const ttl=role.titleId?S.titles.find(t=>t.id===role.titleId):null;
+  const pIdx=person?S.persons.indexOf(person):-1;
+  const pColor=pIdx>=0?COLORS[pIdx%COLORS.length]:null;
+  const card=document.createElement('div');card.className='role-card';card.dataset.roleId=role.id;
+
+  // header
+  const top=document.createElement('div');top.className='rc-top';
+  top.innerHTML=`<input class="rc-name" value="${esc(role.name)}" placeholder="Role name..." onchange="updateRoleName('${role.id}',this.value)"/><button class="rc-del" onclick="deleteRole('${role.id}')">✕</button>`;
+  card.appendChild(top);
+
+  // pie
+  const pa=document.createElement('div');pa.className='rc-pie-area';
+  if(role.duties.length){
+    normPct(role);
+    const canvas=document.createElement('canvas');canvas.className='pie-canvas';canvas.width=76;canvas.height=76;
+    pa.appendChild(canvas);drawPie(canvas,role);
+    canvas.addEventListener('click',e=>{
+      const rect=canvas.getBoundingClientRect();
+      const ang=Math.atan2(e.clientY-(rect.top+38),e.clientX-(rect.left+38));
+      const deg=((ang*180/Math.PI)+360+90)%360;let acc=0;
+      for(let i=0;i<role.duties.length;i++){const dId=role.duties[i],slice=(role.pct[dId]||0)/100*360;
+        if(deg>=acc&&deg<acc+slice){role.pct[dId]=((role.pct[dId]||0)+10)%110;normPct(role);saveAll();renderRoles();return;}acc+=slice;}
+    });
+    const leg=document.createElement('div');leg.className='pie-legend';
+    role.duties.forEach((dId,i)=>{
+      const d=S.duties.find(x=>x.id===dId);if(!d)return;
+      const row=document.createElement('div');row.className='pl-row';
+      row.innerHTML=`<div class="pl-dot" style="background:${COLORS[i%COLORS.length]}"></div><div class="pl-name">${esc(d.title)}</div><input class="pl-pct" type="number" min="0" max="100" value="${role.pct[dId]||0}"/>%`;
+      const inp=row.querySelector('input');
+      inp.addEventListener('change',()=>{role.pct[dId]=Math.max(0,Math.min(100,parseInt(inp.value)||0));saveAll();renderRoles();});
+      inp.addEventListener('click',e=>e.stopPropagation());
+      leg.appendChild(row);
+    });
+    const tot=role.duties.reduce((s,dId)=>s+(role.pct[dId]||0),0);
+    const tc=Math.abs(tot-100)<1?'var(--accent)':tot>100?'var(--red)':'var(--warm)';
+    const totRow=document.createElement('div');totRow.className='pie-total';totRow.innerHTML=`Total: <span style="color:${tc};font-weight:600">${tot}%</span>`;
+    leg.appendChild(totRow);
+    pa.appendChild(leg);
+  } else {
+    pa.innerHTML='<div class="pie-empty">Drop duties to set time allocation</div>';
+  }
+  card.appendChild(pa);
+
+  // RACI bar for this role's person
+  if(person && role.duties.length){
+    const counts=getPersonRaciCounts(person.id);
+    const raciSection=document.createElement('div');raciSection.style.cssText='padding:0 10px 6px;';
+    raciSection.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--textd);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;">RACI Load — ${esc(person.name.split(' ')[0])}</div>`;
+    const raciBar=document.createElement('div');raciBar.className='rc-raci-bar';raciBar.style.padding='0';
+    ['R','A','C','I'].forEach(v=>{
+      const btn=document.createElement('button');
+      btn.className=`rc-raci-pill rp-${v}`;btn.title=`${RACI_LABELS[v]}\n${RACI_DESC[v]}\nCount: ${counts[v]}`;
+      btn.innerHTML=`<span style="font-size:10px;">${v}</span><span style="font-size:11px;font-weight:700;">${counts[v]}</span>`;
+      btn.onclick=()=>openRaciEditor(role.id,person.id);
+      raciBar.appendChild(btn);
+    });
+    raciSection.appendChild(raciBar);
+    card.appendChild(raciSection);
+  }
+
+  // person zone
+  const pz=document.createElement('div');pz.className='rc-pzone'+(person?' has-p':'');
+  pz.innerHTML=person
+    ?`<div class="rpz-av" style="background:${pColor}22;border:1.5px solid ${pColor}55;color:${pColor}">${ini(person.name)}</div><div class="rpz-name">${esc(person.name)}</div><button class="rpz-rm" onclick="unassignPerson('${role.id}')">✕</button>`
+    :`<div class="rpz-ph">← drop a team member here</div>`;
+  pz.addEventListener('dragover',e=>{if(dragData?.type==='person'){e.preventDefault();pz.classList.add('drop-hi');}});
+  pz.addEventListener('dragleave',()=>pz.classList.remove('drop-hi'));
+  pz.addEventListener('drop',e=>{e.preventDefault();pz.classList.remove('drop-hi');if(dragData?.type==='person'){role.personId=dragData.id;saveAll();render();}});
+  card.appendChild(pz);
+
+  // duties
+  const dz=document.createElement('div');dz.className='rc-duties';
+  role.duties.forEach(dId=>{
+    const d=S.duties.find(x=>x.id===dId);if(!d)return;
+    const rVal=role.personId?getRaci(dId,role.personId):'';
+    const tag=document.createElement('div');tag.className='duty-tag';tag.style.flexDirection='column';tag.style.alignItems='stretch';tag.style.gap='5px';
+    // duty name row
+    const nameRow=document.createElement('div');nameRow.style.cssText='display:flex;align-items:center;gap:4px;';
+    nameRow.innerHTML=`<div class="dt-name">${esc(d.title)}</div><button class="dt-rm" onclick="removeDutyFromRole('${role.id}','${dId}')">✕</button>`;
+    tag.appendChild(nameRow);
+    // RACI row — always show if person assigned, prompt if not
+    const raciRow=document.createElement('div');raciRow.style.cssText='display:flex;align-items:center;gap:4px;';
+    if(role.personId){
+      // 4 clickable RACI buttons — highlight active one
+      ['R','A','C','I'].forEach(v=>{
+        const btn=document.createElement('button');
+        const isActive=rVal===v;
+        btn.style.cssText=`font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:pointer;transition:all .15s;border:1px solid ${isActive?'transparent':'rgba(255,255,255,.08)'};background:${isActive?RACI_BG[v]:'rgba(255,255,255,.03)'};color:${isActive?RACI_COLORS[v]:'rgba(223,240,232,.3)'};`;
+        btn.textContent=v;
+        btn.title=RACI_LABELS[v];
+        btn.onclick=(e)=>{e.stopPropagation();setRaci(dId,role.personId,isActive?'':v);saveAll();renderRoles();renderPersons();renderDuties();if(S.step===5)renderRaciMatrix();};
+        raciRow.appendChild(btn);
+      });
+      const hint=document.createElement('span');hint.style.cssText='font-size:8px;color:rgba(223,240,232,.25);margin-left:2px;font-family:IBM Plex Mono,monospace;';
+      hint.textContent=rVal?RACI_LABELS[rVal]:'click to assign';
+      raciRow.appendChild(hint);
+    } else {
+      raciRow.innerHTML=`<span style="font-size:9px;color:rgba(223,240,232,.25);font-style:italic;font-family:'IBM Plex Mono',monospace;">assign person first to set RACI</span>`;
+    }
+    tag.appendChild(raciRow);
+    dz.appendChild(tag);
+  });
+  if(!role.duties.length)dz.innerHTML='<div class="dz-hint">← drag duties from the left</div>';
+  dz.addEventListener('dragover',e=>{if(dragData?.type==='duty'){e.preventDefault();card.classList.add('drop-hi');}});
+  dz.addEventListener('dragleave',()=>card.classList.remove('drop-hi'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();card.classList.remove('drop-hi');
+    if(dragData?.type==='duty'){
+      if(role.duties.includes(dragData.id)){toast('Already in this role');return;}
+      role.duties.push(dragData.id);
+      if(!role.pct)role.pct={};
+      const n=role.duties.length;role.duties.forEach(dId=>role.pct[dId]=Math.floor(100/n));
+      saveAll();renderRoles();
+    }
+  });
+  card.appendChild(dz);
+
+  // footer
+  const ft=document.createElement('div');ft.className='rc-foot';
+  ft.innerHTML=`<div class="title-badge ${ttl?'tb-set':'tb-empty'}" onclick="openTitlePicker('${role.id}')">${ttl?esc(ttl.name):'+ assign title'}</div>`;
+  card.appendChild(ft);
+  return card;
+}
+
+function renderTitles(){
+  const l=document.getElementById('titlesList');l.innerHTML='';
+  S.titles.forEach(t=>{
+    const c=document.createElement('div');c.className='title-chip';
+    c.innerHTML=`${esc(t.name)}<button class="tc-rm" onclick="removeTitle('${t.id}')">✕</button>`;
+    l.appendChild(c);
+  });
+}
+
+function updateCounts(){
+  document.getElementById('dutyCount').textContent=S.duties.length;
+  document.getElementById('personCount').textContent=S.persons.length;
+  document.getElementById('p1prog').textContent=S.duties.length?`${S.duties.length} duties captured`:'No duties yet';
+  document.getElementById('p2prog').textContent=S.persons.length?`${S.persons.length} people added`:'No team members yet';
+}
+
+// ── RACI MATRIX ───────────────────────────────────────────────────────────────
+function renderRaciMatrix(){
+  const wrap=document.getElementById('raciMatrixWrap');
+  if(!S.duties.length||!S.persons.length){
+    wrap.innerHTML=`<div class="raci-matrix-title">RACI Matrix</div><div class="raci-empty">Complete Steps 1–3 first.<br>Add duties, add team members, build roles — then assign RACI codes here.</div>`;return;
+  }
+  // persons with roles only (or all)
+  const persons=S.persons;
+  let html=`<div class="raci-matrix-title">RACI Matrix</div>
+  <div class="raci-matrix-sub">Each duty needs at least one <b style="color:var(--rR)">R</b> (does the work) and exactly one <b style="color:var(--rA)">A</b> (owns the outcome). <b style="color:var(--rC)">C</b> = consulted (two-way input). <b style="color:var(--rI)">I</b> = informed (one-way update). Click any cell to cycle R → A → C → I → blank. Only one A per duty.</div>
+  <div class="raci-legend">
+    <div class="rl-item"><div class="rl-badge" style="background:${RACI_BG.R};color:var(--rR)">R</div><span><b style="color:var(--rR)">Responsible</b> — Does the work personally</span></div>
+    <div class="rl-item"><div class="rl-badge" style="background:${RACI_BG.A};color:var(--rA)">A</div><span><b style="color:var(--rA)">Accountable</b> — Owns the outcome. One per duty.</span></div>
+    <div class="rl-item"><div class="rl-badge" style="background:${RACI_BG.C};color:var(--rC)">C</div><span><b style="color:var(--rC)">Consulted</b> — Two-way input before/during</span></div>
+    <div class="rl-item"><div class="rl-badge" style="background:${RACI_BG.I};color:var(--rI)">I</div><span><b style="color:var(--rI)">Informed</b> — One-way updates after</span></div>
+  </div>
+  <table class="raci-table"><thead><tr><th>Duty</th>`;
+  persons.forEach((p,i)=>{
+    const color=COLORS[i%COLORS.length];
+    const counts=getPersonRaciCounts(p.id);
+    const pills=['R','A','C','I'].filter(v=>counts[v]>0).map(v=>`<span class="rph-pill" style="background:${RACI_BG[v]};color:${RACI_COLORS[v]}">${v}:${counts[v]}</span>`).join('');
+    html+=`<th class="person-th"><div class="raci-person-hdr">
+      <div class="rph-av" style="background:${color}22;border:1.5px solid ${color}55;color:${color}">${ini(p.name)}</div>
+      <div class="rph-name" style="color:${color};font-size:9px;font-weight:700">${esc(p.name.split(' ')[0])}</div>
+      <div class="rph-summary">${pills||'<span style="font-size:8px;color:var(--textd)">no RACI</span>'}</div>
+    </div></th>`;
+  });
+  html+='</tr></thead><tbody>';
+  S.duties.forEach(d=>{
+    const hasA=persons.some(p=>getRaci(d.id,p.id)==='A');
+    const hasR=persons.some(p=>getRaci(d.id,p.id)==='R');
+    const warn=!hasA||!hasR;
+    html+=`<tr><td><div class="raci-duty-cell">${esc(d.title)}${warn?` <span style="color:var(--red);font-size:9px;font-family:'IBM Plex Mono',monospace" title="${!hasR?'Missing R':''}${!hasR&&!hasA?' + ':''}${!hasA?'Missing A':''}">${!hasR?'!R':''}${!hasA?'!A':''}</span>`:''}</div>${d.desc?`<div class="raci-duty-desc">${esc(d.desc)}</div>`:''}</td>`;
+    persons.forEach(p=>{
+      const v=getRaci(d.id,p.id);
+      html+=`<td class="raci-person-cell"><button class="raci-cell-btn ${v}" onclick="cycleCellRaci('${d.id}','${p.id}')" title="${v?RACI_LABELS[v]:'Click to assign'}">${v||'–'}</button></td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  wrap.innerHTML=html;
+}
+
+function cycleCellRaci(dutyId,personId){
+  const cur=getRaci(dutyId,personId);
+  const idx=RACI_CYCLE.indexOf(cur);
+  const next=RACI_CYCLE[(idx+1)%RACI_CYCLE.length];
+  setRaci(dutyId,personId,next);
+  renderRaciMatrix();render();
+}
+
+function openRaciEditor(roleId,personId,focusDutyId){
+  const role=S.roles.find(r=>r.id===roleId);const person=S.persons.find(p=>p.id===personId);
+  if(!role||!person)return;
+  const duties=role.duties.map(dId=>S.duties.find(x=>x.id===dId)).filter(Boolean);
+  if(!duties.length){toast('Add duties to this role first');return;}
+  let body=`<div style="font-size:11px;color:var(--textd);margin-bottom:14px;line-height:1.6">Assign RACI roles for <b style="color:var(--accent)">${esc(person.name)}</b> on each duty. One <b style="color:var(--rA)">A</b> per duty max.</div>`;
+  duties.forEach(d=>{
+    const cur=getRaci(d.id,personId);
+    body+=`<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+      <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px;">${esc(d.title)}</div>
+      <div style="display:flex;gap:5px;">
+        ${['R','A','C','I',''].map(v=>`<button onclick="setRaci('${d.id}','${personId}','${v}');render();document.getElementById('mBody').querySelectorAll('[data-did=\\'${d.id}\\']').forEach(b=>{b.className='raci-cell-btn '+(b.dataset.v==='${v}'?b.dataset.v:'')});renderPersons();renderDuties();" data-did="${d.id}" data-v="${v}" class="raci-cell-btn ${cur===v?v:''}" style="width:${v?'30px':'36px'}" title="${v?RACI_LABELS[v]:'Clear'}">${v||'–'}</button>`).join('')}
+      </div>
+    </div>`;
+  });
+  openModal('RACI Assignment',body,'raciEdit',true);
+}
+
+// ── ORG CHART ─────────────────────────────────────────────────────────────────
+let orgMode='move',connectFrom=null,draggingBubble=null,dbOX=0,dbOY=0;
+
+function setOrgMode(m){
+  orgMode=m;connectFrom=null;document.getElementById('pendingLine').style.display='none';
+  document.querySelectorAll('.bubble').forEach(b=>b.classList.remove('selected'));
+  ['Move','Connect','DelEdge'].forEach(k=>document.getElementById('btn'+k)?.classList.toggle('active',m===({Move:'move',Connect:'connect',DelEdge:'deleteEdge'}[k])));
+  const hints={move:'Drag bubbles freely to position your org',connect:'Click a bubble, then click another to draw a reporting line',deleteEdge:'Click any connecting line to remove it'};
+  document.getElementById('orgHint').textContent=hints[m]||'';
+  renderOrg();
+}
+
+function miniPie(role){
+  if(!role||!role.duties.length)return'';
+  normPct(role);const cx=11,cy=11,r=9;let paths='',ang=-Math.PI/2;
+  role.duties.forEach((dId,i)=>{
+    const pct=(role.pct[dId]||0)/100,sweep=pct*2*Math.PI;
+    if(pct<=0.01)return;
+    const x1=cx+r*Math.cos(ang),y1=cy+r*Math.sin(ang),end=ang+sweep;
+    const x2=cx+r*Math.cos(end),y2=cy+r*Math.sin(end),lg=sweep>Math.PI?1:0;
+    paths+=`<path d="M${cx},${cy}L${x1.toFixed(2)},${y1.toFixed(2)}A${r},${r},0,${lg},1,${x2.toFixed(2)},${y2.toFixed(2)}Z" fill="${COLORS[i%COLORS.length]}" stroke="rgba(11,22,34,.5)" stroke-width=".7"/>`;
+    ang=end;
+  });
+  return`<svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0">${paths}<circle cx="11" cy="11" r="4.5" fill="rgba(11,22,34,.88)"/></svg>`;
+}
+
+function renderOrg(){
+  const canvas=document.getElementById('orgPanel');
+  canvas.querySelectorAll('.bubble').forEach(el=>el.remove());
+  document.getElementById('edgeGroup').innerHTML='';
+  const hasRoles=S.roles.some(r=>r.personId);
+  document.getElementById('orgEmptyMsg').style.display=hasRoles?'none':'flex';
+  const W=Math.max(canvas.clientWidth,canvas.offsetWidth,600);
+  const H=Math.max(canvas.clientHeight,canvas.offsetHeight,400);
+  S.roles.forEach(r=>{
+    if(!r.personId)return;
+    if(!S.nodes.find(n=>n.roleId===r.id))S.nodes.push({id:uid(),roleId:r.id,x:60+Math.random()*(W-320),y:60+Math.random()*(H-160)});
+  });
+  S.nodes=S.nodes.filter(n=>S.roles.find(r=>r.id===n.roleId&&r.personId));
+  S.edges=S.edges.filter(e=>S.nodes.find(n=>n.id===e.from)&&S.nodes.find(n=>n.id===e.to));
+  // sanitize
+  S.nodes.forEach(node=>{if(node.x<-10||node.y<-10||node.x>W+200||node.y>H+200){node.x=60+Math.random()*(W-320);node.y=60+Math.random()*(H-160);}});
+  saveAll();
+  // edges
+  S.edges.forEach(edge=>{
+    const fn=S.nodes.find(n=>n.id===edge.from),tn=S.nodes.find(n=>n.id===edge.to);if(!fn||!tn)return;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.classList.add('org-edge');
+    if(orgMode==='deleteEdge'){path.classList.add('del-mode');path.style.pointerEvents='stroke';path.style.cursor='pointer';path.addEventListener('click',()=>{S.edges=S.edges.filter(ed=>ed.id!==edge.id);saveAll();renderOrg();});}
+    const x1=fn.x+100,y1=fn.y+25,x2=tn.x+100,y2=tn.y+25,mid=(y1+y2)/2;
+    path.setAttribute('d',`M${x1},${y1}C${x1},${mid} ${x2},${mid} ${x2},${y2}`);
+    if(orgMode!=='deleteEdge')path.setAttribute('marker-end','url(#arr)');
+    document.getElementById('edgeGroup').appendChild(path);
+  });
+  // bubbles
+  S.nodes.forEach(node=>{
+    const role=S.roles.find(r=>r.id===node.roleId);if(!role)return;
+    const person=S.persons.find(p=>p.id===role.personId);if(!person)return;
+    const pIdx=S.persons.indexOf(person),color=COLORS[pIdx%COLORS.length];
+    const ttl=role.titleId?S.titles.find(t=>t.id===role.titleId):null;
+    const counts=getPersonRaciCounts(person.id);
+    const raciPills=['R','A','C','I'].filter(v=>counts[v]>0).map(v=>`<span class="bub-raci-pill" style="background:${RACI_BG[v]};color:${RACI_COLORS[v]}">${v}:${counts[v]}</span>`).join('');
+    const el=document.createElement('div');el.className='bubble';el.dataset.nodeId=node.id;
+    el.style.left=node.x+'px';el.style.top=node.y+'px';
+    el.innerHTML=`<div class="bubble-inner">
+      <div class="bub-av" style="background:${color}22;border:2px solid ${color}55;color:${color}">${ini(person.name)}</div>
+      <div class="bub-info">
+        <div class="bub-name">${esc(person.name)}</div>
+        <div class="bub-role">${esc(role.name)}</div>
+        ${ttl?`<div class="bub-title">${esc(ttl.name)}</div>`:''}
+        ${raciPills?`<div class="bub-raci">${raciPills}</div>`:''}
+      </div>
+      ${miniPie(role)}
+    </div>`;
+    el.addEventListener('mousedown',e=>{
+      if(orgMode==='connect'){e.stopPropagation();
+        if(!connectFrom){connectFrom=node.id;el.classList.add('selected');document.getElementById('pendingLine').style.display='';}
+        else if(connectFrom!==node.id){
+          const exists=S.edges.find(ed=>(ed.from===connectFrom&&ed.to===node.id)||(ed.from===node.id&&ed.to===connectFrom));
+          if(!exists){S.edges.push({id:uid(),from:connectFrom,to:node.id});saveAll();}
+          connectFrom=null;document.getElementById('pendingLine').style.display='none';
+          document.querySelectorAll('.bubble').forEach(b=>b.classList.remove('selected'));renderOrg();
+        }return;
+      }
+      if(orgMode==='deleteEdge')return;
+      const cr2=document.getElementById('orgPanel').getBoundingClientRect();
+      draggingBubble={node,el};dbOX=(e.clientX-cr2.left)-node.x;dbOY=(e.clientY-cr2.top)-node.y;
+      el.style.zIndex=100;el.style.transition='none';
+    });
+    canvas.appendChild(el);
+  });
+}
+
+function redrawEdges(){
+  document.getElementById('edgeGroup').innerHTML='';
+  S.edges.forEach(edge=>{
+    const fn=S.nodes.find(n=>n.id===edge.from),tn=S.nodes.find(n=>n.id===edge.to);if(!fn||!tn)return;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.classList.add('org-edge');path.setAttribute('marker-end','url(#arr)');
+    const x1=fn.x+100,y1=fn.y+25,x2=tn.x+100,y2=tn.y+25,mid=(y1+y2)/2;
+    path.setAttribute('d',`M${x1},${y1}C${x1},${mid} ${x2},${mid} ${x2},${y2}`);
+    document.getElementById('edgeGroup').appendChild(path);
+  });
+}
+
+const orgPanel=document.getElementById('orgPanel');
+orgPanel.addEventListener('mousemove',e=>{
+  const cr=orgPanel.getBoundingClientRect();
+  if(draggingBubble){
+    draggingBubble.node.x=(e.clientX-cr.left)-dbOX;draggingBubble.node.y=(e.clientY-cr.top)-dbOY;
+    draggingBubble.el.style.left=draggingBubble.node.x+'px';draggingBubble.el.style.top=draggingBubble.node.y+'px';
+    redrawEdges();
+  }
+  if(orgMode==='connect'&&connectFrom){
+    const pl=document.getElementById('pendingLine'),fn=S.nodes.find(n=>n.id===connectFrom);
+    if(fn){pl.setAttribute('x1',fn.x+100);pl.setAttribute('y1',fn.y+25);pl.setAttribute('x2',e.clientX-cr.left);pl.setAttribute('y2',e.clientY-cr.top);}
+  }
+});
+orgPanel.addEventListener('mouseup',()=>{if(draggingBubble){draggingBubble.el.style.zIndex='';draggingBubble.el.style.transition='';saveAll();draggingBubble=null;}});
+orgPanel.addEventListener('mouseleave',()=>{if(draggingBubble){saveAll();draggingBubble=null;}});
+
+function autoLayout(){
+  const canvas=document.getElementById('orgPanel');const W=Math.max(canvas.clientWidth,600),H=Math.max(canvas.clientHeight,400);
+  const n=S.nodes.length;if(!n)return;const cols=Math.ceil(Math.sqrt(n));
+  S.nodes.forEach((node,i)=>{node.x=80+(i%cols)*210;node.y=60+Math.floor(i/cols)*130;});
+  saveAll();renderOrg();toast('Nodes arranged');
+}
+
+// ── ORGS LIBRARY ──────────────────────────────────────────────────────────────
+function openOrgsLibrary(){
+  renderOrgsGrid();
+  document.getElementById('orgsOverlay').classList.add('open');
+}
+function closeOrgsLibrary(){
+  document.getElementById('orgsOverlay').classList.remove('open');
+}
+
+function renderOrgsGrid(){
+  const grid=document.getElementById('orgsGrid');
+  grid.innerHTML='';
+  const STEP_NAMES=['','Capturing Duties','Adding Team','Building Roles','Arranging Org','RACI Matrix'];
+  ALL.charts.forEach(c=>{
+    const d=c.data;
+    const isActive=c.id===ALL.activeChartId;
+    const dutyCount=d.duties?.length||0;
+    const personCount=d.persons?.length||0;
+    const roleCount=d.roles?.length||0;
+    const placedCount=d.roles?.filter(r=>r.personId)?.length||0;
+    const edgeCount=d.edges?.length||0;
+    const step=d.step||1;
+    // RACI totals
+    const raciTotals={R:0,A:0,C:0,I:0};
+    if(d.raci&&d.persons){
+      d.persons.forEach(p=>{
+        (d.duties||[]).forEach(duty=>{
+          const v=d.raci?.[duty.id]?.[p.id];
+          if(v&&raciTotals[v]!==undefined)raciTotals[v]++;
+        });
+      });
+    }
+    const raciAssigned=raciTotals.R+raciTotals.A+raciTotals.C+raciTotals.I;
+
+    const card=document.createElement('div');
+    card.className='org-card'+(isActive?' active-card':'');
+
+    const stepPct=Math.round(((step-1)/4)*100);
+    const progressBar=`<div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:4px;overflow:hidden;"><div style="height:100%;width:${stepPct}%;background:var(--accent);border-radius:2px;transition:width .3s;"></div></div>`;
+
+    const raciPills=raciAssigned>0?`<div class="oc-raci">
+      ${raciTotals.R>0?`<span class="oc-raci-pill" style="background:rgba(163,243,197,.12);color:var(--rR)">R:${raciTotals.R}</span>`:''}
+      ${raciTotals.A>0?`<span class="oc-raci-pill" style="background:rgba(245,169,74,.12);color:var(--rA)">A:${raciTotals.A}</span>`:''}
+      ${raciTotals.C>0?`<span class="oc-raci-pill" style="background:rgba(91,157,239,.12);color:var(--rC)">C:${raciTotals.C}</span>`:''}
+      ${raciTotals.I>0?`<span class="oc-raci-pill" style="background:rgba(181,123,239,.12);color:var(--rI)">I:${raciTotals.I}</span>`:''}
+    </div>`:`<div style="font-size:10px;color:var(--textd);font-style:italic;">No RACI assigned yet</div>`;
+
+    card.innerHTML=`
+      ${isActive?'<div class="oc-badge">Active</div>':''}
+      <div class="oc-name">${esc(c.name)}</div>
+      <div class="oc-stats">
+        <div class="oc-stat">📋 <b>${dutyCount}</b> duties</div>
+        <div class="oc-stat">👥 <b>${personCount}</b> people</div>
+        <div class="oc-stat">🧩 <b>${roleCount}</b> roles</div>
+        <div class="oc-stat">🔗 <b>${edgeCount}</b> links</div>
+      </div>
+      ${raciPills}
+      <div class="oc-step">
+        <div class="oc-step-dot" style="background:${step>=5?'var(--accent)':step>=3?'var(--warm)':'var(--textd)'}"></div>
+        Step ${step} of 5 — ${STEP_NAMES[step]||''}
+        ${progressBar}
+      </div>
+      <div class="oc-actions">
+        <button class="oc-btn open" onclick="openOrgChart('${c.id}')">Open</button>
+        <button class="oc-btn" onclick="duplicateChart('${c.id}')">Duplicate</button>
+        <button class="oc-btn" onclick="renameChart('${c.id}')">Rename</button>
+        ${ALL.charts.length>1?`<button class="oc-btn del" onclick="deleteChart('${c.id}')">Delete</button>`:''}
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  // New org card
+  const newCard=document.createElement('div');newCard.className='new-org-card';
+  newCard.innerHTML='<div class="new-org-card-icon">+</div><div class="new-org-card-label">New Org Chart</div><div style="font-size:11px;color:var(--textd);text-align:center;">Outbound Ops, Inbound,<br>CX, Finance…</div>';
+  newCard.onclick=()=>{ closeOrgsLibrary(); openAddChart(); };
+  grid.appendChild(newCard);
+}
+
+function openOrgChart(id){
+  switchChart(id);
+  closeOrgsLibrary();
+}
+
+function duplicateChart(id){
+  const src=ALL.charts.find(c=>c.id===id);if(!src)return;
+  const copy=JSON.parse(JSON.stringify(src));
+  copy.id=uid();
+  copy.name=src.name+' (copy)';
+  // fresh node ids to avoid conflicts
+  copy.data.nodes=(copy.data.nodes||[]).map(n=>({...n,id:uid()}));
+  copy.data.edges=(copy.data.edges||[]).map(e=>({...e,id:uid()}));
+  ALL.charts.push(copy);
+  localStorage.setItem('ra_v6',JSON.stringify(ALL));
+  renderOrgsGrid();
+  renderChartTabs();
+  toast('Duplicated — "'+copy.name+'"');
+}
+
+function renameChart(id){
+  const c=ALL.charts.find(x=>x.id===id);if(!c)return;
+  const name=prompt('Rename org chart:',c.name);
+  if(!name||!name.trim())return;
+  c.name=name.trim();
+  localStorage.setItem('ra_v6',JSON.stringify(ALL));
+  renderOrgsGrid();renderChartTabs();
+}
+function renderChartTabs(){
+  const tabs=document.getElementById('chartTabs');tabs.innerHTML='';
+  ALL.charts.forEach(c=>{
+    const tab=document.createElement('div');tab.className='chart-tab'+(c.id===ALL.activeChartId?' active':'');
+    tab.innerHTML=`<span onclick="switchChart('${c.id}')">${esc(c.name)}</span>`
+      +(ALL.charts.length>1?`<button class="chart-tab-rm" onclick="deleteChart('${c.id}')">✕</button>`:'');
+    tabs.appendChild(tab);
+  });
+}
+
+function openAddChart(){openModal('New Org Chart','<div class="field"><label>Chart Name</label><input id="mi1" placeholder="e.g. Outbound Ops, Inbound Inventory, CX..."/></div>','addChart');}
+
+function deleteChart(id){
+  if(ALL.charts.length<=1){toast('Cannot delete the last chart');return;}
+  if(!confirm(`Delete "${ALL.charts.find(c=>c.id===id)?.name}"?`))return;
+  ALL.charts=ALL.charts.filter(c=>c.id!==id);
+  if(ALL.activeChartId===id)ALL.activeChartId=ALL.charts[0].id;
+  switchChart(ALL.activeChartId);
+}
+
+// ── STEPS ─────────────────────────────────────────────────────────────────────
+const HINTS={
+  1:{icon:'📋',text:'<b>Step 1 — Capture Duties.</b> List every responsibility your org handles. Don\'t assign yet. Click <b>+</b> in Job Duties.',btn:'Next: Add Team →'},
+  2:{icon:'👥',text:'<b>Step 2 — Add Your Team.</b> Add every person who will hold a role. Click <b>+</b> in Team.',btn:'Next: Build Roles →'},
+  3:{icon:'🧩',text:'<b>Step 3 — Build Roles.</b> Create a role → drag duties on → drag a person on. Then <b>click R / A / C / I</b> on each duty to set who does the work (R), who owns it (A), who advises (C), who gets updates (I).',btn:'Next: Org Chart →'},
+  4:{icon:'🗂️',text:'<b>Step 4 — Arrange Org.</b> Drag bubbles freely. Use <b>Connect</b> to draw reporting lines. Each bubble shows the person\'s RACI load.',btn:'Next: RACI Matrix →'},
+  5:{icon:'⚡',text:'<b>Step 5 — RACI Matrix.</b> Full grid of every duty × every person. Click any cell to assign R/A/C/I. <b style="color:var(--rA)">A = one owner per duty</b> (buck stops here). <b style="color:var(--rR)">R = does the work</b>. Look for red warnings.',btn:'Done ✓'},
+};
+
+function renderSteps(){
+  document.querySelectorAll('.step').forEach(el=>{
+    const n=parseInt(el.dataset.step);el.classList.remove('active','done');
+    if(n===S.step)el.classList.add('active');else if(n<S.step)el.classList.add('done');
+  });
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel'+S.step)?.classList.add('active');
+  const h=HINTS[S.step];
+  document.getElementById('hintIcon').textContent=h.icon;
+  document.getElementById('hintText').innerHTML=h.text;
+  document.getElementById('hintBtn').textContent=h.btn;
+}
+
+function goStep(n){
+  S.step=n;saveAll();renderSteps();render();
+  if(n===4)requestAnimationFrame(()=>requestAnimationFrame(renderOrg));
+  if(n===5)requestAnimationFrame(renderRaciMatrix);
+}
+function hintAction(){
+  if(S.step<5)goStep(S.step+1);else toast('Org complete — Export to save a copy.');
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function updateRoleName(id,n){const r=S.roles.find(x=>x.id===id);if(r){r.name=n;saveAll();}}
+function unassignPerson(roleId){const r=S.roles.find(x=>x.id===roleId);if(r){r.personId=null;saveAll();render();}}
+function removeDutyFromRole(rId,dId){const r=S.roles.find(x=>x.id===rId);if(r){r.duties=r.duties.filter(d=>d!==dId);if(r.pct)delete r.pct[dId];normPct(r);}saveAll();renderRoles();renderDuties();}
+function deleteRole(id){S.roles=S.roles.filter(r=>r.id!==id);S.nodes=S.nodes.filter(n=>n.roleId!==id);saveAll();render();}
+function removeDuty(id){S.duties=S.duties.filter(d=>d.id!==id);S.roles.forEach(r=>{r.duties=r.duties.filter(d=>d!==id);if(r.pct)delete r.pct[id];});if(S.raci)delete S.raci[id];saveAll();render();}
+function removePerson(id){S.persons=S.persons.filter(p=>p.id!==id);S.roles.forEach(r=>{if(r.personId===id)r.personId=null;});S.nodes=S.nodes.filter(n=>{const r=S.roles.find(x=>x.id===n.roleId);return r&&r.personId;});if(S.raci)Object.values(S.raci).forEach(d=>delete d[id]);saveAll();render();}
+function removeTitle(id){S.titles=S.titles.filter(t=>t.id!==id);S.roles.forEach(r=>{if(r.titleId===id)r.titleId=null;});saveAll();render();}
+function assignTitle(roleId,titleId){const r=S.roles.find(x=>x.id===roleId);if(r){r.titleId=titleId;saveAll();render();}closeModal();}
+
+// ── MODAL ──────────────────────────────────────────────────────────────────────
+let mMode=null;
+function closeModal(){document.getElementById('overlay').style.display='none';mMode=null;}
+function overlayClick(e){if(e.target===document.getElementById('overlay'))closeModal();}
+function openModal(title,body,mode,noActions){
+  mMode=mode;document.getElementById('mTitle').textContent=title;document.getElementById('mBody').innerHTML=body;
+  document.getElementById('mActions').style.display=noActions?'none':'flex';
+  document.getElementById('overlay').style.display='flex';
+  setTimeout(()=>document.querySelector('#mBody input,#mBody textarea')?.focus(),50);
+}
+function openAddDuty(){openModal('Add Job Duty','<div class="field"><label>Duty</label><input id="mi1" placeholder="e.g. Outbound Order Routing"/></div><div class="field"><label>Description (optional)</label><textarea id="mi2" placeholder="What does this involve?"></textarea></div>','addDuty');}
+function openAddPerson(){openModal('Add Team Member','<div class="field"><label>Full Name</label><input id="mi1" placeholder="e.g. Kody Malas"/></div>','addPerson');}
+function openAddRole(){openModal('Create Role','<div class="field"><label>Role Name</label><input id="mi1" placeholder="e.g. AM Outbound Lead"/></div>','addRole');}
+function openAddTitle(){openModal('Add Title','<div class="field"><label>Title</label><input id="mi1" placeholder="e.g. Director of Operations"/></div>','addTitle');}
+function openTitlePicker(roleId){
+  const role=S.roles.find(r=>r.id===roleId);
+  const items=S.titles.map(t=>`<div class="mli ${role.titleId===t.id?'sel':''}" onclick="assignTitle('${roleId}','${t.id}')">${esc(t.name)}</div>`).join('');
+  const rm=role.titleId?`<div class="mli" style="color:var(--red)" onclick="assignTitle('${roleId}',null)">✕ Remove Title</div>`:'';
+  openModal('Assign Title',(items||'<div class="empty-msg">No titles yet — add some in the bottom bar.</div>')+rm,'none',true);
+}
+function confirmModal(){
+  if(mMode==='addDuty'){const t=document.getElementById('mi1')?.value.trim();if(!t)return;S.duties.push({id:uid(),title:t,desc:document.getElementById('mi2')?.value.trim()||''});}
+  else if(mMode==='addPerson'){const n=document.getElementById('mi1')?.value.trim();if(!n)return;S.persons.push({id:uid(),name:n});}
+  else if(mMode==='addRole'){const n=document.getElementById('mi1')?.value.trim()||'New Role';S.roles.push({id:uid(),name:n,personId:null,duties:[],pct:{},titleId:null});toast('Role created — drag duties and a person onto it');}
+  else if(mMode==='addTitle'){const n=document.getElementById('mi1')?.value.trim();if(!n)return;S.titles.push({id:uid(),name:n});}
+  else if(mMode==='addChart'){const n=document.getElementById('mi1')?.value.trim();if(!n)return;const c=newChartData(n);ALL.charts.push(c);switchChart(c.id);closeModal();return;}
+  saveAll();render();closeModal();
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('overlay').style.display!=='none'&&document.activeElement?.tagName!=='TEXTAREA')confirmModal();
+  if(e.key==='Escape')closeModal();
+});
+
+// ── EXPORT / RESET ────────────────────────────────────────────────────────────
+function exportJSON(){const b=new Blob([JSON.stringify(ALL,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='atomix-org.json';a.click();toast('Exported all org charts');}
+function clearAll(){if(!confirm('Reset current chart?'))return;Object.assign(S,{duties:[],persons:[],roles:[],titles:[],nodes:[],edges:[],step:1,raci:{}});saveAll();render();renderSteps();}
+const toast=msg=>{const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2600);};
+
+// ── SEED ──────────────────────────────────────────────────────────────────────
+function seed(){
+  if(S.duties.length||S.persons.length)return;
+  S.duties=[
+    {id:uid(),title:'Outbound Order Routing',desc:'Wave planning, SLA priority, order release'},
+    {id:uid(),title:'Inbound Receiving',desc:'Check in freight, verify POs, update IMS'},
+    {id:uid(),title:'Inventory Accuracy',desc:'Cycle counts, discrepancy resolution, grade reporting'},
+    {id:uid(),title:'Special Projects',desc:'Kitting, client-specific workflows, custom tasks'},
+    {id:uid(),title:'Labor Management',desc:'Schedule, headcount, UPH monitoring by department'},
+    {id:uid(),title:'Client Communication',desc:'Order exceptions, escalations, SLA reporting'},
+  ];
+  S.persons=[
+    {id:uid(),name:'Kody Malas'},{id:uid(),name:'Hugh Myers'},{id:uid(),name:'Emyly Herrera-Vera'},
+    {id:uid(),name:'Luis Gumucio'},{id:uid(),name:'Adam Gronowski'},{id:uid(),name:'Ricardo'},
+  ];
+  S.titles=[
+    {id:uid(),name:'Operations Lead'},{id:uid(),name:'AM Shift Supervisor'},{id:uid(),name:'PM Shift Supervisor'},
+    {id:uid(),name:'Inventory Manager'},{id:uid(),name:'Special Projects Lead'},
+  ];
+  saveAll();
+}
+
+loadAll();seed();render();renderSteps();renderChartTabs();
+</script>
+</body>
+</html>
