@@ -644,6 +644,21 @@ function getFacility() {
 }
 function setFacility(f){ try{localStorage.setItem(FACILITY_KEY,f);}catch(e){} }
 let CURRENT_FACILITY = getFacility();
+const LOCAL_TIMEZONE=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'local';
+let SHEET_TIMEZONE='America/Chicago';
+async function loadSheetTimezone(){
+  try{
+    const url=new URL(SCRIPT_URL);
+    url.searchParams.set('action','timezone');
+    if(CURRENT_FACILITY)url.searchParams.set('facility',CURRENT_FACILITY);
+    const res=await fetch(url.toString());
+    if(!res.ok)return;
+    const data=await res.json();
+    if(data&&data.ok&&data.spreadsheetTimeZone){
+      SHEET_TIMEZONE=String(data.spreadsheetTimeZone);
+    }
+  }catch(e){}
+}
 
 // ════════════════════════════════════════════
 // BACKEND EVENT QUEUE
@@ -1805,6 +1820,7 @@ async function syncBubblesFromBackend(){
 }
 
 window.addEventListener('load',()=>{
+  loadSheetTimezone();
   drawBg();setupBreakZones();setupCreator();setupEmpCreator();setupHeatToggle();renderAll();applyTransform(false);
   updateBackendDot();pingBackend();flushEventQueue();
   setInterval(pingBackend,30000);
@@ -2344,4 +2360,3 @@ function spFetchAll(){
 </div>
 </body>
 </html>
-
