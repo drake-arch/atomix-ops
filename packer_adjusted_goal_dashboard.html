@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f172a; color: #e2e8f0; font-family: 'Syne', sans-serif; min-height: 100vh; padding: 24px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+  .title-block h1 { font-size: 22px; font-weight: 800; color: #f8fafc; letter-spacing: -0.5px; }
+  .title-block p { font-size: 12px; color: #64748b; font-family: 'IBM Plex Mono', monospace; margin-top: 4px; }
+  .date-badge { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; color: #94a3b8; }
+  .packer-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .packer-tab { padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #334155; background: #1e293b; color: #94a3b8; transition: all 0.15s; }
+  .packer-tab:hover { border-color: #A3F3C5; color: #A3F3C5; }
+  .packer-tab.active { background: #A3F3C5; color: #0f172a; border-color: #A3F3C5; }
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px 16px; }
+  .stat-card .label { font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .stat-card .value { font-size: 28px; font-weight: 800; line-height: 1; }
+  .stat-card .sub { font-size: 11px; color: #64748b; margin-top: 4px; font-family: 'IBM Plex Mono', monospace; }
+  .chart-panel { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .chart-panel h3 { font-size: 12px; font-family: 'IBM Plex Mono', monospace; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; }
+  .chart-container { position: relative; height: 240px; }
+  svg.chart { width: 100%; height: 100%; overflow: visible; }
+  .orders-panel { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .orders-panel h3 { font-size: 12px; font-family: 'IBM Plex Mono', monospace; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+  .order-row { display: grid; grid-template-columns: 130px 1fr 100px 100px 80px; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid #0f172a; }
+  .order-row:last-child { border-bottom: none; }
+  .order-row .customer { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+  .order-row .bar-wrap { height: 8px; background: #0f172a; border-radius: 4px; overflow: visible; position: relative; }
+  .order-row .bar-fill { height: 100%; border-radius: 4px; position: absolute; top: 0; }
+  .order-row .bar-goal { position: absolute; top: -5px; width: 2px; height: 18px; background: #A3F3C5; border-radius: 1px; }
+  .order-row .rate-actual { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #94a3b8; text-align: right; }
+  .order-row .rate-goal { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #64748b; text-align: right; }
+  .score-badge { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; text-align: right; }
+  .leaderboard { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .leaderboard h3 { font-size: 12px; font-family: 'IBM Plex Mono', monospace; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+  .lb-header { display: grid; grid-template-columns: 32px 1fr 90px 90px 90px 60px; gap: 10px; padding: 0 0 8px 0; border-bottom: 1px solid #334155; font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .lb-row { display: grid; grid-template-columns: 32px 1fr 90px 90px 90px 60px; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(30,41,59,0.5); cursor: pointer; border-radius: 6px; transition: background 0.1s; }
+  .lb-row:hover { background: rgba(163,243,197,0.04); }
+  .lb-row.selected { background: rgba(163,243,197,0.08); }
+  .lb-rank { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 700; color: #334155; }
+  .lb-rank.r1 { color: #fbbf24; }
+  .lb-rank.r2 { color: #94a3b8; }
+  .lb-rank.r3 { color: #b45309; }
+  .lb-name { font-size: 14px; font-weight: 700; color: #e2e8f0; }
+  .lb-score { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; text-align: right; }
+  .lb-cell { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #94a3b8; text-align: right; }
+  .trend { font-size: 16px; text-align: right; }
+  .col-right { text-align: right; }
+  .pill { display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 10px; font-family: 'IBM Plex Mono', monospace; }
+  .pill-green { background: rgba(163,243,197,0.15); color: #A3F3C5; }
+  .pill-red { background: rgba(248,113,113,0.15); color: #f87171; }
+  .pill-yellow { background: rgba(251,191,36,0.15); color: #fbbf24; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title-block">
+    <h1>Pack Performance — Customer-Adjusted Goal</h1>
+    <p>Each packer scored against their actual customer mix · not raw volume</p>
+  </div>
+  <div class="date-badge">MON 06/02/2026</div>
+</div>
+
+<div class="leaderboard" id="leaderboard">
+  <h3>All Packers · Adjusted Pack Score</h3>
+  <div class="lb-header">
+    <div>#</div>
+    <div>Packer</div>
+    <div class="col-right">Adj. Score</div>
+    <div class="col-right">Above Goal</div>
+    <div class="col-right">Below Goal</div>
+    <div class="col-right">Trend</div>
+  </div>
+  <div id="lb-rows"></div>
+</div>
+
+<div class="packer-tabs" id="packer-tabs"></div>
+<div class="summary-row" id="summary-row"></div>
+
+<div class="chart-panel">
+  <h3 id="chart-title">Performance vs Customer-Adjusted Goal</h3>
+  <div class="chart-container">
+    <svg class="chart" id="main-chart"></svg>
+  </div>
+</div>
+
+<div class="orders-panel">
+  <h3>Customer Block Breakdown</h3>
+  <div id="order-rows"></div>
+</div>
+
+<script>
+var PACKERS = [
+  { id:'john', name:'John Reeves', trend:'↑', orders:[
+    {customer:'IQ Bar',    actual:112, goal:100},
+    {customer:'Bellroy',   actual:66,  goal:60 },
+    {customer:'Nuun',      actual:180, goal:200},
+    {customer:'Cometeer',  actual:95,  goal:85 },
+    {customer:'Peak State',actual:44,  goal:55 }
+  ]},
+  { id:'sarah', name:'Sarah Kim', trend:'→', orders:[
+    {customer:'IQ Bar',    actual:98,  goal:100},
+    {customer:'Bellroy',   actual:70,  goal:60 },
+    {customer:'Nuun',      actual:195, goal:200},
+    {customer:'Cometeer',  actual:80,  goal:85 },
+    {customer:'Peak State',actual:58,  goal:55 }
+  ]},
+  { id:'mike', name:'Mike Torres', trend:'↓', orders:[
+    {customer:'IQ Bar',    actual:82,  goal:100},
+    {customer:'Bellroy',   actual:48,  goal:60 },
+    {customer:'Nuun',      actual:160, goal:200},
+    {customer:'Cometeer',  actual:75,  goal:85 },
+    {customer:'Peak State',actual:43,  goal:55 }
+  ]},
+  { id:'destiny', name:'Destiny Okafor', trend:'↑', orders:[
+    {customer:'IQ Bar',    actual:118, goal:100},
+    {customer:'Bellroy',   actual:63,  goal:60 },
+    {customer:'Nuun',      actual:210, goal:200},
+    {customer:'Cometeer',  actual:92,  goal:85 },
+    {customer:'Peak State',actual:57,  goal:55 }
+  ]}
+];
+
+function scoreOf(o){ return Math.round((o.actual/o.goal)*100); }
+function adjScore(p){
+  var total=0, gs=0;
+  p.orders.forEach(function(o){ total+=o.actual; gs+=o.goal; });
+  return Math.round((total/gs)*100);
+}
+function aboveCount(p){ return p.orders.filter(function(o){return o.actual>=o.goal;}).length; }
+function belowCount(p){ return p.orders.filter(function(o){return o.actual<o.goal;}).length; }
+function scoreColor(s){ return s>=105?'#A3F3C5':s>=95?'#fbbf24':'#f87171'; }
+
+var selectedPacker = PACKERS[0];
+
+function renderLeaderboard(){
+  var sorted = PACKERS.slice().sort(function(a,b){return adjScore(b)-adjScore(a);});
+  var container = document.getElementById('lb-rows');
+  container.innerHTML='';
+  sorted.forEach(function(p,i){
+    var sc=adjScore(p), ab=aboveCount(p), be=belowCount(p);
+    var rankClass=i===0?'r1':i===1?'r2':i===2?'r3':'';
+    var row=document.createElement('div');
+    row.className='lb-row'+(p.id===selectedPacker.id?' selected':'');
+    row.onclick=(function(pp){ return function(){ selectedPacker=pp; renderAll(); }; })(p);
+    row.innerHTML=
+      '<div class="lb-rank '+rankClass+'">'+(i+1)+'</div>'+
+      '<div class="lb-name">'+p.name+'</div>'+
+      '<div class="lb-score" style="color:'+scoreColor(sc)+'">'+sc+'%</div>'+
+      '<div class="lb-cell"><span class="pill pill-green">'+ab+' / '+p.orders.length+'</span></div>'+
+      '<div class="lb-cell"><span class="pill '+(be>0?'pill-red':'pill-green')+'">'+be+' / '+p.orders.length+'</span></div>'+
+      '<div class="trend" style="color:'+(p.trend==='↑'?'#A3F3C5':p.trend==='↓'?'#f87171':'#fbbf24')+'">'+p.trend+'</div>';
+    container.appendChild(row);
+  });
+}
+
+function renderTabs(){
+  var container=document.getElementById('packer-tabs');
+  container.innerHTML='';
+  PACKERS.forEach(function(p){
+    var tab=document.createElement('div');
+    tab.className='packer-tab'+(p.id===selectedPacker.id?' active':'');
+    tab.textContent=p.name.split(' ')[0];
+    tab.onclick=(function(pp){return function(){selectedPacker=pp;renderAll();};})(p);
+    container.appendChild(tab);
+  });
+}
+
+function renderSummary(){
+  var p=selectedPacker;
+  var sc=adjScore(p), ab=aboveCount(p);
+  var best=p.orders.reduce(function(a,b){return scoreOf(a)>scoreOf(b)?a:b;});
+  var worst=p.orders.reduce(function(a,b){return scoreOf(a)<scoreOf(b)?a:b;});
+  var cards=[
+    {label:'Adj. Pack Score',value:sc+'%',sub:'weighted vs goal mix',cls:scoreColor(sc)},
+    {label:'Customers Above Goal',value:ab+' / '+p.orders.length,sub:Math.round(ab/p.orders.length*100)+'% hit rate',cls:'#A3F3C5'},
+    {label:'Best Block',value:scoreOf(best)+'%',sub:best.customer,cls:'#A3F3C5'},
+    {label:'Needs Attention',value:scoreOf(worst)+'%',sub:worst.customer,cls:scoreColor(scoreOf(worst))}
+  ];
+  var container=document.getElementById('summary-row');
+  container.innerHTML='';
+  cards.forEach(function(c){
+    var card=document.createElement('div');
+    card.className='stat-card';
+    card.innerHTML='<div class="label">'+c.label+'</div><div class="value" style="color:'+c.cls+'">'+c.value+'</div><div class="sub">'+c.sub+'</div>';
+    container.appendChild(card);
+  });
+}
+
+function renderChart(){
+  var p=selectedPacker;
+  var svg=document.getElementById('main-chart');
+  var W=svg.parentElement.offsetWidth||600;
+  var H=240;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  var scores=p.orders.map(function(o){return scoreOf(o);});
+  var maxS=Math.max.apply(null,scores.concat([115]));
+  var minS=Math.min.apply(null,scores.concat([80]));
+  var padTop=30,padBot=40,padL=40,padR=20;
+  var chartH=H-padTop-padBot;
+  var chartW=W-padL-padR;
+  function yFor(s){ return padTop+chartH-((s-minS)/(maxS-minS))*chartH; }
+  function xFor(i){ return padL+(i/(scores.length-1))*chartW; }
+  var html='';
+  [minS,85,90,95,100,105,110,maxS].forEach(function(v){
+    if(v<minS||v>maxS) return;
+    var y=yFor(v);
+    var isGoal=v===100;
+    html+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="'+(isGoal?'#A3F3C5':'#1e293b')+'" stroke-width="'+(isGoal?'1.5':'1')+'" stroke-dasharray="'+(isGoal?'none':'4,4')+'"/>';
+    html+='<text x="'+(padL-6)+'" y="'+(y+4)+'" fill="'+(isGoal?'#A3F3C5':'#475569')+'" font-size="9" font-family="IBM Plex Mono" text-anchor="end">'+v+'%</text>';
+  });
+  html+='<text x="'+(W-padR)+'" y="'+(yFor(100)-6)+'" fill="#A3F3C5" font-size="9" font-family="IBM Plex Mono" text-anchor="end">GOAL</text>';
+  var linePoints=scores.map(function(s,i){return xFor(i)+','+yFor(s);}).join(' ');
+  html+='<polyline points="'+linePoints+'" fill="none" stroke="#334155" stroke-width="1.5" stroke-dasharray="4,4"/>';
+  scores.forEach(function(s,i){
+    var cx=xFor(i),cy=yFor(s);
+    var col=scoreColor(s);
+    html+='<circle cx="'+cx+'" cy="'+cy+'" r="11" fill="'+col+'" opacity="0.12"/>';
+    html+='<circle cx="'+cx+'" cy="'+cy+'" r="8" fill="'+col+'"/>';
+    html+='<text x="'+cx+'" y="'+(cy+1)+'" text-anchor="middle" dominant-baseline="middle" fill="#0f172a" font-size="7" font-weight="700" font-family="IBM Plex Mono">'+s+'%</text>';
+    var delta=s-100;
+    var dStr=(delta>=0?'+':'')+delta;
+    html+='<text x="'+cx+'" y="'+(cy-16)+'" text-anchor="middle" fill="'+col+'" font-size="8" font-family="IBM Plex Mono" font-weight="600">'+dStr+'</text>';
+    html+='<text x="'+cx+'" y="'+(H-padBot+14)+'" text-anchor="middle" fill="#64748b" font-size="9" font-family="IBM Plex Mono">'+p.orders[i].customer+'</text>';
+  });
+  svg.innerHTML=html;
+}
+
+function renderOrders(){
+  var p=selectedPacker;
+  var container=document.getElementById('order-rows');
+  container.innerHTML='';
+  var maxV=Math.max.apply(null,p.orders.map(function(o){return Math.max(o.actual,o.goal);}));
+  p.orders.forEach(function(o){
+    var sc=scoreOf(o);
+    var col=scoreColor(sc);
+    var barW=Math.round((o.actual/maxV)*100);
+    var goalW=Math.round((o.goal/maxV)*100);
+    var row=document.createElement('div');
+    row.className='order-row';
+    row.innerHTML=
+      '<div class="customer">'+o.customer+'</div>'+
+      '<div class="bar-wrap">'+
+        '<div class="bar-fill" style="width:'+barW+'%;background:'+col+';opacity:0.65;"></div>'+
+        '<div class="bar-goal" style="left:'+goalW+'%;"></div>'+
+      '</div>'+
+      '<div class="rate-actual">'+o.actual+' pph</div>'+
+      '<div class="rate-goal">Goal: '+o.goal+'</div>'+
+      '<div class="score-badge" style="color:'+col+'">'+sc+'%</div>';
+    container.appendChild(row);
+  });
+}
+
+function renderAll(){
+  renderLeaderboard();
+  renderTabs();
+  renderSummary();
+  renderChart();
+  renderOrders();
+}
+
+renderAll();
+window.addEventListener('resize',renderChart);
+</script>
+</body>
+</html>
