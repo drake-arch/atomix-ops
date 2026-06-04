@@ -327,6 +327,22 @@
   .modal-tab.active { color:var(--green); border-bottom-color:var(--green); }
   .modal-tab-panel { display:none; }
   .modal-tab-panel.active { display:flex; flex-direction:column; gap:14px; }
+  .day-edit-wrap { display:flex; flex-direction:column; gap:10px; }
+  .day-edit-date { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+  .day-seg-list { display:flex; flex-direction:column; gap:8px; max-height:220px; overflow:auto; padding-right:2px; }
+  .day-seg-row { display:grid; grid-template-columns:82px 82px 1fr 34px; gap:6px; align-items:center; }
+  .day-seg-row input,.day-seg-row select { background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:7px 8px; color:var(--text); font-size:12px; outline:none; }
+  .day-seg-row input:focus,.day-seg-row select:focus { border-color:var(--green); }
+  .day-seg-del { width:30px; height:30px; border-radius:7px; border:1px solid rgba(255,90,90,0.25); background:rgba(255,90,90,0.12); color:#ff7a7a; cursor:pointer; }
+  .day-seg-del:hover { background:rgba(255,90,90,0.2); }
+  .day-edit-tools { display:flex; gap:8px; }
+  .day-edit-btn { padding:7px 10px; border-radius:7px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); font-size:11px; cursor:pointer; }
+  .day-edit-btn:hover { color:var(--text); border-color:var(--text); }
+  .day-toggle-row { display:flex; align-items:center; gap:7px; font-size:11px; color:var(--text); }
+  .day-toggle-row input { accent-color:var(--green); }
+  .day-edit-save { width:100%; padding:9px 12px; border:none; border-radius:8px; background:var(--green); color:var(--navy); font-weight:700; cursor:pointer; font-size:12px; }
+  .day-edit-save:hover { opacity:0.88; }
+  .day-edit-msg { min-height:14px; font-size:10px; color:var(--muted); }
   .avatar-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
   .avatar-option { width:100%; aspect-ratio:1; border-radius:50%; overflow:hidden; border:2px solid transparent; cursor:pointer; transition:border-color 0.15s,transform 0.15s; }
   .avatar-option:hover { transform:scale(1.08); border-color:var(--muted); }
@@ -598,7 +614,7 @@
 // ════════════════════════════════════════════
 // CONFIG
 // ════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqVHIs-EuELAmjMNV3nmFf1z2kPSU2OcRzczOGGtZQSEAsel53IKO5FFw1_odyc6G7BA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvJC_2YGhREdK09NNbw6YkXXDcMcejElKClyNI6C7Zp9dMGBx6GdCM7DkcCElrVGfB/exec';
 const SP_PROXY_URL = 'https://script.google.com/macros/s/AKfycbyHJAhudGFock_OBFGKIN0N_5X8zLDf727gGHYKluHpQS7koC3JuKkugWQb7tzC2S6q/exec';
 
 // ── COLLAB MODE: all devices are equal — full bidirectional sync ──
@@ -1378,6 +1394,7 @@ document.addEventListener('mousemove',e=>{if(!isPanning)return;panX=e.clientX-pa
 document.addEventListener('mouseup',()=>{if(isPanning){isPanning=false;ca.classList.remove('panning');}});
 
 let modalEmpId=null;
+let modalEditDate=todayIsoDate();
 function openEmpModal(empId){
   const emp=EMPLOYEES.find(e=>e.id===empId);if(!emp)return;modalEmpId=empId;
   document.getElementById('empModalAvatar').src=avatarUrl(emp);
@@ -1395,9 +1412,151 @@ function openEmpModal(empId){
   document.getElementById('empModalStart').value=emp.shiftStart||'07:00';document.getElementById('empModalEnd').value=emp.shiftEnd||'15:30';
   let hrs=emp.totalHrs;if(emp.clockIn)hrs+=(Date.now()-emp.clockIn)/3600000;
   document.getElementById('empModalHrs').textContent=hrs.toFixed(2)+'h today · '+((emp.weeklyHrs||0)+hrs).toFixed(1)+'h week';
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab==='profile'));
+  document.getElementById('tabProfile').classList.add('active');
+  document.getElementById('tabAvatar').classList.remove('active');
+  document.getElementById('tabDayEdit').classList.remove('active');
+  initDayEditPanel(emp);
   document.getElementById('empModalOverlay').classList.add('show');
 }
 function closeEmpModal(){document.getElementById('empModalOverlay').classList.remove('show');modalEmpId=null;}
+function todayIsoDate(){return new Date().toISOString().split('T')[0];}
+function getZonedParts(dateObj,tz){
+  const parts=new Intl.DateTimeFormat('en-CA',{
+    timeZone:tz,
+    year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',hour12:false,
+  }).formatToParts(dateObj);
+  const out={};
+  parts.forEach(p=>{if(p.type!=='literal')out[p.type]=p.value;});
+  return out;
+}
+function convertLocalSegmentToSheet(dateStr,startHm,endHm){
+  const localStart=new Date(dateStr+'T'+startHm+':00');
+  const localEnd=new Date(dateStr+'T'+endHm+':00');
+  if(isNaN(localStart.getTime())||isNaN(localEnd.getTime()))throw new Error('Invalid local segment time.');
+  const s=getZonedParts(localStart,SHEET_TIMEZONE);
+  const e=getZonedParts(localEnd,SHEET_TIMEZONE);
+  return {
+    startDate:`${s.year}-${s.month}-${s.day}`,
+    endDate:`${e.year}-${e.month}-${e.day}`,
+    startTime:`${s.hour}:${s.minute}`,
+    endTime:`${e.hour}:${e.minute}`,
+  };
+}
+function convertLocalDateToSheetDate(dateStr){
+  const localMidday=new Date(dateStr+'T12:00:00');
+  if(isNaN(localMidday.getTime()))throw new Error('Invalid local date for override.');
+  const p=getZonedParts(localMidday,SHEET_TIMEZONE);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+function deptOptionsMarkup(selectedName){
+  return bubbles.map(b=>`<option value="${String(b.name||'').replace(/"/g,'&quot;')}" ${b.name===selectedName?'selected':''}>${b.parentId?(bubbles.find(x=>x.id===b.parentId)?.name+' › '):''}${b.name}</option>`).join('');
+}
+function addDaySegmentRow(seg){
+  const row=document.createElement('div');
+  row.className='day-seg-row';
+  row.innerHTML=`
+    <input type="time" class="day-seg-start" value="${seg.start||''}">
+    <input type="time" class="day-seg-end" value="${seg.end||''}">
+    <select class="day-seg-dept">${deptOptionsMarkup(seg.dept||'')}</select>
+    <button class="day-seg-del" type="button" title="Remove">×</button>
+  `;
+  row.querySelector('.day-seg-del').addEventListener('click',()=>{row.remove();});
+  document.getElementById('daySegRows').appendChild(row);
+}
+function initDayEditPanel(emp){
+  modalEditDate=todayIsoDate();
+  document.getElementById('dayEditDateLbl').textContent='Editing '+modalEditDate+' ('+(LOCAL_TIMEZONE||'local')+') for '+(emp.fullName||emp.name)+' · sheet '+SHEET_TIMEZONE;
+  document.getElementById('dayEditMsg').style.color='var(--muted)';
+  document.getElementById('dayEditMsg').textContent='';
+  const list=document.getElementById('daySegRows');
+  list.innerHTML='';
+
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,'0');
+  const mm=String(now.getMinutes()).padStart(2,'0');
+  const end=hh+':'+mm;
+  const start=emp.clockIn?new Date(emp.clockIn).toTimeString().slice(0,5):(emp.shiftStart||'07:00');
+  const curDept=emp.dept?(bubbles.find(b=>b.id===emp.dept)?.name||''):(bubbles[0]?.name||'');
+  addDaySegmentRow({start:start,end:end,dept:curDept});
+
+  const remain=!!emp.clockIn;
+  document.getElementById('dayRemainActive').checked=remain;
+  const dSel=document.getElementById('dayDestinationDept');
+  dSel.innerHTML='<option value="">— Choose destination bubble —</option>'+deptOptionsMarkup(curDept);
+  dSel.value=curDept||'';
+  dSel.disabled=!remain;
+}
+function collectDaySegmentsFromUi(){
+  const rows=Array.from(document.querySelectorAll('#daySegRows .day-seg-row'));
+  const segments=[];
+  for(const row of rows){
+    const start=row.querySelector('.day-seg-start').value;
+    const end=row.querySelector('.day-seg-end').value;
+    const dept=row.querySelector('.day-seg-dept').value;
+    if(!start||!end||!dept)throw new Error('All segment fields are required.');
+    segments.push({start:start,end:end,dept:dept,billable:!!bubbles.find(b=>b.name===dept)?.billable});
+  }
+  segments.sort((a,b)=>a.start.localeCompare(b.start));
+  for(let i=0;i<segments.length;i++){
+    if(segments[i].end<=segments[i].start)throw new Error('Segment end must be after start.');
+    if(i>0&&segments[i].start<segments[i-1].end)throw new Error('Segments cannot overlap.');
+  }
+  return segments;
+}
+async function saveDayOverride(){
+  const msg=document.getElementById('dayEditMsg');
+  const emp=EMPLOYEES.find(e=>e.id===modalEmpId);
+  if(!emp){msg.textContent='Employee not found.';return;}
+  try{
+    const segments=collectDaySegmentsFromUi();
+    const remainActive=document.getElementById('dayRemainActive').checked;
+    const destinationDept=document.getElementById('dayDestinationDept').value||'';
+    if(remainActive&&segments.length===0)throw new Error('At least one segment is required when remaining active.');
+    if(remainActive&&!destinationDept)throw new Error('Choose a destination bubble for active state.');
+
+    let sheetDate='';
+    let sheetSegments=[];
+    if(segments.length){
+      const converted=segments.map(s=>Object.assign({},s,convertLocalSegmentToSheet(modalEditDate,s.start,s.end)));
+      const daySet=new Set();
+      converted.forEach(c=>{daySet.add(c.startDate);daySet.add(c.endDate);});
+      if(daySet.size!==1)throw new Error('Converted segments span multiple sheet dates. Split the override into separate days.');
+      sheetDate=Array.from(daySet)[0];
+      sheetSegments=converted.map(c=>({start:c.startTime,end:c.endTime,dept:c.dept,billable:c.billable}));
+    }else{
+      sheetDate=convertLocalDateToSheetDate(modalEditDate);
+    }
+
+    msg.textContent='Applying override...';
+    const res=await postForm({
+      action:'overrideDay',
+      facility:CURRENT_FACILITY||'',
+      empId:emp.id,
+      date:sheetDate,
+      remainActive:remainActive?'true':'false',
+      destinationDept:destinationDept,
+      segmentsJson:JSON.stringify(sheetSegments),
+      uiDateLocal:modalEditDate,
+      uiTimezone:LOCAL_TIMEZONE,
+      sheetTimezone:SHEET_TIMEZONE,
+    });
+    if(!res.ok){
+      const payload=await res.json().catch(()=>null);
+      throw new Error((payload&&payload.error)||('HTTP '+res.status));
+    }
+    const data=await res.json();
+    if(!data||data.ok!==true)throw new Error((data&&data.error)||'Override failed');
+    msg.style.color='var(--green)';
+    msg.textContent='Override applied.';
+    renderAll();
+    setTimeout(closeEmpModal,250);
+  }catch(err){
+    msg.style.color='#ff7a7a';
+    msg.textContent=err.message||String(err);
+  }
+}
 function saveEmpModal(){
   const emp=EMPLOYEES.find(e=>e.id===modalEmpId);if(!emp)return;
   if(modalEmpId&&selectedAvatarSeed){emp.avatarStyle=activeAvatarStyle;emp.avatarSeed=selectedAvatarSeed;}
@@ -1435,6 +1594,7 @@ document.addEventListener('click',e=>{
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===panel));
   document.getElementById('tabProfile').classList.toggle('active',panel==='profile');
   document.getElementById('tabAvatar').classList.toggle('active',panel==='avatar');
+  document.getElementById('tabDayEdit').classList.toggle('active',panel==='dayedit');
   if(panel==='avatar'&&modalEmpId)buildAvatarTab(modalEmpId);
 });
 
@@ -1658,6 +1818,14 @@ window.addEventListener('load',()=>{
   document.getElementById('empModalClose').addEventListener('click',closeEmpModal);
   document.getElementById('empModalCancel').addEventListener('click',closeEmpModal);
   document.getElementById('empModalSave').addEventListener('click',saveEmpModal);
+  document.getElementById('dayAddSegBtn').addEventListener('click',()=>{
+    const curDept=document.getElementById('dayDestinationDept').value||(bubbles[0]?.name||'');
+    addDaySegmentRow({start:'07:00',end:'08:00',dept:curDept});
+  });
+  document.getElementById('dayOverrideSaveBtn').addEventListener('click',saveDayOverride);
+  document.getElementById('dayRemainActive').addEventListener('change',e=>{
+    document.getElementById('dayDestinationDept').disabled=!e.target.checked;
+  });
   document.getElementById('empModalRemove').addEventListener('click',()=>{if(modalEmpId)removeEmployee(modalEmpId);});
   document.getElementById('empModalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('empModalOverlay'))closeEmpModal();});
   document.getElementById('otAlert').addEventListener('click',()=>{document.getElementById('empPool').scrollIntoView({behavior:'smooth'});});
@@ -2055,6 +2223,19 @@ function spFetchAll(){
         <div class="emp-field"><label>Style</label><div class="avatar-style-row" id="avatarStyleRow"></div></div>
         <div class="avatar-grid" id="avatarGrid"></div>
       </div>
+      <div class="modal-tab-panel" id="tabDayEdit">
+        <div class="day-edit-wrap">
+          <div class="day-edit-date" id="dayEditDateLbl">Today</div>
+          <div class="day-seg-list" id="daySegRows"></div>
+          <div class="day-edit-tools">
+            <button class="day-edit-btn" type="button" id="dayAddSegBtn">+ Add Segment</button>
+          </div>
+          <div class="day-toggle-row"><input type="checkbox" id="dayRemainActive"><label for="dayRemainActive">Remain Active After Override</label></div>
+          <div class="emp-field"><label>Destination Bubble</label><select id="dayDestinationDept"></select></div>
+          <button class="day-edit-save" type="button" id="dayOverrideSaveBtn">Apply Day Override</button>
+          <div class="day-edit-msg" id="dayEditMsg"></div>
+        </div>
+      </div>
     </div>
     <div class="emp-modal-footer">
       <button class="emp-modal-btn remove" id="empModalRemove">✕ Remove</button>
@@ -2163,3 +2344,4 @@ function spFetchAll(){
 </div>
 </body>
 </html>
+
