@@ -1145,6 +1145,7 @@ function makeBubbleElement(b,isChild,parentEl,parentSize){
     imgWrap.appendChild(img);empEl.appendChild(imgWrap);
     const nameTag=document.createElement('div');nameTag.className='emp-float-name';nameTag.textContent=emp.name.length>10?emp.name.slice(0,9)+'…':emp.name;empEl.appendChild(nameTag);
     empEl.addEventListener('dragstart',e=>onEmpDragStart(e,eid,b.id));
+    empEl.addEventListener('click',e=>{e.stopPropagation();openEmpModal(eid);});
     const otC=getOTClass(emp);if(otC)empEl.classList.add(otC);
     el.appendChild(empEl);
   });
@@ -1298,6 +1299,7 @@ function renderBreakZones(){
         emp.breakStatus=null;emp.breakStart=null;emp.breakReturnBubble=null;emp._breakTimer=null;
         e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',emp.id);
       });
+      wrap.addEventListener('click',e=>{e.stopPropagation();openEmpModal(emp.id);});
       el.appendChild(wrap);
     });
   });
@@ -2361,4 +2363,3 @@ function spFetchAll(){
 </div>
 </body>
 </html>
-
