@@ -137,6 +137,7 @@ main{flex:1;overflow:hidden;display:flex;}
   <button class="tab" data-v="employees"        onclick="showTab('employees')">Employees</button>
   <button class="tab" data-v="projects"         onclick="showTab('projects')">Special Projects</button>
   <button class="tab" data-v="history"          onclick="showTab('history')">History</button>
+  <button class="tab" data-v="packers"          onclick="showTab('packers')">Packers</button>
 </nav>
 <main>
 <div class="view active" id="view-overview"><div id="ovBody"></div></div>
@@ -236,6 +237,40 @@ main{flex:1;overflow:hidden;display:flex;}
     <tbody id="hBody"></tbody></table>
   </div>
 </div>
+
+<div class="view" id="view-packers">
+  <div class="fr">
+    <span class="fl">Facility</span>
+    <select class="fse" id="pkFac" onchange="renderPackers()">
+      <option value="">All</option>
+      <option value="MKE">MKE</option>
+      <option value="SLC">SLC</option>
+      <option value="BAL">BAL</option>
+    </select>
+    <span class="fl">Period</span>
+    <select class="fse" id="pkPeriod" onchange="renderPackers()">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+    </select>
+    <button class="eb" onclick="exportCSV('packers')">Export CSV</button>
+  </div>
+  <div class="sr" id="pkStats">
+    <div class="sc" style="--ac:var(--green)"><div class="sl">Orders Packed</div><div class="sv" id="pkTotal">--</div><div class="ss" id="pkTotalSub">today</div></div>
+    <div class="sc" style="--ac:var(--blue)"><div class="sl">Units Packed</div><div class="sv" id="pkUnits">--</div><div class="ss">total units</div></div>
+    <div class="sc" style="--ac:var(--purple)"><div class="sl">Active Packers</div><div class="sv" id="pkActive">--</div><div class="ss">with data</div></div>
+    <div class="sc" style="--ac:var(--amber)"><div class="sl">Avg OPH</div><div class="sv" id="pkOPH">--</div><div class="ss">orders / hr</div></div>
+  </div>
+  <div class="g2">
+    <div class="cc" style="flex:1;overflow:auto;">
+      <div class="ct" style="margin-bottom:8px;">Packer Leaderboard</div>
+      <table class="tbl"><thead><tr><th>#</th><th>Packer</th><th>Site</th><th>Orders</th><th>Units</th><th>OPH</th><th>Shift</th></tr></thead>
+      <tbody id="pkBody"></tbody></table>
+      <div id="pkEmpty" style="display:none;padding:30px;text-align:center;color:var(--muted);font-size:12px;">No packer data. Add a <code>packers</code> action to your GAS backend.</div>
+    </div>
+    <div class="cc"><div class="ct">Orders by Packer</div><div class="cw" style="height:220px;"><canvas id="cPK"></canvas></div></div>
+  </div>
+</div>
+
 </main>
 <div class="toast" id="toast"></div>
 <div class="cb" id="connBanner">
@@ -251,7 +286,7 @@ var FAC_LABELS={MKE:'Milwaukee',SLC:'Salt Lake City',BAL:'Baltimore'};
 var FACILITIES=['MKE','SLC','BAL'];
 var DCOLS=['#A3F3C5','#63B3ED','#F6AD55','#B794F4','#FC814A','#ED64A6','#68D391'];
 var SP_RATE=17.50,HOURLY=18.50,DASH='--';
-var LIVE=null,DAILY=[],EMPS=[],PROJS=[],SP_LOG=[],SP_LINKS={},SP_BUBBLES=[],ORDERS=0;
+var LIVE=null,DAILY=[],EMPS=[],PROJS=[],SP_LOG=[],SP_LINKS={},SP_BUBBLES=[],ORDERS=0,PACKERS=[];
 var CHARTS={},CUR_FAC='',refreshTimer=null;
 
 function loadFac(){try{CUR_FAC=localStorage.getItem('atx_fac')||'';}catch(e){}document.getElementById('facSel').value=CUR_FAC;}
@@ -271,6 +306,7 @@ function rt(id){
   if(id==='employees') renderEmp();
   if(id==='projects') renderSP();
   if(id==='history') renderHistory();
+  if(id==='packers') renderPackers();
 }
 
 // JSONP -- works from any origin, no CORS issues
@@ -292,7 +328,7 @@ function gasCall(action,params,cb){
 
 function doRefresh(){
   setTs('refreshing...');
-  var p=10,r={};
+  var p=11,r={};
   function got(k,d){r[k]=d;p--;if(p<=0)apply(r);}
   gasCall('live',{},function(d){got('live',d);});
   gasCall('daily',{from:daysAgo(30)},function(d){got('daily',d);});
@@ -304,6 +340,7 @@ function doRefresh(){
   gasCall('spLinks',{},function(d){got('spL',d);});
   gasCall('spTasks',{},function(d){got('spT',d);});
   gasCall('spBubbles',{},function(d){got('spB',d);});
+  gasCall('packers',{},function(d){got('packers',d);});
 }
 
 function apply(r){
@@ -320,6 +357,8 @@ function apply(r){
   if(r.spT&&Array.isArray(r.spT.tasks)) PROJS=r.spT.tasks;
   else if(r.spT&&Array.isArray(r.spT)) PROJS=r.spT;
   SP_BUBBLES=(r.spB&&Array.isArray(r.spB.bubbles))?r.spB.bubbles:(r.spB&&Array.isArray(r.spB))?r.spB:[];
+  if(r.packers&&Array.isArray(r.packers.packers)) PACKERS=r.packers.packers;
+  else if(r.packers&&Array.isArray(r.packers)) PACKERS=r.packers;
   setTs('updated '+new Date().toLocaleTimeString());
   document.getElementById('rebuildBtn').style.display='block';
   redraw();
@@ -566,6 +605,81 @@ function renderHistory(){
   document.getElementById('hBody').innerHTML=DAILY.slice().sort(function(a,b){return new Date(b.Date)-new Date(a.Date);}).slice(0,200).map(function(r){var f=r.Facility||'';return '<tr><td class="mn" style="font-size:10px;">'+new Date(r.Date).toLocaleDateString()+'</td><td>'+(f?'<span class="badge '+f+'">'+f+'</span>':DASH)+'</td><td>'+(r.Dept||DASH)+'</td><td class="mn">'+(r.Headcount||0)+'</td><td class="mn">'+parseFloat(r['Hours Worked']||0).toFixed(1)+'h</td><td class="my">$'+fmt(parseFloat(r['Labor Cost']||0))+'</td><td class="mn">'+parseFloat(r['OT Hours']||0).toFixed(1)+'h</td></tr>';}).join('');
 }
 
+// PACKERS
+/*
+  GAS action 'packers' should return: { packers: [{name, facility, orders, units, firstPack, lastPack}] }
+  Metabase SQL (MySQL) to back the GAS action or a saved question:
+
+  SELECT
+    COALESCE(u.name, o.packedBy) AS name,
+    w.name AS facility,
+    COUNT(*) AS orders,
+    SUM(o.totalUnits) AS units,
+    MIN(o.packedByTimestamp) AS firstPack,
+    MAX(o.packedByTimestamp) AS lastPack
+  FROM Orders o
+  LEFT JOIN Users u ON u.id = o.packedBy
+  LEFT JOIN Warehouses w ON w.id = o.warehouseId
+  WHERE o.isDeleted = 0
+    AND o.isArchived = 0
+    AND o.packedBy IS NOT NULL
+    AND o.packedByTimestamp >= CURDATE()   -- swap to DATE_SUB(CURDATE(), INTERVAL 7 DAY) for week
+  GROUP BY o.packedBy, u.name, w.name
+  ORDER BY orders DESC
+*/
+function renderPackers(){
+  var fac=document.getElementById('pkFac').value;
+  var period=document.getElementById('pkPeriod').value;
+  document.getElementById('pkTotalSub').textContent=period==='week'?'this week':'today';
+
+  var rows=PACKERS.filter(function(p){return !fac||p.facility===fac;});
+  if(!rows.length){
+    document.getElementById('pkEmpty').style.display='block';
+    document.getElementById('pkBody').innerHTML='';
+    ['pkTotal','pkUnits','pkActive','pkOPH'].forEach(function(id){document.getElementById(id).textContent=DASH;});
+    if(CHARTS.pk){try{CHARTS.pk.destroy();}catch(e){}}
+    return;
+  }
+  document.getElementById('pkEmpty').style.display='none';
+
+  var totalOrders=rows.reduce(function(s,p){return s+p.orders;},0);
+  var totalUnits=rows.reduce(function(s,p){return s+p.units;},0);
+  var avgOPH=rows.reduce(function(s,p){return s+(p.oph||0);},0)/rows.length;
+
+  document.getElementById('pkTotal').textContent=totalOrders.toLocaleString();
+  document.getElementById('pkUnits').textContent=totalUnits.toLocaleString();
+  document.getElementById('pkActive').textContent=rows.length;
+  document.getElementById('pkOPH').textContent=avgOPH>0?avgOPH.toFixed(1):DASH;
+
+  var dc={MKE:'var(--mke)',SLC:'var(--slc)',BAL:'var(--bal)'};
+  document.getElementById('pkBody').innerHTML=rows.map(function(p,i){
+    var shiftStart=p.firstPack?new Date(p.firstPack).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}):DASH;
+    var shiftEnd=p.lastPack?new Date(p.lastPack).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}):DASH;
+    var fcolor=dc[p.facility]||'var(--muted)';
+    return '<tr>'+
+      '<td class="mn" style="color:var(--muted);">'+(i+1)+'</td>'+
+      '<td><strong style="font-size:12px;">'+(p.name||DASH)+'</strong></td>'+
+      '<td>'+(p.facility?'<span class="badge '+p.facility+'">'+p.facility+'</span>':'')+'</td>'+
+      '<td class="mn" style="color:var(--green);font-size:14px;font-weight:500;">'+p.orders+'</td>'+
+      '<td class="mn">'+p.units.toLocaleString()+'</td>'+
+      '<td class="mn" style="color:var(--amber);">'+(p.oph?p.oph.toFixed(1):DASH)+'</td>'+
+      '<td class="mn" style="font-size:10px;color:var(--muted);">'+shiftStart+' – '+shiftEnd+'</td>'+
+    '</tr>';
+  }).join('');
+
+  var c=document.getElementById('cPK');
+  if(c){
+    if(CHARTS.pk){try{CHARTS.pk.destroy();}catch(e){}}
+    CHARTS.pk=new Chart(c,{type:'bar',data:{
+      labels:rows.map(function(p){return p.name||'?';}),
+      datasets:[
+        {label:'Orders',data:rows.map(function(p){return p.orders;}),backgroundColor:'rgba(163,243,197,0.5)',borderColor:'#A3F3C5',borderWidth:1,borderRadius:3,yAxisID:'y'},
+        {label:'Units',data:rows.map(function(p){return p.units;}),backgroundColor:'rgba(99,179,237,0.3)',borderColor:'#63B3ED',borderWidth:1,borderRadius:3,yAxisID:'y1'}
+      ]
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:'#4a6a84',font:{size:9},padding:10,boxWidth:9}},tooltip:{backgroundColor:'#0f2540',titleColor:'#dce8f0',bodyColor:'#9D9F9E',borderColor:'rgba(163,243,197,0.2)',borderWidth:1,padding:7}},scales:{x:{grid:{color:'rgba(163,243,197,0.04)'},ticks:{color:'#4a6a84',font:{size:9}},border:{display:false}},y:{grid:{color:'rgba(163,243,197,0.06)'},ticks:{color:'#4a6a84',font:{size:9}},border:{display:false},title:{display:true,text:'Orders',color:'#4a6a84',font:{size:9}}},y1:{position:'right',grid:{display:false},ticks:{color:'#4a6a84',font:{size:9}},border:{display:false},title:{display:true,text:'Units',color:'#4a6a84',font:{size:9}}}}}});
+  }
+}
+
 // DEMO
 function loadDemo(){
   var depts=['AM Shift','PM Shift','Special Projects','Inbound','Inventory'];
@@ -577,6 +691,14 @@ function loadDemo(){
   SP_LOG=[{taskId:'t1',client:'Goose Swag',empName:'Adam G.',hours:26,hourlyRate:17.50,facility:'MKE'},{taskId:'t2',client:'IQ',empName:'Emyly H.',hours:52,hourlyRate:17.50,facility:'MKE'},{taskId:'t3',client:'Omni',empName:'Luis G.',hours:18,hourlyRate:17.50,facility:'MKE'}];
   SP_LINKS={t1:'Special Projects',t2:'Inbound',t3:'Inventory'};
   SP_BUBBLES=[{bubbleName:'Special Projects',spBillRate:32,spSupplyCost:180,spQuotedHrs:40},{bubbleName:'Inbound',spBillRate:28,spSupplyCost:350,spQuotedHrs:60},{bubbleName:'Inventory',spBillRate:24,spSupplyCost:0,spQuotedHrs:16}];
+  var now=new Date(),shiftStart=new Date(now);shiftStart.setHours(6,0,0,0);
+  PACKERS=[
+    {name:'Kody Malas',facility:'MKE',orders:87,units:214,oph:18.2,firstPack:new Date(shiftStart.getTime()+5*60000).toISOString(),lastPack:now.toISOString()},
+    {name:'Hugh Myers',facility:'MKE',orders:74,units:188,oph:15.4,firstPack:new Date(shiftStart.getTime()+12*60000).toISOString(),lastPack:now.toISOString()},
+    {name:'Emyly H.',facility:'MKE',orders:61,units:143,oph:12.7,firstPack:new Date(shiftStart.getTime()+8*60000).toISOString(),lastPack:now.toISOString()},
+    {name:'Norman L.',facility:'SLC',orders:53,units:119,oph:11.0,firstPack:new Date(shiftStart.getTime()+3*60000).toISOString(),lastPack:now.toISOString()},
+    {name:'Luis G.',facility:'MKE',orders:48,units:97,oph:10.0,firstPack:new Date(shiftStart.getTime()+20*60000).toISOString(),lastPack:now.toISOString()}
+  ];
 }
 
 // REBUILD / EXPORT
@@ -586,6 +708,7 @@ function exportCSV(type){
   var rows,filename;
   if(type==='labor'||type==='history'){rows=[['Date','Facility','Dept','Headcount','Hours','Labor Cost','OT Hrs']].concat(DAILY.map(function(r){return [r.Date,r.Facility,r.Dept,r.Headcount,r['Hours Worked'],r['Labor Cost'],r['OT Hours']];}));filename='atomix_labor_'+today()+'.csv';}
   else if(type==='employees'){rows=[['ID','Name','Facility','Dept','Status','Hours Today','Hours Week']].concat(EMPS.map(function(e){return [e['Employee ID'],e['Full Name'],e.Facility,e.Dept,e.Status,e['Hours Today'],e['Hours Week']];}));filename='atomix_employees_'+today()+'.csv';}
+  else if(type==='packers'){rows=[['Packer','Facility','Orders','Units','OPH','Shift Start','Shift End']].concat(PACKERS.map(function(p){return [p.name,p.facility,p.orders,p.units,(p.oph||'').toString(),p.firstPack||'',p.lastPack||''];}));filename='atomix_packers_'+today()+'.csv';}
   else if(type==='projects'){var sp=buildSP();rows=[['Task','Client','Status','Est Hrs','Logged','Bubble','Bill Rate','Supply','Revenue','Margin']].concat(sp.map(function(r){return [r.name,r.client,r.status,r.est,r.logged.toFixed(1),r.linked,r.rate,r.supply.toFixed(2),r.rev.toFixed(2),(r.margin||0).toFixed(2)];}));filename='atomix_sp_'+today()+'.csv';}
   var csv=rows.map(function(r){return r.map(function(v){return '"'+(v==null?'':v)+'"';}).join(',');}).join('\n');
   var a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:filename});a.click();URL.revokeObjectURL(a.href);toast('Exported '+filename);
