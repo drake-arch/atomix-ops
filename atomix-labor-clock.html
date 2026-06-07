@@ -232,6 +232,13 @@
   #empPool.drag-over-pool { background:rgba(255,90,90,0.08); box-shadow:inset 0 0 0 2px rgba(255,90,90,0.4); }
   .pool-drop-hint { display:none; text-align:center; padding:8px 6px; font-size:10px; color:#ff7a7a; letter-spacing:0.04em; opacity:0.8; }
   #empPool.drag-over-pool .pool-drop-hint { display:block; }
+  .pool-search-wrap { position:relative; padding:0 0 6px; }
+  .pool-search-wrap input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 26px 5px 8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:11px; outline:none; transition:border-color 0.15s; }
+  .pool-search-wrap input:focus { border-color:var(--green); }
+  .pool-search-wrap input::placeholder { color:var(--muted); }
+  .pool-search-clear { position:absolute; right:6px; top:50%; transform:translateY(-60%); background:none; border:none; color:var(--muted); font-size:13px; line-height:1; cursor:pointer; padding:0 2px; display:none; }
+  .pool-search-clear.visible { display:block; }
+  .pool-search-clear:hover { color:var(--text); }
   .log-list { max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; }
   .log-list::-webkit-scrollbar { width:3px; }
   .log-list::-webkit-scrollbar-thumb { background:var(--border); }
@@ -322,11 +329,29 @@
   .emp-hours-display { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center; }
   .emp-hours-display .hrs-label { font-size:11px; color:var(--muted); }
   .emp-hours-display .hrs-val { font-family:'DM Mono',monospace; font-size:14px; color:var(--green); }
+  .emp-active-dept { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; color:var(--muted); font-size:13px; font-style:italic; cursor:not-allowed; user-select:none; }
+  .emp-confirm-banner { background:rgba(246,173,85,0.1); border:1px solid rgba(246,173,85,0.35); border-radius:8px; padding:10px 12px; font-size:11px; color:#F6AD55; line-height:1.6; text-align:center; }
   .modal-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); padding:0 20px; }
   .modal-tab { padding:10px 14px; font-size:11px; font-weight:500; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; transition:color 0.15s,border-color 0.15s; white-space:nowrap; }
   .modal-tab.active { color:var(--green); border-bottom-color:var(--green); }
   .modal-tab-panel { display:none; }
   .modal-tab-panel.active { display:flex; flex-direction:column; gap:14px; }
+  .day-edit-wrap { display:flex; flex-direction:column; gap:10px; }
+  .day-edit-date { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+  .day-seg-list { display:flex; flex-direction:column; gap:8px; max-height:220px; overflow:auto; padding-right:2px; }
+  .day-seg-row { display:grid; grid-template-columns:82px 82px 1fr 34px; gap:6px; align-items:center; }
+  .day-seg-row input,.day-seg-row select { background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:7px 8px; color:var(--text); font-size:12px; outline:none; }
+  .day-seg-row input:focus,.day-seg-row select:focus { border-color:var(--green); }
+  .day-seg-del { width:30px; height:30px; border-radius:7px; border:1px solid rgba(255,90,90,0.25); background:rgba(255,90,90,0.12); color:#ff7a7a; cursor:pointer; }
+  .day-seg-del:hover { background:rgba(255,90,90,0.2); }
+  .day-edit-tools { display:flex; gap:8px; }
+  .day-edit-btn { padding:7px 10px; border-radius:7px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); font-size:11px; cursor:pointer; }
+  .day-edit-btn:hover { color:var(--text); border-color:var(--text); }
+  .day-toggle-row { display:flex; align-items:center; gap:7px; font-size:11px; color:var(--text); }
+  .day-toggle-row input { accent-color:var(--green); }
+  .day-edit-save { width:100%; padding:9px 12px; border:none; border-radius:8px; background:var(--green); color:var(--navy); font-weight:700; cursor:pointer; font-size:12px; }
+  .day-edit-save:hover { opacity:0.88; }
+  .day-edit-msg { min-height:14px; font-size:10px; color:var(--muted); }
   .avatar-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
   .avatar-option { width:100%; aspect-ratio:1; border-radius:50%; overflow:hidden; border:2px solid transparent; cursor:pointer; transition:border-color 0.15s,transform 0.15s; }
   .avatar-option:hover { transform:scale(1.08); border-color:var(--muted); }
@@ -574,6 +599,10 @@
           </div>
         </div>
       </div>
+      <div class="pool-search-wrap">
+        <input type="text" id="poolSearch" placeholder="Search employees…" autocomplete="off">
+        <button class="pool-search-clear" id="poolSearchClear" title="Clear">×</button>
+      </div>
       <div class="emp-pool" id="empPool">
         <div class="pool-drop-hint" id="poolDropHint">&#8617; Drop here to unassign</div>
         <div class="pool-grid" id="poolGrid"></div>
@@ -628,6 +657,21 @@ function getFacility() {
 }
 function setFacility(f){ try{localStorage.setItem(FACILITY_KEY,f);}catch(e){} }
 let CURRENT_FACILITY = getFacility();
+const LOCAL_TIMEZONE=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'local';
+let SHEET_TIMEZONE='America/Chicago';
+async function loadSheetTimezone(){
+  try{
+    const url=new URL(SCRIPT_URL);
+    url.searchParams.set('action','timezone');
+    if(CURRENT_FACILITY)url.searchParams.set('facility',CURRENT_FACILITY);
+    const res=await fetch(url.toString());
+    if(!res.ok)return;
+    const data=await res.json();
+    if(data&&data.ok&&data.spreadsheetTimeZone){
+      SHEET_TIMEZONE=String(data.spreadsheetTimeZone);
+    }
+  }catch(e){}
+}
 
 // ════════════════════════════════════════════
 // BACKEND EVENT QUEUE
@@ -801,7 +845,10 @@ const DEPTS_DEFAULT=[
   {id:'b3',name:'Special Projects',colorIdx:2,bx:1100,by:380,size:110,employees:[],parentId:null,billable:true},
   {id:'b4',name:'Inbound',         colorIdx:3,bx:520, by:560,size:95, employees:[],parentId:null,billable:false},
   {id:'b5',name:'Inventory',       colorIdx:5,bx:880, by:540,size:88, employees:[],parentId:null,billable:false},
+  {id:'b6',name:'b2b',             colorIdx:6,bx:690, by:400,size:100,employees:[],parentId:null,billable:false},
 ];
+// Departments always available as Default Department choices in the employee profile.
+const FIXED_DEPT_NAMES=['AM Shift','PM Shift','b2b','Inbound','Inventory','Special Projects'];
 
 function rosterKey(f){return'atomix_roster_v1_'+(f||'NONE');}
 function bubblesKey(f){return'atomix_bubbles_v1_'+(f||'NONE');}
@@ -859,9 +906,16 @@ function loadBubbles(f){
 function saveRoster(){if(!CURRENT_FACILITY)return;try{const c=EMPLOYEES.map(e=>{const x=Object.assign({},e);delete x._breakTimer;return x;});localStorage.setItem(rosterKey(CURRENT_FACILITY),JSON.stringify(c));}catch(e){}}
 function saveBubbles(){
   if(!CURRENT_FACILITY)return;
+  // Deduplicate by ID — last entry wins (most recently added/updated).
+  const seen=new Set();
+  bubbles=bubbles.filter(b=>{if(seen.has(b.id))return false;seen.add(b.id);return true;});
   const layout=layoutOnlyBubbles(bubbles);
   try{localStorage.setItem(bubblesKey(CURRENT_FACILITY),JSON.stringify(layout));}catch(e){}
-  syncBubblesToBackend();
+  // Only push to backend if we've confirmed the bubble state from the backend,
+  // OR if the user has clearly customised bubbles (IDs differ from hardcoded defaults).
+  if(hasBubbleSyncFromBackend||!bubblesMatchDefault()){
+    syncBubblesToBackend();
+  }
 }
 
 function syncBubblesToBackend(){
@@ -889,8 +943,29 @@ function syncSpLinksToBackend(){
 
 let EMPLOYEES=[];
 let bubbles=loadBubbles(CURRENT_FACILITY);
-let bubbleIdCounter=10,selectedColorIdx=0,logEntries=[],totalWeeklyHrs=0,dragData=null,ctxTarget=null;
+function maxBubbleIdFromList(list){
+  let max=10;
+  (list||[]).forEach(b=>{const m=String(b&&b.id||'').match(/(\d+)$/);if(m){const n=parseInt(m[1],10);if(n>max)max=n;}});
+  return max;
+}
+function ensureBubbleCounter(){
+  const max=maxBubbleIdFromList(bubbles);
+  if(max>bubbleIdCounter)bubbleIdCounter=max;
+}
+let bubbleIdCounter=maxBubbleIdFromList(bubbles); // init from localStorage bubbles, not hardcoded 10
+let selectedColorIdx=0,logEntries=[],totalWeeklyHrs=0,dragData=null,ctxTarget=null;
 let hasAuthoritativeSync=false;
+// True only after syncBubblesFromBackend confirms the backend returned valid bubbles.
+// Prevents a fresh/empty-localStorage load from overwriting real script-property data with defaults.
+let hasBubbleSyncFromBackend=false;
+// IDs of bubbles created this session — protected from the sync filter so they are
+// never removed before the backend save has a chance to confirm them.
+const locallyCreatedBubbleIds=new Set();
+function bubblesMatchDefault(){
+  if(bubbles.length!==DEPTS_DEFAULT.length)return false;
+  const defIds=new Set(DEPTS_DEFAULT.map(b=>b.id));
+  return bubbles.every(b=>defIds.has(b.id));
+}
 const AVATAR_STYLES=[{key:'personas',label:'Persona'},{key:'avataaars',label:'Cartoon'},{key:'pixel-art',label:'Pixel'},{key:'bottts',label:'Robot'},{key:'fun-emoji',label:'Emoji'}];
 let activeAvatarStyle='personas',selectedAvatarSeed=null;
 function avatarUrl(emp){const style=emp.avatarStyle||'personas';const seed=emp.avatarSeed||encodeURIComponent(emp.fullName||emp.name);return`https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;}
@@ -1114,6 +1189,7 @@ function makeBubbleElement(b,isChild,parentEl,parentSize){
     imgWrap.appendChild(img);empEl.appendChild(imgWrap);
     const nameTag=document.createElement('div');nameTag.className='emp-float-name';nameTag.textContent=emp.name.length>10?emp.name.slice(0,9)+'…':emp.name;empEl.appendChild(nameTag);
     empEl.addEventListener('dragstart',e=>onEmpDragStart(e,eid,b.id));
+    empEl.addEventListener('click',e=>{e.stopPropagation();openEmpModal(eid);});
     const otC=getOTClass(emp);if(otC)empEl.classList.add(otC);
     el.appendChild(empEl);
   });
@@ -1181,7 +1257,13 @@ function handleDropOnBubble(e,targetBid){
   if(nb&&!nb.employees.includes(empId)){
     nb.employees.push(empId);emp.dept=targetBid;
     if(!emp.clockIn){emp.clockIn=Date.now();addLog(`${emp.name} → ${nb.name}`,'in');logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});logEvent('ASSIGN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});lastSyncPause=Date.now();}
-    else{addLog(`${emp.name} moved to ${nb.name}`,'');logEvent('MOVE',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});}
+    else{
+      const originName=currentDragOrigin&&currentDragOrigin!=='pool'&&currentDragOrigin!=='break'?(bubbles.find(b=>b.id===currentDragOrigin)?.name||''):'';
+      if(nb.name!==originName){
+        addLog(`${emp.name} moved to ${nb.name}`,'');
+        logEvent('MOVE',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});
+      }
+    }
   }
   currentDragEmpId=null;currentDragOrigin=null;renderAll();
 }
@@ -1267,6 +1349,7 @@ function renderBreakZones(){
         emp.breakStatus=null;emp.breakStart=null;emp.breakReturnBubble=null;emp._breakTimer=null;
         e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',emp.id);
       });
+      wrap.addEventListener('click',e=>{e.stopPropagation();openEmpModal(emp.id);});
       el.appendChild(wrap);
     });
   });
@@ -1280,11 +1363,14 @@ function setupBreakZones(){
   });
 }
 
+let poolSearchQuery='';
 function renderPool(){
   const grid=document.getElementById('poolGrid'),unassigned=EMPLOYEES.filter(e=>!e.dept&&!e.breakStatus);
   const tEl=document.getElementById('poolTitle');if(tEl)tEl.textContent=`Employees — Unassigned (${unassigned.length}/${EMPLOYEES.length})`;
+  const q=poolSearchQuery.toLowerCase().trim();
+  const visible=q?unassigned.filter(e=>(e.fullName||e.name).toLowerCase().includes(q)):unassigned;
   grid.innerHTML='';
-  unassigned.forEach(emp=>{
+  visible.forEach(emp=>{
     const otC=getOTClass(emp),{today}=getEmpHours(emp);
     const card=document.createElement('div');card.className='emp-card'+(emp.clockIn?' active':'')+(otC?' '+otC:'');
     card.draggable=true;card.setAttribute('data-empid',emp.id);card.title=emp.fullName||emp.name;
@@ -1306,7 +1392,10 @@ function setupCreator(){
     const parentId=document.getElementById('nbParent').value||null,billable=document.getElementById('nbBillable').checked;
     const ca=document.getElementById('canvasArea');
     const nb={id:'b'+(++bubbleIdCounter),name,colorIdx:selectedColorIdx,bx:(ca.clientWidth/2-panX)/zoomLevel,by:(ca.clientHeight/2-panY)/zoomLevel,cx:0.4+Math.random()*0.2,cy:0.4+Math.random()*0.2,size:parentId?55:90,employees:[],parentId:parentId||null,billable};
-    bubbles.push(nb);document.getElementById('nbName').value='';document.getElementById('nbParent').value='';document.getElementById('nbBillable').checked=false;form.classList.remove('show');
+    bubbles.push(nb);
+    locallyCreatedBubbleIds.add(nb.id); // protect from sync filter until backend confirms
+    saveBubbles(); // always persist immediately, regardless of hasAuthoritativeSync
+    document.getElementById('nbName').value='';document.getElementById('nbParent').value='';document.getElementById('nbBillable').checked=false;form.classList.remove('show');
     addLog(`"${name}" created${billable?' (BILLABLE)':''}${parentId?' inside '+bubbles.find(b=>b.id===parentId)?.name:''}`, '');renderAll();
   });
 }
@@ -1378,6 +1467,7 @@ document.addEventListener('mousemove',e=>{if(!isPanning)return;panX=e.clientX-pa
 document.addEventListener('mouseup',()=>{if(isPanning){isPanning=false;ca.classList.remove('panning');}});
 
 let modalEmpId=null;
+let modalEditDate=todayIsoDate();
 function openEmpModal(empId){
   const emp=EMPLOYEES.find(e=>e.id===empId);if(!emp)return;modalEmpId=empId;
   document.getElementById('empModalAvatar').src=avatarUrl(emp);
@@ -1390,26 +1480,271 @@ function openEmpModal(empId){
   if(week>=OT_WEEKLY_HRS)status+=` · 🔴 WEEKLY OT (${week.toFixed(1)}h)`;
   else if(today>=OT_DAILY_HRS)status+=` · 🟠 Daily OT (${today.toFixed(1)}h)`;
   document.getElementById('empModalStatus').textContent=status;
-  const deptSel=document.getElementById('empModalDept');deptSel.innerHTML='<option value="">— Unassigned / Clock Out —</option>';
-  bubbles.forEach(b=>{const o=document.createElement('option');o.value=b.id;const p=b.parentId?bubbles.find(x=>x.id===b.parentId):null;o.textContent=p?`${p.name} › ${b.name}`:b.name;if(b.id===emp.dept)o.selected=true;deptSel.appendChild(o);});
+  // Active dept — read-only display
+  const activeBubble=emp.dept?bubbles.find(b=>b.id===emp.dept):null;
+  document.getElementById('empActiveDeptDisplay').textContent=activeBubble?activeBubble.name:'Unassigned';
+  // Default dept — editable dropdown limited to fixed dept names
+  const ddSel=document.getElementById('empDefaultDept');
+  ddSel.innerHTML='<option value="">— None —</option>';
+  FIXED_DEPT_NAMES.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;if(name===(emp.defaultDept||''))o.selected=true;ddSel.appendChild(o);});
   document.getElementById('empModalStart').value=emp.shiftStart||'07:00';document.getElementById('empModalEnd').value=emp.shiftEnd||'15:30';
   let hrs=emp.totalHrs;if(emp.clockIn)hrs+=(Date.now()-emp.clockIn)/3600000;
   document.getElementById('empModalHrs').textContent=hrs.toFixed(2)+'h today · '+((emp.weeklyHrs||0)+hrs).toFixed(1)+'h week';
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab==='profile'));
+  document.getElementById('tabProfile').classList.add('active');
+  document.getElementById('tabAvatar').classList.remove('active');
+  document.getElementById('tabDayEdit').classList.remove('active');
+  initDayEditPanel(emp);
   document.getElementById('empModalOverlay').classList.add('show');
 }
-function closeEmpModal(){document.getElementById('empModalOverlay').classList.remove('show');modalEmpId=null;}
+function closeEmpModal(){
+  document.getElementById('empModalOverlay').classList.remove('show');
+  modalEmpId=null;
+  // Always reset to normal footer state
+  const fn=document.getElementById('empModalFooterNormal');
+  const fc=document.getElementById('empModalFooterConfirm');
+  if(fn)fn.style.display='flex';
+  if(fc)fc.style.display='none';
+}
+function todayIsoDate(){return new Date().toISOString().split('T')[0];}
+function getZonedParts(dateObj,tz){
+  const parts=new Intl.DateTimeFormat('en-CA',{
+    timeZone:tz,
+    year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',hour12:false,
+  }).formatToParts(dateObj);
+  const out={};
+  parts.forEach(p=>{if(p.type!=='literal')out[p.type]=p.value;});
+  return out;
+}
+function convertLocalSegmentToSheet(dateStr,startHm,endHm){
+  const localStart=new Date(dateStr+'T'+startHm+':00');
+  const localEnd=new Date(dateStr+'T'+endHm+':00');
+  if(isNaN(localStart.getTime())||isNaN(localEnd.getTime()))throw new Error('Invalid local segment time.');
+  const s=getZonedParts(localStart,SHEET_TIMEZONE);
+  const e=getZonedParts(localEnd,SHEET_TIMEZONE);
+  return {
+    startDate:`${s.year}-${s.month}-${s.day}`,
+    endDate:`${e.year}-${e.month}-${e.day}`,
+    startTime:`${s.hour}:${s.minute}`,
+    endTime:`${e.hour}:${e.minute}`,
+  };
+}
+function convertLocalDateToSheetDate(dateStr){
+  const localMidday=new Date(dateStr+'T12:00:00');
+  if(isNaN(localMidday.getTime()))throw new Error('Invalid local date for override.');
+  const p=getZonedParts(localMidday,SHEET_TIMEZONE);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+// Convert a sheet-timezone HH:MM on sheetDateStr back to the browser's local HH:MM.
+function sheetHmToLocalHm(sheetDateStr,sheetHm){
+  // Start with a UTC Date whose wall-clock in SHEET_TIMEZONE we can measure.
+  const utcBase=new Date(sheetDateStr+'T'+sheetHm+':00Z');
+  // Find what the sheet TZ wall-clock reads for this UTC instant.
+  const sp=getZonedParts(utcBase,SHEET_TIMEZONE);
+  const sheetMinutes=parseInt(sp.hour)*60+parseInt(sp.minute);
+  const [wantH,wantM]=sheetHm.split(':').map(Number);
+  const wantMinutes=wantH*60+wantM;
+  // Shift the UTC base so its sheet-TZ wall clock matches the desired time.
+  const adjusted=new Date(utcBase.getTime()+(wantMinutes-sheetMinutes)*60000);
+  const lp=getZonedParts(adjusted,LOCAL_TIMEZONE||Intl.DateTimeFormat().resolvedOptions().timeZone);
+  return `${lp.hour}:${lp.minute}`;
+}
+function deptOptionsMarkup(selectedName){
+  return bubbles.map(b=>`<option value="${String(b.name||'').replace(/"/g,'&quot;')}" ${b.name===selectedName?'selected':''}>${b.parentId?(bubbles.find(x=>x.id===b.parentId)?.name+' › '):''}${b.name}</option>`).join('');
+}
+function addDaySegmentRow(seg){
+  const row=document.createElement('div');
+  row.className='day-seg-row';
+  row.innerHTML=`
+    <input type="time" class="day-seg-start" value="${seg.start||''}">
+    <input type="time" class="day-seg-end" value="${seg.end||''}">
+    <select class="day-seg-dept">${deptOptionsMarkup(seg.dept||'')}</select>
+    <button class="day-seg-del" type="button" title="Remove">×</button>
+  `;
+  row.querySelector('.day-seg-del').addEventListener('click',()=>{row.remove();});
+  document.getElementById('daySegRows').appendChild(row);
+}
+async function initDayEditPanel(emp){
+  modalEditDate=todayIsoDate();
+  const dateLabel=document.getElementById('dayEditDateLbl');
+  const msg=document.getElementById('dayEditMsg');
+  dateLabel.textContent='Loading day for '+(emp.fullName||emp.name)+'…';
+  msg.style.color='var(--muted)';msg.textContent='';
+  const list=document.getElementById('daySegRows');
+  list.innerHTML='';
+
+  const curDept=emp.dept?(bubbles.find(b=>b.id===emp.dept)?.name||''):(bubbles[0]?.name||'');
+  const remain=!!emp.clockIn;
+  document.getElementById('dayRemainActive').checked=remain;
+  const dSel=document.getElementById('dayDestinationDept');
+  dSel.innerHTML='<option value="">— Choose destination bubble —</option>'+deptOptionsMarkup(curDept);
+  dSel.value=curDept||'';
+  dSel.disabled=!remain;
+
+  let loadedFromBackend=false;
+  try{
+    const sheetDate=convertLocalDateToSheetDate(modalEditDate);
+    const url=new URL(SCRIPT_URL);
+    url.searchParams.set('action','employee_day');
+    url.searchParams.set('empId',emp.id);
+    url.searchParams.set('date',sheetDate);
+    if(CURRENT_FACILITY)url.searchParams.set('facility',CURRENT_FACILITY);
+    const res=await fetch(url.toString());
+    if(res.ok){
+      const data=await res.json();
+      if(data&&data.ok&&Array.isArray(data.segments)&&data.segments.length>0){
+        data.segments.forEach(seg=>{
+          const localStart=sheetHmToLocalHm(sheetDate,seg.start);
+          const localEnd=sheetHmToLocalHm(sheetDate,seg.end);
+          addDaySegmentRow({start:localStart,end:localEnd,dept:seg.dept});
+        });
+        loadedFromBackend=true;
+      }
+    }
+  }catch(e){}
+
+  if(!loadedFromBackend){
+    const now=new Date();
+    const hh=String(now.getHours()).padStart(2,'0');
+    const mm=String(now.getMinutes()).padStart(2,'0');
+    const end=hh+':'+mm;
+    const start=emp.clockIn?new Date(emp.clockIn).toTimeString().slice(0,5):(emp.shiftStart||'07:00');
+    addDaySegmentRow({start,end,dept:curDept});
+  }
+
+  dateLabel.textContent='Editing '+modalEditDate+' ('+(LOCAL_TIMEZONE||'local')+') for '+(emp.fullName||emp.name)+' · sheet '+SHEET_TIMEZONE;
+}
+function collectDaySegmentsFromUi(){
+  const rows=Array.from(document.querySelectorAll('#daySegRows .day-seg-row'));
+  const segments=[];
+  for(const row of rows){
+    const start=row.querySelector('.day-seg-start').value;
+    const end=row.querySelector('.day-seg-end').value;
+    const dept=row.querySelector('.day-seg-dept').value;
+    if(!start||!end||!dept)throw new Error('All segment fields are required.');
+    segments.push({start:start,end:end,dept:dept,billable:!!bubbles.find(b=>b.name===dept)?.billable});
+  }
+  segments.sort((a,b)=>a.start.localeCompare(b.start));
+  for(let i=0;i<segments.length;i++){
+    if(segments[i].end<=segments[i].start)throw new Error('Segment end must be after start.');
+    if(i>0&&segments[i].start<segments[i-1].end)throw new Error('Segments cannot overlap.');
+  }
+  return segments;
+}
+async function saveDayOverride(){
+  const msg=document.getElementById('dayEditMsg');
+  const emp=EMPLOYEES.find(e=>e.id===modalEmpId);
+  if(!emp){msg.textContent='Employee not found.';return;}
+  try{
+    const segments=collectDaySegmentsFromUi();
+    const remainActive=document.getElementById('dayRemainActive').checked;
+    const destinationDept=document.getElementById('dayDestinationDept').value||'';
+    if(remainActive&&segments.length===0)throw new Error('At least one segment is required when remaining active.');
+    if(remainActive&&!destinationDept)throw new Error('Choose a destination bubble for active state.');
+
+    let sheetDate='';
+    let sheetSegments=[];
+    if(segments.length){
+      const converted=segments.map(s=>Object.assign({},s,convertLocalSegmentToSheet(modalEditDate,s.start,s.end)));
+      const daySet=new Set();
+      converted.forEach(c=>{daySet.add(c.startDate);daySet.add(c.endDate);});
+      if(daySet.size!==1)throw new Error('Converted segments span multiple sheet dates. Split the override into separate days.');
+      sheetDate=Array.from(daySet)[0];
+      sheetSegments=converted.map(c=>({start:c.startTime,end:c.endTime,dept:c.dept,billable:c.billable}));
+    }else{
+      sheetDate=convertLocalDateToSheetDate(modalEditDate);
+    }
+
+    msg.textContent='Applying override...';
+    const res=await postForm({
+      action:'overrideDay',
+      facility:CURRENT_FACILITY||'',
+      empId:emp.id,
+      date:sheetDate,
+      remainActive:remainActive?'true':'false',
+      destinationDept:destinationDept,
+      segmentsJson:JSON.stringify(sheetSegments),
+      uiDateLocal:modalEditDate,
+      uiTimezone:LOCAL_TIMEZONE,
+      sheetTimezone:SHEET_TIMEZONE,
+    });
+    if(!res.ok){
+      const payload=await res.json().catch(()=>null);
+      throw new Error((payload&&payload.error)||('HTTP '+res.status));
+    }
+    const data=await res.json();
+    if(!data||data.ok!==true)throw new Error((data&&data.error)||'Override failed');
+    msg.style.color='var(--green)';
+    msg.textContent='Override applied.';
+    renderAll();
+    setTimeout(closeEmpModal,250);
+  }catch(err){
+    msg.style.color='#ff7a7a';
+    msg.textContent=err.message||String(err);
+  }
+}
 function saveEmpModal(){
   const emp=EMPLOYEES.find(e=>e.id===modalEmpId);if(!emp)return;
-  if(modalEmpId&&selectedAvatarSeed){emp.avatarStyle=activeAvatarStyle;emp.avatarSeed=selectedAvatarSeed;}
-  const newDeptId=document.getElementById('empModalDept').value||null;
-  emp.shiftStart=document.getElementById('empModalStart').value;emp.shiftEnd=document.getElementById('empModalEnd').value;
-  if(newDeptId!==emp.dept){
-    if(emp.dept){const ob=bubbles.find(x=>x.id===emp.dept);if(ob)ob.employees=ob.employees.filter(id=>id!==emp.id);}
-    emp.dept=newDeptId||null;
-    if(newDeptId){const nb=bubbles.find(x=>x.id===newDeptId);if(nb&&!nb.employees.includes(emp.id)){nb.employees.push(emp.id);if(!emp.clockIn){emp.clockIn=Date.now();logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''}); }}addLog(`${emp.name} → ${nb?.name||''}`,'in');}
-    else unassignEmployee(emp.id);
-  }
-  closeEmpModal();renderAll();
+  // Show confirmation footer instead of saving immediately
+  document.getElementById('empConfirmName').textContent=emp.fullName||emp.name;
+  document.getElementById('empModalFooterNormal').style.display='none';
+  document.getElementById('empModalFooterConfirm').style.display='flex';
+}
+function cancelEmpConfirm(){
+  document.getElementById('empModalFooterNormal').style.display='flex';
+  document.getElementById('empModalFooterConfirm').style.display='none';
+}
+function confirmEmpSave(){
+  const emp=EMPLOYEES.find(e=>e.id===modalEmpId);if(!emp)return;
+  if(selectedAvatarSeed){emp.avatarStyle=activeAvatarStyle;emp.avatarSeed=selectedAvatarSeed;}
+  emp.shiftStart=document.getElementById('empModalStart').value;
+  emp.shiftEnd=document.getElementById('empModalEnd').value;
+  emp.defaultDept=document.getElementById('empDefaultDept').value||'';
+  saveRoster();
+  upsertEmployeeToBackend(emp);
+  closeEmpModal();
+  renderAll();
+}
+function upsertEmployeeToBackend(emp){
+  if(!emp||!CURRENT_FACILITY)return;
+  postForm({
+    action:'upsertEmployee',
+    facility:CURRENT_FACILITY,
+    empId:String(emp.id||''),
+    fullName:emp.fullName||emp.name||'',
+    shortName:emp.name||'',
+    defaultDept:emp.defaultDept||'',
+    shiftStart:emp.shiftStart||'',
+    shiftEnd:emp.shiftEnd||'',
+    isManager:emp.isManager?'TRUE':'FALSE',
+    color:emp.color||'',
+    avatarStyle:emp.avatarStyle||'',
+    avatarSeed:emp.avatarSeed||'',
+  }).catch(()=>{});
+}
+async function syncEmployeeMasterFromBackend(){
+  if(!CURRENT_FACILITY)return;
+  try{
+    const url=new URL(SCRIPT_URL);
+    url.searchParams.set('action','employeeMaster');
+    url.searchParams.set('facility',CURRENT_FACILITY);
+    url.searchParams.set('t',Date.now());
+    const res=await fetch(url.toString());
+    if(!res.ok)return;
+    const data=await res.json();
+    if(!data||!data.ok||!Array.isArray(data.employees)||!data.employees.length)return;
+    const masterById=new Map(data.employees.map(e=>[String(e.id||''),e]));
+    EMPLOYEES.forEach(emp=>{
+      const m=masterById.get(String(emp.id||''));if(!m)return;
+      const validHHMM=v=>/^\d{2}:\d{2}$/.test(v||'');
+      if(m.defaultDept)emp.defaultDept=m.defaultDept;
+      if(m.shiftStart&&validHHMM(m.shiftStart))emp.shiftStart=m.shiftStart;
+      if(m.shiftEnd&&validHHMM(m.shiftEnd))emp.shiftEnd=m.shiftEnd;
+      if(m.avatarStyle)emp.avatarStyle=m.avatarStyle;
+      if(m.avatarSeed)emp.avatarSeed=m.avatarSeed;
+    });
+  }catch(e){console.warn('[sync] employee master failed:',e.message);}
 }
 function buildAvatarTab(empId){
   const emp=EMPLOYEES.find(e=>e.id===empId);if(!emp)return;
@@ -1435,6 +1770,7 @@ document.addEventListener('click',e=>{
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===panel));
   document.getElementById('tabProfile').classList.toggle('active',panel==='profile');
   document.getElementById('tabAvatar').classList.toggle('active',panel==='avatar');
+  document.getElementById('tabDayEdit').classList.toggle('active',panel==='dayedit');
   if(panel==='avatar'&&modalEmpId)buildAvatarTab(modalEmpId);
 });
 
@@ -1561,6 +1897,7 @@ async function syncFromBackend(){
           shiftStart:meta.shiftStart||'06:00',
           shiftEnd:meta.shiftEnd||'14:30',
           isManager:!!meta.isManager,
+          defaultDept:meta.defaultDept||'',
           breakStatus:null,
           breakStart:null,
           breakReturnBubble:null,
@@ -1596,6 +1933,7 @@ async function syncFromBackend(){
       }
     });
 
+    await syncEmployeeMasterFromBackend();
     hasAuthoritativeSync=true;
     renderAll();
   }finally{syncInFlight=false;}
@@ -1611,6 +1949,7 @@ async function syncBubblesFromBackend(){
     const resB=await fetch(urlB.toString());
     const dataB=await resB.json();
     if(dataB&&dataB.ok&&Array.isArray(dataB.bubbles)&&dataB.bubbles.length>0){
+      hasBubbleSyncFromBackend=true;
       const bb=dataB.bubbles;
       bb.forEach(b=>{
         const local=bubbles.find(x=>x.id===b.id);
@@ -1628,7 +1967,11 @@ async function syncBubblesFromBackend(){
         }
       });
       const bIds=bb.map(x=>x.id);
-      bubbles=bubbles.filter(b=>bIds.includes(b.id));
+      // Remove local bubbles that aren't in the backend, EXCEPT ones created this session
+      // that haven't been confirmed by the backend yet.
+      bubbles=bubbles.filter(b=>bIds.includes(b.id)||locallyCreatedBubbleIds.has(b.id));
+      // Ensure the counter is above all backend IDs so new bubbles never collide.
+      ensureBubbleCounter();
     }
   }catch(e){console.warn('[sync] bubble load failed:',e.message);}
 
@@ -1645,6 +1988,7 @@ async function syncBubblesFromBackend(){
 }
 
 window.addEventListener('load',()=>{
+  loadSheetTimezone();
   drawBg();setupBreakZones();setupCreator();setupEmpCreator();setupHeatToggle();renderAll();applyTransform(false);
   updateBackendDot();pingBackend();flushEventQueue();
   setInterval(pingBackend,30000);
@@ -1652,12 +1996,25 @@ window.addEventListener('load',()=>{
   const pool=document.getElementById('empPool');
   pool.addEventListener('dragover',e=>{e.preventDefault();pool.classList.add('drag-over-pool');});
   pool.addEventListener('dragleave',e=>{if(!pool.contains(e.relatedTarget))pool.classList.remove('drag-over-pool');});
-  pool.addEventListener('drop',e=>{e.preventDefault();pool.classList.remove('drag-over-pool');const eid=e.dataTransfer.getData('text/plain')||currentDragEmpId;if(!eid)return;unassignEmployee(eid);currentDragEmpId=null;});
+  pool.addEventListener('drop',e=>{e.preventDefault();pool.classList.remove('drag-over-pool');const eid=e.dataTransfer.getData('text/plain')||currentDragEmpId;if(!eid)return;const _poolEmp=EMPLOYEES.find(x=>x.id===eid);if(_poolEmp&&!_poolEmp.dept&&!_poolEmp.clockIn&&!_poolEmp.breakStatus){currentDragEmpId=null;renderAll();return;}unassignEmployee(eid);currentDragEmpId=null;});
+  const poolSearchEl=document.getElementById('poolSearch'),poolSearchClearEl=document.getElementById('poolSearchClear');
+  poolSearchEl.addEventListener('input',()=>{poolSearchQuery=poolSearchEl.value;poolSearchClearEl.classList.toggle('visible',poolSearchQuery.length>0);renderPool();});
+  poolSearchClearEl.addEventListener('click',()=>{poolSearchQuery='';poolSearchEl.value='';poolSearchClearEl.classList.remove('visible');poolSearchEl.focus();renderPool();});
   document.getElementById('rosterToggle').addEventListener('click',toggleRoster);
   document.getElementById('rosterClose').addEventListener('click',toggleRoster);
   document.getElementById('empModalClose').addEventListener('click',closeEmpModal);
   document.getElementById('empModalCancel').addEventListener('click',closeEmpModal);
   document.getElementById('empModalSave').addEventListener('click',saveEmpModal);
+  document.getElementById('dayAddSegBtn').addEventListener('click',()=>{
+    const curDept=document.getElementById('dayDestinationDept').value||(bubbles[0]?.name||'');
+    addDaySegmentRow({start:'07:00',end:'08:00',dept:curDept});
+  });
+  document.getElementById('dayOverrideSaveBtn').addEventListener('click',saveDayOverride);
+  document.getElementById('dayRemainActive').addEventListener('change',e=>{
+    document.getElementById('dayDestinationDept').disabled=!e.target.checked;
+  });
+  document.getElementById('empModalBack').addEventListener('click',cancelEmpConfirm);
+  document.getElementById('empModalConfirmBtn').addEventListener('click',confirmEmpSave);
   document.getElementById('empModalRemove').addEventListener('click',()=>{if(modalEmpId)removeEmployee(modalEmpId);});
   document.getElementById('empModalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('empModalOverlay'))closeEmpModal();});
   document.getElementById('otAlert').addEventListener('click',()=>{document.getElementById('empPool').scrollIntoView({behavior:'smooth'});});
@@ -2040,11 +2397,18 @@ function spFetchAll(){
     </div>
     <div class="modal-tabs">
       <div class="modal-tab active" data-tab="profile">Profile</div>
+      <div class="modal-tab" data-tab="dayedit">Day Edit</div>
       <div class="modal-tab" data-tab="avatar">Avatar</div>
     </div>
     <div class="emp-modal-body">
       <div class="modal-tab-panel active" id="tabProfile">
-        <div class="emp-field"><label>Department</label><select id="empModalDept"><option value="">— Unassigned / Clock Out —</option></select></div>
+        <div class="emp-field"><label>Active Department</label><div class="emp-active-dept" id="empActiveDeptDisplay">Unassigned</div></div>
+        <div class="emp-field">
+          <label>Default Department</label>
+          <select id="empDefaultDept" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:100%;cursor:pointer;transition:border-color 0.15s;">
+            <option value="">— None —</option>
+          </select>
+        </div>
         <div class="emp-time-row">
           <div class="emp-field"><label>Shift Start</label><input type="time" id="empModalStart" value="07:00"></div>
           <div class="emp-field"><label>Shift End</label><input type="time" id="empModalEnd" value="15:30"></div>
@@ -2055,11 +2419,31 @@ function spFetchAll(){
         <div class="emp-field"><label>Style</label><div class="avatar-style-row" id="avatarStyleRow"></div></div>
         <div class="avatar-grid" id="avatarGrid"></div>
       </div>
+      <div class="modal-tab-panel" id="tabDayEdit">
+        <div class="day-edit-wrap">
+          <div class="day-edit-date" id="dayEditDateLbl">Today</div>
+          <div class="day-seg-list" id="daySegRows"></div>
+          <div class="day-edit-tools">
+            <button class="day-edit-btn" type="button" id="dayAddSegBtn">+ Add Segment</button>
+          </div>
+          <div class="day-toggle-row"><input type="checkbox" id="dayRemainActive"><label for="dayRemainActive">Remain Active After Override</label></div>
+          <div class="emp-field"><label>Destination Bubble</label><select id="dayDestinationDept"></select></div>
+          <button class="day-edit-save" type="button" id="dayOverrideSaveBtn">Apply Day Override</button>
+          <div class="day-edit-msg" id="dayEditMsg"></div>
+        </div>
+      </div>
     </div>
-    <div class="emp-modal-footer">
+    <div class="emp-modal-footer" id="empModalFooterNormal">
       <button class="emp-modal-btn remove" id="empModalRemove">✕ Remove</button>
       <button class="emp-modal-btn cancel" id="empModalCancel">Cancel</button>
       <button class="emp-modal-btn save" id="empModalSave">Save</button>
+    </div>
+    <div style="padding:14px 20px;border-top:1px solid var(--border);display:none;flex-direction:column;gap:10px;" id="empModalFooterConfirm">
+      <div class="emp-confirm-banner">⚠ You are updating <strong id="empConfirmName"></strong>'s permanent profile. This writes to the Employees sheet and affects auto-scheduling.</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="emp-modal-btn cancel" id="empModalBack">← Back</button>
+        <button class="emp-modal-btn save" id="empModalConfirmBtn" style="background:#F6AD55;color:#1a1210;">✓ Confirm Update</button>
+      </div>
     </div>
   </div>
 </div>
