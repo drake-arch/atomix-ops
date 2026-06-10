@@ -809,6 +809,20 @@ const STD_QUESTIONS = {
   ],
 };
 
+const DAILY_STORY_QUESTIONS = [
+  { id:'story_1', text:'What was the first thing you attacked today?', type:'textarea' },
+  { id:'story_2', text:'What fires did you put out today?', type:'textarea' },
+  { id:'story_3', text:'What fires are still active?', type:'textarea' },
+  { id:'story_4', text:'What do you need to put these fires out?', type:'textarea' },
+  { id:'story_5', text:'What projects are still pending?', type:'textarea' },
+  { id:'story_6', text:'What is your top priority for the day?', type:'textarea' },
+  { id:'story_7', text:'What is your top priority to complete by the end of the week?', type:'textarea' },
+  { id:'story_8', text:'What was the last thing you attacked today?', type:'textarea' },
+];
+['kody','adam','luis','emyly','burke','hugh','norman'].forEach(pid => {
+  STD_QUESTIONS[pid] = DAILY_STORY_QUESTIONS.map(q => ({ ...q, id: pid + '_' + q.id }));
+});
+
 // ── APP STATE ──────────────────────────────────────────────────────────────────
 let currentPerson = null;
 let currentMode = 'report';
