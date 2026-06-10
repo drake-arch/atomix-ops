@@ -15,9 +15,9 @@ STANDARD_QUESTIONS=[
     'What was the last thing you attacked today?',
 ]
 MEETING_PEOPLE=[
-    ('kody','Cody','AM Outbound'),
+    ('kody','Kody','AM Outbound'),
     ('adam','Adam','Special Projects'),
-    ('luis','Louise','Inventory'),
+    ('luis','Luis','Inventory'),
     ('emyly','Emily','Inbound'),
     ('burke','Burke','BAL'),
     ('hugh','Hugh','PM Lead'),
@@ -39,6 +39,16 @@ def fetch(gid):
 def clean(s): return re.sub(r'\s+', ' ', str(s or '')).strip()
 def is_noise(s): return clean(s).lower() in NOISE
 
+def chunks(items, size):
+    for i in range(0, len(items), size):
+        yield items[i:i+size]
+
+def complexity_label(answer_count):
+    if answer_count >= 7: return 'full story'
+    if answer_count >= 4: return 'expanded story'
+    if answer_count >= 1: return 'short story'
+    return 'no story yet'
+
 def classify(q,a):
     t=(q+' '+a).lower()
     if any(x in t for x in ['fire','risk','issue','blocker','missing','not able','did not','could not','violation','broken process','low','running out','needs','left from today','batches left','lock-location','lock location','fefo','fifo','t force']): return 'fire'
@@ -50,6 +60,8 @@ def data_uri(path):
     if not p.exists(): return ''
     mime=mimetypes.guess_type(str(p))[0] or 'application/octet-stream'
     return f'data:{mime};base64,'+base64.b64encode(p.read_bytes()).decode('ascii')
+
+MISSING_EOD_COMIC=data_uri(pathlib.Path('comic_art')/'shared'/'no_submission_cheezits_comic.png')
 
 reports=fetch(GIDS['Reports']); answers=fetch(GIDS['Answers'])
 day_reports=[r for r in reports if r.get('date')==DATE]
@@ -80,9 +92,12 @@ for pid,display,role in MEETING_PEOPLE:
     fires=[x for x in raw if x['kind']=='fire']
     notes=[x for x in raw if x['kind']!='fire']
     img_path=pathlib.Path('comic_art')/DATE/f'{pid}_legit_comic.png'
-    slides.append({'type':'person','pid':pid,'title':display,'role':role,'submitted':pid in latest,'submitted_at':latest.get(pid,{}).get('submitted_at',''),'answers':raw,'fires':fires,'notes':notes,'questions':STANDARD_QUESTIONS,'comic':data_uri(img_path)})
+    story_chunks=list(chunks(raw,3)) if len(raw)>3 else []
+    slides.append({'type':'person','pid':pid,'title':display,'role':role,'submitted':pid in latest,'submitted_at':latest.get(pid,{}).get('submitted_at',''),'answers':raw,'fires':fires,'notes':notes,'questions':STANDARD_QUESTIONS,'comic':data_uri(img_path),'complexity':complexity_label(len(raw)),'story_slide_count':len(story_chunks)})
+    for n,part in enumerate(story_chunks,1):
+        slides.append({'type':'story','pid':pid,'title':f'{display} Story {n}/{len(story_chunks)}','person':display,'role':role,'chapter':n,'chapters':len(story_chunks),'answers':part,'complexity':complexity_label(len(raw))})
 slides.append({'type':'close','title':'Closeout','subtitle':'Action items roll up here for the meeting recap.'})
-payload=json.dumps({'date':DATE,'slides':slides,'questions':STANDARD_QUESTIONS},ensure_ascii=False)
+payload=json.dumps({'date':DATE,'slides':slides,'questions':STANDARD_QUESTIONS,'missingEodComic':MISSING_EOD_COMIC},ensure_ascii=False)
 
 def esc(s): return html.escape(str(s or ''))
 
@@ -95,14 +110,15 @@ const data=JSON.parse(document.getElementById('deck-data').textContent),slides=d
 function esc(s){{return String(s??'').replace(/[&<>"']/g,m=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[m]))}}function short(s,n=260){{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s}}function slideKey(i,s){{return 'atomixNucleus:'+data.date+':'+i+':'+s}}function key(s){{return slideKey(idx,s)}}
 function shell(inner,title,ph){{return `<article class="slide"><div class="layout"><div class="panel">${{inner}}</div>${{notes(title,ph)}}</div></article>`}}
 function notes(title,ph){{return `<aside class="notes"><h2>${{esc(title)}}</h2><p>Capture decisions, blockers, and owner commitments. Action items roll up on the closeout page.</p><textarea class="noteText" placeholder="${{esc(ph)}}"></textarea><input class="actionInput" placeholder="Action item: owner + due time"><div class="row"><button class="primary addAction">Add action</button><button class="ghost markDone">Done</button></div><ul class="actions"></ul></aside>`}}
-function renderGood(s){{const people=s.people.map(p=>`<span class="chip">${{esc(p)}}</span>`).join('');const good=(s.good||[]).map(x=>`<div class="qa"><div class="q">${{esc(x.person)}} good news</div><div class="a">${{esc(short(x.text,220))}}</div></div>`).join('')||'<p class="empty">No good-news answers detected. Start with live wins.</p>';return shell(`<div class="kicker">Good news first</div><h1>${{esc(s.title)}}</h1><div class="sub">${{esc(s.subtitle)}}</div><div class="namechips">${{people}}</div><div class="cards"><div class="card"><h3>Meeting order</h3><p>Cody → Adam → Louise → Emily → Burke → Hugh → Norman</p></div><div class="card"><h3>Prompt</h3><p>One quick win each. Keep it fast.</p></div><div class="card" style="grid-column:1/-1"><h3>Detected good news</h3>${{good}}</div></div>`,'Good news notes','Wins, shoutouts, quick positives')}}
-function renderPerson(s){{const qlist=s.questions.map(q=>`<li>${{esc(q)}}</li>`).join('');const answers=(s.answers||[]).map(x=>`<div class="qa"><div class="q">${{esc(short(x.q,110))}}</div><div class="a">${{esc(short(x.a,300))}}</div></div>`).join('')||'<p class="empty">No submitted answers for this person. Use the standard questions live.</p>';const fires=(s.fires||[]).map(x=>`<div class="qa"><div class="q">Fire / blocker</div><div class="a">${{esc(short(x.a,260))}}</div></div>`).join('')||'<p class="empty">No active fires detected.</p>';const comic=s.comic?`<div class="comic"><img src="${{s.comic}}" alt="${{esc(s.title)}} comic strip"><small>Small day-story strip: setup → fire → handoff.</small></div>`:'';return shell(`<div class="kicker">${{esc(s.role)}} • ${{s.submitted?'submitted':'live capture'}}</div><h1>${{esc(s.title)}}</h1><div class="sub">Standard question pass, then notes/actions.</div><div class="cards"><div class="card"><h3>Standard questions</h3><ol>${{qlist}}</ol></div><div class="card fire"><h3>Fires / needs</h3>${{fires}}</div><div class="card" style="grid-column:1/-1"><h3>Answers pulled from EOD</h3>${{answers}}</div></div>${{comic}}`,s.title+' notes','Notes and commitments for '+s.title)}}
+function renderGood(s){{const people=s.people.map(p=>`<span class="chip">${{esc(p)}}</span>`).join('');const good=(s.good||[]).map(x=>`<div class="qa"><div class="q">${{esc(x.person)}} good news</div><div class="a">${{esc(short(x.text,220))}}</div></div>`).join('')||'<p class="empty">No good-news answers detected. Start with live wins.</p>';return shell(`<div class="kicker">Good news first</div><h1>${{esc(s.title)}}</h1><div class="sub">${{esc(s.subtitle)}}</div><div class="namechips">${{people}}</div><div class="cards"><div class="card"><h3>Meeting order</h3><p>Kody → Adam → Luis → Emily → Burke → Hugh → Norman</p></div><div class="card"><h3>Prompt</h3><p>One quick win each. Keep it fast.</p></div><div class="card" style="grid-column:1/-1"><h3>Detected good news</h3>${{good}}</div></div>`,'Good news notes','Wins, shoutouts, quick positives')}}
+function renderPerson(s){{const qlist=s.questions.map(q=>`<li>${{esc(q)}}</li>`).join('');const answers=(s.answers||[]).map(x=>`<div class="qa"><div class="q">${{esc(short(x.q,110))}}</div><div class="a">${{esc(short(x.a,300))}}</div></div>`).join('')||'<p class="empty">No submitted answers. Meeting read: they look like they did nothing all day — couch, TV, and Cheez-Its until they give us real data.</p>';const fires=(s.fires||[]).map(x=>`<div class="qa"><div class="q">Fire / blocker</div><div class="a">${{esc(short(x.a,260))}}</div></div>`).join('')||'<p class="empty">No active fires detected.</p>';const comic=s.comic?`<div class="comic"><img src="${{s.comic}}" alt="${{esc(s.title)}} comic strip"><small>More EOD detail = richer comic strip. Small input gets a small story; detailed input earns a bigger, better strip.</small></div>`:`<div class="comic heroComic"><img src="${{data.missingEodComic}}" alt="No EOD submission couch TV Cheez-Its comic"><small>No EOD data = couch, TV, and Cheez-Its. Submit real work and the comic gets real.</small></div>`;const extra=s.story_slide_count?`<p><b>${{s.story_slide_count}} extra story slide${{s.story_slide_count>1?'s':''}}</b> added because this EOD had more detail.</p>`:'';return shell(`<div class="kicker">${{esc(s.role)}} • ${{s.submitted?'submitted':'live capture'}} • ${{esc(s.complexity)}}</div><h1>${{esc(s.title)}}</h1><div class="sub">Standard question pass, then notes/actions. ${{extra}}</div>${{comic}}<div class="cards"><div class="card"><h3>Standard questions</h3><ol>${{qlist}}</ol></div><div class="card fire"><h3>Fires / needs</h3>${{fires}}</div><div class="card" style="grid-column:1/-1"><h3>Answers pulled from EOD</h3>${{answers}}</div></div>`,s.title+' notes','Notes and commitments for '+s.title)}}
+function renderStory(s){{const beats=(s.answers||[]).map((x,i)=>`<div class="qa"><div class="q">Beat ${{i+1}} — ${{esc(short(x.q,90))}}</div><div class="a">${{esc(short(x.a,420))}}</div></div>`).join('');const comic=s.comic?`<div class="comic"><img src="${{s.comic}}" alt="${{esc(s.person)}} comic strip"><small>This detail earns extra story time. More data = more panels/slides.</small></div>`:'';return shell(`<div class="kicker">${{esc(s.role)}} • ${{esc(s.complexity)}} • chapter ${{s.chapter}} of ${{s.chapters}}</div><h1>${{esc(s.person)}} Story</h1><div class="sub">Extra slide generated because this EOD had enough detail to deserve more story.</div>${{comic}}<div class="cards"><div class="card" style="grid-column:1/-1"><h3>Story beats from the EOD</h3>${{beats}}</div></div>`,s.title+' notes','Story notes and commitments for '+s.person)}}
 function allActions(){{return slides.map((s,i)=>({{slide:s.title,notes:localStorage.getItem(slideKey(i,'notes'))||'',actions:JSON.parse(localStorage.getItem(slideKey(i,'actions'))||'[]')}})).filter(x=>x.notes.trim()||x.actions.length)}}
 function emailText(){{const lines=[`Atomix Standup Recap — ${{data.date}}`,'','Action Items:'];let n=0;allActions().forEach(x=>x.actions.forEach(a=>{{n++;lines.push(`${{n}}. [${{x.slide}}] ${{a}}`)}}));if(!n)lines.push('- No action items captured yet.');lines.push('','Notes:');allActions().forEach(x=>{{if(x.notes.trim())lines.push(`- ${{x.slide}}: ${{x.notes.trim()}}`)}});return lines.join('\\n')}}
 function renderClose(s){{return shell(`<div class="kicker">Closeout</div><h1>${{esc(s.title)}}</h1><div class="sub">${{esc(s.subtitle)}}</div><div class="card" style="margin-top:22px"><h3>Email-ready recap</h3><textarea class="emailBox" id="emailBox"></textarea><div class="row"><button class="download" onclick="refreshEmail()">Refresh recap</button><button class="download" onclick="copyEmail()">Copy recap</button></div></div>`,'Final notes','Final commitments before sending recap')}}
 function refreshEmail(){{const b=document.getElementById('emailBox');if(b)b.value=emailText()}}function copyEmail(){{refreshEmail();navigator.clipboard?.writeText(document.getElementById('emailBox').value)}}
 function hydrate(){{const note=document.querySelector('.slide.active .noteText');if(!note)return;note.value=localStorage.getItem(key('notes'))||'';note.oninput=()=>localStorage.setItem(key('notes'),note.value);const input=document.querySelector('.slide.active .actionInput'),add=document.querySelector('.slide.active .addAction'),ul=document.querySelector('.slide.active .actions'),done=document.querySelector('.slide.active .markDone');const render=()=>{{const arr=JSON.parse(localStorage.getItem(key('actions'))||'[]');ul.innerHTML=arr.map((a,i)=>`<li>${{esc(a)}} <button data-rm="${{i}}">×</button></li>`).join('');ul.querySelectorAll('button').forEach(b=>b.onclick=()=>{{arr.splice(Number(b.dataset.rm),1);localStorage.setItem(key('actions'),JSON.stringify(arr));render()}})}};add.onclick=()=>{{const v=input.value.trim();if(!v)return;const arr=JSON.parse(localStorage.getItem(key('actions'))||'[]');arr.push(v);localStorage.setItem(key('actions'),JSON.stringify(arr));input.value='';render();refreshEmail()}};done.onclick=()=>{{localStorage.setItem(key('done'),'1');draw()}};render();refreshEmail()}}
-function draw(){{slidesEl.innerHTML=slides.map(s=>s.type==='good'?renderGood(s):s.type==='close'?renderClose(s):renderPerson(s)).join('');nav.innerHTML=slides.map((s,i)=>`<button class="navbtn ${{i===idx?'active':''}}" data-i="${{i}}"><span>${{i+1}}. ${{esc(s.title)}}</span><span class="dot">${{localStorage.getItem(slideKey(i,'done'))?'✓':'●'}}</span></button>`).join('');document.querySelectorAll('.slide')[idx].classList.add('active');counter.textContent=`${{data.date}} • Slide ${{idx+1}} of ${{slides.length}}`;hydrate();document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>go(Number(b.dataset.i)))}}
+function draw(){{slidesEl.innerHTML=slides.map(s=>s.type==='good'?renderGood(s):s.type==='close'?renderClose(s):s.type==='story'?renderStory(s):renderPerson(s)).join('');nav.innerHTML=slides.map((s,i)=>`<button class="navbtn ${{i===idx?'active':''}}" data-i="${{i}}"><span>${{i+1}}. ${{esc(s.title)}}</span><span class="dot">${{localStorage.getItem(slideKey(i,'done'))?'✓':'●'}}</span></button>`).join('');document.querySelectorAll('.slide')[idx].classList.add('active');counter.textContent=`${{data.date}} • Slide ${{idx+1}} of ${{slides.length}}`;hydrate();document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>go(Number(b.dataset.i)))}}
 function go(i){{idx=Math.max(0,Math.min(slides.length-1,i));localStorage.setItem('atomixNucleusIndex:'+data.date,idx);draw()}}function downloadHtml(){{const a=document.createElement('a');a.href=location.href;a.download=`atomix-standup-${{data.date}}.html`;a.click()}}
 document.getElementById('prev').onclick=()=>go(idx-1);document.getElementById('next').onclick=()=>go(idx+1);window.addEventListener('keydown',e=>{{if(e.key==='ArrowRight')go(idx+1);if(e.key==='ArrowLeft')go(idx-1)}});draw();
 </script></body></html>"""
