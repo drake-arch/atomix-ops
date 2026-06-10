@@ -698,11 +698,11 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVjKckCjo6FiYvrcGf
 
 const TEAM = [
   { id:'drake',    name:'Drake',    role:'Ops Lead',        site:'MKE', av:'av-g', initials:'D',  reportsTo:null,    managerOf:['kody','hugh','emyly','luis','adam','norman','burke'] },
-  { id:'kody',     name:'Kody',     role:'AM Outbound',     site:'MKE', av:'av-b', initials:'KM', reportsTo:'drake', managerOf:['ana','yaniel'] },
+  { id:'kody',     name:'Kody',     role:'AM Outbound',     site:'MKE', av:'av-b', initials:'KM', reportsTo:'drake', managerOf:['ana'] },
   { id:'ana',      name:'Ana',      role:'AM Outbound',     site:'MKE', av:'av-p', initials:'AN', reportsTo:'kody',  managerOf:[] },
-  { id:'yaniel',   name:'Yaniel',   role:'AM Outbound',     site:'MKE', av:'av-a', initials:'YN', reportsTo:'kody',  managerOf:[] },
-  { id:'hugh',     name:'Hugh',     role:'PM Lead',         site:'MKE', av:'av-a', initials:'HM', reportsTo:'drake', managerOf:['christine'] },
+  { id:'hugh',     name:'Hugh',     role:'PM Lead',         site:'MKE', av:'av-a', initials:'HM', reportsTo:'drake', managerOf:['christine','haley'] },
   { id:'christine',name:'Christine',role:'PM Shift',        site:'MKE', av:'av-p', initials:'CH', reportsTo:'hugh',  managerOf:[] },
+  { id:'haley',    name:'Haley',    role:'Second Shift Outbound', site:'MKE', av:'av-b', initials:'HY', reportsTo:'hugh', managerOf:[] },
   { id:'emyly',    name:'Emyly',    role:'Inbound',         site:'MKE', av:'av-g', initials:'EH', reportsTo:'drake', managerOf:['relly'] },
   { id:'relly',    name:'Relly',    role:'Inbound',         site:'MKE', av:'av-b', initials:'RL', reportsTo:'emyly', managerOf:[] },
   { id:'luis',     name:'Luis',     role:'Inventory',       site:'MKE', av:'av-p', initials:'LG', reportsTo:'drake', managerOf:['ramar','brenda','ofelia','david'] },
@@ -735,11 +735,7 @@ const STD_QUESTIONS = {
     { id:'an2', text:'Any issues or blockers to flag?', type:'text' },
     { id:'an3', text:'Anything for Kody to know?', type:'text' },
   ],
-  yaniel: [
-    { id:'yn1', text:'How did your shift go today?', type:'textarea' },
-    { id:'yn2', text:'Any issues or blockers to flag?', type:'text' },
-    { id:'yn3', text:'Anything for Kody to know?', type:'text' },
-  ],
+
   hugh: [
     { id:'h1', text:'How was PM outbound volume?', type:'textarea' },
     { id:'h2', text:'Any handoff issues from AM shift?', type:'text' },
@@ -750,6 +746,13 @@ const STD_QUESTIONS = {
     { id:'ch1', text:'How did your shift go today?', type:'textarea' },
     { id:'ch2', text:'Any issues or blockers to flag?', type:'text' },
     { id:'ch3', text:'Anything for Hugh to know?', type:'text' },
+  ],
+  haley: [
+    { id:'hy1', text:'How did second shift outbound go today?', type:'textarea' },
+    { id:'hy2', text:'What fires or blockers did you work on?', type:'textarea' },
+    { id:'hy3', text:'What fires did you put out today?', type:'textarea' },
+    { id:'hy4', text:'What do you need from Hugh or leadership?', type:'text' },
+    { id:'hy5', text:'Anything to hand off before tomorrow?', type:'textarea' },
   ],
   emyly: [
     { id:'e1', text:'How was inbound volume today?', type:'textarea' },
@@ -835,8 +838,8 @@ function buildOrgChart() {
   const TREE = {
     id: 'drake',
     children: [
-      { id: 'kody',  children: [ {id:'ana'}, {id:'yaniel'} ] },
-      { id: 'hugh',  children: [ {id:'christine'} ] },
+      { id: 'kody',  children: [ {id:'ana'} ] },
+      { id: 'hugh',  children: [ {id:'christine'}, {id:'haley'} ] },
       { id: 'emyly', children: [ {id:'relly'} ] },
       { id: 'luis',  children: [ {id:'ramar'}, {id:'brenda'}, {id:'ofelia'}, {id:'david'} ] },
       { id: 'adam',  children: [ {id:'nate'}, {id:'maria'} ] },
