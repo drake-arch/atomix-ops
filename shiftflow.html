@@ -1322,14 +1322,14 @@ function renderSnapshot(data) {
 function toggleQA(id,btn){const el=document.getElementById(id);const open=el.classList.toggle('open');btn.textContent=open?'▾ hide':'▸ view';}
 
 const EMAIL_RECIPIENTS = {
-  kody:   { label:'Kody — AM Outbound',     scopeFn: ()=>getScope('kody') },
-  hugh:   { label:'Hugh — PM Lead',         scopeFn: ()=>getScope('hugh') },
-  emyly:  { label:'Emyly — Inbound',        scopeFn: ()=>getScope('emyly') },
-  luis:   { label:'Luis — Inventory',       scopeFn: ()=>getScope('luis') },
-  adam:   { label:'Adam — Special Projects',scopeFn: ()=>getScope('adam') },
-  norman: { label:'Norman — SLC',           scopeFn: ()=>getScope('norman') },
-  burke:  { label:'Burke — BAL Site Mgr',   scopeFn: ()=>getScope('burke') },
-  drake:  { label:'Drake — Executive EOD',  scopeFn: ()=>TEAM.map(p=>p.id) },
+  kody:   { label:'Kody — AM Outbound',     email:'kody@atomix.com',              scopeFn: ()=>getScope('kody') },
+  hugh:   { label:'Hugh — PM Lead',         email:'hugh@atomix.com',              scopeFn: ()=>getScope('hugh') },
+  emyly:  { label:'Emyly — Inbound',        email:'emyly@atomix.com',             scopeFn: ()=>getScope('emyly') },
+  luis:   { label:'Luis — Inventory',       email:'luis@atomix.com',              scopeFn: ()=>getScope('luis') },
+  adam:   { label:'Adam — Special Projects',email:'adam@atomix.com',              scopeFn: ()=>getScope('adam') },
+  norman: { label:'Norman — SLC',           email:'norman@atomix.com',            scopeFn: ()=>getScope('norman') },
+  burke:  { label:'Burke — BAL Site Mgr',   email:'burke@atomix.com',             scopeFn: ()=>getScope('burke') },
+  drake:  { label:'Drake — Executive EOD',  email:'dk@atomixlogistics.com',       scopeFn: ()=>TEAM.map(p=>p.id) },
 };
 
 function buildEmailPreviews(scope, data) {
@@ -1345,7 +1345,7 @@ function buildEmailPreviews(scope, data) {
     const lines=submitted.flatMap(id=>{const r=byPerson[id];const person=TEAM.find(p=>p.id===id);return(r.answers||[]).slice(0,2).map(a=>`${person?.name||id}: ${a.answer||'—'}`);});
     const missingHtml=missing.length?`<div class="email-missing">Not submitted: ${missing.join(', ')}</div>`:`<div class="email-ok">All reports received.</div>`;
     const bodyId='eb-'+rid;
-    return `<div class="email-card"><div class="email-head"><div><div class="email-to">To: ${rid}@atomix.com</div><div class="email-subj">ShiftFlow EOD — ${cfg.label}</div></div><button class="preview-btn" onclick="toggleEmailBody('${bodyId}',this)">preview</button></div><div class="email-body" id="${bodyId}">${missingHtml}<div class="email-section"><div class="email-section-title">Scope: ${rscope.map(id=>TEAM.find(p=>p.id===id)?.name||id).join(', ')}</div>${lines.length?lines.map(l=>`<div class="email-line">${l}</div>`).join(''):'<div class="email-line" style="color:var(--text3)">No answers yet.</div>'}</div></div></div>`;
+    return `<div class="email-card"><div class="email-head"><div><div class="email-to">To: ${cfg.email || `${rid}@atomix.com`}</div><div class="email-subj">ShiftFlow EOD — ${cfg.label}</div></div><button class="preview-btn" onclick="toggleEmailBody('${bodyId}',this)">preview</button></div><div class="email-body" id="${bodyId}">${missingHtml}<div class="email-section"><div class="email-section-title">Scope: ${rscope.map(id=>TEAM.find(p=>p.id===id)?.name||id).join(', ')}</div>${lines.length?lines.map(l=>`<div class="email-line">${l}</div>`).join(''):'<div class="email-line" style="color:var(--text3)">No answers yet.</div>'}</div></div></div>`;
   }).join('');
 }
 
