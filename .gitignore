@@ -1,0 +1,9 @@
+
+# Local-only generated standup decks / EOD recaps
+Atomix_Standup_*.html
+Atomix_Standup_*.zip
+cleo-standup-meeting-*.html
+cleo-standup-deck-*.html
+shiftflow-recap-test-*.html
+shiftflow-true-eod-recap-*.html
+comic_art/
