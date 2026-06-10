@@ -122,6 +122,43 @@
       ]
     };
 
+    const DAILY_CUSTOM_QUESTION_SETS = {
+      "Today Custom EOD — Kody": [
+        { key: 'custom_q1', label: "Are we for sure gonna have the full back room completely cleared by Friday? If there's any blockers let me know.", type: 'textarea', required: true },
+        { key: 'custom_q2', label: 'Are we caught up on corrective actions for reported errors?', type: 'textarea', required: true },
+        { key: 'custom_q3', label: 'Vegas nights or Carolina hurricanes?', type: 'textarea', required: true }
+      ],
+      "Today Custom EOD — Luis": [
+        { key: 'custom_q1', label: "Are we using the labor clock properly and putting everybody into the bubbles and moving them as they move around the building so we can track exactly what everyone\'s doing in inventory?", type: 'textarea', required: true },
+        { key: 'custom_q2', label: 'What are the current PsychoCom projects you are working on?', type: 'textarea', required: true },
+        { key: 'custom_q3', label: 'Are we on track to have lights fully off-boarded? Any blockers?', type: 'textarea', required: true },
+        { key: 'custom_q4', label: 'Street Fighter or Mortal Kombat?', type: 'textarea', required: true }
+      ],
+      "Today Custom EOD — Hugh": [
+        { key: 'custom_q1', label: 'Roughly what percentage of the back room did you guys end up moving tonight?', type: 'textarea', required: true },
+        { key: 'custom_q2', label: 'When is your first day on first shift?', type: 'textarea', required: true },
+        { key: 'custom_q3', label: 'Are we using the end-of-day audit list for a packing audit?', type: 'textarea', required: true },
+        { key: 'custom_q4', label: "Unlimited Taco Bell or unlimited Hardee's?", type: 'textarea', required: true }
+      ],
+      "Today Custom EOD — Norman": [
+        { key: 'custom_q1', label: "We need to do an audit on Scruffy Dog Boxes and prove that we\'re not doing anything wrong. Can you make sure we get that done by the end of the week?", type: 'textarea', required: true },
+        { key: 'custom_q2', label: 'Where are you going to put the other camera?', type: 'textarea', required: true },
+        { key: 'custom_q3', label: "What\'s the holdup on Rebo? I can push as needed. Let\'s get those suckers up.", type: 'textarea', required: true },
+        { key: 'custom_q4', label: 'Let’s build out an ops process audit plan. I think you guys would be perfect for auditing all of our processes.', type: 'textarea', required: true },
+        { key: 'custom_q5', label: 'Do you need me to go on Amazon and buy you a webcam?', type: 'textarea', required: true },
+        { key: 'custom_q6', label: "Is there other ways to move inventory besides moving it? Yes — that button right there screws us up every time. You\'ve got to kill it. Options/context mentioned: lift the truck, or sports car.", type: 'textarea', required: true }
+      ],
+      "Today Custom EOD — Burke": [
+        { key: 'custom_q1', label: 'What time do you peel off for the day? What time do I have to have these questions to you?', type: 'textarea', required: true },
+        { key: 'custom_q2', label: "What\'s the coolest part about your job?", type: 'textarea', required: true },
+        { key: 'custom_q3', label: "What\'s the worst part about your job?", type: 'textarea', required: true },
+        { key: 'custom_q4', label: 'Do you need me to go on Amazon and buy you a webcam?', type: 'textarea', required: true },
+        { key: 'custom_q5', label: 'Would you rather sleep in your warehouse for a whole week in order to get three days of PTO?', type: 'textarea', required: true }
+      ]
+    };
+
+    Object.assign(QUESTION_SETS, DAILY_CUSTOM_QUESTION_SETS);
+
     let state = {
       stage: 'hero',
       name: '',
