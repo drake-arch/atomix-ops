@@ -4,38 +4,45 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Atomix Routing Guide Decision Workshop — Answer Collector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink:#141414; --dark:#002F35; --dark2:#071A1D; --light:#F4F7F4; --paper:#fff;
-  --mint:#A3F5C4; --mint2:#00A878; --teal:#007A63; --border:#DDE5E0; --muted:#56605B; --warn:#C76A2A;
-  --shadow: 0 18px 45px rgba(20,20,20,.10); --r:14px; --font: 'DM Sans', Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial; --display:'IBM Plex Sans', Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial;
+  --ink:#2C2C2A; --muted:#5F5E5A; --hint:#8B8A86;
+  --bg:#F0EBDD; --soft:#F4F1E9; --soft-2:#ECE7DA; --panel:#FAF7EF; --paper:#FFFFFF;
+  --border:#DDD6C5; --border-strong:#C5BDA8;
+  --good:#2F8A3A; --bad:#A32D2D; --accent:#185FA5; --warn:#B57E1F;
+  --radius:10px; --radius-sm:7px; --radius-lg:14px;
+  --shadow:0 20px 50px rgba(0,0,0,.14);
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; --display:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 }
-*{box-sizing:border-box} body{margin:0;font-family:var(--font);background:#F7FAF7;color:var(--ink);line-height:1.6}
+*{box-sizing:border-box} body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit} button{cursor:pointer}
-.shell{min-height:100vh;display:grid;grid-template-columns:260px minmax(0,1fr) 320px}
-aside.left{background:#FFFFFF;color:var(--ink);border-right:1px solid var(--border);padding:22px;position:sticky;top:0;height:100vh;overflow:auto}
-.brand{display:flex;align-items:center;gap:10px;margin-bottom:24px} .mark{width:34px;height:34px;border-radius:10px;background:var(--mint);display:grid;place-items:center;color:var(--ink);font-weight:900}
-.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--teal);font-weight:800} aside.left .kicker{color:var(--teal)} h1{font-family:var(--display);font-size:24px;line-height:1.12;letter-spacing:-.035em;margin:4px 0 10px;font-weight:650}
-.subtitle{color:var(--muted);font-size:14px;margin-bottom:18px}.modeCard{background:#F7FAF7;border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:16px}
-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--teal);margin-bottom:7px}
-aside.left label{color:var(--teal)} select,input[type=text],textarea{width:100%;border:1px solid var(--border);border-radius:12px;background:white;color:var(--ink);padding:12px 13px;outline:none} select option{background:white;color:var(--ink)} select:focus,input:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,122,99,.10)}
+.shell{min-height:100vh;display:grid;grid-template-columns:280px minmax(0,1fr) 340px}
+aside.left{background:var(--panel);color:var(--ink);border-right:1px solid var(--border);padding:24px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:28px}.mark{width:32px;height:32px;border-radius:9px;background:var(--ink);display:grid;place-items:center;color:var(--panel);font-weight:700;font-size:13px}
+.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:700} aside.left .kicker{color:var(--muted)} h1{font-family:var(--display);font-size:24px;line-height:1.14;letter-spacing:-.03em;margin:4px 0 10px;font-weight:650}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:18px}.modeCard{background:var(--soft);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--muted);margin-bottom:7px}
+aside.left label{color:var(--muted)} select,input[type=text],textarea{width:100%;border:1px solid var(--border);border-radius:var(--radius);background:#fff;color:var(--ink);padding:12px 13px;outline:none} select option{background:#fff;color:var(--ink)} select:focus,input:focus,textarea:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(44,44,42,.08)}
 aside.left select, aside.left input{background:white;color:var(--ink);border-color:var(--border)} .pill{display:none}
 #sectionNav{display:none}.navSection{border:1px solid var(--border);border-radius:12px;margin:8px 0;padding:10px;background:#fff}.navSection.active{background:#ECF8F0;border-color:#B9E8C9}
 .navTop{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:800}.navMeta{color:var(--muted);font-size:12px;margin-top:4px}
-main{padding:30px;max-width:1020px;margin:0 auto;width:100%}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
-.progress{height:8px;background:#E3ECE7;border-radius:999px;overflow:hidden;min-width:220px}.progress > span{display:block;height:100%;background:var(--teal);width:0%;transition:.2s}
+main{padding:34px;max-width:1000px;margin:0 auto;width:100%}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
+.progress{height:8px;background:var(--soft-2);border-radius:999px;overflow:hidden;min-width:220px}.progress > span{display:block;height:100%;background:var(--ink);width:0%;transition:.2s}
 .hero{background:transparent;border:0;border-radius:0;padding:4px 0 18px;box-shadow:none;margin-bottom:8px}
-.hero h2{font-family:var(--display);font-size:30px;line-height:1.12;letter-spacing:-.035em;margin:0 0 8px;font-weight:650}.hero p{margin:0;color:var(--muted);max-width:720px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
-.stat{border:1px solid var(--border);border-radius:16px;padding:14px;background:#FFFFFF}.stat strong{display:block;font-size:22px}.stat span{font-size:12px;color:var(--muted)}
-.filters{display:grid;grid-template-columns:1fr 180px 150px;gap:10px;margin:8px 0 18px}.card{background:white;border:1px solid var(--border);border-radius:22px;padding:22px;margin-bottom:14px;box-shadow:none}
-.cardHeader{display:flex;justify-content:space-between;gap:16px;margin-bottom:14px}.qid{font-size:12px;color:var(--teal);font-weight:900;letter-spacing:.06em}.sectionTag{font-size:12px;color:var(--muted)}
+.hero h2{font-family:var(--display);font-size:30px;line-height:1.16;letter-spacing:-.035em;margin:0 0 8px;font-weight:650}.hero p{margin:0;color:var(--muted);max-width:720px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.stat{border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;background:var(--panel)}.stat strong{display:block;font-size:22px}.stat span{font-size:12px;color:var(--muted)}
+.filters{display:grid;grid-template-columns:1fr 180px 150px;gap:10px;margin:8px 0 18px}.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:14px;box-shadow:none}
+.cardHeader{display:flex;justify-content:space-between;gap:16px;margin-bottom:14px}.qid{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.04em}.sectionTag{font-size:12px;color:var(--muted)}
 .question{font-family:var(--display);font-size:24px;line-height:1.32;letter-spacing:-.02em;font-weight:700;margin:6px 0 14px}.context{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
-.context div{border-radius:14px;background:#F7FAF7;padding:13px;font-size:13px;color:#2c3632}.context b{display:block;margin-bottom:4px;color:var(--ink)}
+.context div{border-radius:var(--radius);background:var(--soft);padding:13px;font-size:13px;color:var(--ink)}.context b{display:block;margin-bottom:4px;color:var(--ink)}
 .answerGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.decisionBtns{display:flex;flex-wrap:wrap;gap:8px}
-.choice{border:1px solid var(--border);border-radius:999px;background:white;padding:10px 13px;font-weight:800;font-size:13px}.choice:hover{border-color:var(--teal)}.choice.active{background:#002F35;color:white;border-color:#002F35}
+.choice{border:1px solid var(--border);border-radius:999px;background:#fff;padding:10px 13px;font-weight:600;font-size:13px}.choice:hover{border-color:var(--border-strong);background:var(--soft)}.choice.active{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 textarea{min-height:86px;resize:vertical}.small{font-size:12px;color:var(--muted)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-.primary{background:#002F35;color:white;border:0;border-radius:10px;padding:12px 14px;font-weight:900}.secondary{background:white;color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-weight:800}
-.right{background:#FFFFFF;border-left:1px solid var(--border);padding:22px;position:sticky;top:0;height:100vh;overflow:auto}.panel{border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px;background:#FDFEFD}
+.primary{background:var(--ink);color:var(--panel);border:0;border-radius:var(--radius);padding:12px 14px;font-weight:700}.secondary{background:#fff;color:var(--ink);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-weight:600}
+.right{background:var(--panel);border-left:1px solid var(--border);padding:24px;position:sticky;top:0;height:100vh;overflow:auto}.panel{border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px;background:var(--soft)}
 .panel h3{margin:0 0 10px;font-size:17px} .participant{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:9px 0;font-size:14px}
 .dot{width:10px;height:10px;border-radius:50%;background:#c9d6d0;display:inline-block;margin-right:7px} .dot.on{background:var(--teal)}
 .conflict{border-left:4px solid var(--warn);padding:10px;background:#fff8f1;border-radius:8px;margin:8px 0;font-size:13px}
@@ -48,7 +55,7 @@ textarea{min-height:86px;resize:vertical}.small{font-size:12px;color:var(--muted
 <body>
 <div class="shell">
   <aside class="left">
-    <div class="brand"><div class="mark">A</div><div><div class="kicker">Atomix</div><div style="font-weight:900">Routing Guide Workshop</div></div></div>
+    <div class="brand"><div class="mark">A</div><div><div class="kicker">Atomix · Nucleus</div><div style="font-weight:700">Routing Guide Workshop</div></div></div>
     <h1>Calm routing decisions.</h1>
     <p class="subtitle">Pick your name, answer the current question, and submit to the shared Sheet.</p>
     <div class="modeCard">
@@ -96,7 +103,7 @@ function render(){renderNav(); renderCards(); renderSide();}
 function renderNav(){const secCounts=APP_DATA.sections.map(s=>[s,APP_DATA.rows.filter(r=>r.section==s).length]); $('sectionNav').innerHTML=secCounts.map(([s,c])=>`<div class="navSection ${$('sectionFilter').value==s?'active':''}" onclick="$('sectionFilter').value='${s.replace(/'/g,"\'")}'; activeSection='${s.replace(/'/g,"\'")}'; render()"><div class="navTop"><span>${s}</span><span>${c}</span></div><div class="navMeta">${answeredInSection(s)} answered</div></div>`).join('');}
 function answeredInSection(s){const total=APP_DATA.rows.filter(r=>r.section==s).length; const a=APP_DATA.rows.filter(r=>r.section==s&&answerFor(r.id).decision).length; return `${a}/${total}`;}
 function renderCards(){const rows=sectionRows(); const focus=($('mode').value=='workshop' && !$('search').value.trim() && $('statusFilter').value=='all'); if(currentIndex>=rows.length) currentIndex=Math.max(0,rows.length-1); let body=''; if(!rows.length){body='<div class="card"><div class="question">No questions match this filter.</div></div>';} else if(focus){body=meetingControls(rows)+cardHTML(rows[currentIndex]);} else {body=rows.map(r=>cardHTML(r)).join('');} $('cards').innerHTML=body; const total=APP_DATA.rows.length; const answered=APP_DATA.rows.filter(r=>answerFor(r.id).decision).length; $('statTotal').textContent=total; $('statAnswered').textContent=answered; $('statSection').textContent=$('sectionFilter').value=='All'?(focus?(currentIndex+1)+'/'+rows.length:'All'):rows.length; $('progressText').textContent=Math.round(answered/total*100)+'% complete for '+person(); $('progressBar').style.width=(answered/total*100)+'%'; $('currentTitle').textContent=focus?'Live question '+(currentIndex+1)+' of '+rows.length:($('sectionFilter').value=='All'?'All questions':$('sectionFilter').value);}
-function meetingControls(rows){return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:14px;background:#F1F7F3;color:#141414;border-color:#CFE4D7"><div><div class="kicker">Focus mode</div><div style="font-size:22px;font-weight:900;letter-spacing:-.02em">Question ${currentIndex+1} of ${rows.length}</div><div style="color:#56605B;font-size:13px">Answer this question, then move on. Solo mode shows the full list.</div></div><div class="actions"><button class="secondary" onclick="prevQuestion()">Previous</button><button class="primary" onclick="nextQuestion(${rows.length})">Next</button></div></div>`}
+function meetingControls(rows){return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--soft);color:var(--ink);border-color:var(--border)"><div><div class="kicker">Focus mode</div><div style="font-size:22px;font-weight:900;letter-spacing:-.02em">Question ${currentIndex+1} of ${rows.length}</div><div style="color:#56605B;font-size:13px">Answer this question, then move on. Solo mode shows the full list.</div></div><div class="actions"><button class="secondary" onclick="prevQuestion()">Previous</button><button class="primary" onclick="nextQuestion(${rows.length})">Next</button></div></div>`}
 function nextQuestion(n){currentIndex=Math.min(n-1,currentIndex+1); localStorage.setItem('atomixRoutingWorkshop.currentIndex',currentIndex); render();}
 function prevQuestion(){currentIndex=Math.max(0,currentIndex-1); localStorage.setItem('atomixRoutingWorkshop.currentIndex',currentIndex); render();}
 function cardHTML(r){const a=answerFor(r.id); return `<article class="card"><div class="cardHeader"><div><div class="qid">${r.id}</div><div class="sectionTag">${r.section} · ${r.event}</div></div><div class="small">Consensus: ${consensus(r.id)}</div></div><div class="question">${esc(r.question)}</div><div class="context"><div><b>Current rule / fee</b>${esc(r.current||'Not defined yet')}</div><div><b>Benchmark / research</b>${esc(r.benchmark||'No benchmark captured')}</div></div><div class="context"><div><b>Recommended default</b>${esc(r.recommended||'Needs decision')}</div><div><b>Proposed fee / rule</b>${esc(r.proposed||'Needs pricing decision')}</div></div><label>Decision</label><div class="decisionBtns">${DECISIONS.map(d=>`<button class="choice ${a.decision==d?'active':''}" onclick="setAnswer('${r.id}',{decision:'${d}'})">${d}</button>`).join('')}</div><div class="answerGrid"><div><label>Final fee / rule</label><textarea oninput="setAnswer('${r.id}',{fee:this.value})" placeholder="Example: Carrier cost + 15% admin; $25/pallet/day; pause SLA until ASN complete">${escAttr(a.fee||'')}</textarea></div><div><label>Reason / caveat</label><textarea oninput="setAnswer('${r.id}',{reason:this.value})" placeholder="Why are we charging/waiving? What needs to be in the guide?">${escAttr(a.reason||'')}</textarea></div></div><div class="answerGrid"><div><label>Owner</label><input type="text" value="${escAttr(a.owner||r.owner||'')}" oninput="setAnswer('${r.id}',{owner:this.value})"></div><div><label>Evidence required</label><input type="text" value="${escAttr(a.evidence||r.evidence||'')}" oninput="setAnswer('${r.id}',{evidence:this.value})"></div></div></article>`}
