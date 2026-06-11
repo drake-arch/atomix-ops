@@ -155,6 +155,11 @@ main{flex:1;overflow:hidden;display:flex;}
     <div class="sc" style="--ac:var(--blue)"><div class="sl">SP Labor Cost</div><div class="sv" id="lSP">--</div><div class="ss">from SP hour logs</div></div>
   </div>
   <div class="cc"><div class="ct">Daily Labor Trend (14 days)</div><div class="cw" style="height:210px;"><canvas id="cTrend"></canvas></div></div>
+  <div class="g2">
+    <div class="cc" style="overflow:auto;"><div class="ct">Hours + Cost by Department</div><table class="tbl"><thead><tr><th>Dept</th><th>Hours</th><th>Labor $</th><th>Billable Hrs</th><th>Non-Billable $</th></tr></thead><tbody id="lDeptBody"></tbody></table></div>
+    <div class="cc" style="overflow:auto;"><div class="ct">Hours + CPO by Building</div><table class="tbl"><thead><tr><th>Site</th><th>Hours</th><th>Labor $</th><th>Orders</th><th>CPO</th></tr></thead><tbody id="lFacBody"></tbody></table></div>
+  </div>
+  <div class="cc" style="overflow:auto;"><div class="ct">Day-over-Day — Where Time Was Spent</div><table class="tbl"><thead><tr><th>Date</th><th>Total Hrs</th><th>Labor $</th><th>Top Area</th><th>Δ Hrs vs Prior</th></tr></thead><tbody id="lDayBody"></tbody></table></div>
 </div>
 
 <div class="view" id="view-prod">
@@ -209,7 +214,7 @@ main{flex:1;overflow:hidden;display:flex;}
     <div class="cc"><div class="ct">SP Hours Over Time</div><div class="cw" style="height:210px;"><canvas id="cSPT"></canvas></div></div>
   </div>
   <div class="cc" style="flex:1;overflow:auto;">
-    <table class="tbl"><thead><tr><th>Task</th><th>Client</th><th>Status</th><th>Due</th><th>Est Hrs</th><th>Logged</th><th>Burn</th><th>Progress</th><th>Bubble</th><th>Bill Rate</th><th>Supply $</th><th>Revenue</th><th>Margin</th></tr></thead>
+    <table class="tbl"><thead><tr><th>Task</th><th>Client</th><th>Facility</th><th>Status</th><th>Due</th><th>Est Hrs</th><th>Logged</th><th>Burn</th><th>Progress</th><th>Bubble</th><th>Bill Rate</th><th>Supply $</th><th>Revenue</th><th>Margin</th></tr></thead>
     <tbody id="spBody"></tbody></table>
     <div id="spEmpty" style="display:none;padding:30px;text-align:center;color:var(--muted);">No SP data. Sync ClickUp tasks from the labor clock first.</div>
   </div>
@@ -286,11 +291,26 @@ var FAC_LABELS={MKE:'Milwaukee',SLC:'Salt Lake City',BAL:'Baltimore'};
 var FACILITIES=['MKE','SLC','BAL'];
 var DCOLS=['#A3F3C5','#63B3ED','#F6AD55','#B794F4','#FC814A','#ED64A6','#68D391'];
 var SP_RATE=17.50,HOURLY=18.50,DASH='--';
-var LIVE=null,DAILY=[],EMPS=[],PROJS=[],SP_LOG=[],SP_LINKS={},SP_BUBBLES=[],ORDERS=0,PACKERS=[];
+var LIVE=null,DAILY=[],EMPS=[],PROJS=[],EVENTS=[],SP_LOG=[],SP_LINKS={},SP_BUBBLES=[],ORDERS=0,ORDER_FAC={},ORDER_BY_DATE={},PACKERS=[];
 var CHARTS={},CUR_FAC='',refreshTimer=null;
 
 function loadFac(){try{CUR_FAC=localStorage.getItem('atx_fac')||'';}catch(e){}document.getElementById('facSel').value=CUR_FAC;}
 function onFacChange(){CUR_FAC=document.getElementById('facSel').value;try{localStorage.setItem('atx_fac',CUR_FAC);}catch(e){}doRefresh();}
+function n(v){var x=parseFloat(v);return isFinite(x)?x:0;}
+function normDept(d){d=String(d||'').trim();var k=d.toLowerCase();var map={b2b:'B2B',kitting:'Kitting',returns:'Returns','':'Unassigned'};return map.hasOwnProperty(k)?map[k]:(d||'Unassigned');}
+function dateKey(v){var d=new Date(v);return isNaN(d)?String(v||''):d.toISOString().slice(0,10);}
+function niceDate(v){var s=String(v||'');if(/^\d{4}-\d{2}-\d{2}$/.test(s)){var p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]).toLocaleDateString('en',{month:'short',day:'numeric'});}var d=new Date(v);return isNaN(d)?String(v||DASH):d.toLocaleDateString('en',{month:'short',day:'numeric'});}
+function money(v){return '$'+fmt(n(v));}
+function ordersForFacility(f){return ORDER_FAC&&ORDER_FAC[f]?n(ORDER_FAC[f]):0;}
+function ordersForDate(d){var x=ORDER_BY_DATE&&ORDER_BY_DATE[d];if(!x)return null;return n(x.total||x.orders||x.ordersToday||0);}
+function ordersForDateFacility(d,f){var x=ORDER_BY_DATE&&ORDER_BY_DATE[d];if(!x)return null;var m=x.byFacility||x.facilities||{};return m&&m[f]!=null?n(m[f]):null;}
+function parseOrderHistory(r){var out={};var arr=(r&&Array.isArray(r.days))?r.days:(r&&Array.isArray(r.data))?r.data:(r&&Array.isArray(r.orders))?r.orders:[];arr.forEach(function(x){var d=dateKey(x.date||x.Date||x.shipDate||x.shippedDate);if(!d)return;out[d]={total:n(x.total||x.orders||x.ordersToday||x.shippedOrders),byFacility:x.byFacility||x.facilities||{MKE:n(x.MKE),SLC:n(x.SLC),BAL:n(x.BAL)}};});return out;}
+function laborRows(){return DAILY.map(function(r){var c=n(r['Labor Cost']),h=n(r['Hours Worked']),fac=r.Facility||'?',dept=normDept(r.Dept),bill=String(r.Billable||'').toUpperCase()==='TRUE';return {raw:r,date:dateKey(r.Date),facility:fac,dept:dept,headcount:n(r.Headcount),hours:h,cost:c,ot:n(r['OT Hours']),billable:bill};});}
+var STANDARD_DEPTS={'am shift':1,'pm shift':1,'inbound':1,'outbound':1,'inventory':1,'returns':1,'facilities':1,'b2b':1,'kitting':1};
+function eventDept(e){return normDept(e['From Dept']||e['To Dept']||e.dept||e.Dept||'');}
+function isSpecialProjectDept(d){var k=String(d||'').trim().toLowerCase();return !!k&&!STANDARD_DEPTS[k];}
+function eventHours(e){return n(e['Hours Logged']||e.hours||e.Hours||0);}
+function eventDate(e){return dateKey(e.Timestamp||e.timestamp||e.Date||e.date);}
 
 function showTab(id){
   document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
@@ -300,6 +320,8 @@ function showTab(id){
   setTimeout(function(){rt(id);},80);
 }
 function rt(id){
+  Object.keys(CHARTS).forEach(function(k){if(CHARTS[k]){try{CHARTS[k].destroy();}catch(e){}}});
+  CHARTS={};
   if(id==='overview') renderOv();
   if(id==='labor') renderLabor();
   if(id==='prod') renderProd();
@@ -326,16 +348,22 @@ function gasCall(action,params,cb){
   document.head.appendChild(s);
 }
 
+function localJson(path,cb){
+  fetch(path+'?_t='+Date.now()).then(function(r){return r.ok?r.json():null;}).then(function(d){cb(d);}).catch(function(){cb(null);});
+}
+
 function doRefresh(){
   setTs('refreshing...');
-  var p=11,r={};
+  var p=13,r={};
   function got(k,d){r[k]=d;p--;if(p<=0)apply(r);}
   gasCall('live',{},function(d){got('live',d);});
   gasCall('daily',{from:daysAgo(30)},function(d){got('daily',d);});
   gasCall('employees',{},function(d){got('emps',d);});
   gasCall('projects',{},function(d){got('projs',d);});
-  gasCall('events',{from:daysAgo(7),limit:500},function(d){got('events',d);});
+  gasCall('events',{from:daysAgo(7),limit:1000},function(d){got('events',d);});
   gasCall('orders',{},function(d){got('orders',d);});
+  gasCall('ordersHistory',{from:daysAgo(30),to:today()},function(d){got('ordersHist',d);});
+  localJson('labor_intelligence/order_snapshots/orders_by_date.json',function(d){got('ordersLocal',d);});
   gasCall('spHours',{},function(d){got('spH',d);});
   gasCall('spLinks',{},function(d){got('spL',d);});
   gasCall('spTasks',{},function(d){got('spT',d);});
@@ -351,7 +379,14 @@ function apply(r){
   if(r.daily&&Array.isArray(r.daily.data)) DAILY=r.daily.data;
   if(r.emps&&Array.isArray(r.emps.employees)) EMPS=r.emps.employees;
   if(r.projs&&Array.isArray(r.projs.projects)) PROJS=r.projs.projects;
+  EVENTS=(r.events&&Array.isArray(r.events.events))?r.events.events:(r.events&&Array.isArray(r.events))?r.events:[];
   if(r.orders&&r.orders.ordersToday>0) ORDERS=r.orders.ordersToday; else ORDERS=0;
+  ORDER_FAC=(r.orders&&r.orders.byFacility)?r.orders.byFacility:{};
+  ORDER_BY_DATE=parseOrderHistory(r.ordersHist);
+  if(r.ordersLocal&&typeof r.ordersLocal==='object'){
+    Object.keys(r.ordersLocal).forEach(function(d){ORDER_BY_DATE[d]=r.ordersLocal[d];});
+  }
+  if(Object.keys(ORDER_BY_DATE).length===0&&r.orders&&r.orders.ordersToday>0){ORDER_BY_DATE[today()]={total:r.orders.ordersToday,byFacility:ORDER_FAC};}
   SP_LOG=(r.spH&&Array.isArray(r.spH.logs))?r.spH.logs:(r.spH&&Array.isArray(r.spH))?r.spH:[];
   SP_LINKS=(r.spL&&r.spL.links)?r.spL.links:(r.spL&&typeof r.spL==='object'&&!r.spL.ok)?r.spL:{};
   if(r.spT&&Array.isArray(r.spT.tasks)) PROJS=r.spT.tasks;
@@ -444,30 +479,53 @@ function fcast(cur){var e=(new Date().getHours()*60+new Date().getMinutes())-360
 // LABOR
 function renderLabor(){
   if(!DAILY.length){['lTotal','lBill','lCPO','lSP'].forEach(function(id){document.getElementById(id).textContent='$0.00';});return;}
+  var rows=laborRows();
+  var latestDate=rows.map(function(r){return r.date;}).sort().slice(-1)[0]||'';
+  var latestRows=latestDate?rows.filter(function(r){return r.date===latestDate;}):rows;
   var sel=document.getElementById('lDept'),cur=sel.value;
   while(sel.options.length>1) sel.remove(1);
-  Array.from(new Set(DAILY.map(function(r){return r.Dept;}).filter(Boolean))).forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
+  Array.from(new Set(rows.map(function(r){return r.dept;}).filter(Boolean))).sort().forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
   sel.value=cur;
-  var bd={},bf={},tot=0,bill=0,nb=0;
-  DAILY.forEach(function(r){var c=parseFloat(r['Labor Cost']||0),ib=String(r.Billable||'').toUpperCase()==='TRUE';bd[r.Dept]=(bd[r.Dept]||0)+c;bf[r.Facility||'?']=(bf[r.Facility||'?']||0)+c;tot+=c;if(ib)bill+=c;else nb+=c;});
-  var spc=SP_LOG.reduce(function(s,r){return s+parseFloat(r.hours||0)*parseFloat(r.hourlyRate||SP_RATE);},0);
+
+  var bd={},bf={},dd={},tot=0,bill=0,nb=0,billH=0,nbH=0;
+  rows.forEach(function(r){
+    if(!bd[r.dept])bd[r.dept]={hours:0,cost:0,billH:0,nbCost:0};
+    if(!bf[r.facility])bf[r.facility]={hours:0,cost:0,nbCost:0};
+    if(!dd[r.date])dd[r.date]={hours:0,cost:0,depts:{}};
+    bd[r.dept].hours+=r.hours;bd[r.dept].cost+=r.cost;bf[r.facility].hours+=r.hours;bf[r.facility].cost+=r.cost;dd[r.date].hours+=r.hours;dd[r.date].cost+=r.cost;dd[r.date].depts[r.dept]=(dd[r.date].depts[r.dept]||0)+r.hours;
+    tot+=r.cost;if(r.billable){bill+=r.cost;billH+=r.hours;bd[r.dept].billH+=r.hours;}else{nb+=r.cost;nbH+=r.hours;bd[r.dept].nbCost+=r.cost;bf[r.facility].nbCost+=r.cost;}
+  });
+  var latestNb=latestRows.filter(function(r){return !r.billable;}).reduce(function(s,r){return s+r.cost;},0);
+  var latestBill=latestRows.filter(function(r){return r.billable;}).reduce(function(s,r){return s+r.cost;},0);
+  var spc=SP_LOG.reduce(function(s,r){return s+n(r.hours)*n(r.hourlyRate||SP_RATE);},0);
   document.getElementById('lTotal').textContent='$'+fmt(tot);
   document.getElementById('lBill').textContent=bill>0?'$'+fmt(bill):'$0';
-  document.getElementById('lBillSub').textContent=bill>0?Math.round(bill/tot*100)+'% of total -- excluded from CPO':'no billable hours';
-  if(ORDERS>0&&nb>0){var cpo=nb/ORDERS;var el=document.getElementById('lCPO');el.textContent='$'+cpo.toFixed(2);el.style.color=cpo>4?'var(--red)':'';document.getElementById('lCPOSub').textContent=ORDERS.toLocaleString()+' orders -- target <$4.00';}
-  else document.getElementById('lCPO').textContent=DASH;
+  document.getElementById('lBillSub').textContent=bill>0?billH.toFixed(1)+' billable hrs excluded from CPO':'no billable hours';
+  var latestOrders=ordersForDate(latestDate);
+  if(latestOrders>0&&latestNb>0){var cpo=latestNb/latestOrders;var el=document.getElementById('lCPO');el.textContent='$'+cpo.toFixed(2);el.style.color=cpo>4?'var(--red)':'var(--green)';document.getElementById('lCPOSub').textContent=niceDate(latestDate)+': $'+fmt(latestNb)+' non-billable / '+latestOrders.toLocaleString()+' shipped orders';}
+  else if(ORDERS>0&&latestNb>0){document.getElementById('lCPO').textContent=DASH;document.getElementById('lCPOSub').textContent='Needs dated orders endpoint. Labor latest: '+niceDate(latestDate)+', orders endpoint is current-day only.';}
+  else{document.getElementById('lCPO').textContent=DASH;document.getElementById('lCPOSub').textContent='orders or non-billable labor unavailable';}
   document.getElementById('lSP').textContent=spc>0?'$'+fmt(spc):DASH;
-  var depts=Object.keys(bd);
+
+  var depts=Object.keys(bd).sort(function(a,b){return bd[b].cost-bd[a].cost;});
   var c1=document.getElementById('cPie');
-  if(c1) CHARTS.pie=new Chart(c1,{type:'doughnut',data:{labels:depts,datasets:[{data:depts.map(function(d){return bd[d].toFixed(2);}),backgroundColor:DCOLS,borderWidth:0}]},options:Object.assign({},co(true),{cutout:'60%'})});
-  var facs=Object.keys(bf);
+  if(c1) CHARTS.pie=new Chart(c1,{type:'doughnut',data:{labels:depts,datasets:[{data:depts.map(function(d){return bd[d].cost.toFixed(2);}),backgroundColor:DCOLS,borderWidth:0}]},options:Object.assign({},co(true),{cutout:'60%'})});
+  var facs=Object.keys(bf).sort();
   var c2=document.getElementById('cFac');
-  if(c2) CHARTS.fac=new Chart(c2,{type:'bar',data:{labels:facs,datasets:[{data:facs.map(function(f){return bf[f].toFixed(2);}),backgroundColor:facs.map(function(f){return FAC_COLORS[f]||'#9D9F9E';}),borderRadius:3}]},options:co(false)});
-  var days=Array.from(new Set(DAILY.map(function(r){return r.Date;}))).sort().slice(-14);
-  var dl=days.map(function(d){return new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'});});
-  var ds=(CUR_FAC?[CUR_FAC]:FACILITIES).map(function(f){return {label:f,data:days.map(function(d){return DAILY.filter(function(r){return r.Date===d&&r.Facility===f;}).reduce(function(s,r){return s+parseFloat(r['Labor Cost']||0);},0).toFixed(2);}),borderColor:FAC_COLORS[f]||'#A3F3C5',backgroundColor:(FAC_COLORS[f]||'#A3F3C5')+'20',fill:true,tension:0.4,pointRadius:3,borderWidth:2};});
+  if(c2) CHARTS.fac=new Chart(c2,{type:'bar',data:{labels:facs,datasets:[{label:'Hours',data:facs.map(function(f){return bf[f].hours.toFixed(1);}),backgroundColor:facs.map(function(f){return FAC_COLORS[f]||'#9D9F9E';}),borderRadius:3},{label:'Cost',data:facs.map(function(f){return bf[f].cost.toFixed(2);}),backgroundColor:'rgba(246,173,85,0.35)',borderRadius:3}]},options:co(true)});
+  var days=Object.keys(dd).sort().slice(-14);
+  var dl=days.map(niceDate);
+  var ds=(CUR_FAC?[CUR_FAC]:FACILITIES).map(function(f){return {label:f+' cost',data:days.map(function(d){return rows.filter(function(r){return r.date===d&&r.facility===f;}).reduce(function(s,r){return s+r.cost;},0).toFixed(2);}),borderColor:FAC_COLORS[f]||'#A3F3C5',backgroundColor:(FAC_COLORS[f]||'#A3F3C5')+'20',fill:true,tension:0.4,pointRadius:3,borderWidth:2};});
   var c3=document.getElementById('cTrend');
   if(c3) CHARTS.trend=new Chart(c3,{type:'line',data:{labels:dl,datasets:ds},options:co(true)});
+
+  var deptBody=document.getElementById('lDeptBody');
+  if(deptBody)deptBody.innerHTML=depts.map(function(d){var x=bd[d];return '<tr><td>'+d+'</td><td class="mn">'+x.hours.toFixed(1)+'h</td><td class="my">$'+fmt(x.cost)+'</td><td class="mn">'+x.billH.toFixed(1)+'h</td><td class="my">$'+fmt(x.nbCost)+'</td></tr>';}).join('');
+  var facBody=document.getElementById('lFacBody');
+  var bfLatest={};latestRows.forEach(function(r){if(!bfLatest[r.facility])bfLatest[r.facility]={hours:0,cost:0,nbCost:0};bfLatest[r.facility].hours+=r.hours;bfLatest[r.facility].cost+=r.cost;if(!r.billable)bfLatest[r.facility].nbCost+=r.cost;});
+  if(facBody)facBody.innerHTML=facs.map(function(f){var x=bfLatest[f]||{hours:0,cost:0,nbCost:0},datedOrders=ordersForDateFacility(latestDate,f),o=datedOrders!=null?datedOrders:ordersForFacility(f),cpo=datedOrders>0?x.nbCost/datedOrders:0;return '<tr><td><span class="badge '+f+'">'+f+'</span></td><td class="mn">'+x.hours.toFixed(1)+'h</td><td class="my">$'+fmt(x.cost)+'</td><td class="mn">'+(o?o.toLocaleString():DASH)+'</td><td class="my" style="color:'+(cpo>4?'var(--red)':'var(--green)')+'">'+(datedOrders>0?'$'+cpo.toFixed(2):DASH)+'</td></tr>';}).join('');
+  var dayBody=document.getElementById('lDayBody');
+  if(dayBody)dayBody.innerHTML=days.slice().reverse().map(function(d,i,arr){var x=dd[d],prev=dd[arr[i+1]],delta=prev?x.hours-prev.hours:0,top=Object.keys(x.depts).sort(function(a,b){return x.depts[b]-x.depts[a];})[0]||DASH;return '<tr><td class="mn">'+niceDate(d)+'</td><td class="mn">'+x.hours.toFixed(1)+'h</td><td class="my">$'+fmt(x.cost)+'</td><td>'+top+' <span class="mn">'+(x.depts[top]||0).toFixed(1)+'h</span></td><td class="mn" style="color:'+(delta>0?'var(--amber)':delta<0?'var(--green)':'var(--muted)')+'">'+(prev?(delta>=0?'+':'')+delta.toFixed(1)+'h':DASH)+'</td></tr>';}).join('');
 }
 
 // PRODUCTIVITY
@@ -503,8 +561,9 @@ function spLog(id){return SP_LOG.filter(function(r){return r.taskId===id||r.spTa
 function spCli(n){var m=(n||'').match(/^([^-]+)/);return(m?m[1]:n).trim();}
 function spBub(id){var bn=SP_LINKS[id];if(!bn) return null;return SP_BUBBLES.find(function(b){return b.bubbleName===bn||b.name===bn;})||null;}
 function buildSP(){
-  return PROJS.map(function(t){
+  var rows=PROJS.map(function(t){
     var id=t.id||t.taskId||'',name=t.name||t.taskName||t['Task Name']||'',client=t.client||spCli(name),status=t.status||t.Status||'';
+    var facility=t.facility||t.Facility||'';
     var est=parseFloat(t.estHrs||t['Est Hours']||t['Quoted Hours']||0);
     var due=t.due?new Date(t.due):null;
     var ll=spLog(id),lcu=parseFloat(t.spentHrs||t['Actual Hours']||0),logged=ll>0?ll:lcu;
@@ -513,16 +572,24 @@ function buildSP(){
     var supply=parseFloat((bsp&&bsp.spSupplyCost)||t['Supply Cost']||t.supplyCost||0);
     var qh=parseFloat((bsp&&bsp.spQuotedHrs)||est);
     var linked=SP_LINKS[id]||'';
+    if(!facility&&linked){var linkedBubble=SP_BUBBLES.find(function(b){return b.bubbleName===linked||b.name===linked;});facility=linkedBubble&&(linkedBubble.facility||linkedBubble.Facility)||'';}
+    if(!facility&&SP_LOG.length){var lr=SP_LOG.find(function(r){return r.taskId===id||r.spTaskId===id;});facility=lr&&(lr.facility||lr.Facility)||'';}
     var rev=qh*rate+supply,labor=logged*SP_RATE;
     var margin=rev>0?rev-labor-supply:null;
     var pct=est>0?logged/est:0;
     var state=!est?'ne':pct>=1?'over':pct>=0.75?'hot':pct>=0.5?'warm':'ok';
-    return {id:id,name:name,client:client,status:status,est:est,logged:logged,ll:ll,lcu:lcu,due:due,url:t.url||'',rate:rate,supply:supply,qh:qh,linked:linked,rev:rev,labor:labor,margin:margin,pct:pct,state:state};
+    return {id:id,name:name,client:client,facility:facility,status:status,est:est,logged:logged,ll:ll,lcu:lcu,due:due,url:t.url||'',rate:rate,supply:supply,qh:qh,linked:linked,rev:rev,labor:labor,margin:margin,pct:pct,state:state,source:'task'};
   });
+  if(EVENTS&&EVENTS.length){
+    var grouped={};
+    EVENTS.forEach(function(e){var dept=eventDept(e),hrs=eventHours(e);if(!isSpecialProjectDept(dept)||hrs<=0) return;var date=eventDate(e),emp=e['Employee Name']||e.empName||e.name||'Unassigned',fac=e.Facility||e.facility||'';var key=[date,fac,dept,emp].join('|');if(!grouped[key])grouped[key]={date:date,facility:fac,dept:dept,emp:emp,hours:0};grouped[key].hours+=hrs;});
+    Object.keys(grouped).sort().forEach(function(k){var g=grouped[k],labor=g.hours*SP_RATE;rows.push({id:'event:'+k,name:g.dept+' — '+g.emp+' — '+niceDate(g.date),client:g.dept,facility:g.facility,status:'LaborClock Event',est:0,logged:g.hours,ll:g.hours,lcu:0,due:null,url:'',rate:0,supply:0,qh:0,linked:g.dept,rev:0,labor:labor,margin:-labor,pct:0,state:'ne',source:'labor-event'});});
+  }
+  return rows;
 }
 
 function renderSP(){
-  if(!PROJS.length&&!SP_LOG.length){document.getElementById('spEmpty').style.display='block';document.getElementById('spBody').innerHTML='';['spA','spE','spL','spO','spR','spLC','spSC','spM'].forEach(function(id){document.getElementById(id).textContent=DASH;});return;}
+  if(!PROJS.length&&!SP_LOG.length&&!(EVENTS||[]).some(function(e){return isSpecialProjectDept(eventDept(e))&&eventHours(e)>0;})){document.getElementById('spEmpty').style.display='block';document.getElementById('spBody').innerHTML='';['spA','spE','spL','spO','spR','spLC','spSC','spM'].forEach(function(id){document.getElementById(id).textContent=DASH;});return;}
   document.getElementById('spEmpty').style.display='none';
   var rows=buildSP();
   var cs=document.getElementById('pClient'),cv=cs.value;
@@ -566,6 +633,7 @@ function renderSP(){
     return '<tr>'+
       '<td><strong style="font-size:11px;">'+(r.name.length>42?r.name.slice(0,41)+'...':r.name)+'</strong>'+(r.url&&r.url!=='#'?' <a href="'+r.url+'" target="_blank" style="font-size:9px;color:var(--muted);">link</a>':'')+'</td>'+
       '<td style="color:var(--muted);font-size:11px;white-space:nowrap;">'+r.client+'</td>'+
+      '<td>'+(r.facility?'<span class="badge '+r.facility+'">'+r.facility+'</span>':'<span style="color:var(--muted);font-size:9px;">--</span>')+'</td>'+
       '<td><span style="font-size:10px;padding:2px 6px;border-radius:8px;background:var(--s3);">'+r.status+'</span></td>'+
       '<td style="font-family:var(--mono);font-size:10px;'+dc+'">'+df+'</td>'+
       '<td class="mn">'+(r.est>0?r.est+'h':DASH)+'</td>'+
@@ -706,10 +774,10 @@ function doRebuild(){var btn=document.getElementById('rebuildBtn');btn.textConte
 
 function exportCSV(type){
   var rows,filename;
-  if(type==='labor'||type==='history'){rows=[['Date','Facility','Dept','Headcount','Hours','Labor Cost','OT Hrs']].concat(DAILY.map(function(r){return [r.Date,r.Facility,r.Dept,r.Headcount,r['Hours Worked'],r['Labor Cost'],r['OT Hours']];}));filename='atomix_labor_'+today()+'.csv';}
-  else if(type==='employees'){rows=[['ID','Name','Facility','Dept','Status','Hours Today','Hours Week']].concat(EMPS.map(function(e){return [e['Employee ID'],e['Full Name'],e.Facility,e.Dept,e.Status,e['Hours Today'],e['Hours Week']];}));filename='atomix_employees_'+today()+'.csv';}
+  if(type==='labor'||type==='history'){var lr=laborRows();rows=[['Date','Facility','Dept','Headcount','Hours','Labor Cost','Billable','Non-Billable Cost','OT Hrs']].concat(lr.map(function(r){return [r.date,r.facility,r.dept,r.headcount,r.hours.toFixed(2),r.cost.toFixed(2),r.billable?'TRUE':'FALSE',r.billable?'0.00':r.cost.toFixed(2),r.ot.toFixed(2)];}));filename='atomix_labor_'+today()+'.csv';}
+  else if(type==='employees'){rows=[['ID','Name','Facility','Dept','Status','Hours Today','Hours Week']].concat(EMPS.map(function(e){return [e['Employee ID'],e['Full Name'],e.Facility,normDept(e.Dept),e.Status,e['Hours Today'],e['Hours Week']];}));filename='atomix_employees_'+today()+'.csv';}
   else if(type==='packers'){rows=[['Packer','Facility','Orders','Units','OPH','Shift Start','Shift End']].concat(PACKERS.map(function(p){return [p.name,p.facility,p.orders,p.units,(p.oph||'').toString(),p.firstPack||'',p.lastPack||''];}));filename='atomix_packers_'+today()+'.csv';}
-  else if(type==='projects'){var sp=buildSP();rows=[['Task','Client','Status','Est Hrs','Logged','Bubble','Bill Rate','Supply','Revenue','Margin']].concat(sp.map(function(r){return [r.name,r.client,r.status,r.est,r.logged.toFixed(1),r.linked,r.rate,r.supply.toFixed(2),r.rev.toFixed(2),(r.margin||0).toFixed(2)];}));filename='atomix_sp_'+today()+'.csv';}
+  else if(type==='projects'){var sp=buildSP();rows=[['Source','Task ID','Task','Client','Facility','Status','Due','Est Hrs','Logged Hrs','Labor Cost','Linked Bubble','Bill Rate','Quoted Hrs','Supply','Revenue','Margin','Burn %','Source Logged Hrs','ClickUp Actual Hrs','URL']].concat(sp.map(function(r){return [r.source||'',r.id,r.name,r.client,r.facility,r.status,r.due?r.due.toISOString().slice(0,10):'',r.est,r.logged.toFixed(2),r.labor.toFixed(2),r.linked,r.rate,r.qh,r.supply.toFixed(2),r.rev.toFixed(2),(r.margin||0).toFixed(2),(r.pct*100).toFixed(1),r.ll.toFixed(2),r.lcu.toFixed(2),r.url];}));filename='atomix_special_projects_'+today()+'.csv';}
   var csv=rows.map(function(r){return r.map(function(v){return '"'+(v==null?'':v)+'"';}).join(',');}).join('\n');
   var a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:filename});a.click();URL.revokeObjectURL(a.href);toast('Exported '+filename);
 }
