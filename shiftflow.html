@@ -967,7 +967,8 @@ function selectPerson(id) {
   document.getElementById('chatName').textContent = currentPerson.name;
   document.getElementById('chatRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
   showScreen('screenMyQuestions');
-  renderMyqStdList();
+  document.getElementById('myqStdList').innerHTML = '<div class="card"><div class="qed-empty">Loading saved questions...</div></div>';
+  loadStdQuestionsForPerson(currentPerson.id, renderMyqStdList);
 }
 
 function renderMyqStdList() {
@@ -1010,17 +1011,21 @@ function myqSaveItem(qid) {
   if (!newText) { showToast('Question text cannot be empty.'); return; }
   const q = STD_QUESTIONS[pid]?.find(q => q.id === qid);
   if (q) { q.text = newText; q.type = newType; }
-  persistToSheet({ action:'saveStdQ', personId:pid, qid, text:newText, qtype:newType });
   renderMyqStdList();
-  showToast('Saved ✓');
+  persistToSheet({ action:'saveStdQ', personId:pid, qid, text:newText, qtype:newType }, (err, data) => {
+    if (err || (data && data.ok === false)) showToast('Save failed — check connection.');
+    else showToast('Saved ✓');
+  });
 }
 
 function myqDeleteItem(qid) {
   const pid = currentPerson.id;
   STD_QUESTIONS[pid] = (STD_QUESTIONS[pid] || []).filter(q => q.id !== qid);
-  persistToSheet({ action:'deleteStdQ', personId:pid, qid });
   renderMyqStdList();
-  showToast('Removed ✓');
+  persistToSheet({ action:'deleteStdQ', personId:pid, qid }, (err, data) => {
+    if (err || (data && data.ok === false)) showToast('Remove failed — check connection.');
+    else showToast('Removed ✓');
+  });
 }
 
 function myqAddQuestion() {
@@ -1032,11 +1037,14 @@ function myqAddQuestion() {
   const newQ = { id:'q_'+Date.now(), text, type };
   if (!STD_QUESTIONS[pid]) STD_QUESTIONS[pid] = [];
   STD_QUESTIONS[pid].push(newQ);
-  persistToSheet({ action:'saveStdQ', personId:pid, text, qtype:type });
   document.getElementById('myqNewText').value = '';
   renderMyqStdList();
-  confirm.style.display='block'; confirm.style.color='var(--green)'; confirm.textContent='Added ✓';
-  setTimeout(() => { confirm.style.display='none'; }, 3000);
+  persistToSheet({ action:'saveStdQ', personId:pid, text, qtype:type }, (err, data) => {
+    confirm.style.display='block';
+    if (err || (data && data.ok === false)) { confirm.style.color='#f87171'; confirm.textContent='Add failed — check connection.'; }
+    else { confirm.style.color='var(--green)'; confirm.textContent='Added ✓'; }
+    setTimeout(() => { confirm.style.display='none'; }, 3000);
+  });
 }
 
 function myqProceedToReport() {
@@ -1074,9 +1082,11 @@ function initMyqDragDrop() {
         if (fromIdx !== -1 && toIdx !== -1) {
           const [moved] = qs.splice(fromIdx, 1);
           qs.splice(toIdx, 0, moved);
-          persistToSheet({ action:'reorderStdQ', personId:pid, order:qs.map(q=>q.id) });
           renderMyqStdList();
-          showToast('Order saved ✓');
+          persistToSheet({ action:'reorderStdQ', personId:pid, order:qs.map(q=>q.id) }, (err, data) => {
+            if (err || (data && data.ok === false)) showToast('Order save failed — check connection.');
+            else showToast('Order saved ✓');
+          });
         }
       }
     });
@@ -1084,6 +1094,22 @@ function initMyqDragDrop() {
 }
 
 // ── JSONP / PERSIST ────────────────────────────────────────────────────────────
+function loadStdQuestionsForPerson(personId, done) {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') { if (done) done(); return; }
+  jsonp(`${SCRIPT_URL}?action=getStdQ&personId=${personId}`, (err, data) => {
+    if (!err && data && Array.isArray(data.questions) && data.questions.length > 0) {
+      STD_QUESTIONS[personId] = data.questions.map(q => ({
+        id: q.id,
+        text: q.text,
+        type: q.type || 'text',
+        optional: !!q.optional,
+        laborField: q.laborField || null
+      }));
+    }
+    if (done) done();
+  });
+}
+
 function jsonp(url, callback) {
   const cbName = '_sf_cb_' + Date.now();
   const script = document.createElement('script');
@@ -1093,10 +1119,18 @@ function jsonp(url, callback) {
   document.body.appendChild(script);
 }
 
-function persistToSheet(payload) {
-  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') return;
+function persistToSheet(payload, callback) {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') { if (callback) callback(null, { ok:true, offline:true }); return; }
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+  if (encoded.length < 7000) {
+    jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, (err, data) => {
+      if (callback) callback(err, data);
+    });
+    return;
+  }
   fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload) })
-    .catch(() => { const encoded = encodeURIComponent(JSON.stringify(payload)); jsonp(`${SCRIPT_URL}?action=submitViaGet&payload=${encoded}`, () => {}); });
+    .then(() => { if (callback) callback(null, { ok:true, posted:true }); })
+    .catch((err) => { if (callback) callback(err); });
 }
 
 function loadQuestions(personId) {
@@ -1287,7 +1321,9 @@ function selectManager(id) {
   document.getElementById('qedName').textContent = currentPerson.name;
   document.getElementById('qedRole').textContent = currentPerson.role + ' · ' + currentPerson.site;
   showScreen('screenQuestions');
-  renderQedStd(); renderQedAdhoc();
+  document.getElementById('qedStdList').innerHTML = '<div class="card"><div class="qed-empty">Loading saved questions...</div></div>';
+  renderQedAdhoc();
+  loadStdQuestionsForPerson(currentPerson.id, renderQedStd);
 }
 
 function loadManagerData() {
@@ -1502,8 +1538,11 @@ function saveQedItem(qid){
   if(!newText){showToast('Question text cannot be empty.');return;}
   const q=STD_QUESTIONS[pid]?.find(q=>q.id===qid);
   if(q){q.text=newText;q.type=newType;q.optional=newOpt;}
-  persistToSheet({action:'saveStdQ',personId:pid,qid,text:newText,qtype:newType,optional:newOpt});
-  renderQedStd();showToast('Saved ✓');
+  renderQedStd();
+  persistToSheet({action:'saveStdQ',personId:pid,qid,text:newText,qtype:newType,optional:newOpt}, (err, data) => {
+    if (err || (data && data.ok === false)) showToast('Save failed — check connection.');
+    else showToast('Saved ✓');
+  });
 }
 
 function deleteQedItem(qid){
