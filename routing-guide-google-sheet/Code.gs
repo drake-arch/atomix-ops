@@ -113,8 +113,7 @@ function buildConflictRows(latest, people) {
   return QUESTIONS.map(q => {
     const rows = answersForQuestion(latest, people, q); const ds = decisions(rows); const unique = [...new Set(ds)];
     if (unique.length <= 1) return null;
-    return [q.id,q.section,q.event,q.question,unique.join(' | '),rows.map(r=>r[1]).join(' | '),rows.map(r=>r[1]+': '+r[6]+' / '+(r[7]||'')).join('
-')];
+    return [q.id,q.section,q.event,q.question,unique.join(' | '),rows.map(r=>r[1]).join(' | '),rows.map(r=>r[1]+': '+r[6]+' / '+(r[7]||'')).join('\n')];
   }).filter(Boolean);
 }
 function buildConsensusRows(latest, people) {
