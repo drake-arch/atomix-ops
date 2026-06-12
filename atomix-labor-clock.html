@@ -1256,12 +1256,13 @@ function handleDropOnBubble(e,targetBid){
   const nb=bubbles.find(b=>b.id===targetBid);
   if(nb&&!nb.employees.includes(empId)){
     nb.employees.push(empId);emp.dept=targetBid;
-    if(!emp.clockIn){emp.clockIn=Date.now();addLog(`${emp.name} → ${nb.name}`,'in');logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});logEvent('ASSIGN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});lastSyncPause=Date.now();}
+    if(!emp.clockIn){emp.clockIn=Date.now();addLog(`${emp.name} → ${nb.name}`,'in');logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});logEvent('ASSIGN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});markLocalPositionLock(emp.id);}
     else{
       const originName=currentDragOrigin&&currentDragOrigin!=='pool'&&currentDragOrigin!=='break'?(bubbles.find(b=>b.id===currentDragOrigin)?.name||''):'';
       if(nb.name!==originName){
         addLog(`${emp.name} moved to ${nb.name}`,'');
         logEvent('MOVE',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});
+        markLocalPositionLock(emp.id);
       }
     }
   }
@@ -1280,7 +1281,7 @@ function unassignEmployee(empId){
     logSpHoursForBubble(emp,fdn,hrs);
   }
   else{addLog(`${emp.name} unassigned`,'');logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn,hoursLogged:'0'});}
-  lastSyncPause=Date.now();renderAll();
+  markLocalPositionLock(emp.id);renderAll();
 }
 
 const BREAK_DURATION=15*60*1000,LUNCH_DURATION=30*60*1000;
@@ -1411,7 +1412,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('#ctxMenu'))document.
 document.getElementById('ctxSP').addEventListener('click',()=>{if(ctxTarget)openSpModal(ctxTarget);});
 document.getElementById('ctxRename').addEventListener('click',()=>{if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);if(!b)return;const n=prompt('Rename:',b.name);if(n){b.name=n.trim();renderAll();}});
 document.getElementById('ctxBillable').addEventListener('click',()=>{if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);if(!b)return;b.billable=!b.billable;addLog(`"${b.name}" ${b.billable?'BILLABLE':'non-billable'}`,'');renderAll();});
-document.getElementById('ctxRemoveAll').addEventListener('click',()=>{if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);if(!b)return;b.employees.slice().forEach(eid=>unassignEmployee(eid));lastSyncPause=Date.now()+20000;renderAll();});
+document.getElementById('ctxRemoveAll').addEventListener('click',()=>{if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);if(!b)return;b.employees.slice().forEach(eid=>{unassignEmployee(eid);markLocalPositionLock(eid);});lastSyncPause=Date.now()+20000;renderAll();});
 document.getElementById('ctxDelete').addEventListener('click',()=>{
   if(!ctxTarget)return;const b=bubbles.find(x=>x.id===ctxTarget);
   if(b){b.employees.forEach(eid=>{const emp=EMPLOYEES.find(e=>e.id===eid);if(emp)emp.dept=null;});bubbles.filter(c=>c.parentId===ctxTarget).forEach(c=>{c.parentId=null;c.bx=400+Math.random()*600;c.by=300+Math.random()*400;});}
@@ -1851,6 +1852,19 @@ async function fetchOrdersToday(){
 setInterval(fetchOrdersToday,5*60*1000);setTimeout(fetchOrdersToday,3000);
 
 let syncInFlight=false;
+const localPositionLocks=new Map();
+function markLocalPositionLock(empId){
+  if(!empId)return;
+  const now=Date.now();
+  localPositionLocks.set(String(empId),now);
+  lastSyncPause=now;
+}
+function isLocalPositionLocked(empId){
+  const ts=localPositionLocks.get(String(empId));
+  if(!ts)return false;
+  if(Date.now()-ts>DRAG_LOCK_MS){localPositionLocks.delete(String(empId));return false;}
+  return true;
+}
 async function syncFromBackend(){
   if(syncInFlight)return;
   syncInFlight=true;
@@ -1873,7 +1887,18 @@ async function syncFromBackend(){
       if(id&&!metaById.has(id))metaById.set(id,emp);
     });
 
-    // LiveState is authoritative for who exists in the UI.
+    const localStateById=new Map(EMPLOYEES.map(emp=>[String(emp.id||''),{
+      dept:emp.dept||null,
+      clockIn:emp.clockIn||null,
+      breakStatus:emp.breakStatus||null,
+      breakStart:emp.breakStart||null,
+      breakReturnBubble:emp.breakReturnBubble||null,
+      totalHrs:emp.totalHrs||0,
+      weeklyHrs:emp.weeklyHrs||0,
+    }]));
+
+    // LiveState is authoritative unless this tablet has a very recent local
+    // drag/assignment still propagating through Apps Script + Sheets.
     EMPLOYEES=backendEmps
       .filter(s=>String(s.id||'')||String(s.name||''))
       .map(s=>{
@@ -1914,6 +1939,21 @@ async function syncFromBackend(){
     EMPLOYEES.forEach(emp=>{
       const s=backendEmps.find(x=>String(x.id||'')===String(emp.id||''));
       if(!s)return;
+      const local=localStateById.get(String(emp.id||''));
+      if(local&&isLocalPositionLocked(emp.id)){
+        emp.dept=local.dept;
+        emp.clockIn=local.clockIn;
+        emp.breakStatus=local.breakStatus;
+        emp.breakStart=local.breakStart;
+        emp.breakReturnBubble=local.breakReturnBubble;
+        emp.totalHrs=local.totalHrs;
+        emp.weeklyHrs=local.weeklyHrs;
+        if(emp.dept){
+          const localBubble=bubbles.find(b=>b.id===emp.dept);
+          if(localBubble&&!localBubble.employees.includes(emp.id))localBubble.employees.push(emp.id);
+        }
+        return;
+      }
       const parsedClockIn=Date.parse(s.clockIn||'');
       if(!isNaN(parsedClockIn))emp.clockIn=parsedClockIn;
 
