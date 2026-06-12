@@ -24,7 +24,19 @@ Required sequence after final person is captured:
 6. Open live GitHub Pages URL with cache busting and verify the exact question text appears.
 7. Only then say: “questions are live for the team.”
 
-## Gate B — morning standup deck question integrity
+## Gate B — historical context before build
+
+Before building the current morning deck:
+
+1. Generate/read historical context from all available past EOD artifacts:
+   ```bash
+   python3 /home/fabric041/work/atomix-ops/build_standup_history_context.py --days 60
+   ```
+2. Read `/home/fabric041/work/atomix-ops/standup_history/standup_historical_context_latest.md`.
+3. Use prior EOD questions, answers, slides, repeated blockers, and comic/deck structure to inform today’s recap.
+4. If today repeats a prior miss/question/blocker, call that out as historical context instead of treating it as isolated.
+
+## Gate C — morning standup deck question integrity
 
 Before building the morning deck:
 
@@ -33,7 +45,7 @@ Before building the morning deck:
 3. Compare expected custom question text against submitted answer question text.
 4. If the custom questions are missing from Sheet answers, report the mismatch plainly instead of building a misleading recap.
 
-## Gate C — comic quality
+## Gate D — comic quality
 
 Before delivering any downloadable standup ZIP:
 
