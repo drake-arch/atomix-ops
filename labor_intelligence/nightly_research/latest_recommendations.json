@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-06-12T10:30:00-04:00",
+  "source": "Seeded Cleo nightly improvement cache from current Atomix operating context until the first overnight research job runs.",
+  "actions": [
+    {
+      "title": "Run the day from CPO, not just headcount",
+      "why": "Labor only tells the truth when it is paired with shipped orders. A facility can look busy and still be margin-negative if hours are ahead of output.",
+      "today": "By 10 AM, have each facility call out orders shipped, CPO labor hours, and whether staffing should hold, flex down, or move departments."
+    },
+    {
+      "title": "Close every blocker with an owner and proof",
+      "why": "Client trust is rebuilt by no repeats. A blocker that only lives in chat becomes a repeat miss, back-office drag, or client follow-up later.",
+      "today": "For every EOD fire/blocker, record owner, next action, expected closeout time, and proof location before noon."
+    },
+    {
+      "title": "Protect inventory controls while pushing outbound speed",
+      "why": "Outbound speed without FEFO/lot/LPN discipline creates the most expensive kind of rework: client-impacting inventory uncertainty.",
+      "today": "Spot-check one high-volume outbound path and one expiry/lot-controlled client for scan discipline, exception handling, and supervisor signoff."
+    }
+  ]
+}

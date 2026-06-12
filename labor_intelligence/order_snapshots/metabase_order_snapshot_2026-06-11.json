@@ -1,0 +1,25 @@
+{
+  "byFacility": {
+    "BAL": 0,
+    "MKE": 3515,
+    "SLC": 849
+  },
+  "capturedAt": "2026-06-11T22:00:42-04:00",
+  "date": "2026-06-11",
+  "facility": "all",
+  "lastSync": "2026-06-12T01:59:39.867Z",
+  "ok": true,
+  "ordersToday": 4364,
+  "raw": {
+    "byFacility": {
+      "BAL": 0,
+      "MKE": 3515,
+      "SLC": 849
+    },
+    "facility": "all",
+    "lastSync": "2026-06-12T01:59:39.867Z",
+    "ok": true,
+    "ordersToday": 4364
+  },
+  "source": "LaborClock analytics Metabase orders action at scheduled 10 PM snapshot"
+}
