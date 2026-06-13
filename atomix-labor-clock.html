@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Atomix Labor Clock v2 — MKE</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./atomix-theme.css" />
 <style>
   :root {
     --navy: #0D2D53;
@@ -428,8 +429,231 @@
   .scm-color-row { display:flex; gap:5px; flex-wrap:wrap; margin-top:2px; }
   .scm-cdot { width:18px; height:18px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:transform 0.15s; }
   .scm-cdot:hover, .scm-cdot.selected { transform:scale(1.2); border-color:white; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     NUCLEUS / ATOMIX UI MAKEOVER
+     Style-only layer: preserves all existing IDs, data contracts,
+     drag/drop handlers, bubble creation, sync, analytics, and modals.
+     ═══════════════════════════════════════════════════════════════ */
+  :root {
+    --navy:#10231f;
+    --green:#007A63;
+    --mint:#A3F5C4;
+    --slate:#6B675E;
+    --bg:#F0EBDD;
+    --surface:#FAF7EF;
+    --surface2:#F4F1E9;
+    --surface3:#ECE7DA;
+    --border:#DDD6C5;
+    --border-strong:#C5BDA8;
+    --text:#2C2C2A;
+    --muted:#777166;
+    --blue:#185FA5;
+    --good:#2F8A3A;
+    --warn:#B57E1F;
+    --bad:#A32D2D;
+    --shadow-soft:0 18px 45px rgba(36,32,24,.10);
+    --shadow-card:0 10px 24px rgba(36,32,24,.08);
+  }
+
+  body,
+  html[data-atomix-theme="light"] body,
+  html[data-atomix-theme="dark"] body {
+    font-family:'Inter','DM Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:var(--bg) !important;
+    color:var(--text) !important;
+  }
+  header {
+    height:64px;
+    background:rgba(250,247,239,.96);
+    border-bottom:1px solid var(--border);
+    box-shadow:0 8px 24px rgba(40,34,22,.05);
+    padding:0 22px;
+  }
+  .logo { color:var(--text); font-family:'Inter','DM Sans',sans-serif; letter-spacing:.02em; font-weight:800; }
+  .logo-icon { border-color:var(--green); color:var(--green); background:#EEF8F1; box-shadow:inset 0 0 0 3px rgba(255,255,255,.65); }
+  #modeBadge, .fac-chip { background:#EEF8F1 !important; border-color:rgba(0,122,99,.35) !important; color:var(--green) !important; }
+  .fac-chip { border-radius:999px; box-shadow:none; }
+  .fac-chip .fac-city { color:var(--muted); opacity:1; }
+  .header-stats { gap:14px; }
+  .stat-divider { background:var(--border); height:32px; }
+  .stat-pill { align-items:flex-start; min-width:72px; background:rgba(255,255,255,.55); border:1px solid rgba(221,214,197,.75); border-radius:12px; padding:8px 10px; box-shadow:0 6px 18px rgba(36,32,24,.05); }
+  .stat-pill .val { font-family:'JetBrains Mono','DM Mono',monospace; color:var(--green); font-size:17px; font-weight:800; letter-spacing:-.03em; }
+  .stat-pill .lbl { color:var(--muted); font-weight:700; letter-spacing:.08em; }
+  .clock-display { color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:7px 10px; font-family:'JetBrains Mono','DM Mono',monospace; }
+  .zoom-btn, .heat-toggle, .sp-sync-btn, .day-edit-btn, .scm-btn, .emp-modal-btn.cancel, .fac-modal-btn.cancel {
+    background:#FFFFFF;
+    border-color:var(--border);
+    color:var(--text);
+    border-radius:10px;
+    box-shadow:0 6px 16px rgba(36,32,24,.05);
+  }
+  .zoom-btn:hover, .heat-toggle:hover, .sp-sync-btn:hover, .creator-btn:hover, .roster-toggle:hover { border-color:var(--green); color:var(--green); background:#EEF8F1; }
+  .sync-btn { background:#10231F; color:#FFFFFF; border-color:#10231F; }
+  .heat-toggle.on { background:#FFF3E0; border-color:#D99B33; color:#9A5E00; box-shadow:0 8px 20px rgba(181,126,31,.16); }
+  .ot-alert.show { background:#FFF0EE; border-color:rgba(163,45,45,.28); color:var(--bad); border-radius:12px; }
+
+  .sp-panel {
+    background:linear-gradient(180deg,#FAF7EF 0%,#F4F1E9 100%);
+    border-bottom:1px solid var(--border);
+    box-shadow:0 10px 28px rgba(36,32,24,.05);
+  }
+  .sp-panel-title, .sp-meta-chip, .sp-hrs, .sp-pie-center-num, .scm-btn.primary, .sp-card-modal h3 { color:var(--green); }
+  .sp-meta-chip { background:#EEF8F1; border-color:rgba(0,122,99,.22); }
+  .sp-meta-chip.warn { background:#FFF7E8; border-color:rgba(181,126,31,.28); color:var(--warn); }
+  .sp-meta-chip.hot { background:#FFF0EE; border-color:rgba(163,45,45,.25); color:var(--bad); }
+  .sp-card, .new-bubble-form, .new-emp-form, .emp-hours-display, .sp-total, .fac-option, .scm-input, .sp-card-modal, .emp-modal, .ctx-menu {
+    background:#FFFFFF;
+    border-color:var(--border);
+    color:var(--text);
+    box-shadow:var(--shadow-card);
+  }
+  .sp-card:hover { border-color:rgba(0,122,99,.28); box-shadow:0 14px 32px rgba(36,32,24,.10); }
+  .sp-card-name, .scm-field .scm-val, .bubble-name, .emp-modal-name, .roster-member-name, .nb-billable-row label { color:var(--text); text-shadow:none; }
+  .sp-card-client, .sp-due, .sp-est-lbl, .scm-field label, .scm-sub, .emp-field label, .emp-hours-display .hrs-label, .panel-title, .tube-label, .bubble-count, .bubble-hc-label { color:var(--muted); }
+  .sp-bar-wrap { background:#ECE7DA; }
+
+  .main { background:var(--bg); }
+  .left-panel, .right-panel {
+    background:var(--surface);
+    border-color:var(--border);
+  }
+  .left-panel { width:108px; box-shadow:8px 0 24px rgba(36,32,24,.04); }
+  .right-panel { width:226px; box-shadow:-8px 0 24px rgba(36,32,24,.04); }
+  .panel-section { border-color:var(--border); }
+  .tube-outer { background:#FFFFFF; border-color:var(--border-strong); }
+  .tube-fill { background:linear-gradient(to top,#A3F5C4,#DFF8E6); }
+  .tube-target-line { background:rgba(0,122,99,.45); }
+  .tube-target-line::before { background:var(--green); }
+  .tube-val, .tube-target-input, .emp-hours-display .hrs-val, .sp-total .sp-val { color:var(--green); }
+  .tube-target-input, .pool-search-wrap input, .nb-input, .emp-field select, .emp-field input[type='time'], .emp-field input[type='number'], .emp-field input[type='text'], .day-seg-row input, .day-seg-row select {
+    background:#FFFFFF;
+    color:var(--text);
+    border-color:var(--border);
+  }
+
+  .canvas-area {
+    background:
+      radial-gradient(circle at 78% 24%, rgba(163,245,196,.30) 0, transparent 28%),
+      radial-gradient(circle at 22% 78%, rgba(24,95,165,.10) 0, transparent 30%),
+      linear-gradient(180deg,#FAF7EF 0%,#F4F1E9 100%);
+    border-left:1px solid rgba(221,214,197,.65);
+    border-right:1px solid rgba(221,214,197,.65);
+  }
+  .canvas-area::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background-image:linear-gradient(rgba(44,44,42,.045) 1px, transparent 1px),linear-gradient(90deg, rgba(44,44,42,.045) 1px, transparent 1px);
+    background-size:64px 64px;
+    z-index:0;
+  }
+  canvas#bgCanvas { opacity:.22; }
+
+  .bubble {
+    border-width:1.5px !important;
+    background:rgba(255,255,255,.78) !important;
+    box-shadow:0 18px 40px rgba(40,34,22,.12), inset 0 1px 0 rgba(255,255,255,.8) !important;
+    backdrop-filter:blur(10px) saturate(1.08);
+  }
+  .bubble:hover { box-shadow:0 24px 54px rgba(40,34,22,.16),0 0 0 4px rgba(0,122,99,.08),inset 0 1px 0 rgba(255,255,255,.9) !important; }
+  .bubble.drag-over { box-shadow:0 0 0 4px rgba(0,122,99,.28),0 20px 60px rgba(0,122,99,.24) !important; }
+  .bubble-inner { background:radial-gradient(circle at 38% 22%, rgba(255,255,255,.88), rgba(255,255,255,.50) 46%, rgba(250,247,239,.18) 100%); }
+  .bubble-inner::before { background:rgba(255,255,255,.72); filter:blur(6px); }
+  .bubble-name { font-size:11px; font-weight:800; color:#2C2C2A; text-shadow:0 1px 0 rgba(255,255,255,.55); }
+  .bubble-count, .bubble-hrs { color:var(--muted); font-weight:700; }
+  .bubble-hc, .bubble-burn, .bubble-sp-badge {
+    background:rgba(255,255,255,.86);
+    border:1px solid rgba(197,189,168,.85);
+    color:var(--text);
+    box-shadow:0 8px 18px rgba(36,32,24,.10);
+  }
+  .bubble-hc-num { color:var(--green); font-weight:800; }
+  .bubble.billable { border-color:#D7B83F !important; box-shadow:0 18px 42px rgba(181,126,31,.17),0 0 0 1px rgba(215,184,63,.28),inset 0 1px 0 rgba(255,255,255,.85) !important; }
+  .bubble-bill-badge { background:linear-gradient(135deg,#FFE56A,#F3C743); color:#2C2C2A; box-shadow:0 7px 14px rgba(181,126,31,.20); }
+  .bubble.sp-burn-warm { border-color:#D99B33 !important; box-shadow:0 18px 44px rgba(181,126,31,.22),0 0 0 3px rgba(181,126,31,.10) !important; }
+  .bubble.sp-burn-hot, .bubble.sp-burn-over { border-color:var(--bad) !important; box-shadow:0 18px 44px rgba(163,45,45,.24),0 0 0 3px rgba(163,45,45,.10) !important; }
+
+  .emp-float-img-wrap, .emp-card img, .roster-member-avatar, .break-avatar, .emp-modal-avatar {
+    border-color:#FFFFFF;
+    box-shadow:0 8px 18px rgba(40,34,22,.18),0 0 0 1px rgba(197,189,168,.8);
+  }
+  .emp-float-name {
+    background:rgba(250,247,239,.90);
+    color:var(--text);
+    border:1px solid rgba(221,214,197,.78);
+    text-shadow:none;
+    box-shadow:0 6px 16px rgba(36,32,24,.10);
+  }
+  .emp-card:hover, .roster-member:hover, .roster-dept-header:hover { background:#EEF8F1; }
+  .emp-card span { color:var(--muted); }
+  .emp-card.ot-daily span, .emp-card.ot-weekly span { color:var(--bad) !important; }
+
+  .break-zones { height:118px; background:rgba(250,247,239,.82); border-top:1px solid var(--border); backdrop-filter:blur(10px); }
+  .break-zone { border-top:0; }
+  .break-zone.brk { background:rgba(255,247,232,.72); border-right:1px dashed var(--border-strong); }
+  .break-zone.lunch { background:rgba(232,242,255,.72); }
+  .break-zone-label { font-weight:800; }
+  .break-zone-sub { color:var(--muted); }
+
+  .creator-btn { background:#FFFFFF; border-color:var(--border); color:var(--text); }
+  .creator-btn .btn-icon { background:var(--surface2); color:var(--green); }
+  .nb-btn, .emp-modal-btn.save, .fac-modal-btn.confirm, .day-edit-save { background:#10231F; color:#FFFFFF; }
+  .roster-toggle { background:#FFFFFF; border-color:var(--border); color:var(--text); box-shadow:var(--shadow-card); }
+  .roster-panel, .heat-legend {
+    background:rgba(250,247,239,.97);
+    border-color:var(--border);
+    box-shadow:var(--shadow-soft);
+  }
+  .roster-title, .heat-legend-title, .modal-tab.active { color:var(--green); }
+  .modal-tab.active { border-bottom-color:var(--green); }
+  .ctx-item { color:var(--text); }
+  .ctx-item:hover { background:var(--surface2); }
+  .emp-modal-overlay, .fac-modal-overlay, .sp-card-modal-overlay { background:rgba(44,44,42,.38); backdrop-filter:blur(8px); }
+  .emp-modal, .fac-modal { border-color:var(--border); box-shadow:0 30px 80px rgba(36,32,24,.18); }
+  .fac-modal-title, .fac-option .fac-opt-code { color:var(--green); }
+  .fac-option .fac-opt-city { color:var(--text); }
+  .atomix-theme-toggle { display:none !important; }
+
+  /* Contrast polish for light Nucleus skin; dense labels stay compact but readable. */
+  .sp-card-status.billing,
+  .sp-card-status.awaiting,
+  .sp-meta-chip.warn,
+  .sp-hrs.warn,
+  .sp-due.soon,
+  .break-zone.brk .break-zone-label,
+  .log-item .log-brk { color:#8A4F00 !important; }
+  .sp-card-status.ready,
+  .sp-card-status.quoted,
+  .break-zone.lunch .break-zone-label { color:#185FA5 !important; }
+  .sp-card-status.in-progress,
+  .log-item .log-time,
+  .log-item .log-in,
+  .roster-member-name.is-manager { color:#007A63 !important; }
+  .sp-hrs.over,
+  .sp-due.overdue,
+  .log-item .log-out,
+  .emp-card.ot-daily span,
+  .emp-card.ot-weekly span { color:#A32D2D !important; }
+  .bubble-count,
+  .bubble-hrs,
+  .bubble-hc-label,
+  .panel-title,
+  .tube-label,
+  .break-zone-sub,
+  .emp-card span,
+  .log-item { color:#5F5E5A !important; }
+  .bubble-name,
+  .bubble-count,
+  .bubble-hrs,
+  .bubble-hc,
+  .emp-card span,
+  .log-item,
+  .panel-title,
+  .break-zone-label,
+  .break-zone-sub { line-height:1.32; }
 </style>
-  <link rel="stylesheet" href="./atomix-theme.css" />
   <script src="./atomix-theme-toggle.js" defer></script>
 </head>
 <body>
