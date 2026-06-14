@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Atomix Labor Clock v2 — MKE</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  (() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if(params.has('_nucleus_view') || params.get('nucleus_skin') === '1'){
+        document.documentElement.classList.add('nucleus-labor-skin');
+      }
+    } catch(_) {}
+  })();
+</script>
 <style>
   :root {
     --navy: #0D2D53;
@@ -428,6 +438,130 @@
   .scm-color-row { display:flex; gap:5px; flex-wrap:wrap; margin-top:2px; }
   .scm-cdot { width:18px; height:18px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:transform 0.15s; }
   .scm-cdot:hover, .scm-cdot.selected { transform:scale(1.2); border-color:white; }
+
+  /* Nucleus-only skin. This is activated only when Nucleus embeds the page
+     with _nucleus_view=... or nucleus_skin=1, so the standalone Ops page keeps
+     the original Labor Clock look. */
+  html.nucleus-labor-skin {
+    --bg:#EEF1ED;
+    --surface:#FBFAF5;
+    --surface2:#FFFFFF;
+    --border:rgba(175,167,147,.58);
+    --text:#1F2522;
+    --muted:#5A625C;
+    --green:#006B52;
+    --slate:#405047;
+  }
+  html.nucleus-labor-skin body {
+    background:radial-gradient(circle at 18% 12%,rgba(163,245,196,.28),transparent 28%),linear-gradient(135deg,#F7F8F3,#EEF1ED 48%,#E2DED2);
+    color:var(--text);
+  }
+  html.nucleus-labor-skin body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:.32;
+    background-image:radial-gradient(circle at 30% 20%,rgba(255,255,255,.55) 0 1px,transparent 1.5px),linear-gradient(110deg,rgba(255,255,255,.45),transparent 36%,rgba(6,45,49,.04) 72%,transparent);
+    background-size:18px 18px,auto;
+    z-index:0;
+  }
+  html.nucleus-labor-skin header {
+    background:linear-gradient(135deg,#062D31 0%,#093D40 72%,#0B4D46 100%);
+    border-bottom:1px solid rgba(163,245,196,.26);
+    box-shadow:0 18px 44px rgba(6,45,49,.22);
+    position:relative;
+    z-index:5;
+  }
+  html.nucleus-labor-skin .logo { color:#fff; }
+  html.nucleus-labor-skin .logo::after {
+    content:'Nucleus read-only view';
+    display:block;
+    margin-left:4px;
+    color:rgba(255,255,255,.58);
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+  }
+  html.nucleus-labor-skin .logo-icon,
+  html.nucleus-labor-skin .fac-chip {
+    background:rgba(163,245,196,.12);
+    border-color:rgba(163,245,196,.58);
+    color:#A3F5C4;
+  }
+  html.nucleus-labor-skin .stat-pill {
+    min-width:86px;
+    padding:7px 10px;
+    border:1px solid rgba(163,245,196,.16);
+    border-radius:14px;
+    background:rgba(255,255,255,.08);
+  }
+  html.nucleus-labor-skin .stat-pill .val { color:#A3F5C4; }
+  html.nucleus-labor-skin .sp-panel,
+  html.nucleus-labor-skin .left-panel,
+  html.nucleus-labor-skin .right-panel,
+  html.nucleus-labor-skin .break-zones {
+    background:rgba(251,250,245,.92);
+    border-color:rgba(175,167,147,.58);
+    color:var(--text);
+    position:relative;
+    z-index:3;
+  }
+  html.nucleus-labor-skin .sp-panel-title,
+  html.nucleus-labor-skin .tube-val,
+  html.nucleus-labor-skin .panel-title { color:#006B52; }
+  html.nucleus-labor-skin .sp-card,
+  html.nucleus-labor-skin .roster-item,
+  html.nucleus-labor-skin .new-bubble-form,
+  html.nucleus-labor-skin .new-emp-form,
+  html.nucleus-labor-skin .creator-btn,
+  html.nucleus-labor-skin .roster-toggle {
+    background:linear-gradient(180deg,#FFFFFF,#F4F1E8);
+    border-color:rgba(175,167,147,.62);
+    border-radius:14px;
+    box-shadow:0 10px 24px rgba(28,34,29,.10),inset 0 1px 0 rgba(255,255,255,.86);
+    color:var(--text);
+  }
+  html.nucleus-labor-skin .canvas-area {
+    background:radial-gradient(circle at 20% 18%,rgba(163,245,196,.22),transparent 24%),linear-gradient(135deg,#F4F7F4,#ECE7DA 56%,#DCD5C4);
+  }
+  html.nucleus-labor-skin .canvas-area::after {
+    content:'MKE FLOOR MAP  ·  live Labor Clock embedded in Nucleus  ·  read-only skin only';
+    position:absolute;
+    left:148px;
+    top:16px;
+    z-index:4;
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.84);
+    border:1px solid rgba(175,167,147,.60);
+    color:#405047;
+    font-family:'DM Mono',monospace;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.04em;
+    box-shadow:0 12px 28px rgba(35,29,22,.10);
+    pointer-events:none;
+  }
+  html.nucleus-labor-skin .bubble {
+    border-color:rgba(255,255,255,.72) !important;
+    box-shadow:0 22px 44px rgba(35,29,22,.18), inset 0 2px 0 rgba(255,255,255,.32) !important;
+    outline:1px solid rgba(255,255,255,.58);
+    outline-offset:-6px;
+  }
+  html.nucleus-labor-skin .bubble-count,
+  html.nucleus-labor-skin .bubble-hc {
+    background:rgba(255,255,255,.68);
+    border:1px solid rgba(175,167,147,.52);
+    color:#405047;
+  }
+  html.nucleus-labor-skin .bubble-hrs { color:#006B52; }
+  html.nucleus-labor-skin .emp-float-img-wrap,
+  html.nucleus-labor-skin .break-avatar {
+    background:#fff;
+    box-shadow:0 12px 22px rgba(35,29,22,.18),0 0 0 2px rgba(255,255,255,.86);
+  }
 </style>
   <link rel="stylesheet" href="./atomix-theme.css" />
   <script src="./atomix-theme-toggle.js" defer></script>
