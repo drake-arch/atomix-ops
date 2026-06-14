@@ -666,7 +666,7 @@
     --text:#1F2522;
     --muted:#5A625C;
     --navy:#062D31;
-    --green:#008A68;
+    --green:#006B52;
     --mint:#8DF0C0;
     --blue:#225D8F;
     --good:#267A45;
@@ -782,6 +782,167 @@
   .nb-btn,.emp-modal-btn.save,.fac-modal-btn.confirm,.day-edit-save,.sync-btn {
     background:linear-gradient(135deg,#062D31,#0D4B46) !important;
     box-shadow:0 12px 24px rgba(6,45,49,.24), inset 0 1px 0 rgba(255,255,255,.18);
+  }
+
+  /* Thoughtful revision: make sync trust visible on the people themselves. */
+  .emp-float.pending-sync .emp-float-img-wrap,
+  .break-avatar.pending-sync {
+    box-shadow:
+      0 12px 22px rgba(35,29,22,.20),
+      0 0 0 2px rgba(217,155,51,.75),
+      0 0 18px rgba(217,155,51,.28) !important;
+  }
+  .emp-float.pending-sync::after,
+  .break-avatar.pending-sync::after {
+    content:'SYNC';
+    position:absolute;
+    top:-7px;
+    right:-12px;
+    z-index:30;
+    padding:2px 5px;
+    border-radius:999px;
+    background:#FFF4DB;
+    border:1px solid rgba(217,155,51,.55);
+    color:#8A4F00;
+    font-family:'JetBrains Mono','DM Mono',monospace;
+    font-size:7px;
+    font-weight:800;
+    letter-spacing:.06em;
+    box-shadow:0 8px 16px rgba(35,29,22,.14);
+  }
+  .sync-btn.syncing { color:#A3F5C4 !important; }
+
+  /* Revision 2: intentional command-surface hierarchy.
+     More information at a glance, without touching IDs, drag/drop, or backend logic. */
+  header { gap:18px; }
+  .logo { min-width:210px; }
+  .logo::after {
+    content:'Live allocation board';
+    display:block;
+    margin-left:4px;
+    color:rgba(255,255,255,.58);
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+  }
+  .header-stats {
+    flex:1;
+    justify-content:flex-end;
+    padding-left:12px;
+  }
+  .stat-pill {
+    min-width:86px;
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-pill::before {
+    content:'';
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:3px;
+    background:linear-gradient(180deg,#A3F5C4,#006B52);
+    opacity:.85;
+  }
+  #backendPill::before { background:linear-gradient(180deg,#A3F5C4,#2F8A3A); }
+  #modeBadge {
+    border-radius:999px;
+    padding:5px 10px;
+    background:rgba(163,245,196,.12)!important;
+    color:#DDF8E8!important;
+    border-color:rgba(163,245,196,.35)!important;
+  }
+  .sp-panel-bar {
+    border-bottom:1px solid rgba(175,167,147,.30);
+  }
+  .sp-panel-title::before { content:'▣ '; color:#006B52; }
+  .sp-scroll { padding-top:8px; }
+  .sp-card {
+    min-width:220px;
+    border-radius:14px;
+    padding:12px 13px;
+  }
+  .sp-card-name { font-size:12px; }
+  .sp-card-client { color:#006B52!important; font-weight:800; }
+  .main { isolation:isolate; }
+  .left-panel {
+    width:116px;
+    padding-top:18px;
+    gap:20px;
+  }
+  .left-panel::before {
+    content:'Floor load';
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:#5A625C;
+    font-weight:900;
+  }
+  .canvas-area::after {
+    content:'MKE FLOOR MAP  ·  drag faces into bubbles  ·  yellow SYNC means backend confirmation pending';
+    position:absolute;
+    left:154px;
+    top:16px;
+    z-index:2;
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.82);
+    border:1px solid rgba(175,167,147,.60);
+    color:#405047;
+    font-family:'JetBrains Mono','DM Mono',monospace;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.04em;
+    box-shadow:0 12px 28px rgba(35,29,22,.10);
+    pointer-events:none;
+  }
+  .bubble {
+    outline:1px solid rgba(255,255,255,.62);
+    outline-offset:-6px;
+  }
+  .bubble-name {
+    max-width:74%;
+    font-size:12px!important;
+    text-transform:none;
+  }
+  .bubble-count {
+    margin-top:2px;
+    padding:2px 8px;
+    border-radius:999px;
+    background:rgba(255,255,255,.64);
+    border:1px solid rgba(175,167,147,.52);
+    color:#405047!important;
+  }
+  .bubble-hrs { color:#006B52!important; }
+  .bubble-hc {
+    bottom:10px;
+    border-radius:999px;
+    padding:4px 11px;
+  }
+  .emp-float-img-wrap { background:#fff; }
+  .emp-float-name {
+    font-size:8px;
+    font-weight:900;
+    max-width:62px;
+  }
+  .break-zones {
+    height:126px;
+    border-top:1px solid rgba(175,167,147,.68);
+  }
+  .break-zone-label::before { opacity:.72; }
+  .break-zone.brk .break-zone-label::before { content:'◷ '; }
+  .break-zone.lunch .break-zone-label::before { content:'◌ '; }
+  .right-panel {
+    width:248px;
+  }
+  .panel-title {
+    font-size:10px;
+    color:#405047!important;
+  }
+  .creator-btn,.roster-toggle,.new-bubble-form,.new-emp-form {
+    border-radius:14px;
   }
 </style>
   <script src="./atomix-theme-toggle.js" defer></script>
@@ -1537,7 +1698,7 @@ function makeBubbleElement(b,isChild,parentEl,parentSize){
   b.employees.forEach((eid,idx)=>{
     const emp=EMPLOYEES.find(e=>e.id===eid);if(!emp)return;
     const angle=(idx/Math.max(b.employees.length,1))*Math.PI*2-Math.PI/2,r=size*0.28,cx=size/2+Math.cos(angle)*r,cy=size/2+Math.sin(angle)*r;
-    const empEl=document.createElement('div');empEl.className='emp-float';empEl.id='empfloat-'+eid;
+    const empEl=document.createElement('div');empEl.className='emp-float'+(hasPendingAssignment(eid)?' pending-sync':'');empEl.id='empfloat-'+eid;
     empEl.setAttribute('data-empid',eid);empEl.setAttribute('data-origin-bubble',b.id);empEl.draggable=true;
     empEl.style.cssText=`left:${cx-avatarSize/2}px;top:${cy-avatarSize/2}px;width:${avatarSize}px;`;
     const imgWrap=document.createElement('div');imgWrap.className='emp-float-img-wrap';imgWrap.style.cssText=`width:${avatarSize}px;height:${avatarSize}px;`;
@@ -1612,12 +1773,13 @@ function handleDropOnBubble(e,targetBid){
   const nb=bubbles.find(b=>b.id===targetBid);
   if(nb&&!nb.employees.includes(empId)){
     nb.employees.push(empId);emp.dept=targetBid;
-    if(!emp.clockIn){emp.clockIn=Date.now();addLog(`${emp.name} → ${nb.name}`,'in');logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});logEvent('ASSIGN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});markLocalPositionLock(emp.id);}
+    if(!emp.clockIn){emp.clockIn=Date.now();addLog(`${emp.name} → ${nb.name}`,'in');logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});logEvent('ASSIGN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});setPendingAssignment(emp,{status:'active',bubbleId:nb.id,deptName:nb.name,clockIn:emp.clockIn});markLocalPositionLock(emp.id);}
     else{
       const originName=currentDragOrigin&&currentDragOrigin!=='pool'&&currentDragOrigin!=='break'?(bubbles.find(b=>b.id===currentDragOrigin)?.name||''):'';
       if(nb.name!==originName){
         addLog(`${emp.name} moved to ${nb.name}`,'');
-        logEvent('MOVE',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});
+        logEvent('MOVE',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:originName,toDept:nb.name,shiftStart:emp.shiftStart||''});
+        setPendingAssignment(emp,{status:'active',bubbleId:nb.id,deptName:nb.name,clockIn:emp.clockIn});
         markLocalPositionLock(emp.id);
       }
     }
@@ -1634,9 +1796,10 @@ function unassignEmployee(empId){
     emp.totalHrs+=hrs;emp.weeklyHrs=(emp.weeklyHrs||0)+hrs;emp.clockIn=null;
     addLog(`${emp.name} clocked out (${hrs.toFixed(2)}h)`,'out');
     logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn,hoursLogged:hrs.toFixed(2)});
+    setPendingAssignment(emp,{status:'out',bubbleId:'',deptName:'',clockIn:''});
     logSpHoursForBubble(emp,fdn,hrs);
   }
-  else{addLog(`${emp.name} unassigned`,'');logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn,hoursLogged:'0'});}
+  else{addLog(`${emp.name} unassigned`,'');logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn,hoursLogged:'0'});setPendingAssignment(emp,{status:'out',bubbleId:'',deptName:'',clockIn:''});}
   markLocalPositionLock(emp.id);renderAll();
 }
 
@@ -1650,6 +1813,8 @@ function handleDropOnBreakZone(empId,zoneType){
   const dur=zoneType==='break'?BREAK_DURATION:LUNCH_DURATION;
   addLog(`${emp.name} on ${zoneType==='break'?'Break':'Lunch'}`,zoneType==='break'?'brk':'lunch');
   logEvent(zoneType==='break'?'BREAK_START':'LUNCH_START',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn});
+  setPendingAssignment(emp,{status:zoneType,bubbleId:'',deptName:'',returnBubbleId:emp.breakReturnBubble||'',clockIn:emp.clockIn||Date.now()});
+  markLocalPositionLock(emp.id);
   emp._breakTimer=setTimeout(()=>returnFromBreak(emp.id),dur);
   renderAll();
 }
@@ -1688,6 +1853,8 @@ function returnFromBreak(empId){
   const rb=emp.breakReturnBubble?bubbles.find(x=>x.id===emp.breakReturnBubble):null;
   if(rb){rb.employees.push(emp.id);emp.dept=emp.breakReturnBubble;}
   logEvent(et,{empId:emp.id,empName:emp.fullName||emp.name,toDept:rb?rb.name:''});
+  if(rb)setPendingAssignment(emp,{status:'active',bubbleId:rb.id,deptName:rb.name,clockIn:emp.clockIn||Date.now()});
+  markLocalPositionLock(emp.id);
   emp.breakStatus=null;emp.breakStart=null;emp.breakReturnBubble=null;emp._breakTimer=null;
   addLog(`${emp.name} back from ${lbl}`,'in');renderAll();
 }
@@ -1696,7 +1863,7 @@ function renderBreakZones(){
     const el=document.getElementById(zone==='break'?'breakAvatars':'lunchAvatars');if(!el)return;
     el.innerHTML='';
     EMPLOYEES.filter(e=>e.breakStatus===zone).forEach(emp=>{
-      const wrap=document.createElement('div');wrap.className='break-avatar';wrap.draggable=true;
+      const wrap=document.createElement('div');wrap.className='break-avatar'+(hasPendingAssignment(emp.id)?' pending-sync':'');wrap.draggable=true;
       const elapsed=Date.now()-(emp.breakStart||Date.now()),total=zone==='break'?BREAK_DURATION:LUNCH_DURATION;
       const remaining=Math.max(0,Math.ceil((total-elapsed)/60000));
       const tip=document.createElement('div');tip.className='break-tip';tip.textContent=`${emp.name} · ${remaining}m left`;wrap.appendChild(tip);
@@ -2209,6 +2376,75 @@ setInterval(fetchOrdersToday,5*60*1000);setTimeout(fetchOrdersToday,3000);
 
 let syncInFlight=false;
 const localPositionLocks=new Map();
+const PENDING_ASSIGNMENTS_KEY='atomix_pending_assignments_v1';
+const PENDING_ASSIGNMENT_TTL=2*60*1000;
+function getPendingAssignments(){
+  try{return JSON.parse(localStorage.getItem(PENDING_ASSIGNMENTS_KEY)||'{}')||{};}catch(e){return{};}
+}
+function setPendingAssignments(map){
+  try{localStorage.setItem(PENDING_ASSIGNMENTS_KEY,JSON.stringify(map||{}));}catch(e){}
+}
+function setPendingAssignment(emp,patch={}){
+  if(!emp||!emp.id)return;
+  const map=getPendingAssignments();
+  map[String(emp.id)]=Object.assign({
+    empId:String(emp.id),
+    ts:Date.now(),
+    clockIn:emp.clockIn||Date.now(),
+    status:'active',
+    bubbleId:emp.dept||'',
+    deptName:''
+  },patch,{ts:Date.now()});
+  setPendingAssignments(map);
+}
+function clearPendingAssignment(empId){
+  if(!empId)return;
+  const map=getPendingAssignments();
+  if(map[String(empId)]){delete map[String(empId)];setPendingAssignments(map);}
+}
+function pendingAssignmentFor(empId){
+  const p=getPendingAssignments()[String(empId)];
+  if(!p)return null;
+  if(Date.now()-(parseInt(p.ts,10)||0)>PENDING_ASSIGNMENT_TTL){clearPendingAssignment(empId);return null;}
+  return p;
+}
+function backendMatchesPending(s,p){
+  if(!s||!p)return false;
+  const backendStatus=String(s.status||'').toLowerCase();
+  if(p.status==='active')return backendStatus==='active'&&String(s.dept||'').trim()===String(p.deptName||'').trim();
+  if(p.status==='break'||p.status==='lunch')return backendStatus===p.status;
+  if(p.status==='out')return backendStatus!=='active'&&backendStatus!=='break'&&backendStatus!=='lunch';
+  return false;
+}
+function applyPendingAssignment(emp,p,local){
+  if(!emp||!p)return false;
+  emp.dept=null;
+  emp.breakStatus=null;
+  emp.breakStart=null;
+  emp.breakReturnBubble=null;
+  if(p.status==='active'){
+    const target=bubbles.find(b=>b.id===p.bubbleId)||bubbles.find(b=>b.name===p.deptName);
+    if(!target)return false;
+    emp.dept=target.id;
+    emp.clockIn=(local&&local.clockIn)||(parseFloat(p.clockIn)||Date.parse(p.clockIn))||Date.now();
+    if(!target.employees.includes(emp.id))target.employees.push(emp.id);
+    return true;
+  }
+  if(p.status==='break'||p.status==='lunch'){
+    emp.breakStatus=p.status;
+    emp.breakStart=(local&&local.breakStart)||Date.now();
+    emp.breakReturnBubble=p.returnBubbleId||'';
+    emp.clockIn=(local&&local.clockIn)||(parseFloat(p.clockIn)||Date.parse(p.clockIn))||Date.now();
+    return true;
+  }
+  if(p.status==='out'){
+    emp.clockIn=null;
+    emp.totalHrs=(local&&local.totalHrs)||emp.totalHrs||0;
+    emp.weeklyHrs=(local&&local.weeklyHrs)||emp.weeklyHrs||0;
+    return true;
+  }
+  return false;
+}
 function markLocalPositionLock(empId){
   if(!empId)return;
   const now=Date.now();
@@ -2221,6 +2457,7 @@ function isLocalPositionLocked(empId){
   if(Date.now()-ts>DRAG_LOCK_MS){localPositionLocks.delete(String(empId));return false;}
   return true;
 }
+function hasPendingAssignment(empId){return !!pendingAssignmentFor(empId);}
 async function syncFromBackend(){
   if(syncInFlight)return;
   syncInFlight=true;
@@ -2296,6 +2533,12 @@ async function syncFromBackend(){
       const s=backendEmps.find(x=>String(x.id||'')===String(emp.id||''));
       if(!s)return;
       const local=localStateById.get(String(emp.id||''));
+      const pending=pendingAssignmentFor(emp.id);
+      if(pending&&backendMatchesPending(s,pending))clearPendingAssignment(emp.id);
+      else if(pending&&applyPendingAssignment(emp,pending,local)){
+        markLocalPositionLock(emp.id);
+        return;
+      }
       if(local&&isLocalPositionLocked(emp.id)){
         emp.dept=local.dept;
         emp.clockIn=local.clockIn;
