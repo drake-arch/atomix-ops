@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Atomix Labor Clock v2 — MKE</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./atomix-theme.css" />
 <style>
   :root {
     --navy: #0D2D53;
@@ -428,8 +429,522 @@
   .scm-color-row { display:flex; gap:5px; flex-wrap:wrap; margin-top:2px; }
   .scm-cdot { width:18px; height:18px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:transform 0.15s; }
   .scm-cdot:hover, .scm-cdot.selected { transform:scale(1.2); border-color:white; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     NUCLEUS / ATOMIX UI MAKEOVER
+     Style-only layer: preserves all existing IDs, data contracts,
+     drag/drop handlers, bubble creation, sync, analytics, and modals.
+     ═══════════════════════════════════════════════════════════════ */
+  :root {
+    --navy:#10231f;
+    --green:#007A63;
+    --mint:#A3F5C4;
+    --slate:#6B675E;
+    --bg:#F0EBDD;
+    --surface:#FAF7EF;
+    --surface2:#F4F1E9;
+    --surface3:#ECE7DA;
+    --border:#DDD6C5;
+    --border-strong:#C5BDA8;
+    --text:#2C2C2A;
+    --muted:#777166;
+    --blue:#185FA5;
+    --good:#2F8A3A;
+    --warn:#B57E1F;
+    --bad:#A32D2D;
+    --shadow-soft:0 18px 45px rgba(36,32,24,.10);
+    --shadow-card:0 10px 24px rgba(36,32,24,.08);
+  }
+
+  body,
+  html[data-atomix-theme="light"] body,
+  html[data-atomix-theme="dark"] body {
+    font-family:'Inter','DM Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:var(--bg) !important;
+    color:var(--text) !important;
+  }
+  header {
+    height:64px;
+    background:rgba(250,247,239,.96);
+    border-bottom:1px solid var(--border);
+    box-shadow:0 8px 24px rgba(40,34,22,.05);
+    padding:0 22px;
+  }
+  .logo { color:var(--text); font-family:'Inter','DM Sans',sans-serif; letter-spacing:.02em; font-weight:800; }
+  .logo-icon { border-color:var(--green); color:var(--green); background:#EEF8F1; box-shadow:inset 0 0 0 3px rgba(255,255,255,.65); }
+  #modeBadge, .fac-chip { background:#EEF8F1 !important; border-color:rgba(0,122,99,.35) !important; color:var(--green) !important; }
+  .fac-chip { border-radius:999px; box-shadow:none; }
+  .fac-chip .fac-city { color:var(--muted); opacity:1; }
+  .header-stats { gap:14px; }
+  .stat-divider { background:var(--border); height:32px; }
+  .stat-pill { align-items:flex-start; min-width:72px; background:rgba(255,255,255,.55); border:1px solid rgba(221,214,197,.75); border-radius:12px; padding:8px 10px; box-shadow:0 6px 18px rgba(36,32,24,.05); }
+  .stat-pill .val { font-family:'JetBrains Mono','DM Mono',monospace; color:var(--green); font-size:17px; font-weight:800; letter-spacing:-.03em; }
+  .stat-pill .lbl { color:var(--muted); font-weight:700; letter-spacing:.08em; }
+  .clock-display { color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:7px 10px; font-family:'JetBrains Mono','DM Mono',monospace; }
+  .zoom-btn, .heat-toggle, .sp-sync-btn, .day-edit-btn, .scm-btn, .emp-modal-btn.cancel, .fac-modal-btn.cancel {
+    background:#FFFFFF;
+    border-color:var(--border);
+    color:var(--text);
+    border-radius:10px;
+    box-shadow:0 6px 16px rgba(36,32,24,.05);
+  }
+  .zoom-btn:hover, .heat-toggle:hover, .sp-sync-btn:hover, .creator-btn:hover, .roster-toggle:hover { border-color:var(--green); color:var(--green); background:#EEF8F1; }
+  .sync-btn { background:#10231F; color:#FFFFFF; border-color:#10231F; }
+  .heat-toggle.on { background:#FFF3E0; border-color:#D99B33; color:#9A5E00; box-shadow:0 8px 20px rgba(181,126,31,.16); }
+  .ot-alert.show { background:#FFF0EE; border-color:rgba(163,45,45,.28); color:var(--bad); border-radius:12px; }
+
+  .sp-panel {
+    background:linear-gradient(180deg,#FAF7EF 0%,#F4F1E9 100%);
+    border-bottom:1px solid var(--border);
+    box-shadow:0 10px 28px rgba(36,32,24,.05);
+  }
+  .sp-panel-title, .sp-meta-chip, .sp-hrs, .sp-pie-center-num, .scm-btn.primary, .sp-card-modal h3 { color:var(--green); }
+  .sp-meta-chip { background:#EEF8F1; border-color:rgba(0,122,99,.22); }
+  .sp-meta-chip.warn { background:#FFF7E8; border-color:rgba(181,126,31,.28); color:var(--warn); }
+  .sp-meta-chip.hot { background:#FFF0EE; border-color:rgba(163,45,45,.25); color:var(--bad); }
+  .sp-card, .new-bubble-form, .new-emp-form, .emp-hours-display, .sp-total, .fac-option, .scm-input, .sp-card-modal, .emp-modal, .ctx-menu {
+    background:#FFFFFF;
+    border-color:var(--border);
+    color:var(--text);
+    box-shadow:var(--shadow-card);
+  }
+  .sp-card:hover { border-color:rgba(0,122,99,.28); box-shadow:0 14px 32px rgba(36,32,24,.10); }
+  .sp-card-name, .scm-field .scm-val, .bubble-name, .emp-modal-name, .roster-member-name, .nb-billable-row label { color:var(--text); text-shadow:none; }
+  .sp-card-client, .sp-due, .sp-est-lbl, .scm-field label, .scm-sub, .emp-field label, .emp-hours-display .hrs-label, .panel-title, .tube-label, .bubble-count, .bubble-hc-label { color:var(--muted); }
+  .sp-bar-wrap { background:#ECE7DA; }
+
+  .main { background:var(--bg); }
+  .left-panel, .right-panel {
+    background:var(--surface);
+    border-color:var(--border);
+  }
+  .left-panel { width:108px; box-shadow:8px 0 24px rgba(36,32,24,.04); }
+  .right-panel { width:226px; box-shadow:-8px 0 24px rgba(36,32,24,.04); }
+  .panel-section { border-color:var(--border); }
+  .tube-outer { background:#FFFFFF; border-color:var(--border-strong); }
+  .tube-fill { background:linear-gradient(to top,#A3F5C4,#DFF8E6); }
+  .tube-target-line { background:rgba(0,122,99,.45); }
+  .tube-target-line::before { background:var(--green); }
+  .tube-val, .tube-target-input, .emp-hours-display .hrs-val, .sp-total .sp-val { color:var(--green); }
+  .tube-target-input, .pool-search-wrap input, .nb-input, .emp-field select, .emp-field input[type='time'], .emp-field input[type='number'], .emp-field input[type='text'], .day-seg-row input, .day-seg-row select {
+    background:#FFFFFF;
+    color:var(--text);
+    border-color:var(--border);
+  }
+
+  .canvas-area {
+    background:
+      radial-gradient(circle at 78% 24%, rgba(163,245,196,.30) 0, transparent 28%),
+      radial-gradient(circle at 22% 78%, rgba(24,95,165,.10) 0, transparent 30%),
+      linear-gradient(180deg,#FAF7EF 0%,#F4F1E9 100%);
+    border-left:1px solid rgba(221,214,197,.65);
+    border-right:1px solid rgba(221,214,197,.65);
+  }
+  .canvas-area::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background-image:linear-gradient(rgba(44,44,42,.045) 1px, transparent 1px),linear-gradient(90deg, rgba(44,44,42,.045) 1px, transparent 1px);
+    background-size:64px 64px;
+    z-index:0;
+  }
+  canvas#bgCanvas { opacity:.22; }
+
+  .bubble {
+    border-width:1.5px !important;
+    background:rgba(255,255,255,.78) !important;
+    box-shadow:0 18px 40px rgba(40,34,22,.12), inset 0 1px 0 rgba(255,255,255,.8) !important;
+    backdrop-filter:blur(10px) saturate(1.08);
+  }
+  .bubble:hover { box-shadow:0 24px 54px rgba(40,34,22,.16),0 0 0 4px rgba(0,122,99,.08),inset 0 1px 0 rgba(255,255,255,.9) !important; }
+  .bubble.drag-over { box-shadow:0 0 0 4px rgba(0,122,99,.28),0 20px 60px rgba(0,122,99,.24) !important; }
+  .bubble-inner { background:radial-gradient(circle at 38% 22%, rgba(255,255,255,.88), rgba(255,255,255,.50) 46%, rgba(250,247,239,.18) 100%); }
+  .bubble-inner::before { background:rgba(255,255,255,.72); filter:blur(6px); }
+  .bubble-name { font-size:11px; font-weight:800; color:#2C2C2A; text-shadow:0 1px 0 rgba(255,255,255,.55); }
+  .bubble-count, .bubble-hrs { color:var(--muted); font-weight:700; }
+  .bubble-hc, .bubble-burn, .bubble-sp-badge {
+    background:rgba(255,255,255,.86);
+    border:1px solid rgba(197,189,168,.85);
+    color:var(--text);
+    box-shadow:0 8px 18px rgba(36,32,24,.10);
+  }
+  .bubble-hc-num { color:var(--green); font-weight:800; }
+  .bubble.billable { border-color:#D7B83F !important; box-shadow:0 18px 42px rgba(181,126,31,.17),0 0 0 1px rgba(215,184,63,.28),inset 0 1px 0 rgba(255,255,255,.85) !important; }
+  .bubble-bill-badge { background:linear-gradient(135deg,#FFE56A,#F3C743); color:#2C2C2A; box-shadow:0 7px 14px rgba(181,126,31,.20); }
+  .bubble.sp-burn-warm { border-color:#D99B33 !important; box-shadow:0 18px 44px rgba(181,126,31,.22),0 0 0 3px rgba(181,126,31,.10) !important; }
+  .bubble.sp-burn-hot, .bubble.sp-burn-over { border-color:var(--bad) !important; box-shadow:0 18px 44px rgba(163,45,45,.24),0 0 0 3px rgba(163,45,45,.10) !important; }
+
+  .emp-float-img-wrap, .emp-card img, .roster-member-avatar, .break-avatar, .emp-modal-avatar {
+    border-color:#FFFFFF;
+    box-shadow:0 8px 18px rgba(40,34,22,.18),0 0 0 1px rgba(197,189,168,.8);
+  }
+  .emp-float-name {
+    background:rgba(250,247,239,.90);
+    color:var(--text);
+    border:1px solid rgba(221,214,197,.78);
+    text-shadow:none;
+    box-shadow:0 6px 16px rgba(36,32,24,.10);
+  }
+  .emp-card:hover, .roster-member:hover, .roster-dept-header:hover { background:#EEF8F1; }
+  .emp-card span { color:var(--muted); }
+  .emp-card.ot-daily span, .emp-card.ot-weekly span { color:var(--bad) !important; }
+
+  .break-zones { height:118px; background:rgba(250,247,239,.82); border-top:1px solid var(--border); backdrop-filter:blur(10px); }
+  .break-zone { border-top:0; }
+  .break-zone.brk { background:rgba(255,247,232,.72); border-right:1px dashed var(--border-strong); }
+  .break-zone.lunch { background:rgba(232,242,255,.72); }
+  .break-zone-label { font-weight:800; }
+  .break-zone-sub { color:var(--muted); }
+
+  .creator-btn { background:#FFFFFF; border-color:var(--border); color:var(--text); }
+  .creator-btn .btn-icon { background:var(--surface2); color:var(--green); }
+  .nb-btn, .emp-modal-btn.save, .fac-modal-btn.confirm, .day-edit-save { background:#10231F; color:#FFFFFF; }
+  .roster-toggle { background:#FFFFFF; border-color:var(--border); color:var(--text); box-shadow:var(--shadow-card); }
+  .roster-panel, .heat-legend {
+    background:rgba(250,247,239,.97);
+    border-color:var(--border);
+    box-shadow:var(--shadow-soft);
+  }
+  .roster-title, .heat-legend-title, .modal-tab.active { color:var(--green); }
+  .modal-tab.active { border-bottom-color:var(--green); }
+  .ctx-item { color:var(--text); }
+  .ctx-item:hover { background:var(--surface2); }
+  .emp-modal-overlay, .fac-modal-overlay, .sp-card-modal-overlay { background:rgba(44,44,42,.38); backdrop-filter:blur(8px); }
+  .emp-modal, .fac-modal { border-color:var(--border); box-shadow:0 30px 80px rgba(36,32,24,.18); }
+  .fac-modal-title, .fac-option .fac-opt-code { color:var(--green); }
+  .fac-option .fac-opt-city { color:var(--text); }
+  .atomix-theme-toggle { display:none !important; }
+
+  /* Contrast polish for light Nucleus skin; dense labels stay compact but readable. */
+  .sp-card-status.billing,
+  .sp-card-status.awaiting,
+  .sp-meta-chip.warn,
+  .sp-hrs.warn,
+  .sp-due.soon,
+  .break-zone.brk .break-zone-label,
+  .log-item .log-brk { color:#8A4F00 !important; }
+  .sp-card-status.ready,
+  .sp-card-status.quoted,
+  .break-zone.lunch .break-zone-label { color:#185FA5 !important; }
+  .sp-card-status.in-progress,
+  .log-item .log-time,
+  .log-item .log-in,
+  .roster-member-name.is-manager { color:#007A63 !important; }
+  .sp-hrs.over,
+  .sp-due.overdue,
+  .log-item .log-out,
+  .emp-card.ot-daily span,
+  .emp-card.ot-weekly span { color:#A32D2D !important; }
+  .bubble-count,
+  .bubble-hrs,
+  .bubble-hc-label,
+  .panel-title,
+  .tube-label,
+  .break-zone-sub,
+  .emp-card span,
+  .log-item { color:#5F5E5A !important; }
+  .bubble-name,
+  .bubble-count,
+  .bubble-hrs,
+  .bubble-hc,
+  .emp-card span,
+  .log-item,
+  .panel-title,
+  .break-zone-label,
+  .break-zone-sub { line-height:1.32; }
+
+  /* High-end realistic Atomix visual model — inspired by the SOP render reference.
+     Style-only: keeps all data, bubbles, drag/drop, sync, and manager controls intact. */
+  :root {
+    --bg:#EEF1ED;
+    --surface:#FBFAF5;
+    --surface2:#F3F1EA;
+    --surface3:#E8E2D4;
+    --border:#D3CEC0;
+    --border-strong:#AFA793;
+    --text:#1F2522;
+    --muted:#5A625C;
+    --navy:#062D31;
+    --green:#006B52;
+    --mint:#8DF0C0;
+    --blue:#225D8F;
+    --good:#267A45;
+    --warn:#8A4F00;
+    --bad:#9D2E25;
+    --shadow-soft:0 22px 58px rgba(19,31,26,.15);
+    --shadow-card:0 14px 34px rgba(28,34,29,.13), inset 0 1px 0 rgba(255,255,255,.88);
+  }
+  body,
+  html[data-atomix-theme="light"] body,
+  html[data-atomix-theme="dark"] body {
+    background:
+      radial-gradient(circle at 18% 8%, rgba(141,240,192,.30), transparent 26%),
+      radial-gradient(circle at 85% 18%, rgba(6,45,49,.10), transparent 25%),
+      linear-gradient(135deg,#F7F8F3 0%,#EEF1ED 48%,#E2DED2 100%) !important;
+  }
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:.38;
+    background-image:
+      linear-gradient(110deg, rgba(255,255,255,.55), transparent 34%, rgba(6,45,49,.035) 72%, transparent),
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,.45) 0 1px, transparent 1.5px);
+    background-size:auto, 18px 18px;
+    z-index:0;
+  }
+  header {
+    background:linear-gradient(135deg,#062D31 0%,#093D40 72%,#0B4D46 100%);
+    border-bottom:1px solid rgba(141,240,192,.28);
+    box-shadow:0 18px 44px rgba(6,45,49,.22);
+  }
+  .logo { color:#FFFFFF; }
+  .logo-icon { background:rgba(141,240,192,.16); border-color:rgba(141,240,192,.78); color:#A3F5C4; }
+  .stat-pill {
+    background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(239,238,230,.90));
+    border-color:rgba(255,255,255,.56);
+    box-shadow:0 12px 28px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.92);
+  }
+  .canvas-area {
+    background:
+      radial-gradient(ellipse at 50% 92%, rgba(101,78,46,.18), transparent 46%),
+      radial-gradient(circle at 18% 24%, rgba(255,255,255,.75), transparent 28%),
+      radial-gradient(circle at 74% 18%, rgba(141,240,192,.28), transparent 28%),
+      linear-gradient(145deg,#F9F8F1 0%,#EEE9DB 54%,#DCD5C5 100%);
+  }
+  .canvas-area::before {
+    background-image:
+      linear-gradient(rgba(6,45,49,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(6,45,49,.035) 1px, transparent 1px),
+      radial-gradient(circle at 12px 12px, rgba(255,255,255,.42) 0 1px, transparent 2px);
+    background-size:72px 72px,72px 72px,24px 24px;
+    opacity:.82;
+  }
+  .left-panel,.right-panel,.sp-panel {
+    background:linear-gradient(180deg,#FFFEFA 0%,#F1EDE3 100%);
+    box-shadow:var(--shadow-soft);
+  }
+  .sp-card,.new-bubble-form,.new-emp-form,.emp-hours-display,.sp-total,.fac-option,.scm-input,.sp-card-modal,.emp-modal,.ctx-menu,.creator-btn,.roster-toggle {
+    background:linear-gradient(180deg,#FFFFFF 0%,#F4F1E8 100%);
+    border:1px solid rgba(175,167,147,.72);
+    box-shadow:var(--shadow-card);
+  }
+  .bubble {
+    background:
+      radial-gradient(circle at 34% 22%, rgba(255,255,255,.96) 0 13%, rgba(255,255,255,.54) 14% 24%, transparent 25%),
+      radial-gradient(circle at 72% 76%, rgba(6,45,49,.18), transparent 30%),
+      linear-gradient(145deg, rgba(255,255,255,.82), rgba(223,216,199,.68)) !important;
+    border:1.5px solid rgba(6,45,49,.20) !important;
+    box-shadow:
+      0 28px 48px rgba(45,36,24,.20),
+      0 6px 14px rgba(45,36,24,.12),
+      inset -14px -18px 28px rgba(71,63,49,.10),
+      inset 12px 14px 30px rgba(255,255,255,.74) !important;
+    transform-style:preserve-3d;
+  }
+  .bubble::after {
+    content:'';
+    position:absolute;
+    inset:9%;
+    border-radius:50%;
+    pointer-events:none;
+    background:linear-gradient(145deg,rgba(255,255,255,.40),transparent 40%,rgba(6,45,49,.07) 100%);
+    mix-blend-mode:soft-light;
+  }
+  .bubble:hover {
+    box-shadow:
+      0 34px 60px rgba(45,36,24,.24),
+      0 0 0 4px rgba(0,138,104,.12),
+      inset -14px -18px 28px rgba(71,63,49,.10),
+      inset 14px 16px 34px rgba(255,255,255,.80) !important;
+  }
+  .bubble-inner {
+    background:radial-gradient(circle at 38% 24%, rgba(255,255,255,.78), rgba(255,255,255,.22) 34%, rgba(6,45,49,.045) 100%);
+  }
+  .bubble-name { color:#16231F; font-weight:900; letter-spacing:-.01em; }
+  .bubble-hc,.bubble-burn,.bubble-sp-badge,.emp-float-name {
+    background:rgba(255,255,255,.91);
+    border-color:rgba(175,167,147,.75);
+    box-shadow:0 10px 22px rgba(35,29,22,.14), inset 0 1px 0 rgba(255,255,255,.78);
+  }
+  .emp-float-img-wrap,.emp-card img,.roster-member-avatar,.break-avatar,.emp-modal-avatar {
+    border:2px solid #FFFDF7;
+    box-shadow:0 12px 22px rgba(35,29,22,.20),0 0 0 1px rgba(6,45,49,.14);
+  }
+  .break-zones {
+    background:linear-gradient(180deg,rgba(255,253,247,.82),rgba(231,224,209,.86));
+    box-shadow:0 -18px 42px rgba(35,29,22,.10);
+  }
+  .break-zone.brk { background:linear-gradient(180deg,rgba(255,247,232,.84),rgba(239,222,194,.72)); }
+  .break-zone.lunch { background:linear-gradient(180deg,rgba(237,246,251,.84),rgba(215,226,231,.72)); }
+  .nb-btn,.emp-modal-btn.save,.fac-modal-btn.confirm,.day-edit-save,.sync-btn {
+    background:linear-gradient(135deg,#062D31,#0D4B46) !important;
+    box-shadow:0 12px 24px rgba(6,45,49,.24), inset 0 1px 0 rgba(255,255,255,.18);
+  }
+
+  /* Thoughtful revision: make sync trust visible on the people themselves. */
+  .emp-float.pending-sync .emp-float-img-wrap,
+  .break-avatar.pending-sync {
+    box-shadow:
+      0 12px 22px rgba(35,29,22,.20),
+      0 0 0 2px rgba(217,155,51,.75),
+      0 0 18px rgba(217,155,51,.28) !important;
+  }
+  .emp-float.pending-sync::after,
+  .break-avatar.pending-sync::after {
+    content:'SYNC';
+    position:absolute;
+    top:-7px;
+    right:-12px;
+    z-index:30;
+    padding:2px 5px;
+    border-radius:999px;
+    background:#FFF4DB;
+    border:1px solid rgba(217,155,51,.55);
+    color:#8A4F00;
+    font-family:'JetBrains Mono','DM Mono',monospace;
+    font-size:7px;
+    font-weight:800;
+    letter-spacing:.06em;
+    box-shadow:0 8px 16px rgba(35,29,22,.14);
+  }
+  .sync-btn.syncing { color:#A3F5C4 !important; }
+
+  /* Revision 2: intentional command-surface hierarchy.
+     More information at a glance, without touching IDs, drag/drop, or backend logic. */
+  header { gap:18px; }
+  .logo { min-width:210px; }
+  .logo::after {
+    content:'Live allocation board';
+    display:block;
+    margin-left:4px;
+    color:rgba(255,255,255,.58);
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+  }
+  .header-stats {
+    flex:1;
+    justify-content:flex-end;
+    padding-left:12px;
+  }
+  .stat-pill {
+    min-width:86px;
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-pill::before {
+    content:'';
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:3px;
+    background:linear-gradient(180deg,#A3F5C4,#006B52);
+    opacity:.85;
+  }
+  #backendPill::before { background:linear-gradient(180deg,#A3F5C4,#2F8A3A); }
+  #modeBadge {
+    border-radius:999px;
+    padding:5px 10px;
+    background:rgba(163,245,196,.12)!important;
+    color:#DDF8E8!important;
+    border-color:rgba(163,245,196,.35)!important;
+  }
+  .sp-panel-bar {
+    border-bottom:1px solid rgba(175,167,147,.30);
+  }
+  .sp-panel-title::before { content:'▣ '; color:#006B52; }
+  .sp-scroll { padding-top:8px; }
+  .sp-card {
+    min-width:220px;
+    border-radius:14px;
+    padding:12px 13px;
+  }
+  .sp-card-name { font-size:12px; }
+  .sp-card-client { color:#006B52!important; font-weight:800; }
+  .main { isolation:isolate; }
+  .left-panel {
+    width:116px;
+    padding-top:18px;
+    gap:20px;
+  }
+  .left-panel::before {
+    content:'Floor load';
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:#5A625C;
+    font-weight:900;
+  }
+  .canvas-area::after {
+    content:'MKE FLOOR MAP  ·  drag faces into bubbles  ·  yellow SYNC means backend confirmation pending';
+    position:absolute;
+    left:154px;
+    top:16px;
+    z-index:2;
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.82);
+    border:1px solid rgba(175,167,147,.60);
+    color:#405047;
+    font-family:'JetBrains Mono','DM Mono',monospace;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.04em;
+    box-shadow:0 12px 28px rgba(35,29,22,.10);
+    pointer-events:none;
+  }
+  .bubble {
+    outline:1px solid rgba(255,255,255,.62);
+    outline-offset:-6px;
+  }
+  .bubble-name {
+    max-width:74%;
+    font-size:12px!important;
+    text-transform:none;
+  }
+  .bubble-count {
+    margin-top:2px;
+    padding:2px 8px;
+    border-radius:999px;
+    background:rgba(255,255,255,.64);
+    border:1px solid rgba(175,167,147,.52);
+    color:#405047!important;
+  }
+  .bubble-hrs { color:#006B52!important; }
+  .bubble-hc {
+    bottom:10px;
+    border-radius:999px;
+    padding:4px 11px;
+  }
+  .emp-float-img-wrap { background:#fff; }
+  .emp-float-name {
+    font-size:8px;
+    font-weight:900;
+    max-width:62px;
+  }
+  .break-zones {
+    height:126px;
+    border-top:1px solid rgba(175,167,147,.68);
+  }
+  .break-zone-label::before { opacity:.72; }
+  .break-zone.brk .break-zone-label::before { content:'◷ '; }
+  .break-zone.lunch .break-zone-label::before { content:'◌ '; }
+  .right-panel {
+    width:248px;
+  }
+  .panel-title {
+    font-size:10px;
+    color:#405047!important;
+  }
+  .creator-btn,.roster-toggle,.new-bubble-form,.new-emp-form {
+    border-radius:14px;
+  }
 </style>
-  <link rel="stylesheet" href="./atomix-theme.css" />
   <script src="./atomix-theme-toggle.js" defer></script>
 </head>
 <body>
@@ -1183,7 +1698,7 @@ function makeBubbleElement(b,isChild,parentEl,parentSize){
   b.employees.forEach((eid,idx)=>{
     const emp=EMPLOYEES.find(e=>e.id===eid);if(!emp)return;
     const angle=(idx/Math.max(b.employees.length,1))*Math.PI*2-Math.PI/2,r=size*0.28,cx=size/2+Math.cos(angle)*r,cy=size/2+Math.sin(angle)*r;
-    const empEl=document.createElement('div');empEl.className='emp-float';empEl.id='empfloat-'+eid;
+    const empEl=document.createElement('div');empEl.className='emp-float'+(hasPendingAssignment(eid)?' pending-sync':'');empEl.id='empfloat-'+eid;
     empEl.setAttribute('data-empid',eid);empEl.setAttribute('data-origin-bubble',b.id);empEl.draggable=true;
     empEl.style.cssText=`left:${cx-avatarSize/2}px;top:${cy-avatarSize/2}px;width:${avatarSize}px;`;
     const imgWrap=document.createElement('div');imgWrap.className='emp-float-img-wrap';imgWrap.style.cssText=`width:${avatarSize}px;height:${avatarSize}px;`;
@@ -1258,12 +1773,13 @@ function handleDropOnBubble(e,targetBid){
   const nb=bubbles.find(b=>b.id===targetBid);
   if(nb&&!nb.employees.includes(empId)){
     nb.employees.push(empId);emp.dept=targetBid;
-    if(!emp.clockIn){emp.clockIn=Date.now();addLog(`${emp.name} → ${nb.name}`,'in');logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});logEvent('ASSIGN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});markLocalPositionLock(emp.id);}
+    if(!emp.clockIn){emp.clockIn=Date.now();addLog(`${emp.name} → ${nb.name}`,'in');logEvent('CLOCK_IN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});logEvent('ASSIGN',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});setPendingAssignment(emp,{status:'active',bubbleId:nb.id,deptName:nb.name,clockIn:emp.clockIn});markLocalPositionLock(emp.id);}
     else{
       const originName=currentDragOrigin&&currentDragOrigin!=='pool'&&currentDragOrigin!=='break'?(bubbles.find(b=>b.id===currentDragOrigin)?.name||''):'';
       if(nb.name!==originName){
         addLog(`${emp.name} moved to ${nb.name}`,'');
-        logEvent('MOVE',{empId:emp.id,empName:emp.fullName||emp.name,toDept:nb.name,shiftStart:emp.shiftStart||''});
+        logEvent('MOVE',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:originName,toDept:nb.name,shiftStart:emp.shiftStart||''});
+        setPendingAssignment(emp,{status:'active',bubbleId:nb.id,deptName:nb.name,clockIn:emp.clockIn});
         markLocalPositionLock(emp.id);
       }
     }
@@ -1280,9 +1796,10 @@ function unassignEmployee(empId){
     emp.totalHrs+=hrs;emp.weeklyHrs=(emp.weeklyHrs||0)+hrs;emp.clockIn=null;
     addLog(`${emp.name} clocked out (${hrs.toFixed(2)}h)`,'out');
     logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn,hoursLogged:hrs.toFixed(2)});
+    setPendingAssignment(emp,{status:'out',bubbleId:'',deptName:'',clockIn:''});
     logSpHoursForBubble(emp,fdn,hrs);
   }
-  else{addLog(`${emp.name} unassigned`,'');logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn,hoursLogged:'0'});}
+  else{addLog(`${emp.name} unassigned`,'');logEvent('CLOCK_OUT',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn,hoursLogged:'0'});setPendingAssignment(emp,{status:'out',bubbleId:'',deptName:'',clockIn:''});}
   markLocalPositionLock(emp.id);renderAll();
 }
 
@@ -1296,6 +1813,8 @@ function handleDropOnBreakZone(empId,zoneType){
   const dur=zoneType==='break'?BREAK_DURATION:LUNCH_DURATION;
   addLog(`${emp.name} on ${zoneType==='break'?'Break':'Lunch'}`,zoneType==='break'?'brk':'lunch');
   logEvent(zoneType==='break'?'BREAK_START':'LUNCH_START',{empId:emp.id,empName:emp.fullName||emp.name,fromDept:fdn});
+  setPendingAssignment(emp,{status:zoneType,bubbleId:'',deptName:'',returnBubbleId:emp.breakReturnBubble||'',clockIn:emp.clockIn||Date.now()});
+  markLocalPositionLock(emp.id);
   emp._breakTimer=setTimeout(()=>returnFromBreak(emp.id),dur);
   renderAll();
 }
@@ -1334,6 +1853,8 @@ function returnFromBreak(empId){
   const rb=emp.breakReturnBubble?bubbles.find(x=>x.id===emp.breakReturnBubble):null;
   if(rb){rb.employees.push(emp.id);emp.dept=emp.breakReturnBubble;}
   logEvent(et,{empId:emp.id,empName:emp.fullName||emp.name,toDept:rb?rb.name:''});
+  if(rb)setPendingAssignment(emp,{status:'active',bubbleId:rb.id,deptName:rb.name,clockIn:emp.clockIn||Date.now()});
+  markLocalPositionLock(emp.id);
   emp.breakStatus=null;emp.breakStart=null;emp.breakReturnBubble=null;emp._breakTimer=null;
   addLog(`${emp.name} back from ${lbl}`,'in');renderAll();
 }
@@ -1342,7 +1863,7 @@ function renderBreakZones(){
     const el=document.getElementById(zone==='break'?'breakAvatars':'lunchAvatars');if(!el)return;
     el.innerHTML='';
     EMPLOYEES.filter(e=>e.breakStatus===zone).forEach(emp=>{
-      const wrap=document.createElement('div');wrap.className='break-avatar';wrap.draggable=true;
+      const wrap=document.createElement('div');wrap.className='break-avatar'+(hasPendingAssignment(emp.id)?' pending-sync':'');wrap.draggable=true;
       const elapsed=Date.now()-(emp.breakStart||Date.now()),total=zone==='break'?BREAK_DURATION:LUNCH_DURATION;
       const remaining=Math.max(0,Math.ceil((total-elapsed)/60000));
       const tip=document.createElement('div');tip.className='break-tip';tip.textContent=`${emp.name} · ${remaining}m left`;wrap.appendChild(tip);
@@ -1855,6 +2376,75 @@ setInterval(fetchOrdersToday,5*60*1000);setTimeout(fetchOrdersToday,3000);
 
 let syncInFlight=false;
 const localPositionLocks=new Map();
+const PENDING_ASSIGNMENTS_KEY='atomix_pending_assignments_v1';
+const PENDING_ASSIGNMENT_TTL=2*60*1000;
+function getPendingAssignments(){
+  try{return JSON.parse(localStorage.getItem(PENDING_ASSIGNMENTS_KEY)||'{}')||{};}catch(e){return{};}
+}
+function setPendingAssignments(map){
+  try{localStorage.setItem(PENDING_ASSIGNMENTS_KEY,JSON.stringify(map||{}));}catch(e){}
+}
+function setPendingAssignment(emp,patch={}){
+  if(!emp||!emp.id)return;
+  const map=getPendingAssignments();
+  map[String(emp.id)]=Object.assign({
+    empId:String(emp.id),
+    ts:Date.now(),
+    clockIn:emp.clockIn||Date.now(),
+    status:'active',
+    bubbleId:emp.dept||'',
+    deptName:''
+  },patch,{ts:Date.now()});
+  setPendingAssignments(map);
+}
+function clearPendingAssignment(empId){
+  if(!empId)return;
+  const map=getPendingAssignments();
+  if(map[String(empId)]){delete map[String(empId)];setPendingAssignments(map);}
+}
+function pendingAssignmentFor(empId){
+  const p=getPendingAssignments()[String(empId)];
+  if(!p)return null;
+  if(Date.now()-(parseInt(p.ts,10)||0)>PENDING_ASSIGNMENT_TTL){clearPendingAssignment(empId);return null;}
+  return p;
+}
+function backendMatchesPending(s,p){
+  if(!s||!p)return false;
+  const backendStatus=String(s.status||'').toLowerCase();
+  if(p.status==='active')return backendStatus==='active'&&String(s.dept||'').trim()===String(p.deptName||'').trim();
+  if(p.status==='break'||p.status==='lunch')return backendStatus===p.status;
+  if(p.status==='out')return backendStatus!=='active'&&backendStatus!=='break'&&backendStatus!=='lunch';
+  return false;
+}
+function applyPendingAssignment(emp,p,local){
+  if(!emp||!p)return false;
+  emp.dept=null;
+  emp.breakStatus=null;
+  emp.breakStart=null;
+  emp.breakReturnBubble=null;
+  if(p.status==='active'){
+    const target=bubbles.find(b=>b.id===p.bubbleId)||bubbles.find(b=>b.name===p.deptName);
+    if(!target)return false;
+    emp.dept=target.id;
+    emp.clockIn=(local&&local.clockIn)||(parseFloat(p.clockIn)||Date.parse(p.clockIn))||Date.now();
+    if(!target.employees.includes(emp.id))target.employees.push(emp.id);
+    return true;
+  }
+  if(p.status==='break'||p.status==='lunch'){
+    emp.breakStatus=p.status;
+    emp.breakStart=(local&&local.breakStart)||Date.now();
+    emp.breakReturnBubble=p.returnBubbleId||'';
+    emp.clockIn=(local&&local.clockIn)||(parseFloat(p.clockIn)||Date.parse(p.clockIn))||Date.now();
+    return true;
+  }
+  if(p.status==='out'){
+    emp.clockIn=null;
+    emp.totalHrs=(local&&local.totalHrs)||emp.totalHrs||0;
+    emp.weeklyHrs=(local&&local.weeklyHrs)||emp.weeklyHrs||0;
+    return true;
+  }
+  return false;
+}
 function markLocalPositionLock(empId){
   if(!empId)return;
   const now=Date.now();
@@ -1867,6 +2457,7 @@ function isLocalPositionLocked(empId){
   if(Date.now()-ts>DRAG_LOCK_MS){localPositionLocks.delete(String(empId));return false;}
   return true;
 }
+function hasPendingAssignment(empId){return !!pendingAssignmentFor(empId);}
 async function syncFromBackend(){
   if(syncInFlight)return;
   syncInFlight=true;
@@ -1942,6 +2533,12 @@ async function syncFromBackend(){
       const s=backendEmps.find(x=>String(x.id||'')===String(emp.id||''));
       if(!s)return;
       const local=localStateById.get(String(emp.id||''));
+      const pending=pendingAssignmentFor(emp.id);
+      if(pending&&backendMatchesPending(s,pending))clearPendingAssignment(emp.id);
+      else if(pending&&applyPendingAssignment(emp,pending,local)){
+        markLocalPositionLock(emp.id);
+        return;
+      }
       if(local&&isLocalPositionLocked(emp.id)){
         emp.dept=local.dept;
         emp.clockIn=local.clockIn;

@@ -115,6 +115,35 @@ main{flex:1;overflow:hidden;display:flex;}
 </style>
   <link rel="stylesheet" href="./atomix-theme.css" />
   <script src="./atomix-theme-toggle.js" defer></script>
+  <style id="analytics-nucleus-overrides">
+    :root {
+      --green:#006B52;--green2:#2F9E70;--amber:#9A5E00;--red:#A8322A;--blue:#225D8F;--purple:#6F51A8;
+      --bg:#EEF1ED;--s1:#FBFAF5;--s2:#F3F1EA;--s3:#E8E2D4;
+      --border:#D3CEC0;--border2:#AFA793;--text:#1F2522;--muted:#5A625C;
+      --mke:#008A68;--slc:#225D8F;--bal:#B36B00;
+      --mono:'DM Mono',monospace;
+    }
+    html,body{background:radial-gradient(circle at 16% 8%,rgba(141,240,192,.28),transparent 28%),linear-gradient(135deg,#F7F8F3,#EEF1ED 48%,#E2DED2)!important;color:var(--text)!important;}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.34;background-image:linear-gradient(110deg,rgba(255,255,255,.55),transparent 34%,rgba(6,45,49,.035) 72%,transparent),radial-gradient(circle at 30% 20%,rgba(255,255,255,.45) 0 1px,transparent 1.5px);background-size:auto,18px 18px;}
+    header{height:64px;background:linear-gradient(135deg,#062D31 0%,#093D40 72%,#0B4D46 100%)!important;border-bottom:1px solid rgba(141,240,192,.28)!important;box-shadow:0 18px 44px rgba(6,45,49,.22);padding:0 22px;}
+    .logo{color:#fff;font-weight:800;letter-spacing:.04em;}.lm{border-radius:50%;background:rgba(141,240,192,.16);border-color:rgba(141,240,192,.78);color:#A3F5C4;box-shadow:inset 0 0 0 3px rgba(255,255,255,.08)}
+    .ll,.ld{color:#A3F5C4}.ld{background:#A3F5C4;box-shadow:0 0 10px #A3F5C4}.ts{color:rgba(255,255,255,.66)}
+    select.fs,.bb{background:rgba(255,255,255,.10);border-color:rgba(163,245,196,.28);color:#fff;border-radius:10px}.br{background:#A3F5C4;color:#062D31;border-radius:10px;box-shadow:0 12px 24px rgba(6,45,49,.24)}
+    nav{height:48px;background:rgba(251,250,245,.94)!important;border-bottom:1px solid var(--border);box-shadow:0 10px 28px rgba(35,29,22,.06);gap:6px}.tab{border-radius:999px;color:var(--muted);font-weight:700}.tab.active{background:#10231F!important;color:#fff!important;border-color:#10231F}.tab:hover{background:#EEF8F1;color:var(--green)}
+    .view{padding:18px 22px;gap:14px}.sc,.cc,.sc2,.fr,.spc{background:linear-gradient(180deg,#FFFFFF 0%,#F4F1E8 100%)!important;border:1px solid rgba(175,167,147,.72)!important;border-radius:16px!important;box-shadow:0 14px 34px rgba(28,34,29,.12),inset 0 1px 0 rgba(255,255,255,.88)}
+    .sc::before,.spc::before{height:4px;border-radius:16px 16px 0 0}.sl,.ct,.sil,.stit,.fl,.spclbl,.tbl th{color:#5A625C!important;font-weight:800}.sv,.siv,.spcval,.my{color:var(--green)}.ss,.sis,.scity,.mn{color:var(--muted)}
+    .cw{background:rgba(255,255,255,.38);border-radius:12px;padding:6px}.tbl th{background:#F3F1EA;border-bottom:1px solid var(--border)}.tbl td{border-bottom:1px solid rgba(175,167,147,.34);color:var(--text)}.tbl tr:hover td{background:#EEF8F1}.badge,.db,.st,.burn{border-radius:999px;font-weight:700}
+    .fse,.fin{background:#fff;color:var(--text);border-color:var(--border);border-radius:10px}.fb,.eb{border-radius:10px}.fb{background:#10231F;color:#fff}.eb{background:#fff;border-color:var(--border2);color:var(--green)}.toast{background:#fff;border-color:var(--border);color:var(--text);box-shadow:0 16px 38px rgba(28,34,29,.16)}.atomix-theme-toggle{display:none!important}
+    @media(max-width:900px){.g2,.g3,.tri{grid-template-columns:1fr}.hr{gap:6px;flex-wrap:wrap}header{height:auto;min-height:64px;padding:10px 14px}.view{padding:14px}}
+
+    /* Revision 2: analytics should feel like the same command surface as Labor Clock. */
+    .logo::after{content:'Labor intelligence cockpit';display:block;margin-left:4px;color:rgba(255,255,255,.58);font-size:9px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;}
+    .hr{padding:5px 6px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(163,245,196,.18)}
+    nav::before{content:'Analytics';font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#405047;font-weight:900;margin-right:8px;}
+    .view.active{position:relative;}
+    #view-overview::before{content:'Network view  ·  sites, hours, cost, forecast, and staffing mix';display:block;padding:9px 13px;border-radius:999px;background:rgba(255,255,255,.78);border:1px solid rgba(175,167,147,.60);color:#405047;font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.035em;box-shadow:0 10px 24px rgba(35,29,22,.08)}
+    .sr{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.sc{min-height:88px;padding:15px 16px!important;}.sl,.spclbl{font-size:9px}.sv,.spcval{font-size:24px;letter-spacing:-.04em}.ss,.spcsub{font-size:10px;color:#58645D!important}.cc{padding:15px!important}.ct{font-size:10px;display:flex;align-items:center;justify-content:space-between}.ct::after{content:'LIVE';font-family:var(--mono);font-size:8px;color:#006B52;background:#E6F6EC;border:1px solid rgba(0,107,82,.20);border-radius:999px;padding:2px 6px}.sc2{padding:16px!important;border-top-width:0!important;position:relative}.sc2::before{content:'';position:absolute;inset:0 0 auto 0;height:5px;background:var(--ac);border-radius:16px 16px 0 0}.scode{font-size:24px;letter-spacing:-.04em}.sg{gap:9px}.si{background:rgba(255,255,255,.68);border-color:rgba(175,167,147,.50);border-radius:12px;padding:10px}.sil{font-size:8px}.siv{font-size:18px}.tbl{background:rgba(255,255,255,.36);border-radius:12px;overflow:hidden}.tbl th{position:sticky;top:0;z-index:2}.spg{grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}.spc{min-height:92px;padding:14px!important}.badge.MKE{background:#E6F6EC;color:#006B52}.badge.SLC{background:#E8F1FA;color:#225D8F}.badge.BAL{background:#FFF2DD;color:#8A4F00}.st.active{background:#E6F6EC;color:#006B52}.st.break{background:#FFF2DD;color:#8A4F00}.st.lunch{background:#E8F1FA;color:#225D8F}.cw{height:210px}.fr{padding:11px 14px!important;gap:10px}.cb.show{background:#FFF2DD;color:#1F2522;border-bottom-color:#A8322A}
+  </style>
 </head>
 <body>
 <header>
