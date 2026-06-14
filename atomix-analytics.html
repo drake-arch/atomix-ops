@@ -6,6 +6,16 @@
 <title>Atomix Analytics</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  (() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if(params.has('_nucleus_view') || params.get('nucleus_skin') === '1'){
+        document.documentElement.classList.add('nucleus-analytics-skin');
+      }
+    } catch(_) {}
+  })();
+</script>
 <style>
 :root {
   --green:#A3F3C5;--green2:#6ee8a0;--amber:#F6AD55;--red:#FC8181;--blue:#63B3ED;--purple:#B794F4;
@@ -112,6 +122,96 @@ main{flex:1;overflow:hidden;display:flex;}
 .cb{display:none;position:fixed;top:54px;left:0;right:0;z-index:400;background:#1a0808;border-bottom:2px solid var(--red);padding:10px 20px;font-size:11px;color:var(--text);align-items:center;gap:10px;}
 .cb.show{display:flex;}
 .cb strong{color:var(--amber);}
+
+/* Nucleus-only skin. Activated only when Nucleus embeds the analytics page
+   with _nucleus_view=... or nucleus_skin=1, so standalone Atomix Ops metrics
+   keep their original dark analytics look. */
+html.nucleus-analytics-skin{
+  --green:#006B52;--green2:#0F8B6B;--amber:#A66B16;--red:#A23B3B;--blue:#185FA5;--purple:#6D5BD0;
+  --bg:#EEF1ED;--s1:#FBFAF5;--s2:#FFFFFF;--s3:#F4F1E8;
+  --border:rgba(175,167,147,.58);--border2:rgba(6,107,82,.24);
+  --text:#1F2522;--muted:#5A625C;
+  color-scheme:light;
+}
+html.nucleus-analytics-skin body{
+  background:radial-gradient(circle at 18% 10%,rgba(163,245,196,.30),transparent 28%),linear-gradient(135deg,#F7F8F3,#EEF1ED 50%,#E2DED2);
+  color:var(--text);
+}
+html.nucleus-analytics-skin body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;opacity:.30;z-index:0;
+  background-image:radial-gradient(circle at 30% 20%,rgba(255,255,255,.58) 0 1px,transparent 1.5px),linear-gradient(110deg,rgba(255,255,255,.42),transparent 36%,rgba(6,45,49,.04) 72%,transparent);
+  background-size:18px 18px,auto;
+}
+html.nucleus-analytics-skin header,
+html.nucleus-analytics-skin nav,
+html.nucleus-analytics-skin main{
+  position:relative;z-index:2;
+}
+html.nucleus-analytics-skin header{
+  background:linear-gradient(135deg,#062D31 0%,#093D40 72%,#0B4D46 100%);
+  border-bottom:1px solid rgba(163,245,196,.26);
+  box-shadow:0 18px 44px rgba(6,45,49,.22);
+}
+html.nucleus-analytics-skin .logo{color:#fff;}
+html.nucleus-analytics-skin .logo::after{
+  content:'Nucleus read-only metrics';display:block;margin-left:4px;color:rgba(255,255,255,.58);
+  font-size:9px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;
+}
+html.nucleus-analytics-skin .lm{
+  background:rgba(163,245,196,.12);border-color:rgba(163,245,196,.58);color:#A3F5C4;
+}
+html.nucleus-analytics-skin .ld{background:#A3F5C4;box-shadow:0 0 8px rgba(163,245,196,.74);}
+html.nucleus-analytics-skin .ll{color:#A3F5C4;}
+html.nucleus-analytics-skin .ts{color:rgba(255,255,255,.58);}
+html.nucleus-analytics-skin select.fs,
+html.nucleus-analytics-skin .br,
+html.nucleus-analytics-skin .bb{
+  background:rgba(255,255,255,.10);border:1px solid rgba(163,245,196,.28);color:#fff;border-radius:10px;
+}
+html.nucleus-analytics-skin nav{
+  background:rgba(251,250,245,.94);border-bottom:1px solid rgba(175,167,147,.58);box-shadow:0 10px 24px rgba(28,34,29,.08);
+}
+html.nucleus-analytics-skin .tab{color:#5A625C;border-radius:999px;}
+html.nucleus-analytics-skin .tab.active{
+  background:#062D31;color:#A3F5C4;border-color:rgba(6,45,49,.26);box-shadow:0 10px 22px rgba(6,45,49,.14);
+}
+html.nucleus-analytics-skin .view::before{
+  content:'LIVE LABOR METRICS  ·  embedded in Nucleus  ·  read-only skin only';
+  display:inline-flex;align-self:flex-start;margin:0 0 2px;padding:8px 12px;border-radius:999px;
+  background:rgba(255,255,255,.84);border:1px solid rgba(175,167,147,.60);color:#405047;
+  font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.04em;box-shadow:0 12px 28px rgba(35,29,22,.10);
+}
+html.nucleus-analytics-skin .sc,
+html.nucleus-analytics-skin .cc,
+html.nucleus-analytics-skin .sc2,
+html.nucleus-analytics-skin .si,
+html.nucleus-analytics-skin .fr,
+html.nucleus-analytics-skin .spc{
+  background:linear-gradient(180deg,#FFFFFF,#F4F1E8);border-color:rgba(175,167,147,.62);border-radius:14px;
+  box-shadow:0 10px 24px rgba(28,34,29,.10),inset 0 1px 0 rgba(255,255,255,.86);color:var(--text);
+}
+html.nucleus-analytics-skin .sc::before,
+html.nucleus-analytics-skin .spc::before{opacity:.95;}
+html.nucleus-analytics-skin .sl,
+html.nucleus-analytics-skin .ss,
+html.nucleus-analytics-skin .ct,
+html.nucleus-analytics-skin .scity,
+html.nucleus-analytics-skin .sil,
+html.nucleus-analytics-skin .sis,
+html.nucleus-analytics-skin .fl,
+html.nucleus-analytics-skin .tbl th{color:#5A625C;}
+html.nucleus-analytics-skin .tbl td{color:#1F2522;border-bottom-color:rgba(175,167,147,.32);}
+html.nucleus-analytics-skin .tbl tr:hover td{background:rgba(6,107,82,.06);}
+html.nucleus-analytics-skin .fse,
+html.nucleus-analytics-skin .fin{
+  background:#fff;border-color:rgba(175,167,147,.70);color:#1F2522;border-radius:8px;
+}
+html.nucleus-analytics-skin .fb,
+html.nucleus-analytics-skin .eb{
+  background:#062D31;border-color:#062D31;color:#A3F5C4;border-radius:999px;font-weight:800;
+}
+html.nucleus-analytics-skin .pb,
+html.nucleus-analytics-skin .bt{background:rgba(6,45,49,.10);}
 </style>
   <link rel="stylesheet" href="./atomix-theme.css" />
   <script src="./atomix-theme-toggle.js" defer></script>
