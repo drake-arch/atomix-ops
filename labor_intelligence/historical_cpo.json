@@ -232,67 +232,69 @@
       "facility": "SLC",
       "week_start": "2026-07-27",
       "week_end": "2026-08-02",
-      "labor_cost": 2486.44,
-      "labor_hours": 141.95,
+      "labor_cost": 2617.02,
+      "labor_hours": 149.08,
       "daily_costs": {
         "Mon 07/27/2026": 474.41,
-        "Tue 07/28/2026": 438.63,
+        "Tue 07/28/2026": 495.18,
         "Wed 07/29/2026": 453.03,
         "Thu 07/30/2026": 708.55,
-        "Fri 07/31/2026": 411.82,
+        "Fri 07/31/2026": 485.85,
         "Sat 08/01/2026": 0.0,
         "Sun 08/02/2026": 0.0
       },
       "daily_hours": {
         "Mon 07/27/2026": 26.57,
-        "Tue 07/28/2026": 25.27,
+        "Tue 07/28/2026": 28.17,
         "Wed 07/29/2026": 26.68,
         "Thu 07/30/2026": 40.6,
-        "Fri 07/31/2026": 22.83,
+        "Fri 07/31/2026": 27.06,
         "Sat 08/01/2026": 0.0,
         "Sun 08/02/2026": 0.0
       },
       "department_costs": {
+        "Unassigned": 130.58,
         "Outbound": 1758.0,
         "SLC Kitting": 728.44
       },
-      "labor_source_file": "SLC_2026-07-27_to_2026-08-02.csv",
+      "labor_source_file": "SLC_2026-07-27_to_2026-08-02.csv + Homebase report API unassigned-role adjustment",
       "orders_shipped": 12521,
-      "cost_per_order": 0.1986,
-      "orders_per_labor_hour": 88.21
+      "cost_per_order": 0.209,
+      "orders_per_labor_hour": 83.99
     },
     {
       "facility": "SLC",
       "week_start": "2026-08-03",
       "week_end": "2026-08-09",
-      "labor_cost": 2713.26,
-      "labor_hours": 154.99,
+      "labor_cost": 3073.99,
+      "labor_hours": 174.73,
       "daily_costs": {
-        "Mon 08/03/2026": 550.46,
+        "Mon 08/03/2026": 723.6,
         "Tue 08/04/2026": 657.59,
         "Wed 08/05/2026": 662.17,
         "Thu 08/06/2026": 482.15,
         "Fri 08/07/2026": 360.89,
         "Sat 08/08/2026": 0.0,
-        "Sun 08/09/2026": 0.0
+        "Sun 08/09/2026": 187.59
       },
       "daily_hours": {
-        "Mon 08/03/2026": 30.73,
+        "Mon 08/03/2026": 41.55,
         "Tue 08/04/2026": 37.6,
         "Wed 08/05/2026": 38.2,
         "Thu 08/06/2026": 28.66,
         "Fri 08/07/2026": 19.8,
         "Sat 08/08/2026": 0.0,
-        "Sun 08/09/2026": 0.0
+        "Sun 08/09/2026": 8.92
       },
       "department_costs": {
+        "Unassigned": 360.73,
         "Outbound": 1763.63,
         "SLC Kitting": 949.63
       },
-      "labor_source_file": "SLC_2026-08-03_to_2026-08-09.csv",
+      "labor_source_file": "SLC_2026-08-03_to_2026-08-09.csv + Homebase report API unassigned-role adjustment",
       "orders_shipped": 14317,
-      "cost_per_order": 0.1895,
-      "orders_per_labor_hour": 92.37
+      "cost_per_order": 0.2147,
+      "orders_per_labor_hour": 81.94
     }
   ]
 }
