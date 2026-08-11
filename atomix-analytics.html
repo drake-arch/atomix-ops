@@ -235,6 +235,7 @@ html.nucleus-analytics-skin .bt{background:rgba(6,45,49,.10);}
 <nav>
   <button class="tab active" data-v="overview"  onclick="showTab('overview')">Overview</button>
   <button class="tab" data-v="labor"            onclick="showTab('labor')">Labor Spend</button>
+  <button class="tab" data-v="weekly"           onclick="showTab('weekly')">Weekly CPO</button>
   <button class="tab" data-v="prod"             onclick="showTab('prod')">Productivity</button>
   <button class="tab" data-v="employees"        onclick="showTab('employees')">Employees</button>
   <button class="tab" data-v="projects"         onclick="showTab('projects')">Special Projects</button>
@@ -262,6 +263,28 @@ html.nucleus-analytics-skin .bt{background:rgba(6,45,49,.10);}
     <div class="cc" style="overflow:auto;"><div class="ct">Hours + CPO by Building</div><table class="tbl"><thead><tr><th>Site</th><th>Hours</th><th>Labor $</th><th>Orders</th><th>CPO</th></tr></thead><tbody id="lFacBody"></tbody></table></div>
   </div>
   <div class="cc" style="overflow:auto;"><div class="ct">Day-over-Day — Where Time Was Spent</div><table class="tbl"><thead><tr><th>Date</th><th>Total Hrs</th><th>Labor $</th><th>Top Area</th><th>Δ Hrs vs Prior</th></tr></thead><tbody id="lDayBody"></tbody></table></div>
+</div>
+
+<div class="view" id="view-weekly">
+  <div class="fr">
+    <span class="fl">Historical period</span><span class="mn">4 completed operating weeks through Aug 9, 2026</span>
+    <button class="eb" onclick="exportCSV('weekly')">Export CSV</button>
+  </div>
+  <div class="sr">
+    <div class="sc" style="--ac:var(--amber)"><div class="sl">Labor Cost</div><div class="sv" id="wCost">--</div><div class="ss">Homebase Labor by Role</div></div>
+    <div class="sc" style="--ac:var(--blue)"><div class="sl">Orders Shipped</div><div class="sv" id="wOrders">--</div><div class="ss">OMS shipped status</div></div>
+    <div class="sc" style="--ac:var(--green)"><div class="sl">Weighted CPO</div><div class="sv" id="wCPO">--</div><div class="ss">labor cost / shipped orders</div></div>
+    <div class="sc" style="--ac:var(--purple)"><div class="sl">Orders / Labor Hr</div><div class="sv" id="wOPH">--</div><div class="ss">period productivity</div></div>
+  </div>
+  <div class="cc"><div class="ct">Weekly Cost Per Order by Site</div><div class="cw" style="height:240px;"><canvas id="cWCPO"></canvas></div></div>
+  <div class="cc" style="overflow:auto;">
+    <div class="ct">Historical Weekly Detail</div>
+    <table class="tbl"><thead><tr><th>Site</th><th>Operating Week</th><th>Labor Hrs</th><th>Labor Cost</th><th>Orders Shipped</th><th>Orders / Hr</th><th>CPO</th></tr></thead><tbody id="wBody"></tbody></table>
+  </div>
+  <div class="cc" style="font-size:11px;line-height:1.55;color:var(--muted);">
+    <div class="ct">Method and Source</div>
+    <div id="wMethod">Loading historical source details...</div>
+  </div>
 </div>
 
 <div class="view" id="view-prod">
@@ -393,7 +416,7 @@ var FAC_LABELS={MKE:'Milwaukee',SLC:'Salt Lake City',BAL:'Baltimore'};
 var FACILITIES=['MKE','SLC','BAL'];
 var DCOLS=['#A3F3C5','#63B3ED','#F6AD55','#B794F4','#FC814A','#ED64A6','#68D391'];
 var SP_RATE=17.50,HOURLY=18.50,DASH='--';
-var LIVE=null,DAILY=[],EMPS=[],PROJS=[],EVENTS=[],SP_LOG=[],SP_LINKS={},SP_BUBBLES=[],ORDERS=0,ORDER_FAC={},ORDER_BY_DATE={},PACKERS=[];
+var LIVE=null,DAILY=[],EMPS=[],PROJS=[],EVENTS=[],SP_LOG=[],SP_LINKS={},SP_BUBBLES=[],ORDERS=0,ORDER_FAC={},ORDER_BY_DATE={},PACKERS=[],WEEKLY_CPO=null;
 var CHARTS={},CUR_FAC='',refreshTimer=null;
 
 function loadFac(){try{CUR_FAC=localStorage.getItem('atx_fac')||'';}catch(e){}document.getElementById('facSel').value=CUR_FAC;}
@@ -426,6 +449,7 @@ function rt(id){
   CHARTS={};
   if(id==='overview') renderOv();
   if(id==='labor') renderLabor();
+  if(id==='weekly') renderWeeklyCPO();
   if(id==='prod') renderProd();
   if(id==='employees') renderEmp();
   if(id==='projects') renderSP();
@@ -456,7 +480,7 @@ function localJson(path,cb){
 
 function doRefresh(){
   setTs('refreshing...');
-  var p=13,r={};
+  var p=14,r={};
   function got(k,d){r[k]=d;p--;if(p<=0)apply(r);}
   gasCall('live',{},function(d){got('live',d);});
   gasCall('daily',{from:daysAgo(30)},function(d){got('daily',d);});
@@ -466,6 +490,7 @@ function doRefresh(){
   gasCall('orders',{},function(d){got('orders',d);});
   gasCall('ordersHistory',{from:daysAgo(30),to:today()},function(d){got('ordersHist',d);});
   localJson('labor_intelligence/order_snapshots/orders_by_date.json',function(d){got('ordersLocal',d);});
+  localJson('labor_intelligence/historical_cpo.json',function(d){got('weeklyCPO',d);});
   gasCall('spHours',{},function(d){got('spH',d);});
   gasCall('spLinks',{},function(d){got('spL',d);});
   gasCall('spTasks',{},function(d){got('spT',d);});
@@ -474,6 +499,7 @@ function doRefresh(){
 }
 
 function apply(r){
+  if(r.weeklyCPO&&Array.isArray(r.weeklyCPO.rows)) WEEKLY_CPO=r.weeklyCPO;
   var allNull=!r.live&&!r.daily&&!r.emps;
   if(allNull){loadDemo();setTs('GAS unreachable -- demo data');document.getElementById('connBanner').classList.add('show');redraw();return;}
   document.getElementById('connBanner').classList.remove('show');
@@ -628,6 +654,31 @@ function renderLabor(){
   if(facBody)facBody.innerHTML=facs.map(function(f){var x=bfLatest[f]||{hours:0,cost:0,nbCost:0},datedOrders=ordersForDateFacility(latestDate,f),o=datedOrders!=null?datedOrders:ordersForFacility(f),cpo=datedOrders>0?x.nbCost/datedOrders:0;return '<tr><td><span class="badge '+f+'">'+f+'</span></td><td class="mn">'+x.hours.toFixed(1)+'h</td><td class="my">$'+fmt(x.cost)+'</td><td class="mn">'+(o?o.toLocaleString():DASH)+'</td><td class="my" style="color:'+(cpo>4?'var(--red)':'var(--green)')+'">'+(datedOrders>0?'$'+cpo.toFixed(2):DASH)+'</td></tr>';}).join('');
   var dayBody=document.getElementById('lDayBody');
   if(dayBody)dayBody.innerHTML=days.slice().reverse().map(function(d,i,arr){var x=dd[d],prev=dd[arr[i+1]],delta=prev?x.hours-prev.hours:0,top=Object.keys(x.depts).sort(function(a,b){return x.depts[b]-x.depts[a];})[0]||DASH;return '<tr><td class="mn">'+niceDate(d)+'</td><td class="mn">'+x.hours.toFixed(1)+'h</td><td class="my">$'+fmt(x.cost)+'</td><td>'+top+' <span class="mn">'+(x.depts[top]||0).toFixed(1)+'h</span></td><td class="mn" style="color:'+(delta>0?'var(--amber)':delta<0?'var(--green)':'var(--muted)')+'">'+(prev?(delta>=0?'+':'')+delta.toFixed(1)+'h':DASH)+'</td></tr>';}).join('');
+}
+
+// WEEKLY CPO
+function renderWeeklyCPO(){
+  var rows=WEEKLY_CPO&&Array.isArray(WEEKLY_CPO.rows)?WEEKLY_CPO.rows.slice():[];
+  if(CUR_FAC) rows=rows.filter(function(r){return r.facility===CUR_FAC;});
+  rows.sort(function(a,b){return a.week_start.localeCompare(b.week_start)||a.facility.localeCompare(b.facility);});
+  var cost=rows.reduce(function(s,r){return s+n(r.labor_cost);},0);
+  var orders=rows.reduce(function(s,r){return s+n(r.orders_shipped);},0);
+  var hours=rows.reduce(function(s,r){return s+n(r.labor_hours);},0);
+  document.getElementById('wCost').textContent=rows.length?'$'+fmt(cost):DASH;
+  document.getElementById('wOrders').textContent=rows.length?Math.round(orders).toLocaleString():DASH;
+  document.getElementById('wCPO').textContent=orders?'$'+(cost/orders).toFixed(2):DASH;
+  document.getElementById('wOPH').textContent=hours?(orders/hours).toFixed(2):DASH;
+  document.getElementById('wBody').innerHTML=rows.map(function(r){return '<tr><td><span class="badge '+r.facility+'">'+r.facility+'</span></td><td class="mn">'+niceDate(r.week_start)+' – '+niceDate(r.week_end)+'</td><td class="mn">'+n(r.labor_hours).toFixed(2)+'</td><td class="my">$'+fmt(r.labor_cost)+'</td><td class="mn">'+Math.round(n(r.orders_shipped)).toLocaleString()+'</td><td class="mn">'+n(r.orders_per_labor_hour).toFixed(2)+'</td><td class="my" style="font-size:14px;font-weight:700;">$'+n(r.cost_per_order).toFixed(2)+'</td></tr>';}).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px;">No historical CPO data for this site.</td></tr>';
+  var method=document.getElementById('wMethod');
+  method.textContent=WEEKLY_CPO?'Formula: '+WEEKLY_CPO.formula+'. Scope: '+WEEKLY_CPO.labor_scope+' Week rules: MKE Sunday–Saturday; SLC Monday–Sunday. Orders came from read-only OMS SQL through Metabase; deleted and archived orders were excluded.':'Historical source file unavailable.';
+  var facilities=CUR_FAC?[CUR_FAC]:['MKE','SLC'];
+  var c=document.getElementById('cWCPO');
+  if(!c||!rows.length)return;
+  var datasets=facilities.map(function(f){var site=rows.filter(function(r){return r.facility===f;}).sort(function(a,b){return a.week_start.localeCompare(b.week_start);});return {label:f,data:site.map(function(r){return n(r.cost_per_order).toFixed(4);}),borderColor:FAC_COLORS[f]||'#9D9F9E',backgroundColor:(FAC_COLORS[f]||'#9D9F9E')+'33',fill:false,tension:.25,borderWidth:2,pointRadius:4};}).filter(function(d){return d.data.length;});
+  var maxWeeks=Math.max.apply(null,datasets.map(function(d){return d.data.length;}));
+  var labels=Array.from({length:maxWeeks},function(_,i){return 'Week '+(i+1);});
+  var opts=co(true);opts.scales.y.beginAtZero=true;opts.scales.y.ticks.callback=function(v){return '$'+Number(v).toFixed(2);};
+  CHARTS.wcpo=new Chart(c,{type:'line',data:{labels:labels,datasets:datasets},options:opts});
 }
 
 // PRODUCTIVITY
@@ -877,6 +928,7 @@ function doRebuild(){var btn=document.getElementById('rebuildBtn');btn.textConte
 function exportCSV(type){
   var rows,filename;
   if(type==='labor'||type==='history'){var lr=laborRows();rows=[['Date','Facility','Dept','Headcount','Hours','Labor Cost','Billable','Non-Billable Cost','OT Hrs']].concat(lr.map(function(r){return [r.date,r.facility,r.dept,r.headcount,r.hours.toFixed(2),r.cost.toFixed(2),r.billable?'TRUE':'FALSE',r.billable?'0.00':r.cost.toFixed(2),r.ot.toFixed(2)];}));filename='atomix_labor_'+today()+'.csv';}
+  else if(type==='weekly'){var wr=WEEKLY_CPO&&Array.isArray(WEEKLY_CPO.rows)?WEEKLY_CPO.rows.filter(function(r){return !CUR_FAC||r.facility===CUR_FAC;}):[];rows=[['Facility','Week Start','Week End','Labor Hours','Labor Cost','Orders Shipped','Orders per Labor Hour','Cost per Order']].concat(wr.map(function(r){return [r.facility,r.week_start,r.week_end,n(r.labor_hours).toFixed(2),n(r.labor_cost).toFixed(2),Math.round(n(r.orders_shipped)),n(r.orders_per_labor_hour).toFixed(2),n(r.cost_per_order).toFixed(4)];}));filename='atomix_historical_weekly_cpo_'+today()+'.csv';}
   else if(type==='employees'){rows=[['ID','Name','Facility','Dept','Status','Hours Today','Hours Week']].concat(EMPS.map(function(e){return [e['Employee ID'],e['Full Name'],e.Facility,normDept(e.Dept),e.Status,e['Hours Today'],e['Hours Week']];}));filename='atomix_employees_'+today()+'.csv';}
   else if(type==='packers'){rows=[['Packer','Facility','Orders','Units','OPH','Shift Start','Shift End']].concat(PACKERS.map(function(p){return [p.name,p.facility,p.orders,p.units,(p.oph||'').toString(),p.firstPack||'',p.lastPack||''];}));filename='atomix_packers_'+today()+'.csv';}
   else if(type==='projects'){var sp=buildSP();rows=[['Source','Task ID','Task','Client','Facility','Status','Due','Est Hrs','Logged Hrs','Labor Cost','Linked Bubble','Bill Rate','Quoted Hrs','Supply','Revenue','Margin','Burn %','Source Logged Hrs','ClickUp Actual Hrs','URL']].concat(sp.map(function(r){return [r.source||'',r.id,r.name,r.client,r.facility,r.status,r.due?r.due.toISOString().slice(0,10):'',r.est,r.logged.toFixed(2),r.labor.toFixed(2),r.linked,r.rate,r.qh,r.supply.toFixed(2),r.rev.toFixed(2),(r.margin||0).toFixed(2),(r.pct*100).toFixed(1),r.ll.toFixed(2),r.lcu.toFixed(2),r.url];}));filename='atomix_special_projects_'+today()+'.csv';}
@@ -901,6 +953,7 @@ window.addEventListener('load',function(){
   document.getElementById('hFrom').value=w.toISOString().split('T')[0];
   document.getElementById('hTo').value=t.toISOString().split('T')[0];
   loadFac();loadDemo();renderOv();
+  try{var requested=new URLSearchParams(window.location.search).get('_nucleus_view');if(requested&&document.getElementById('view-'+requested))showTab(requested);}catch(e){}
   setTs('connecting...');
   doRefresh();
   refreshTimer=setInterval(doRefresh,30000);
