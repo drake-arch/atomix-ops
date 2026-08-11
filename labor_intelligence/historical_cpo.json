@@ -1,0 +1,298 @@
+{
+  "generated_at": "2026-08-11T13:52:16.035099+00:00",
+  "title": "Atomix Historical Weekly Labor CPO",
+  "formula": "Homebase labor cost / OMS orders shipped in the same facility week",
+  "labor_scope": "All standard operating roles in each Homebase Labor by Role export; salaried employees were excluded at export. Homebase does not provide a billable flag in this report.",
+  "week_rules": {
+    "MKE": "Sunday-Saturday",
+    "SLC": "Monday-Sunday"
+  },
+  "sources": {
+    "labor": "Homebase Labor by Role CSV exports",
+    "orders": "Metabase native SQL against OMS Orders via GitHub Actions secrets",
+    "orders_sql": "SELECT\n  DATE(o.shipDate) AS ship_date,\n  o.warehouseId AS warehouse_id,\n  w.name AS warehouse_name,\n  COUNT(*) AS orders_shipped\nFROM Orders o\nLEFT JOIN Warehouses w ON w.id = o.warehouseId\nWHERE o.isDeleted = 0\n  AND o.isArchived = 0\n  AND o.orderStatus = 'shipped'\n  AND o.shipDate >= '2026-07-12'\n  AND o.shipDate < '2026-08-12'\nGROUP BY DATE(o.shipDate), o.warehouseId, w.name\nORDER BY ship_date, warehouse_name",
+    "orders_generated_at": "2026-08-11T13:43:48.411450+00:00"
+  },
+  "rows": [
+    {
+      "facility": "MKE",
+      "week_start": "2026-07-12",
+      "week_end": "2026-07-18",
+      "labor_cost": 23392.53,
+      "labor_hours": 1391.78,
+      "daily_costs": {
+        "Sun 07/12/2026": 0.0,
+        "Mon 07/13/2026": 5940.81,
+        "Tue 07/14/2026": 4862.79,
+        "Wed 07/15/2026": 4320.59,
+        "Thu 07/16/2026": 4045.3,
+        "Fri 07/17/2026": 4223.04,
+        "Sat 07/18/2026": 0.0
+      },
+      "daily_hours": {
+        "Sun 07/12/2026": 0.0,
+        "Mon 07/13/2026": 334.85,
+        "Tue 07/14/2026": 274.52,
+        "Wed 07/15/2026": 245.22,
+        "Thu 07/16/2026": 227.47,
+        "Fri 07/17/2026": 237.11,
+        "Sat 07/18/2026": 0.0
+      },
+      "department_costs": {
+        "B2B": 2243.32,
+        "Inbound": 2099.42,
+        "Inventory": 3171.62,
+        "Kitting": 5366.09,
+        "Outbound": 9044.9,
+        "Returns": 1467.18
+      },
+      "labor_source_file": "MKE_2026-07-12_to_2026-07-18.csv",
+      "orders_shipped": 13612,
+      "cost_per_order": 1.7185,
+      "orders_per_labor_hour": 9.78
+    },
+    {
+      "facility": "MKE",
+      "week_start": "2026-07-19",
+      "week_end": "2026-07-25",
+      "labor_cost": 22467.3,
+      "labor_hours": 1340.42,
+      "daily_costs": {
+        "Sun 07/19/2026": 0.0,
+        "Mon 07/20/2026": 5631.71,
+        "Tue 07/21/2026": 4287.25,
+        "Wed 07/22/2026": 4147.23,
+        "Thu 07/23/2026": 4290.6,
+        "Fri 07/24/2026": 4110.51,
+        "Sat 07/25/2026": 0.0
+      },
+      "daily_hours": {
+        "Sun 07/19/2026": 0.0,
+        "Mon 07/20/2026": 318.11,
+        "Tue 07/21/2026": 243.18,
+        "Wed 07/22/2026": 234.03,
+        "Thu 07/23/2026": 241.08,
+        "Fri 07/24/2026": 230.32,
+        "Sat 07/25/2026": 0.0
+      },
+      "department_costs": {
+        "B2B": 2094.91,
+        "Inbound": 1400.33,
+        "Inventory": 2765.16,
+        "Kitting": 5284.36,
+        "Outbound": 9616.13,
+        "Returns": 1306.41
+      },
+      "labor_source_file": "MKE_2026-07-19_to_2026-07-25.csv",
+      "orders_shipped": 14596,
+      "cost_per_order": 1.5393,
+      "orders_per_labor_hour": 10.89
+    },
+    {
+      "facility": "MKE",
+      "week_start": "2026-07-26",
+      "week_end": "2026-08-01",
+      "labor_cost": 24469.87,
+      "labor_hours": 1451.27,
+      "daily_costs": {
+        "Sun 07/26/2026": 0.0,
+        "Mon 07/27/2026": 5634.2,
+        "Tue 07/28/2026": 4965.15,
+        "Wed 07/29/2026": 4788.34,
+        "Thu 07/30/2026": 4617.14,
+        "Fri 07/31/2026": 4465.04,
+        "Sat 08/01/2026": 0.0
+      },
+      "daily_hours": {
+        "Sun 07/26/2026": 0.0,
+        "Mon 07/27/2026": 316.49,
+        "Tue 07/28/2026": 278.87,
+        "Wed 07/29/2026": 269.13,
+        "Thu 07/30/2026": 258.96,
+        "Fri 07/31/2026": 247.44,
+        "Sat 08/01/2026": 0.0
+      },
+      "department_costs": {
+        "B2B": 2541.5,
+        "Inbound": 1430.45,
+        "Inventory": 3351.82,
+        "Kitting": 5229.38,
+        "Outbound": 10614.77,
+        "Returns": 1301.95
+      },
+      "labor_source_file": "MKE_2026-07-26_to_2026-08-01.csv",
+      "orders_shipped": 14369,
+      "cost_per_order": 1.703,
+      "orders_per_labor_hour": 9.9
+    },
+    {
+      "facility": "MKE",
+      "week_start": "2026-08-02",
+      "week_end": "2026-08-08",
+      "labor_cost": 25975.28,
+      "labor_hours": 1514.62,
+      "daily_costs": {
+        "Sun 08/02/2026": 0.0,
+        "Mon 08/03/2026": 6386.09,
+        "Tue 08/04/2026": 5245.9,
+        "Wed 08/05/2026": 4626.63,
+        "Thu 08/06/2026": 4956.08,
+        "Fri 08/07/2026": 4760.58,
+        "Sat 08/08/2026": 0.0
+      },
+      "daily_hours": {
+        "Sun 08/02/2026": 0.0,
+        "Mon 08/03/2026": 357.66,
+        "Tue 08/04/2026": 295.19,
+        "Wed 08/05/2026": 259.08,
+        "Thu 08/06/2026": 278.69,
+        "Fri 08/07/2026": 250.98,
+        "Sat 08/08/2026": 0.0
+      },
+      "department_costs": {
+        "B2B": 2504.1,
+        "Inbound": 2101.83,
+        "Inventory": 2890.48,
+        "Kitting": 4724.5,
+        "Outbound": 12315.75,
+        "Returns": 1438.62
+      },
+      "labor_source_file": "MKE_2026-08-02_to_2026-08-08.csv",
+      "orders_shipped": 19056,
+      "cost_per_order": 1.3631,
+      "orders_per_labor_hour": 12.58
+    },
+    {
+      "facility": "SLC",
+      "week_start": "2026-07-13",
+      "week_end": "2026-07-19",
+      "labor_cost": 2402.94,
+      "labor_hours": 136.99,
+      "daily_costs": {
+        "Mon 07/13/2026": 511.72,
+        "Tue 07/14/2026": 528.38,
+        "Wed 07/15/2026": 598.91,
+        "Thu 07/16/2026": 439.7,
+        "Fri 07/17/2026": 324.23,
+        "Sat 07/18/2026": 0.0,
+        "Sun 07/19/2026": 0.0
+      },
+      "daily_hours": {
+        "Mon 07/13/2026": 28.6,
+        "Tue 07/14/2026": 30.81,
+        "Wed 07/15/2026": 34.16,
+        "Thu 07/16/2026": 25.38,
+        "Fri 07/17/2026": 18.04,
+        "Sat 07/18/2026": 0.0,
+        "Sun 07/19/2026": 0.0
+      },
+      "department_costs": {
+        "Outbound": 1655.51,
+        "SLC Kitting": 747.43
+      },
+      "labor_source_file": "SLC_2026-07-13_to_2026-07-19.csv",
+      "orders_shipped": 6989,
+      "cost_per_order": 0.3438,
+      "orders_per_labor_hour": 51.02
+    },
+    {
+      "facility": "SLC",
+      "week_start": "2026-07-20",
+      "week_end": "2026-07-26",
+      "labor_cost": 2643.63,
+      "labor_hours": 151.08,
+      "daily_costs": {
+        "Mon 07/20/2026": 573.23,
+        "Tue 07/21/2026": 704.75,
+        "Wed 07/22/2026": 649.11,
+        "Thu 07/23/2026": 513.41,
+        "Fri 07/24/2026": 203.13,
+        "Sat 07/25/2026": 0.0,
+        "Sun 07/26/2026": 0.0
+      },
+      "daily_hours": {
+        "Mon 07/20/2026": 33.0,
+        "Tue 07/21/2026": 40.48,
+        "Wed 07/22/2026": 37.29,
+        "Thu 07/23/2026": 29.36,
+        "Fri 07/24/2026": 10.95,
+        "Sat 07/25/2026": 0.0,
+        "Sun 07/26/2026": 0.0
+      },
+      "department_costs": {
+        "Outbound": 1686.19,
+        "SLC Kitting": 957.44
+      },
+      "labor_source_file": "SLC_2026-07-20_to_2026-07-26.csv",
+      "orders_shipped": 12035,
+      "cost_per_order": 0.2197,
+      "orders_per_labor_hour": 79.66
+    },
+    {
+      "facility": "SLC",
+      "week_start": "2026-07-27",
+      "week_end": "2026-08-02",
+      "labor_cost": 2486.44,
+      "labor_hours": 141.95,
+      "daily_costs": {
+        "Mon 07/27/2026": 474.41,
+        "Tue 07/28/2026": 438.63,
+        "Wed 07/29/2026": 453.03,
+        "Thu 07/30/2026": 708.55,
+        "Fri 07/31/2026": 411.82,
+        "Sat 08/01/2026": 0.0,
+        "Sun 08/02/2026": 0.0
+      },
+      "daily_hours": {
+        "Mon 07/27/2026": 26.57,
+        "Tue 07/28/2026": 25.27,
+        "Wed 07/29/2026": 26.68,
+        "Thu 07/30/2026": 40.6,
+        "Fri 07/31/2026": 22.83,
+        "Sat 08/01/2026": 0.0,
+        "Sun 08/02/2026": 0.0
+      },
+      "department_costs": {
+        "Outbound": 1758.0,
+        "SLC Kitting": 728.44
+      },
+      "labor_source_file": "SLC_2026-07-27_to_2026-08-02.csv",
+      "orders_shipped": 12521,
+      "cost_per_order": 0.1986,
+      "orders_per_labor_hour": 88.21
+    },
+    {
+      "facility": "SLC",
+      "week_start": "2026-08-03",
+      "week_end": "2026-08-09",
+      "labor_cost": 2713.26,
+      "labor_hours": 154.99,
+      "daily_costs": {
+        "Mon 08/03/2026": 550.46,
+        "Tue 08/04/2026": 657.59,
+        "Wed 08/05/2026": 662.17,
+        "Thu 08/06/2026": 482.15,
+        "Fri 08/07/2026": 360.89,
+        "Sat 08/08/2026": 0.0,
+        "Sun 08/09/2026": 0.0
+      },
+      "daily_hours": {
+        "Mon 08/03/2026": 30.73,
+        "Tue 08/04/2026": 37.6,
+        "Wed 08/05/2026": 38.2,
+        "Thu 08/06/2026": 28.66,
+        "Fri 08/07/2026": 19.8,
+        "Sat 08/08/2026": 0.0,
+        "Sun 08/09/2026": 0.0
+      },
+      "department_costs": {
+        "Outbound": 1763.63,
+        "SLC Kitting": 949.63
+      },
+      "labor_source_file": "SLC_2026-08-03_to_2026-08-09.csv",
+      "orders_shipped": 14317,
+      "cost_per_order": 0.1895,
+      "orders_per_labor_hour": 92.37
+    }
+  ]
+}
