@@ -212,6 +212,34 @@ html.nucleus-analytics-skin .eb{
 }
 html.nucleus-analytics-skin .pb,
 html.nucleus-analytics-skin .bt{background:rgba(6,45,49,.10);}
+
+/* Weekly CPO decision surface */
+.weekly-hero{display:grid;grid-template-columns:minmax(270px,1.15fr) minmax(420px,2fr);gap:12px;}
+.weekly-primary{position:relative;overflow:hidden;min-height:178px;padding:20px;border-radius:16px;background:linear-gradient(135deg,#062D31,#0B4D46);border:1px solid rgba(163,245,196,.26);box-shadow:0 18px 44px rgba(6,45,49,.20);color:#fff;}
+.weekly-primary::after{content:'';position:absolute;width:190px;height:190px;right:-54px;top:-72px;border-radius:50%;border:34px solid rgba(163,245,196,.08);}
+.weekly-eyebrow{font:700 9px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:#A3F5C4;}
+.weekly-primary-value{font:700 46px/1 var(--mono);letter-spacing:-.06em;margin:13px 0 7px;color:#fff;}
+.weekly-primary-label{font-size:12px;color:rgba(255,255,255,.68);}
+.weekly-base-line{display:flex;align-items:center;gap:8px;margin-top:17px;font:500 10px/1.4 var(--mono);color:rgba(255,255,255,.72);}
+.weekly-tax-pill{display:inline-flex;padding:4px 7px;border-radius:999px;background:rgba(163,245,196,.14);border:1px solid rgba(163,245,196,.25);color:#A3F5C4;font-weight:700;}
+.weekly-primary .weekly-base-line,.weekly-primary .weekly-base-line span{color:rgba(255,255,255,.82)!important;}
+.weekly-primary .weekly-tax-pill{background:rgba(163,245,196,.18)!important;border-color:rgba(163,245,196,.36)!important;color:#C8F9DA!important;}
+.weekly-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.weekly-kpi{padding:15px 16px;border-radius:14px;background:var(--s1);border:1px solid var(--border);box-shadow:0 10px 24px rgba(28,34,29,.08);}
+.weekly-kpi .sl{margin-bottom:8px;}.weekly-kpi .sv{font-size:24px;}.weekly-kpi .ss{margin-top:6px;}
+.facility-cpo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.facility-cpo-card{--fac:var(--green);position:relative;overflow:hidden;padding:16px;border-radius:15px;background:var(--s1);border:1px solid var(--border);border-top:3px solid var(--fac);box-shadow:0 10px 24px rgba(28,34,29,.08);}
+.facility-cpo-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.facility-cpo-name{font:700 18px/1 var(--mono);color:var(--fac);}.facility-cpo-city{font-size:10px;color:var(--muted);margin-top:5px;}
+.facility-cpo-value{text-align:right;font:700 28px/1 var(--mono);color:var(--text);}.facility-cpo-value small{display:block;font:500 9px/1.3 'DM Sans',sans-serif;color:var(--muted);margin-top:5px;letter-spacing:.05em;text-transform:uppercase;}
+.facility-cpo-rail{height:7px;margin:15px 0 12px;border-radius:999px;background:var(--s3);overflow:hidden;}.facility-cpo-fill{height:100%;border-radius:inherit;background:var(--fac);}
+.facility-cpo-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}.facility-cpo-meta div{padding-right:6px;border-right:1px solid var(--border);}.facility-cpo-meta div:last-child{border:0;}.facility-cpo-meta span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}.facility-cpo-meta strong{display:block;margin-top:3px;font:500 11px/1.2 var(--mono);color:var(--text);}
+.weekly-charts{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.75fr);gap:12px;}
+.weekly-table-wrap{overflow:auto;}.weekly-table-wrap .tbl td,.weekly-table-wrap .tbl th{white-space:nowrap;}
+.tax-add{color:var(--amber);font-family:var(--mono);}.loaded-cost{color:var(--green);font-family:var(--mono);font-weight:700;}
+@media(max-width:850px){.weekly-hero,.weekly-charts{grid-template-columns:1fr}.weekly-summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.weekly-summary{grid-template-columns:1fr}.facility-cpo-meta{grid-template-columns:1fr}.facility-cpo-meta div{border-right:0;border-bottom:1px solid var(--border);padding-bottom:6px}}
+html.nucleus-analytics-skin .weekly-kpi,html.nucleus-analytics-skin .facility-cpo-card{background:linear-gradient(180deg,#FFFFFF,#F4F1E8);border-color:rgba(175,167,147,.62);}
 </style>
   <link rel="stylesheet" href="./atomix-theme.css" />
   <script src="./atomix-theme-toggle.js" defer></script>
@@ -267,19 +295,31 @@ html.nucleus-analytics-skin .bt{background:rgba(6,45,49,.10);}
 
 <div class="view" id="view-weekly">
   <div class="fr">
-    <span class="fl">Historical period</span><span class="mn">4 completed operating weeks through Aug 9, 2026</span>
+    <span class="fl">Historical period</span><span class="mn">4 completed operating weeks through Aug 9, 2026</span><span class="weekly-tax-pill">12% labor burden included</span>
     <button class="eb" onclick="exportCSV('weekly')">Export CSV</button>
   </div>
-  <div class="sr">
-    <div class="sc" style="--ac:var(--amber)"><div class="sl">Labor Cost</div><div class="sv" id="wCost">--</div><div class="ss">Homebase Labor by Role</div></div>
-    <div class="sc" style="--ac:var(--blue)"><div class="sl">Orders Shipped</div><div class="sv" id="wOrders">--</div><div class="ss">OMS shipped status</div></div>
-    <div class="sc" style="--ac:var(--green)"><div class="sl">Weighted CPO</div><div class="sv" id="wCPO">--</div><div class="ss">labor cost / shipped orders</div></div>
-    <div class="sc" style="--ac:var(--purple)"><div class="sl">Orders / Labor Hr</div><div class="sv" id="wOPH">--</div><div class="ss">period productivity</div></div>
+  <div class="weekly-hero">
+    <div class="weekly-primary">
+      <div class="weekly-eyebrow" id="wScope">Network · MKE + SLC</div>
+      <div class="weekly-primary-value" id="wCPO">--</div>
+      <div class="weekly-primary-label">combined cost per shipped order · wages + 12%</div>
+      <div class="weekly-base-line"><span id="wBaseCPO">-- base CPO</span><span class="weekly-tax-pill" id="wCPOAdd">-- burden / order</span></div>
+    </div>
+    <div class="weekly-summary">
+      <div class="weekly-kpi" style="--ac:var(--amber)"><div class="sl">Base Wages</div><div class="sv" id="wCost">--</div><div class="ss">Homebase payroll</div></div>
+      <div class="weekly-kpi" style="--ac:var(--purple)"><div class="sl">12% Labor Burden</div><div class="sv" id="wTax">--</div><div class="ss">shown separately</div></div>
+      <div class="weekly-kpi" style="--ac:var(--green)"><div class="sl">Loaded Labor</div><div class="sv" id="wLoaded">--</div><div class="ss">wages + burden</div></div>
+      <div class="weekly-kpi" style="--ac:var(--blue)"><div class="sl">Orders Shipped</div><div class="sv" id="wOrders">--</div><div class="ss" id="wOPH">-- orders / labor hr</div></div>
+    </div>
   </div>
-  <div class="cc"><div class="ct">Weekly Cost Per Order by Site</div><div class="cw" style="height:240px;"><canvas id="cWCPO"></canvas></div></div>
-  <div class="cc" style="overflow:auto;">
-    <div class="ct">Historical Weekly Detail</div>
-    <table class="tbl"><thead><tr><th>Site</th><th>Operating Week</th><th>Labor Hrs</th><th>Labor Cost</th><th>Orders Shipped</th><th>Orders / Hr</th><th>CPO</th></tr></thead><tbody id="wBody"></tbody></table>
+  <div class="facility-cpo-grid" id="wFacilityCards"></div>
+  <div class="weekly-charts">
+    <div class="cc"><div class="ct">Loaded CPO Trend · Combined + Facility</div><div class="cw" style="height:270px;"><canvas id="cWCPO"></canvas></div></div>
+    <div class="cc"><div class="ct">Labor Cost Composition</div><div class="cw" style="height:270px;"><canvas id="cWCost"></canvas></div></div>
+  </div>
+  <div class="cc weekly-table-wrap">
+    <div class="ct">Weekly CPO Detail · Base and Fully Loaded</div>
+    <table class="tbl"><thead><tr><th>Site</th><th>Operating Week</th><th>Labor Hrs</th><th>Base Wages</th><th>12% Burden</th><th>Loaded Labor</th><th>Orders</th><th>Base CPO</th><th>Loaded CPO</th></tr></thead><tbody id="wBody"></tbody></table>
   </div>
   <div class="cc" style="font-size:11px;line-height:1.55;color:var(--muted);">
     <div class="ct">Method and Source</div>
@@ -415,7 +455,7 @@ var FAC_COLORS={MKE:'#A3F3C5',SLC:'#63B3ED',BAL:'#F6AD55'};
 var FAC_LABELS={MKE:'Milwaukee',SLC:'Salt Lake City',BAL:'Baltimore'};
 var FACILITIES=['MKE','SLC','BAL'];
 var DCOLS=['#A3F3C5','#63B3ED','#F6AD55','#B794F4','#FC814A','#ED64A6','#68D391'];
-var SP_RATE=17.50,HOURLY=18.50,DASH='--';
+var SP_RATE=17.50,HOURLY=18.50,LABOR_BURDEN_RATE=0.12,DASH='--';
 var LIVE=null,DAILY=[],EMPS=[],PROJS=[],EVENTS=[],SP_LOG=[],SP_LINKS={},SP_BUBBLES=[],ORDERS=0,ORDER_FAC={},ORDER_BY_DATE={},PACKERS=[],WEEKLY_CPO=null;
 var CHARTS={},CUR_FAC='',refreshTimer=null;
 
@@ -664,21 +704,37 @@ function renderWeeklyCPO(){
   var cost=rows.reduce(function(s,r){return s+n(r.labor_cost);},0);
   var orders=rows.reduce(function(s,r){return s+n(r.orders_shipped);},0);
   var hours=rows.reduce(function(s,r){return s+n(r.labor_hours);},0);
+  var tax=cost*LABOR_BURDEN_RATE,loaded=cost+tax,baseCPO=orders?cost/orders:0,loadedCPO=orders?loaded/orders:0;
+  document.getElementById('wScope').textContent=CUR_FAC?(CUR_FAC+' · '+(FAC_LABELS[CUR_FAC]||'')):'Network · MKE + SLC';
   document.getElementById('wCost').textContent=rows.length?'$'+fmt(cost):DASH;
+  document.getElementById('wTax').textContent=rows.length?'$'+fmt(tax):DASH;
+  document.getElementById('wLoaded').textContent=rows.length?'$'+fmt(loaded):DASH;
   document.getElementById('wOrders').textContent=rows.length?Math.round(orders).toLocaleString():DASH;
-  document.getElementById('wCPO').textContent=orders?'$'+(cost/orders).toFixed(2):DASH;
-  document.getElementById('wOPH').textContent=hours?(orders/hours).toFixed(2):DASH;
-  document.getElementById('wBody').innerHTML=rows.map(function(r){return '<tr><td><span class="badge '+r.facility+'">'+r.facility+'</span></td><td class="mn">'+niceDate(r.week_start)+' – '+niceDate(r.week_end)+'</td><td class="mn">'+n(r.labor_hours).toFixed(2)+'</td><td class="my">$'+fmt(r.labor_cost)+'</td><td class="mn">'+Math.round(n(r.orders_shipped)).toLocaleString()+'</td><td class="mn">'+n(r.orders_per_labor_hour).toFixed(2)+'</td><td class="my" style="font-size:14px;font-weight:700;">$'+n(r.cost_per_order).toFixed(2)+'</td></tr>';}).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px;">No historical CPO data for this site.</td></tr>';
+  document.getElementById('wCPO').textContent=orders?'$'+loadedCPO.toFixed(2):DASH;
+  document.getElementById('wBaseCPO').textContent=orders?'$'+baseCPO.toFixed(2)+' base CPO':DASH;
+  document.getElementById('wCPOAdd').textContent=orders?'+$'+(loadedCPO-baseCPO).toFixed(2)+' / order':'12% burden';
+  document.getElementById('wOPH').textContent=hours?(orders/hours).toFixed(2)+' orders / labor hr':DASH;
+
+  var facilities=Array.from(new Set(rows.map(function(r){return r.facility;})));
+  var weeklyColors=document.documentElement.classList.contains('nucleus-analytics-skin')?{MKE:'#0F8B6B',SLC:'#185FA5',BAL:'#A66B16'}:FAC_COLORS;
+  var facStats=facilities.map(function(f){var site=rows.filter(function(r){return r.facility===f;}),fc=site.reduce(function(s,r){return s+n(r.labor_cost);},0),fo=site.reduce(function(s,r){return s+n(r.orders_shipped);},0),fh=site.reduce(function(s,r){return s+n(r.labor_hours);},0);return {facility:f,cost:fc,tax:fc*LABOR_BURDEN_RATE,orders:fo,hours:fh,cpo:fo?(fc*(1+LABOR_BURDEN_RATE))/fo:0,baseCPO:fo?fc/fo:0};});
+  var maxCPO=Math.max.apply(null,facStats.map(function(x){return x.cpo;}).concat([1]));
+  document.getElementById('wFacilityCards').innerHTML=facStats.map(function(x){var f=x.facility;return '<div class="facility-cpo-card" style="--fac:'+(weeklyColors[f]||'var(--green)')+'"><div class="facility-cpo-head"><div><div class="facility-cpo-name">'+f+'</div><div class="facility-cpo-city">'+(FAC_LABELS[f]||f)+'</div></div><div class="facility-cpo-value">$'+x.cpo.toFixed(2)+'<small>loaded CPO</small></div></div><div class="facility-cpo-rail"><div class="facility-cpo-fill" style="width:'+Math.max(4,x.cpo/maxCPO*100).toFixed(0)+'%"></div></div><div class="facility-cpo-meta"><div><span>Base CPO</span><strong>$'+x.baseCPO.toFixed(2)+'</strong></div><div><span>Loaded labor</span><strong>$'+fmt(x.cost+x.tax)+'</strong></div><div><span>Orders</span><strong>'+Math.round(x.orders).toLocaleString()+'</strong></div></div></div>';}).join('')||'<div class="cc" style="color:var(--muted);">No facility CPO data.</div>';
+
+  document.getElementById('wBody').innerHTML=rows.map(function(r){var rc=n(r.labor_cost),rt=rc*LABOR_BURDEN_RATE,ro=n(r.orders_shipped),rBase=ro?rc/ro:0,rLoaded=ro?(rc+rt)/ro:0;return '<tr><td><span class="badge '+r.facility+'">'+r.facility+'</span></td><td class="mn">'+niceDate(r.week_start)+' – '+niceDate(r.week_end)+'</td><td class="mn">'+n(r.labor_hours).toFixed(2)+'</td><td class="mn">$'+fmt(rc)+'</td><td class="tax-add">+$'+fmt(rt)+'</td><td class="loaded-cost">$'+fmt(rc+rt)+'</td><td class="mn">'+Math.round(ro).toLocaleString()+'</td><td class="mn">$'+rBase.toFixed(2)+'</td><td class="loaded-cost" style="font-size:14px;">$'+rLoaded.toFixed(2)+'</td></tr>';}).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;">No historical CPO data for this site.</td></tr>';
   var method=document.getElementById('wMethod');
-  method.textContent=WEEKLY_CPO?'Formula: '+WEEKLY_CPO.formula+'. Scope: '+WEEKLY_CPO.labor_scope+' Week rules: MKE Sunday–Saturday; SLC Monday–Sunday. Orders came from read-only OMS SQL through Metabase; deleted and archived orders were excluded.':'Historical source file unavailable.';
-  var facilities=CUR_FAC?[CUR_FAC]:['MKE','SLC'];
+  method.textContent=WEEKLY_CPO?'Base formula: '+WEEKLY_CPO.formula+'. Loaded labor adds a visible 12% burden to Homebase labor cost; loaded CPO = (base wages × 1.12) / shipped orders. Scope: '+WEEKLY_CPO.labor_scope+' Week rules: MKE Sunday–Saturday; SLC Monday–Sunday. Combined trend pairs each site’s completed operating week by sequence because the local week boundaries differ. Orders came from read-only OMS SQL through Metabase; deleted and archived orders were excluded.':'Historical source file unavailable.';
   var c=document.getElementById('cWCPO');
   if(!c||!rows.length)return;
-  var datasets=facilities.map(function(f){var site=rows.filter(function(r){return r.facility===f;}).sort(function(a,b){return a.week_start.localeCompare(b.week_start);});return {label:f,data:site.map(function(r){return n(r.cost_per_order).toFixed(4);}),borderColor:FAC_COLORS[f]||'#9D9F9E',backgroundColor:(FAC_COLORS[f]||'#9D9F9E')+'33',fill:false,tension:.25,borderWidth:2,pointRadius:4};}).filter(function(d){return d.data.length;});
-  var maxWeeks=Math.max.apply(null,datasets.map(function(d){return d.data.length;}));
-  var labels=Array.from({length:maxWeeks},function(_,i){return 'Week '+(i+1);});
+  var siteRows={};facilities.forEach(function(f){siteRows[f]=rows.filter(function(r){return r.facility===f;}).sort(function(a,b){return a.week_start.localeCompare(b.week_start);});});
+  var maxWeeks=Math.max.apply(null,facilities.map(function(f){return siteRows[f].length;}));
+  var labels=Array.from({length:maxWeeks},function(_,i){var aligned=facilities.map(function(f){return siteRows[f][i];}).filter(Boolean);return aligned.length?niceDate(aligned.map(function(r){return r.week_start;}).sort()[0])+' – '+niceDate(aligned.map(function(r){return r.week_end;}).sort().slice(-1)[0]):'Week '+(i+1);});
+  var datasets=facilities.map(function(f){return {label:f+' loaded',data:siteRows[f].map(function(r){return (n(r.labor_cost)*(1+LABOR_BURDEN_RATE)/n(r.orders_shipped)).toFixed(4);}),borderColor:weeklyColors[f]||'#9D9F9E',backgroundColor:(weeklyColors[f]||'#9D9F9E')+'22',fill:false,tension:.25,borderWidth:2,pointRadius:4};});
+  if(!CUR_FAC&&facilities.length>1){datasets.unshift({label:'Combined loaded',data:Array.from({length:maxWeeks},function(_,i){var aligned=facilities.map(function(f){return siteRows[f][i];}).filter(Boolean),wc=aligned.reduce(function(s,r){return s+n(r.labor_cost);},0),wo=aligned.reduce(function(s,r){return s+n(r.orders_shipped);},0);return wo?(wc*(1+LABOR_BURDEN_RATE)/wo).toFixed(4):null;}),borderColor:'#6D5BD0',backgroundColor:'rgba(109,91,208,.10)',fill:true,tension:.25,borderWidth:3,pointRadius:5});}
   var opts=co(true);opts.scales.y.beginAtZero=true;opts.scales.y.ticks.callback=function(v){return '$'+Number(v).toFixed(2);};
   CHARTS.wcpo=new Chart(c,{type:'line',data:{labels:labels,datasets:datasets},options:opts});
+  var costChart=document.getElementById('cWCost');
+  if(costChart)CHARTS.wcost=new Chart(costChart,{type:'bar',data:{labels:facStats.map(function(x){return x.facility;}),datasets:[{label:'Base wages',data:facStats.map(function(x){return x.cost.toFixed(2);}),backgroundColor:facStats.map(function(x){return (weeklyColors[x.facility]||'#A3F3C5')+'AA';}),borderRadius:4},{label:'12% burden',data:facStats.map(function(x){return x.tax.toFixed(2);}),backgroundColor:'#6D5BD0',borderRadius:4}]},options:Object.assign(co(true),{scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#4a6a84'}},y:{stacked:true,grid:{color:'rgba(163,243,197,.06)'},ticks:{color:'#4a6a84',callback:function(v){return '$'+Math.round(v/1000)+'k';}}}}})});
 }
 
 // PRODUCTIVITY
@@ -928,7 +984,7 @@ function doRebuild(){var btn=document.getElementById('rebuildBtn');btn.textConte
 function exportCSV(type){
   var rows,filename;
   if(type==='labor'||type==='history'){var lr=laborRows();rows=[['Date','Facility','Dept','Headcount','Hours','Labor Cost','Billable','Non-Billable Cost','OT Hrs']].concat(lr.map(function(r){return [r.date,r.facility,r.dept,r.headcount,r.hours.toFixed(2),r.cost.toFixed(2),r.billable?'TRUE':'FALSE',r.billable?'0.00':r.cost.toFixed(2),r.ot.toFixed(2)];}));filename='atomix_labor_'+today()+'.csv';}
-  else if(type==='weekly'){var wr=WEEKLY_CPO&&Array.isArray(WEEKLY_CPO.rows)?WEEKLY_CPO.rows.filter(function(r){return !CUR_FAC||r.facility===CUR_FAC;}):[];rows=[['Facility','Week Start','Week End','Labor Hours','Labor Cost','Orders Shipped','Orders per Labor Hour','Cost per Order']].concat(wr.map(function(r){return [r.facility,r.week_start,r.week_end,n(r.labor_hours).toFixed(2),n(r.labor_cost).toFixed(2),Math.round(n(r.orders_shipped)),n(r.orders_per_labor_hour).toFixed(2),n(r.cost_per_order).toFixed(4)];}));filename='atomix_historical_weekly_cpo_'+today()+'.csv';}
+  else if(type==='weekly'){var wr=WEEKLY_CPO&&Array.isArray(WEEKLY_CPO.rows)?WEEKLY_CPO.rows.filter(function(r){return !CUR_FAC||r.facility===CUR_FAC;}):[];rows=[['Facility','Week Start','Week End','Labor Hours','Base Labor Cost','12% Labor Burden','Loaded Labor Cost','Orders Shipped','Orders per Labor Hour','Base CPO','Loaded CPO']].concat(wr.map(function(r){var base=n(r.labor_cost),burden=base*LABOR_BURDEN_RATE,orders=n(r.orders_shipped);return [r.facility,r.week_start,r.week_end,n(r.labor_hours).toFixed(2),base.toFixed(2),burden.toFixed(2),(base+burden).toFixed(2),Math.round(orders),n(r.orders_per_labor_hour).toFixed(2),orders?(base/orders).toFixed(4):'',orders?((base+burden)/orders).toFixed(4):''];}));filename='atomix_historical_weekly_cpo_'+today()+'.csv';}
   else if(type==='employees'){rows=[['ID','Name','Facility','Dept','Status','Hours Today','Hours Week']].concat(EMPS.map(function(e){return [e['Employee ID'],e['Full Name'],e.Facility,normDept(e.Dept),e.Status,e['Hours Today'],e['Hours Week']];}));filename='atomix_employees_'+today()+'.csv';}
   else if(type==='packers'){rows=[['Packer','Facility','Orders','Units','OPH','Shift Start','Shift End']].concat(PACKERS.map(function(p){return [p.name,p.facility,p.orders,p.units,(p.oph||'').toString(),p.firstPack||'',p.lastPack||''];}));filename='atomix_packers_'+today()+'.csv';}
   else if(type==='projects'){var sp=buildSP();rows=[['Source','Task ID','Task','Client','Facility','Status','Due','Est Hrs','Logged Hrs','Labor Cost','Linked Bubble','Bill Rate','Quoted Hrs','Supply','Revenue','Margin','Burn %','Source Logged Hrs','ClickUp Actual Hrs','URL']].concat(sp.map(function(r){return [r.source||'',r.id,r.name,r.client,r.facility,r.status,r.due?r.due.toISOString().slice(0,10):'',r.est,r.logged.toFixed(2),r.labor.toFixed(2),r.linked,r.rate,r.qh,r.supply.toFixed(2),r.rev.toFixed(2),(r.margin||0).toFixed(2),(r.pct*100).toFixed(1),r.ll.toFixed(2),r.lcu.toFixed(2),r.url];}));filename='atomix_special_projects_'+today()+'.csv';}
